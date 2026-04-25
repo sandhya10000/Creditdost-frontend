@@ -1,0 +1,4 @@
+.env
+
+# AI Analysis Prompt (optional - can override default)
+config/ai-analysis-prompt.txt

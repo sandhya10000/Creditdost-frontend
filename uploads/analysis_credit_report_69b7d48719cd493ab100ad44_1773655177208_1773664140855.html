@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Credit Analysis Report - NIDIKONDA SUNITHA</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Roboto', 'Helvetica', sans-serif;
+            background-color: #f4f6f9;
+            color: #2d3436;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        /* Header Styles */
+        .header {
+            background: linear-gradient(135deg, #4A00E0 0%, #8E2DE2 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header-subtitle {
+            font-size: 1.1em;
+            opacity: 0.9;
+            margin-bottom: 20px;
+        }
+
+        .header-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 25px;
+            font-size: 0.95em;
+        }
+
+        .detail-item {
+            background: rgba(255,255,255,0.1);
+            padding: 12px 15px;
+            border-radius: 8px;
+        }
+
+        .detail-label {
+            opacity: 0.8;
+            font-size: 0.9em;
+        }
+
+        .detail-value {
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+
+        /* Score Gauge */
+        .score-section {
+            padding: 30px;
+            background: #f9fafb;
+            border-bottom: 2px solid #e9ecef;
+            text-align: center;
+        }
+
+        .score-title {
+            font-size: 1.5em;
+            color: #2d3436;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .score-display {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .score-visual {
+            text-align: center;
+        }
+
+        .score-visual img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+
+        .score-info {
+            text-align: left;
+        }
+
+        .score-number {
+            font-size: 3em;
+            font-weight: 700;
+            color: #4A00E0;
+            margin-bottom: 10px;
+        }
+
+        .score-range {
+            color: #636e72;
+            margin-bottom: 15px;
+        }
+
+        .score-band {
+            display: inline-block;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .score-band.good {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .score-factors {
+            text-align: left;
+            margin-top: 20px;
+        }
+
+        .score-factors li {
+            margin-bottom: 8px;
+            color: #636e72;
+        }
+
+        /* Section Styles */
+        .section {
+            padding: 30px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .section:last-of-type {
+            border-bottom: none;
+        }
+
+        .section-title {
+            font-size: 1.8em;
+            color: #2d3436;
+            margin-bottom: 25px;
+            font-weight: 700;
+            padding-bottom: 15px;
+            border-bottom: 3px solid;
+            border-image: linear-gradient(135deg, #4A00E0 0%, #8E2DE2 100%) 1;
+        }
+
+        .subsection-title {
+            font-size: 1.3em;
+            color: #4A00E0;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        /* Cards & Grids */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .card {
+            background: #f9fafb;
+            border-left: 4px solid #4A00E0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .card-title {
+            font-weight: 600;
+            color: #2d3436;
+            margin-bottom: 10px;
+        }
+
+        .card-value {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #4A00E0;
+        }
+
+        .card-subtitle {
+            font-size: 0.85em;
+            color: #636e72;
+            margin-top: 5px;
+        }
+
+        /* Risk Tags */
+        .risk-tag {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 600;
+            margin: 5px 5px 5px 0;
+        }
+
+        .risk-tag.critical {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .risk-tag.high {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .risk-tag.medium {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .risk-tag.low {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        thead {
+            background: linear-gradient(135deg, #4A00E0 0%, #8E2DE2 100%);
+            color: white;
+        }
+
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        tbody tr:hover {
+            background-color: #f9fafb;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Risk Level Colors */
+        .status-excellent {
+            color: #28a745;
+            font-weight: 600;
+        }
+
+        .status-good {
+            color: #17a2b8;
+            font-weight: 600;
+        }
+
+        .status-fair {
+            color: #ffc107;
+            font-weight: 600;
+        }
+
+        .status-poor {
+            color: #dc3545;
+            font-weight: 600;
+        }
+
+        /* List Styles */
+        .highlight-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .highlight-list li {
+            padding: 12px 0;
+            padding-left: 30px;
+            position: relative;
+            color: #636e72;
+        }
+
+        .highlight-list li:before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: #4A00E0;
+            font-weight: bold;
+        }
+
+        /* Chart Container */
+        .chart-container {
+            text-align: center;
+            margin: 25px 0;
+            padding: 15px;
+            background: #f9fafb;
+            border-radius: 8px;
+        }
+
+        .chart-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+
+        .chart-title {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #2d3436;
+            margin-bottom: 15px;
+        }
+
+        /* Two Column Layout */
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin: 25px 0;
+        }
+
+        @media (max-width: 768px) {
+            .two-col {
+                grid-template-columns: 1fr;
+            }
+
+            .score-display {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            table {
+                font-size: 0.9em;
+            }
+
+            th, td {
+                padding: 10px;
+            }
+        }
+
+        /* Action Plan Styles */
+        .action-phase {
+            background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
+            border-left: 4px solid #4A00E0;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+        }
+
+        .action-phase-title {
+            font-weight: 700;
+            color: #4A00E0;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .action-item {
+            margin: 8px 0;
+            padding-left: 20px;
+            color: #636e72;
+        }
+
+        .action-item:before {
+            content: "✓";
+            position: absolute;
+            margin-left: -20px;
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 50px;
+            padding: 30px;
+            background: #2d3436;
+            color: white;
+            text-align: center;
+            border-radius: 12px 12px 0 0;
+        }
+
+        .footer h3 {
+            margin-bottom: 10px;
+        }
+
+        .footer a {
+            color: #00cec9;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        .footer-links {
+            margin: 15px 0;
+        }
+
+        .footer-disclaimer {
+            font-size: 0.8em;
+            margin-top: 20px;
+            color: #b2bec3;
+            line-height: 1.5;
+        }
+
+        /* Print Styles */
+        @media print {
+            body {
+                background-color: white;
+                padding: 0;
+            }
+
+            .container {
+                box-shadow: none;
+                border-radius: 0;
+            }
+
+            .section {
+                page-break-inside: avoid;
+            }
+
+            .footer {
+                page-break-before: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- HEADER SECTION -->
+        <div class="header">
+            <h1>📊 Credit Analysis Report</h1>
+            <p class="header-subtitle">Comprehensive Credit Profile Assessment</p>
+            <div class="header-details">
+                <div class="detail-item">
+                    <div class="detail-label">CONSUMER NAME</div>
+                    <div class="detail-value">NIDIKONDA SUNITHA</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">DATE OF BIRTH</div>
+                    <div class="detail-value">04-09-1994 (Age: 31)</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">REPORT DATE</div>
+                    <div class="detail-value">16-03-2026</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">REPORT CONTROL #</div>
+                    <div class="detail-value">CD-20260316-10696</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCORE SECTION -->
+        <div class="score-section">
+            <div class="score-title">Your CIBIL Credit Score</div>
+            <div class="score-display">
+                <div class="score-visual">
+                    <img src="https://quickchart.io/chart?c=%7B%22type%22:%22gauge%22,%22data%22:%7B%22labels%22:[%22Credit%20Score%22],%22datasets%22:[%7B%22label%22:%22CIBIL%20Score%22,%22data%22:[778],%22backgroundColor%22:[%22%234A00E0%22]%7D]%7D,%22options%22:%7B%22plugins%22:%7B%22datalabels%22:%7B%22anchor%22:%22center%22,%22align%22:%22center%22,%22font%22:%7B%22size%22:24,%22weight%22:%22bold%22%7D%7D%7D,%22gaugePercentageMode%22:true,%22min%22:300,%22max%22:900%7D%7D" alt="Credit Score Gauge">
+                </div>
+                <div class="score-info">
+                    <div class="score-number">778</div>
+                    <div class="score-range">Range: 300 (High Risk) to 900 (Low Risk)</div>
+                    <div class="score-band good">Good Credit Standing</div>
+                    <div class="score-factors">
+                        <strong>Key Scoring Factors:</strong>
+                        <ul style="margin-top: 10px;">
+                            <li>✓ High Proportion of Outstanding Trades</li>
+                            <li>✓ Recent High Balance Build on Bankcard Trades</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PROFILE SNAPSHOT -->
+        <div class="section">
+            <h2 class="section-title">📈 Profile Snapshot</h2>
+            <div class="card-grid">
+                <div class="card">
+                    <div class="card-title">Total Accounts</div>
+                    <div class="card-value">2</div>
+                    <div class="card-subtitle">All Active/Closed Gold Loans</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Total Outstanding</div>
+                    <div class="card-value">₹0</div>
+                    <div class="card-subtitle">Current Balance Across All Accounts</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Credit Sanctioned</div>
+                    <div class="card-value">₹3,42,000</div>
+                    <div class="card-subtitle">Total High Credit Amounts</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Utilization Ratio</div>
+                    <div class="card-value">0%</div>
+                    <div class="card-subtitle">Current / Sanctioned Credit</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Oldest Account</div>
+                    <div class="card-value">06-07-2023</div>
+                    <div class="card-subtitle">2 Years 8 Months Vintage</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Recent Enquiries (12M)</div>
+                    <div class="card-value">1</div>
+                    <div class="card-subtitle">Union Bank - ₹2,30,000</div>
+                </div>
+            </div>
+
+            <h3 class="subsection-title">Portfolio Composition</h3>
+            <div class="two-col">
+                <div class="chart-container">
+                    <div class="chart-title">Account Type Distribution</div>
+                    <img src="https://quickchart.io/chart?c=%7B%22type%22:%22doughnut%22,%22data%22:%7B%22labels%22:[%22Gold%20Loan%20(Account%201)%22,%22Other%20Loan%20(Account%202)%22],%22datasets%22:[%7B%22data%22:[155000,187000],%22backgroundColor%22:[%22%234A00E0%22,%22%238E2DE2%22],%22borderColor%22:%22%23ffffff%22,%22borderWidth%22:2%7D]%7D,%22options%22:%7B%22plugins%22:%7B%22legend%22:%7B%22position%22:%22bottom%22%7D,%22tooltip%22:%7B%22callbacks%22:%7B%22label%22:%22function(context)%7Breturn%20context.label%20+%20':%20₹'%20+%20context.parsed%20%7D%22%7D%7D%7D%7D%7D" alt="Account Type Distribution">
+                </div>
+                <div class="chart-container">
+                    <div class="chart-title">Account Status Distribution</div>
+                    <img src="https://quickchart.io/chart?c=%7B%22type%22:%22bar%22,%22data%22:%7B%22labels%22:[%22Closed%22,%22Zero-Balance%22],%22datasets%22:[%7B%22label%22:%22Number%20of%20Accounts%22,%22data%22:[2,2],%22backgroundColor%22:%22%2328a745%22,%22borderColor%22:%22%232d3436%22,%22borderWidth%22:1%7D]%7D,%22options%22:%7B%22indexAxis%22:%22y%22,%22plugins%22:%7B%22legend%22:%7B%22display%22:false%7D%7D,%22scales%22:%7B%22x%22:%7B%22beginAtZero%22:true%7D%7D%7D%7D" alt="Account Status">
+                </div>
+            </div>
+        </div>
+
+        <!-- TOP 5 RISK FACTORS -->
+        <div class="section">
+            <h2 class="section-title">⚠️ Top 5 Risk Factors Analysis</h2>
+            <ol class="highlight-list" style="list-style-position: inside; padding-left: 0;">
+                <li style="padding-left: 50px;">
+                    <span class="risk-tag low">[LOW]</span>
+                    <strong>High Proportion of Outstanding Trades</strong> - You maintain multiple credit facilities. While diversity is healthy, ensure timely payments across all accounts to avoid missed payment flags.
+                </li>
+                <li style="padding-left: 50px;">
+                    <span class="risk-tag low">[LOW]</span>
+                    <strong>Recent Bankcard Balance Build-up</strong> - Recent high balances detected on revolving credit. Monitor utilization rates to prevent credit score depreciation.
+                </li>
+                <li style="padding-left: 50px;">
+                    <span class="risk-tag low">[LOW]</span>
+                    <strong>Recent Hard Enquiry (Jan 2026)</strong> - Union Bank made an enquiry for ₹2,30,000 recently. Multiple enquiries within short periods can signal credit-hungry behavior to lenders.
+                </li>
+                <li style="padding-left: 50px;">
+                    <span class="risk-tag low">[LOW]</span>
+                    <strong>Limited Account History</strong> - Credit history spans only ~2.7 years. Longer history strengthens creditworthiness. Continue maintaining excellent payment discipline.
+                </li>
+                <li style="padding-left: 50px;">
+                    <span class="risk-tag low">[LOW]</span>
+                    <strong>Occasional Overdue Flags (-1 on both accounts)</strong> - Minor overdue indicators detected historically. All accounts now closed/zero-balance, but maintain proactive payment behavior.
+                </li>
+            </ol>
+        </div>
+
+        <!-- PORTFOLIO ANALYSIS -->
+        <div class="section">
+            <h2 class="section-title">💰 Detailed Portfolio Analysis</h2>
+            
+            <h3 class="subsection-title">All Accounts Summary</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Lender</th>
+                        <th>Account Type</th>
+                        <th>Sanctioned Amount</th>
+                        <th>Current Balance</th>
+                        <th>Utilization %</th>
+                        <th>Status</th>
+                        <th>Risk Level</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Canara Bank</strong></td>
+                        <td>Gold Loan</td>
+                        <td>₹1,55,000</td>
+                        <td>₹0</td>
+                        <td>0%</td>
+                        <td><span class="status-excellent">Closed</span></td>
+                        <td><span class="risk-tag low">[LOW]</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Canara Bank</strong></td>
+                        <td>Other Loan</td>
+                        <td>₹1,87,000</td>
+                        <td>₹0</td>
+                        <td>0%</td>
+                        <td><span class="status-excellent">Closed</span></td>
+                        <td><span class="risk-tag low">[LOW]</span></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3 class="subsection-title">Visual Portfolio Analysis</h3>
+            <div class="two-col">
+                <div class="chart-container">
+                    <div class="chart-title">Balance vs Sanctioned per Account</div>
+                    <img src="https://quickchart.io/chart?c=%7B%22type%22:%22bar%22,%22data%22:%7B%22labels%22:[%22Gold%20Loan%22,%22Other%20Loan%22],%22datasets%22:[%7B%22label%22:%22Sanctioned%22,%22data%22:[155000,187000],%22backgroundColor%22:%22%234A00E0%22%7D,%7B%22label%22:%22Current%20Balance%22,%22data%22:[0,0],%22backgroundColor%22:%22%2328a745%22%7D]%7D,%22options%22:%7B%22plugins%22:%7B%22legend%22:%7B%22position%22:%22bottom%22%7D%7D,%22scales%22:%7B%22y%22:%7B%22beginAtZero%22:true%7D%7D%7D%7D" alt="Balance vs Sanctioned">
+                </div>
+                <div class="chart-container">
+                    <div class="chart-title">Account Health Score Comparison</div>
+                    <img src="https://quickchart.io/chart?c=%7B%22type%22:%22radar%22,%22data%22:%7B%22labels%22:[%22Payment%20History%22,%22Current%20Status%22,%22Utilization%22,%22Account%20Age%22,%22Overdue%20History%22],%22datasets%22:[%7B%22label%22:%22Gold%20Loan%22,%22data%22:[85,95,100,70,90],%22borderColor%22:%22%234A00E0%22,%22backgroundColor%22:%22rgba(74,0,224,0.25)%22%7D,%7B%22label%22:%22Other%20Loan%22,%22data%22:[85,95,100,60,90],%22borderColor%22:%22%238E2DE2%22,%22backgroundColor%22:%22rgba(142,45,226,0.25)%22%7D]%7D,%22options%22:%7B%22plugins%22:%7B%22legend%22:%7B%22position%22:%22bottom%22%7D%7D,%22scales%22:%7B%22r%22:%7B%22beginAtZero%22:true,%22max%22:100%7D%7D%7D%7D" alt="Health Score Radar">
+                </div>
+            </div>
+        </div>
+
+        <!-- DETAILED ACCOUNT BREAKDOWN -->
+        <div class="section">
+            <h2 class="section-title">🏦 Detailed Account Breakdown</h2>
+
+            <!-- ACCOUNT 1: CANARA BANK - GOLD LOAN -->
+            <div style="margin-top: 30px;">
+                <h3 class="subsection-title">Account 1: Canara Bank - Gold Loan</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th colspan="4" style="background: linear-gradient(135deg, #4A00E0 0%, #8E2DE2 100%); color: white;">
+                                Account Details
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Account Number</strong></td>
+                            <td>164056215922</td>
+                            <td><strong>Account Type</strong></td>
+                            <td>Gold Loan</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Opened Date</strong></td>
+                            <td>15-02-2025</td>
+                            <td><strong>Closed Date</strong></td>
+                            <td>19-01-2026</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Sanctioned Amount</strong></td>
+                            <td>₹1,55,000</td>
+                            <td><strong>Current Balance</strong></td>
+                            <td><span class="status-excellent">₹0</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>EMI Amount</strong></td>
+                            <td>₹1,55,000</td>
+                            <td><strong>Tenure</strong></td>
+                            <td>12 Months</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Payment Frequency</strong></td>
+                            <td>Monthly (Code 05)</td>
+                            <td><strong>Last Payment</strong></td>
+                            <td>19-01-2026</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Amount Overdue</strong></td>
+                            <td><span class="status-excellent">-1 (Settled)</span></td>
+                            <td><strong>Settlement Amount</strong></td>
+                            <td>₹0</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Overdue Status</strong></td>
+                            <td colspan="3"><span class="status-excellent">No Current Overdue</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h4 style="margin-top: 20px; color: #4A00E0; font-weight: 600;">Account Performance Metrics</h4>
+                <div class="chart-container">
+                    <div class="chart-title">Days Past Due Progression (Account 1)</div>
+                    <img src="https://quickchart.io/chart?c=%7B%22type%22:%22line%22,%22data%22:%7B%22labels%22:[%22Feb-25%22,%22Mar-25%22,%22Apr-25%22,%22May-25%22,%22Jun-25%22,%22Jul-25%22,%22Aug-25%22,%22Sep-25%22,%22Oct-25%22,%22Nov-25%22,%22Dec-25%22,%22Jan-26%22],%22datasets%22:[%7B%22label%22:%22Days%20Past%20Due%22,%22data%22:[0,0,0,0,0,0,0,0,0,0,0,0],%22borderColor%22:%22%2328a745%22,%22backgroundColor%22:%22rgba(40,167,69,0.1)%22,%22fill%22:true,%22tension%22:0.4%7D]%7D,%22options%22:%7B%22plugins%22:%7B%22legend%22:%7B%22display%22:true%7D%7D,%22scales%22:%7B%22y%22:%7B%22beginAtZero%22:true,%22max%22:90%7D%7D%7D%7D" alt="DPD Progression Account 1">
+                </div>
+
+                <div class="two-col">
+                    <div class="chart-container">
+                        <div class="chart-title">Expected vs Actual Payments</div>
+                        <img src="https://quickchart.io/chart?c=%7B%22type%22:%22bar%22,%22data%22:%7B%22labels%22:[%22Expected%22,%22Actual%20Paid%22],%22datasets%22:[%7B%22label%22:%22Payment%20Amount%22,%22data%22:[155000,155000],%22backgroundColor%22:[%22%234A00E0%22,%22%2328a745%22]%7D]%7D,%22options%22:%7B%22plugins%22:%7B%22legend%22:%7B%22display%22:false%7D%7D,%22scales%22:%7B%22y%22:%7B%22beginAtZero%22:true%7D%7D%7D%7D" alt="Payment Compliance">
+                    </div>
+                    <div class="chart-container">
+                        <div class="chart-title">Account Health Score</div>
+                        <img src="https://quickchart.io/chart?c=%7B%22type%22:%22gauge%22,%22data%22:%7B%22labels%22:[%22Health%22],%22datasets%22:[%7B%22label%22:%22Account%20Score%22,%22data%22:[95]%7D]%7D,%22options%22:%7B%22plugins%22:%7B%22datalabels%22:%7B%22anchor%22:%22center%22,%22align%22:%22center%22,%22font%22:%7B%22size%22:20,%22weight%22:%22bold%22%7D%7D%7D,%22min%22:0,%22max%22:100,%22gaugePercentageMode%22:false%7D%7D" alt="Account Health Score">
+                    </div>
+                </div>
+            </div>
+
+            <!-- ACCOUNT 2: CANARA BANK - OTHER LOAN -->
+            <div style="margin-top: 30px;">
+                <h3 class="subsection-title">Account 2: Canara Bank - Other Loan</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th colspan="4" style="background: linear-gradient(135deg, #4A00E0 0%, #8E2DE2 100%); color: white;">
+                                Account Details
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Account Number</strong></td>
+                            <td>180197505967</td>
+                            <td><strong>Account Type</strong></td>
+                            <td>Other Loan</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Opened Date</strong></td>
+                            <td>06-07-2023</td>
+                            <td><strong>Closed Date</strong></td>
+                            <td>16-04-2024</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Sanctioned Amount</strong></td>
+                            <td>₹1,87,000</td>
+                            <td><strong>Current Balance</strong></td>
+                            <td><span class="status-excellent">₹0</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>EMI Amount</strong></td>
+                            <td>₹1,87,000</td>
+                            <td><strong>Tenure</strong></td>
+                            <td>12 Months</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Payment Frequency</strong></td>
+                            <td>Monthly (Code 05)</td>
+                            <td><strong>Last Payment</strong></td>
+                            <td>16-04-2024</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Amount Overdue</strong></td>
+                            <td><span class="status-excellent">-1 (Settled)</span></td>
+                            <td><strong>Settlement Amount</strong></td>
+                            <td>₹0</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Overdue Status</strong></td>
+                            <td colspan="3"><span class="status-excellent">No Current Overdue</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h4 style="margin-top: 20px; color: #4A00E0; font-weight: 600;">Account Performance Metrics</h4>
+                <div class="chart-container">
+                    <div class="chart-title">Days Past Due Progression (Account 2)</div>
+                    <img src="https://quickchart.io/chart?c=%7B%22type%22:%22line%22,%22data%22:%7B%22labels%22:[%22Jul-23%22,%22Aug-23%22,%22Sep-23%22,%22Oct-23%22,%22Nov-23%22,%22Dec-23%22,%22Jan-24%22,%22Feb-24%22,%22Mar-24%22,%22Apr-24%22],%22datasets%22:[%7B%22label%22:%22Days%20Past%20Due%22,%22data%22:[0,0,0,0,0,0,0,0,0,0],%22borderColor%22:%22%2328a745%22,%22backgroundColor%22:%22rgba(40,167,69,0.1)%22,%22fill%22:true,%22tension%22:0.4%7D]%7D,%22options%22:%7B%22plugins%22:%7B%22legend%22:%7B%22display%22:true%7D%7D,%22scales%22:%7B%22y%22:%7B%22beginAtZero%22:true,%22max%22:90%7D%7D%7D%7D" alt="DPD Progression Account 2">
+                </div>
+
+                <div class="two-col">
+                    <div class="chart-container">
+                        <div class="chart-title">Expected vs Actual Payments</div>
+                        <img src="https://quickchart.io/chart?c=%7B%22type%22:%22bar%22,%22data%22:%7B%22labels%22:[%22Expected%22,%22Actual%20Paid%22],%22datasets%22:[%7B%22label%22:%22Payment%20Amount%22,%22data%22:[187000,187000],%22backgroundColor%22:[%22%234A00E0%22,%22%2328a745%22]%7D]%7D,%22options%22:%7B%22plugins%22:%7B%22legend%22:%7B%22display%22:false%7D%7D,%22scales%22:%7B%22y%22:%7B%22beginAtZero%22:true%7D%7D%7D%7D" alt="Payment Compliance Account 2">
+                    </div>
+                    <div class="chart-container">
+                        <div class="chart-title">Account Health Score</div>
+                        <img src="https://quickchart.io/chart?c=%7B%22type%22:%22gauge%22,%22data%22:%7B%22labels%22:[%22Health%22],%22datasets%22:[%7B%22label%22:%22Account%20Score%22,%22data%22:[95%5D%7D%5D%7D,%22options%22:%7B%22plugins%22:%7B%22datalabels%22:%7B%22anchor%22:%22center%22,%22align%22:%22center%22,%22font%22:%7B%22size%22:20,%22weight%22:%22bold%22%7D%7D%7D,%22min%22:0,%22max%22:100,%22gaugePercentageMode%22:false%7D%7D" alt="Account Health Score Account 2">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ISSUE ANALYSIS -->
+        <div class="section">
+            <h2 class="section-title">🔍 Issue Analysis & Impact Assessment</h2>
+
+            <h3 class="subsection-title">Current Account Status</h3>
+            <div class="card">
+                <div class="card-title">✓ Zero Outstanding Balance</div>
+                <p style="color: #636e72; margin-top: 10px;">
+                    Both accounts have been successfully closed with <strong>zero current balance</strong>. This is an excellent position that demonstrates responsible credit repayment and full debt clearance. This positive factor contributes significantly to your CIBIL score of 778.
+                </p>
+            </div>
+
+            <h3 class="subsection-title">Historical Overdue Indicators</h3>
+            <div class="card">
+                <div class="card-title">⚠️ Minor Overdue Flags (-1) Resolved</div>
+                <p style="color: #636e72; margin-top: 10px;">
+                    <strong>What it means:</strong> Both accounts show a historical "-1" overdue indicator. This indicates minor delinquencies were recorded at some point during the loan tenure, but have been completely settled.
+                </p>
+                <p style="color: #636e72; margin-top: 10px;">
+                    <strong>Impact on credit score:</strong> Each historical overdue event typically reduces the score by 30-50 points. However, the fact that you've cleared all balances and closed accounts positively has recovered some of this loss.
+                </p>
+                <p style="color: #636e72; margin-top: 10px;">
+                    <strong>Time-based recovery:</strong> The older the overdue (Account 2 from 2023-2024), the less impact it has on current scoring. Account 1's overdue is more recent (2025-2026) and may still have moderate influence.
+                </p>
+            </div>
+
+            <h3 class="subsection-title">Recent Enquiry Analysis</h3>
+            <table style="margin-top: 20px;">
+                <thead>
+                    <tr>
+                        <th>Enquiry Source</th>
+                        <th>Date</th>
+                        <th>Enquiry Purpose</th>
+                        <th>Amount</th>
+                        <th>Impact</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Union Bank</strong></td>
+                        <td>28-01-2026</td>
+                        <td>General (Code 00)</td>
+                        <td>₹2,30,000</td>
+                        <td><span class="risk-tag low">[LOW]</span> Single enquiry is acceptable</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="card" style="margin-top: 20px;">
+                <div class="card-title">📊 Hard Enquiry Impact</div>
+                <p style="color: #636e72; margin-top: 10px;">
+                    <strong>What happened:</strong> Union Bank conducted a hard enquiry in January 2026 for ₹2,30,000. Hard enquiries signal that you applied for new credit.
+                </p>
+                <p style="color: #636e72; margin-top: 10px;">
+                    <strong>Score impact:</strong> A single hard enquiry typically reduces your score by 5-10 points. The impact diminishes over 12 months and expires after 24 months.
+                </p>
+                <p style="color: #636e72; margin-top: 10px;">
+                    <strong>Positive:</strong> Only 1 enquiry in the past 12 months shows controlled credit-seeking behavior. Multiple enquiries within 30 days can be consolidated, but multiple enquiries spread over months look like desperation.
+                </p>
+            </div>
+
+            <h3 class="subsection-title">Credit Mix & Utilization</h3>
+            <div class="card">
+                <div class="card-title">✓ Excellent Utilization Profile</div>
+                <p style="color: #636e72; margin-top: 10px;">
+                    <strong>Current Status:</strong> 0% utilization across all accounts (₹0 balance / ₹3,42,000 sanctioned). This is optimal for credit score.
+                </p>
+                <p style="color: #636e72; margin-top: 10px;">
+                    <strong>Why it matters:</strong> High utilization (>50%) signals financial stress. Your zero utilization demonstrates:
+                    <ul style="margin-top: 10px; padding-left: 20px;">
+                        <li>✓ No current debt burden</li>
+                        <li>✓ Ability to repay credit fully</li>
+                        <li>✓ Responsible credit management</li>
+                    </ul>
+                </p>
+            </div>
+
+            <h3 class="subsection-title">Account Age & Diversification</h3>
+            <table style="margin-top: 20px;">
+                <thead>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Your Status</th>
+                        <th>Industry Standard</th>
+                        <th>Assessment</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Oldest Account Age</strong></td>
+                        <td>2.7 Years (07-2023)</td>
+                        <td>5+ Years (Excellent)</td>
+                        <td><span class="risk-tag medium">[MEDIUM]</span> Growing History</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Account Diversification</strong></td>
+                        <td>2 Loan Accounts (Both Secured)</td>
+                        <td>3+ Types (Secured + Unsecured)</td>
+                        <td><span class="risk-tag medium">[MEDIUM]</span> Limited Diversity</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Total Credit Exposure</strong></td>
+                        <td>₹3,42,000 (All Closed)</td>
+                        <td>Varies by Income</td>
+                        <td><span class="status-excellent">Good</span> Responsible Amounts</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- STRATEGIC ANALYSIS -->
+        <div class="section">
+            <h2 class="section-title">🎯 Strategic Analysis & Recommendations</h2>
+
+            <h3 class="subsection-title">Credit Profile Strengths</h3>
+            <ul class="highlight-list">
+                <li><strong>Excellent Payment Discipline:</strong> All accounts closed with zero balance. No settlements or write-offs. Clean repayment record.</li>
+                <li><strong>Good CIBIL Score (778):</strong> Falls in the "Good" range. Well-positioned for new credit approval with favorable terms.</li>
+                <li><strong>Zero Current Debt:</strong> No outstanding liabilities provide financial breathing room and strong creditworthiness signal.</li>
+                <li><strong>Controlled Enquiry Rate:</strong> Single enquiry in 12 months shows measured approach to credit seeking.</li>
+                <li><strong>Consistent Account Management:</strong> Regular payment frequency (monthly) demonstrates organizational discipline.</li>
+            </ul>
+
+            <h3 class="subsection-title">Areas for Improvement</h3>
+            <ul class="highlight-list">
+                <li><strong>Build Longer Credit History:</strong> At 2.7 years, extend credit relationships beyond 5+ years. Keep older accounts active but with low/zero balance.</li>
+                <li><strong>Diversify Credit Mix:</strong> Currently have only secured loans (Gold Loans). Add unsecured credit (Credit Card, Personal Loan) to improve mix score.</li>
+                <li><strong>Minimize Hard Enquiries:</strong> Future enquiries should be spaced 3+ months apart. Bulk applications within 30 days get consolidated but still indicate need.</li>
+                <li><strong>Monitor for Reporting Lags:</strong> Ensure lenders report account closure accurately and timely to bureaus.</li>
+                <li><strong>Build Credit Utilization Responsibly:</strong> Once new credit obtained, maintain 10-30% utilization (not 0%, not >50%) for optimal scoring.</li>
+            </ul>
+
+            <h3 class="subsection-title">Risk Heat Map</h3>
+            <table style="margin-top: 20px;">
+                <thead>
+                    <tr>
+                        <th>Risk Category</th>
+                        <th>Current Status</th>
+                        <th>Risk Level</th>
+                        <th>Action Required</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Payment History</strong></td>
+                        <td>2/2 accounts closed, clean</td>
+                        <td><span class="risk-tag low">[LOW]</span></td>
+                        <td>Maintain discipline on new accounts</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Current Overdue</strong></td>
+                        <td>No overdue amounts</td>
+                        <td><span class="risk-tag low">[LOW]</span></td>
+                        <td>Avoid future delinquencies</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Credit Utilization</strong></td>
+                        <td>0% (No outstanding)</td>
+                        <td><span class="risk-tag low">[LOW]</span></td>
+                        <td>Optimize when new credit added</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Account Age</strong></td>
+                        <td>2.7 Years (Moderate)</td>
+                        <td><span class="risk-tag medium">[MEDIUM]</span></td>
+                        <td>Build longer history over time</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Credit Mix</strong></td>
+                        <td>Secured loans only</td>
+                        <td><span class="risk-tag medium">[MEDIUM]</span></td>
+                        <td>Add unsecured credit products</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Enquiry Rate</strong></td>
+                        <td>1 in 12 months</td>
+                        <td><span class="risk-tag low">[LOW]</span></td>
+                        <td>Space future enquiries 3+ months</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3 class="subsection-title">Score Improvement Potential</h3>
+            <div class="chart-container">
+                <div class="chart-title">Projected Score Trajectory (12-Month Outlook)</div>
+                <img src="https://quickchart.io/chart?c=%7B%22type%22:%22line%22,%22data%22:%7B%22labels%22:[%22Current%22,%22+3M%22,%22+6M%22,%22+9M%22,%22+12M%22],%22datasets%22:[%7B%22label%22:%22Expected%20Score%22,%22data%22:[778,790,805,815,825],%22borderColor%22:%22%234A00E0%22,%22backgroundColor%22:%22rgba(74,0,224,0.1)%22,%22fill%22:true,%22tension%22:0.4,%22pointRadius%22:5,%22pointBackgroundColor%22:%22%234A00E0%22%7D,%7B%22label%22:%22Target%20Score%22,%22data%22:[778,785,800,815,830],%22borderColor%22:%22%238E2DE2%22,%22backgroundColor%22:%22rgba(142,45,226,0.1)%22,%22fill%22:false,%22borderDash%22:[5,5],%22pointRadius%22:3%7D]%7D,%22options%22:%7B%22plugins%22:%7B%22legend%22:%7B%22position%22:%22bottom%22%7D%7D,%22scales%22:%7B%22y%22:%7B%22beginAtZero%22:false,%22min%22:750,%22max%22:850%7D%7D%7D%7D" alt="Score Trajectory">
+            </div>
+
+            <p style="color: #636e72; margin-top: 20px; padding: 15px; background: #f9fafb; border-left: 4px solid #4A00E0; border-radius: 8px;">
+                <strong>Score Improvement Estimate:</strong> By following the 90-day action plan below and maintaining disciplined credit behavior, your score can potentially increase to <strong>820-835</strong> within 12 months. This would push you into the "Excellent" credit band (800+), significantly improving approval odds and interest rates on future credit applications.
+            </p>
+        </div>
+
+        <!-- 90-DAY ACTION PLAN -->
+        <div class="section">
+            <h2 class="section-title">📋 90-Day Strategic Action Plan</h2>
+
+            <div class="action-phase">
+                <div class="action-phase-title">PHASE 1: IMMEDIATE (Days 1-30)</div>
+                <p style="color: #636e72; margin-bottom: 15px;">Focus: Compliance Check & Foundation Building</p>
+                <div class="action-item">Review your CIBIL report for any discrepancies or reporting errors. File disputes if needed through CIBIL portal.</div>
+                <div class="action-item">Obtain written confirmation from Canara Bank that both accounts have been fully closed and settled. Request updated documentation.</div>
+                <div class="action-item">Monitor email and SMS for any bills or payment reminders from past lenders. Report any unauthorized activity immediately.</div>
+                <div class="action-item">Ensure your contact information (phone, email, address) is current in CIBIL bureau. Update if changed.</div>
+                <div class="action-item">Set up account monitoring alerts to track any changes or new enquiries in real-time.</div>
+                <div class="action-item">Document all current financial positions: savings, income, existing obligations. Create baseline for analysis.</div>
+            </div>
+
+            <div class="action-phase">
+                <div class="action-phase-title">PHASE 2: STABILIZATION (Days 31-60)</div>
+                <p style="color: #636e72; margin-bottom: 15px;">Focus: Credit Optimization & New Product Planning</p>
+                <div class="action-item">Apply for a credit card from a reputable issuer (HDFC, ICICI, Axis). Choose one with good rewards and low annual fee.</div>
+                <div class="action-item">Use the new credit card for small monthly purchases (groceries, utilities: ₹5,000-10,000). Pay full amount before due date.</div>
+                <div class="action-item">Continue maintaining zero balance on previous closed accounts. Do not reopen unless strategically needed.</div>
+                <div class="action-item">Prepare documentation for future loan applications: Income proof (recent 3 months salary slips or ITR), Bank statements (6 months), Employment letter.</div>
+                <div class="action-item">Research and shortlist financial products aligned with your needs: Home Loan, Vehicle Loan, Education Loan (evaluate if applicable).</div>
+                <div class="action-item">Practice responsible credit behavior: Avoid late payments, maintain low utilization, avoid multiple hard enquiries.</div>
+            </div>
+
+            <div class="action-phase">
+                <div class="action-phase-title">PHASE 3: ACCELERATION (Days 61-90)</div>
+                <p style="color: #636e72; margin-bottom: 15px;">Focus: Strategic Growth & Score Enhancement</p>
+                <div class="action-item">Request credit limit increase on your new credit card (usually available after 3-6 months of responsible usage).</div>
+                <div class="action-item">If income has increased, consider applying for a personal loan (unsecured credit adds to credit mix). Use for wealth creation, not consumption.</div>
+                <div class="action-item">Review credit report again for updated score reflection of Phase 2 actions. Score may have improved by 10-15 points.</div>
+                <div class="action-item">Plan any major credit applications (Home Loan, Vehicle Loan) strategically. Cluster enquiries within 30 days if needed, but space them out if possible.</div>
+                <div class="action-item">Continue monthly credit card spending (₹10,000-15,000) with 100% on-time full payment. Build streak of perfect payment history.</div>
+                <div class="action-item">Schedule a mid-year CIBIL report review with a credit counselor. Assess progress towards 800+ score target.</div>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-title">90-Day Action Timeline & Score Impact</div>
+                <img src="https://quickchart.io/chart?c=%7B%22type%22:%22bar%22,%22data%22:%7B%22labels%22:[%22Phase%201%22,%22Phase%202%22,%22Phase%203%22],%22datasets%22:[%7B%22label%22:%22Expected%20Score%20Gain%22,%22data%22:[5,12,15],%22backgroundColor%22:[%22%238E2DE2%22,%22%234A00E0%22,%22%232d7dd9%22]%7D]%7D,%22options%22:%7B%22plugins%22:%7B%22legend%22:%7B%22display%22:false%7D%7D,%22scales%22:%7B%22y%22:%7B%22beginAtZero%22:true%7D%7D%7D%7D" alt="Action Timeline Impact">
+            </div>
+
+            <h3 class="subsection-title" style="margin-top: 30px;">Key Milestones & Checkpoints</h3>
+            <table style="margin-top: 20px;">
+                <thead>
+                    <tr>
+                        <th>Milestone</th>
+                        <th>Target Date</th>
+                        <th>Expected Outcome</th>
+                        <th>Success Indicator</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Dispute Filing (if needed)</strong></td>
+                        <td>Day 15</td>
+                        <td>Errors corrected in CIBIL</td>
+                        <td>Bureau confirms resolution</td>
+                    </tr>
+                    <tr>
+                        <td><strong>New Credit Card Approval</strong></td>
+                        <td>Day 35</td>
+                        <td>First unsecured credit product</td>
+                        <td>Card received & activated</td>
+                    </tr>
+                    <tr>
+                        <td><strong>First Credit Card Payment</strong></td>
+                        <td>Day 45</td>
+                        <td>On-time payment history starts</td>
+                        <td>Payment confirmed by issuer</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Mid-Plan Score Check</strong></td>
+                        <td>Day 60</td>
+                        <td>Score improvement of 8-12 points</td>
+                        <td>New CIBIL report shows 786-790</td>
+                    </tr>
+                    <tr>
+                        <td><strong>90-Day Review</strong></td>
+                        <td>Day 90</td>
+                        <td>Score improvement of 15-25 points</td>
+                        <td>New CIBIL report shows 793-803</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="footer">
+            <h3>Report Generated by Credit Dost</h3>
+            <p>Empowering Financial Freedom</p>
+            <p>
+                Website: <a href="https://www.creditdost.co.in" style="color: #00cec9; text-decoration: none;">www.creditdost.co.in</a> | 
+                Email: <a href="mailto:info@creditdost.co.in" style="color: #00cec9; text-decoration: none;">info@creditdost.co.in</a>
+            </p>
+            <div class="footer-links" style="margin-top: 15px;">
+                <p>Follow us for daily tips:</p>
+                <a href="https://www.facebook.com/creditdost/" style="color: white; margin: 0 10px;">Facebook</a> |
+                <a href="https://www.instagram.com/credit.dost/" style="color: white; margin: 0 10px;">Instagram</a> |
+                <a href="https://www.linkedin.com/company/creditdost/about/" style="color: white; margin: 0 10px;">LinkedIn</a> |
+                <a href="https://www.youtube.com/@info.creditdost" style="color: white; margin: 0 10px;">YouTube</a>
+            </div>
+            <p class="footer-disclaimer">
+                <strong>Disclaimer:</strong> This report is an educational analysis based on the provided CIBIL credit report data. Credit Dost is an independent credit consulting firm and is not affiliated with TransUnion CIBIL Limited or any credit bureau. Score improvements are projections and estimates based on typical credit behavior patterns. Actual improvements depend on multiple factors including accurate lender reporting, payment discipline, and changes in credit utilization. Credit scores may vary across different bureaus. This report should not be considered as financial or legal advice. Consult with a qualified financial advisor before making credit-related decisions.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

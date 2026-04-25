@@ -1,0 +1,1603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Credit Analysis Report - Gagandeep Singh</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-gradient: linear-gradient(135deg, #4A00E0 0%, #8E2DE2 100%);
+            --critical-red: #dc3545;
+            --high-orange: #fd7e14;
+            --medium-yellow: #ffc107;
+            --low-green: #28a745;
+            --bg-light: #f4f6f9;
+            --card-white: #ffffff;
+            --text-dark: #2d3436;
+            --text-light: #636e72;
+            --border-light: #dfe6e9;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Roboto', 'Helvetica', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* ========== HEADER SECTION ========== */
+        .header {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 40px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 16px rgba(74, 0, 224, 0.2);
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .logo {
+            font-size: 32px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .report-meta {
+            text-align: right;
+            font-size: 14px;
+            opacity: 0.95;
+        }
+
+        .report-meta p {
+            margin: 5px 0;
+        }
+
+        .client-info {
+            margin-bottom: 30px;
+        }
+
+        .client-info h1 {
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .client-info p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .score-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .score-display {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .score-number {
+            font-size: 48px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .score-band {
+            font-size: 18px;
+            font-weight: 600;
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            display: inline-block;
+        }
+
+        .score-gauge {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* ========== SNAPSHOT SECTION ========== */
+        .section {
+            background: var(--card-white);
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            background: var(--primary-gradient);
+            padding: 16px 20px;
+            margin: -30px -30px 25px -30px;
+            border-radius: 12px 12px 0 0;
+        }
+
+        .snapshot-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 4px solid var(--primary-gradient);
+            text-align: center;
+        }
+
+        .metric-label {
+            font-size: 12px;
+            color: var(--text-light);
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .metric-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--text-dark);
+        }
+
+        .metric-unit {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-top: 4px;
+        }
+
+        .charts-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .chart-box {
+            background: var(--bg-light);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .chart-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--text-dark);
+        }
+
+        .chart-box img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* ========== RISK FACTORS ========== */
+        .risk-list {
+            list-style: none;
+        }
+
+        .risk-item {
+            display: flex;
+            align-items: flex-start;
+            padding: 15px;
+            margin-bottom: 12px;
+            background: var(--bg-light);
+            border-radius: 8px;
+            border-left: 4px solid;
+        }
+
+        .risk-item.critical {
+            border-left-color: var(--critical-red);
+            background: rgba(220, 53, 69, 0.05);
+        }
+
+        .risk-item.high {
+            border-left-color: var(--high-orange);
+            background: rgba(253, 126, 20, 0.05);
+        }
+
+        .risk-item.medium {
+            border-left-color: var(--medium-yellow);
+            background: rgba(255, 193, 7, 0.05);
+        }
+
+        .risk-item.low {
+            border-left-color: var(--low-green);
+            background: rgba(40, 167, 69, 0.05);
+        }
+
+        .risk-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-right: 12px;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .risk-badge.critical {
+            background: var(--critical-red);
+            color: white;
+        }
+
+        .risk-badge.high {
+            background: var(--high-orange);
+            color: white;
+        }
+
+        .risk-badge.medium {
+            background: var(--medium-yellow);
+            color: black;
+        }
+
+        .risk-badge.low {
+            background: var(--low-green);
+            color: white;
+        }
+
+        .risk-text {
+            flex: 1;
+        }
+
+        .risk-text strong {
+            display: block;
+            margin-bottom: 4px;
+            color: var(--text-dark);
+        }
+
+        .risk-text p {
+            font-size: 14px;
+            color: var(--text-light);
+        }
+
+        /* ========== PORTFOLIO TABLE ========== */
+        .table-wrapper {
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--card-white);
+        }
+
+        table thead {
+            background: var(--primary-gradient);
+            color: white;
+        }
+
+        table th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        table td {
+            padding: 14px 15px;
+            border-bottom: 1px solid var(--border-light);
+            font-size: 14px;
+        }
+
+        table tbody tr:hover {
+            background-color: var(--bg-light);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-active {
+            background: rgba(40, 167, 69, 0.1);
+            color: var(--low-green);
+        }
+
+        .status-closed {
+            background: rgba(99, 110, 114, 0.1);
+            color: var(--text-light);
+        }
+
+        .status-overdue {
+            background: rgba(220, 53, 69, 0.1);
+            color: var(--critical-red);
+        }
+
+        /* ========== ACCOUNT DETAIL CARD ========== */
+        .account-card {
+            background: var(--card-white);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            margin-bottom: 30px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .account-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .account-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .account-number {
+            font-size: 13px;
+            opacity: 0.85;
+            margin-top: 4px;
+        }
+
+        .account-health {
+            text-align: center;
+        }
+
+        .health-score {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .health-label {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .account-body {
+            padding: 25px;
+        }
+
+        .account-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .account-metric {
+            background: var(--bg-light);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .account-metric-label {
+            font-size: 11px;
+            color: var(--text-light);
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .account-metric-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--text-dark);
+        }
+
+        .account-charts {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .account-chart {
+            background: var(--bg-light);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .account-chart-title {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text-dark);
+        }
+
+        .account-chart img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* ========== ISSUE ANALYSIS ========== */
+        .issue-subsection {
+            margin-bottom: 20px;
+            padding: 20px;
+            background: var(--bg-light);
+            border-radius: 8px;
+            border-left: 4px solid var(--primary-gradient);
+        }
+
+        .issue-subsection h4 {
+            color: var(--text-dark);
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .issue-subsection p {
+            color: var(--text-light);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        /* ========== ACTION PLAN ========== */
+        .action-plan-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .action-month {
+            background: var(--bg-light);
+            padding: 20px;
+            border-radius: 8px;
+            border-top: 4px solid var(--primary-gradient);
+        }
+
+        .action-month h4 {
+            color: var(--text-dark);
+            margin-bottom: 15px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .action-list {
+            list-style: none;
+        }
+
+        .action-list li {
+            padding: 8px 0;
+            padding-left: 24px;
+            position: relative;
+            color: var(--text-light);
+            font-size: 14px;
+        }
+
+        .action-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--low-green);
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        /* ========== HEATMAP TABLE ========== */
+        .heatmap-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--card-white);
+        }
+
+        .heatmap-table th,
+        .heatmap-table td {
+            padding: 12px;
+            border: 1px solid var(--border-light);
+            text-align: center;
+            font-size: 13px;
+        }
+
+        .heatmap-table th {
+            background: var(--primary-gradient);
+            color: white;
+            font-weight: 600;
+        }
+
+        .heatmap-cell-excellent {
+            background: rgba(40, 167, 69, 0.2);
+            font-weight: 600;
+            color: var(--low-green);
+        }
+
+        .heatmap-cell-good {
+            background: rgba(255, 193, 7, 0.2);
+            font-weight: 600;
+            color: #ff9800;
+        }
+
+        .heatmap-cell-fair {
+            background: rgba(253, 126, 20, 0.2);
+            font-weight: 600;
+            color: var(--high-orange);
+        }
+
+        .heatmap-cell-poor {
+            background: rgba(220, 53, 69, 0.2);
+            font-weight: 600;
+            color: var(--critical-red);
+        }
+
+        /* ========== FOOTER ========== */
+        .footer {
+            margin-top: 50px;
+            padding: 30px;
+            background: #2d3436;
+            color: white;
+            text-align: center;
+            border-radius: 12px 12px 0 0;
+        }
+
+        .footer h3 {
+            margin-bottom: 10px;
+            font-size: 22px;
+        }
+
+        .footer p {
+            margin: 8px 0;
+            font-size: 14px;
+        }
+
+        .footer a {
+            color: #00cec9;
+            text-decoration: none;
+            margin: 0 10px;
+            transition: color 0.3s;
+        }
+
+        .footer a:hover {
+            color: #55efc4;
+            text-decoration: underline;
+        }
+
+        .footer-disclaimer {
+            font-size: 0.8em;
+            margin-top: 20px;
+            color: #b2bec3;
+            line-height: 1.6;
+        }
+
+        /* ========== PRINT STYLES ========== */
+        @media print {
+            body {
+                background: white;
+            }
+
+            .section,
+            .account-card {
+                page-break-inside: avoid;
+                box-shadow: none;
+                border: 1px solid var(--border-light);
+            }
+
+            .header {
+                page-break-after: avoid;
+            }
+
+            table {
+                page-break-inside: avoid;
+            }
+
+            .account-charts {
+                page-break-inside: avoid;
+            }
+
+            .footer {
+                page-break-before: always;
+            }
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 768px) {
+            .container {
+                padding: 12px;
+            }
+
+            .header {
+                padding: 20px;
+            }
+
+            .header-top {
+                flex-direction: column;
+                text-align: center;
+                margin-bottom: 20px;
+            }
+
+            .report-meta {
+                text-align: center;
+                margin-top: 15px;
+            }
+
+            .score-section {
+                grid-template-columns: 1fr;
+            }
+
+            .snapshot-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .charts-row {
+                grid-template-columns: 1fr;
+            }
+
+            .account-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .account-health {
+                text-align: left;
+                margin-top: 15px;
+            }
+
+            .table-wrapper {
+                margin: -30px -30px 20px -30px;
+            }
+
+            table th,
+            table td {
+                padding: 10px;
+                font-size: 12px;
+            }
+        }
+
+        /* ========== UTILITY CLASSES ========== */
+        .text-center {
+            text-align: center;
+        }
+
+        .mb-20 {
+            margin-bottom: 20px;
+        }
+
+        .mb-30 {
+            margin-bottom: 30px;
+        }
+
+        .mt-20 {
+            margin-top: 20px;
+        }
+
+        .mt-30 {
+            margin-top: 30px;
+        }
+
+        .text-muted {
+            color: var(--text-light);
+        }
+
+        .highlight {
+            background: rgba(255, 193, 7, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- ========== HEADER SECTION ========== -->
+        <div class="header">
+            <div class="header-top">
+                <div class="logo">💳 Credit Dost</div>
+                <div class="report-meta">
+                    <p><strong>Report Date:</strong> 2nd March 2026</p>
+                    <p><strong>Report Control #:</strong> CD-20260302-7769</p>
+                </div>
+            </div>
+            <div class="client-info">
+                <h1>Gagandeep Singh</h1>
+                <p>Date of Birth: 3rd June 1995 | PAN: GFLPS4114D | Mobile: 8360703621</p>
+            </div>
+            <div class="score-section">
+                <div class="score-display">
+                    <div class="score-number">761</div>
+                    <div class="score-band">GOOD CREDIT SCORE</div>
+                    <p style="margin-top: 10px; font-size: 13px;">You are in the upper-middle credit score range. This indicates healthy credit behavior with room for improvement.</p>
+                </div>
+                <div>
+                    <img src="https://quickchart.io/chart?c=%7B%22type%22:%22gauge%22,%22data%22:%7B%22datasets%22:%5B%7B%22value%22:761,%22minValue%22:300,%22maxValue%22:900,%22backgroundColor%22:%22%234A00E0%22%7D%5D%7D,%22options%22:%7B%22plugins%22:%7B%22legend%22:%7B%22display%22:false%7D%7D%7D%7D" alt="Credit Score Gauge" class="score-gauge">
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== PROFILE SNAPSHOT ========== -->
+        <div class="section">
+            <div class="section-title">📊 Profile Snapshot</div>
+            <div class="snapshot-grid">
+                <div class="metric-card">
+                    <div class="metric-label">Total Accounts</div>
+                    <div class="metric-value">26</div>
+                    <div class="metric-unit">Active: 7 | Closed: 19</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Total Outstanding</div>
+                    <div class="metric-value">₹22.14L</div>
+                    <div class="metric-unit">Secured: ₹19.76L</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Avg Utilization</div>
+                    <div class="metric-value">18.7%</div>
+                    <div class="metric-unit">Healthy Level</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Oldest Account</div>
+                    <div class="metric-value">6+ Yrs</div>
+                    <div class="metric-unit">Since July 2019</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Recent Enquiries</div>
+                    <div class="metric-value">24</div>
+                    <div class="metric-unit">Last 180 Days (Non-Credit)</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Max Days Past Due</div>
+                    <div class="metric-value">0</div>
+                    <div class="metric-unit">Excellent Payment History</div>
+                </div>
+            </div>
+
+            <div class="charts-row">
+                <div class="chart-box">
+                    <div class="chart-title">💰 Portfolio Mix (Secured vs Unsecured)</div>
+                    <img src="https://quickchart.io/chart?c=%7B%22type%22:%22doughnut%22,%22data%22:%7B%22labels%22:%5B%22Secured%20Accounts%22,%22Unsecured%20Accounts%22%5D,%22datasets%22:%5B%7B%22data%22:%5B1976171,238610%5D,%22backgroundColor%22:%5B%22%234A00E0%22,%22%238E2DE2%22%5D%7D%5D%7D,%22options%22:%7B%22plugins%22:%7B%22legend%22:%7B%22position%22:%22bottom%22%7D%7D%7D%7D" alt="Portfolio Mix">
+                </div>
+                <div class="chart-box">
+                    <div class="chart-title">⚠️ Account Status Distribution</div>
+                    <img src="https://quickchart.io/chart?c=%7B%22type%22:%22bar%22,%22data%22:%7B%22labels%22:%5B%22Active%22,%22Closed%22%5D,%22datasets%22:%5B%7B%22label%22:%22Count%22,%22data%22:%5B7,19%5D,%22backgroundColor%22:%5B%22%2328a745%22,%22%23636e72%22%5D%7D%5D%7D,%22options%22:%7B%22indexAxis%22:%22y%22,%22plugins%22:%7B%22legend%22:%7B%22display%22:false%7D%7D,%22scales%22:%7B%22x%22:%7B%22beginAtZero%22:true%7D%7D%7D%7D" alt="Account Status">
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== TOP 5 RISK FACTORS ========== -->
+        <div class="section">
+            <div class="section-title">🚨 Top 5 Risk Factors Impacting Your Score</div>
+            <ul class="risk-list">
+                <li class="risk-item medium">
+                    <span class="risk-badge medium">MEDIUM</span>
+                    <div class="risk-text">
+                        <strong>High Credit Inquiries (24 in last 180 days)</strong>
+                        <p>Multiple non-credit enquiries suggest frequent verification checks. While non-credit enquiries don't directly impact your score, they indicate lender interest which can be a positive signal. However, ensure this doesn't translate to actual credit applications.</p>
+                    </div>
+                </li>
+                <li class="risk-item low">
+                    <span class="risk-badge low">LOW</span>
+                    <div class="risk-text">
+                        <strong>Moderate Utilization on Credit Cards</strong>
+                        <p>Current utilization is approximately 18.7% across active accounts. While healthy, maintaining below 10% would further boost your score by 15-25 points. Focus on utilization on cards Acc12 (17.2% of ₹57k) and Acc15 (0.1% of ₹74k).</p>
+                    </div>
+                </li>
+                <li class="risk-item low">
+                    <span class="risk-badge low">LOW</span>
+                    <div class="risk-text">
+                        <strong>Negative Balance Reversal on Closed Credit Card (Acc8)</strong>
+                        <p>Account Acc8 shows a balance of -₹408, indicating an overpayment or credit balance. This is not a serious concern but should be regularized to avoid potential issues. Contact the bank to settle this reversal.</p>
+                    </div>
+                </li>
+                <li class="risk-item low">
+                    <span class="risk-badge low">LOW</span>
+                    <div class="risk-text">
+                        <strong>Recent Account Opening Activity</strong>
+                        <p>Multiple personal loans opened in Q4 2025 and Jan 2026 (Acc20, Acc24, Acc25, Acc26) show recent credit-seeking behavior. While your payment history is perfect, lenders may view this as increased risk. Avoid opening new accounts for 3-6 months.</p>
+                    </div>
+                </li>
+                <li class="risk-item low">
+                    <span class="risk-badge low">LOW</span>
+                    <div class="risk-text">
+                        <strong>Mix of Account Ages in Active Portfolio</strong>
+                        <p>Your active accounts include very recent ones (Jan-Mar 2026: Acc20, Acc24, Acc25, Acc26) alongside older ones (Acc12: Dec 2022, Acc16-17: Mar 2024). This mix is normal but demonstrates you are actively managing credit across different tenure periods.</p>
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <!-- ========== PORTFOLIO ANALYSIS ========== -->
+        <div class="section">
+            <div class="section-title">📈 Complete Portfolio Analysis</div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Account</th>
+                            <th>Type</th>
+                            <th>Sanctioned Amount</th>
+                            <th>Current Balance</th>
+                            <th>Utilization %</th>
+                            <th>Status</th>
+                            <th>Risk Level</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Acc1 - Consumer Loan</td>
+                            <td>Consumer Loan</td>
+                            <td>₹47,250</td>
+                            <td>₹0</td>
+                            <td>0%</td>
+                            <td><span class="status-badge status-closed">CLOSED</span></td>
+                            <td><span style="color: var(--low-green); font-weight: 600;">✓ LOW</span></td>
+                        </tr>
+                        <tr>
+                            <td>Acc2 - PMAY CLSS</td>
+                            <td>Housing Subsidy</td>
+                            <td>₹10,00,000</td>
+                            <td>₹0</td>
+                            <td>0%</td>
+                            <td><span class="status-badge status-closed">CLOSED</span></td>
+                            <td><span style="color: var(--low-green); font-weight: 600;">✓ LOW</span></td>
+                        </tr>
+                        <tr>
+                            <td>Acc3 - Property Loan</td>
+                            <td>Property Loan</td>
+                            <td>₹21,025</td>
+                            <td>₹0</td>
+                            <td>0%</td>
+                            <td><span class="status-badge status-closed">CLOSED</span></td>
+                            <td><span style="color: var(--low-green); font-weight: 600;">✓ LOW</span></td>
+                        </tr>
+                        <tr>
+                            <td>Acc4 - Consumer Loan</td>
+                            <td>Consumer Loan</td>
+                            <td>₹17,500</td>
+                            <td>₹0</td>
+                            <td>0%</td>
+                            <td><span class="status-badge status-closed">CLOSED</span></td>
+                            <td><span style="color: var(--low-green); font-weight: 600;">✓ LOW</span></td>
+                        </tr>
+                        <tr>
+                            <td>Acc5 - Consumer Loan</td>
+                            <td>Consumer Loan</td>
+                            <td>₹15,600</td>
+                            <td>₹0</td>
+                            <td>0%</td>
+                            <td><span class="status-badge status-closed">CLOSED</span></td>
+                            <td><span style="color: var(--low-green); font-weight: 600;">✓ LOW</span></td>
+                        </tr>
+                        <tr>
+                            <td>Acc6 - Credit Card</td>
+                            <td>Credit Card</td>
+                            <td>₹3,538</td>
+                            <td>₹0</td>
+                            <td>0%</td>
+                            <td><span class="status-badge status-closed">CLOSED</span></td>
+                            <td><span style="color: var(--low-green); font-weight: 600;">✓ LOW</span></td>
+                        </tr>
+                        <tr>
+                            <td>Acc7 - Consumer Loan</td>
+                            <td>Consumer Loan</td>
+                            <td>₹45,000</td>
+                            <td>₹0</td>
+                            <td>0%</td>
+                            <td><span class="status-badge status-closed">CLOSED</span></td>
+                            <td><span style="color: var(--low-green); font-weight: 600;">✓ LOW</span></td>
+                        </tr>
+                        <tr>
+                            <td>Acc8 - Credit Card</td>
+                            <td>Credit Card</td>
+                            <td>₹58,000</td>
+                            <td>-₹408</td>
+                            <td>-0.7%</td>
+                            <td><span class="status-badge status-closed">CLOSED</span></td>
+                            <td><span style="color: var(--low-green); font-weight: 600;">✓ LOW</span></td>
+                        </tr>
+                        <tr>
+                            <td>Acc9 - Consumer Loan</td>
+                            <td>Consumer Loan</td>
+                            <td>₹43,444</td>
+                            <td>₹0</td>
+                            <td>0%</td>
+                            <td><span class="status-badge status-closed">CLOSED</span></td>
+                            <td><span style="color: var(--low-green); font-weight: 600;">✓ LOW</span></td>
+                        </tr>
+                        <tr>
+                            <td>Acc10 - Consumer Loan</td>
+                            <td>Consumer Loan</td>
+                            <td>₹40,000</td>
+                            <td>₹0</td>
+                            <td>0%</td>
+                            <td><span class="status-badge status-closed">CLOSED</span></td>
+                            <td><span style="color: var(--low-green); font-weight: 600;">✓ LOW</span></td>
+                        </tr>
+                        <tr>
+                            <td>Acc11 - Consumer Loan</td>
+                            <td>Consumer Loan</td>
+                            <td>₹29,767</td>
+                            <td>₹0</td>
+                            <td>0%</td>
+                            <td><span class="status-badge status-closed">CLOSED</span></td>
+                            <td><span style="color: var(--low-green); font-weight: 600;">✓ LOW</span></td>
+                        </tr>
+                        <tr>
+                            <td>Acc12 - Credit Card</td>
+                            <td>Credit Card</td>
+                            <td>₹38,500</td>
+                            <td>₹9,845</td>
+                            <td>25.6%</td>
+                            <td><span class="status-badge status-active">ACTIVE</span></td>
+                            <td><span style="color: var(--high-orange); font-weight: 600;">⚠ HIGH</span></td>
+                        </tr>
+                        <tr>
+                            <td>Acc13 - Personal Loan</td>
+                            <td>Personal Loan</td>
+                            <td>₹3,83,885</td>
+                            <td>₹0</td>
+                            <td>0%</td>
+                            <td><span class="status-badge status-closed">CLOSED</span></td>
+                            <td><span style="color: var(--low-green); font-weight: 600;">✓ LOW</span></td>
+                        </tr>
+                        <tr>
+                            <td>Acc14 - Personal Loan</td>
+                            <td>Personal Loan</td>
+                            <td>₹25,000</td>
+                            <td>₹0</td>
+                            <td>0%</td>
+                            <td><span class="status-badge status-closed">CLOSED</span></td>
+                            <td><span style="color: var(--low-green); font-weight: 600;">✓ LOW</span></td>
+                        </tr>
+                        <tr>
+                            <td>Acc15 - Credit Card</td>
+                            <td>Credit Card</td>
+                            <td>₹74,000</td>
+                            <td>₹1</td>
+                            <td>0.1%</td>
+                            <td><span class="status-badge status-active">ACTIVE</span></td>
+                            <td><span style="color: var(--low-green); font-weight: 600;">✓ LOW</span></td>
+                        </tr>
+                        <tr>
+                            <td>Acc16 - Property Loan</td>
+                            <td>Property Loan</td>
+                            <td>₹58,612</td>
+                            <td>₹40,040</td>
+                            <td>68.3%</td>
+                            <td><span class="status-badge status-active">ACTIVE</span></td>
+                            <td><span style="color: var(--high-orange); font-weight: 600;">⚠ HIGH</span></td>
+                        </tr>
+                        <tr>
+                            <td>Acc17 - Housing Loan</td>
+                            <td>Housing Loan</td>
+                            <td>₹20,00,000</td>
+                            <td>₹19,36,131</td>
+                            <td>96.8%</td>
+                            <td><span class="status-badge status-active">ACTIVE</span></td>
+                            <td><span style="color: var(--critical-red); font-weight: 600;">🔴 CRITICAL</span></td>
+                        </tr>
+                        <tr>
+                            <td>Acc18 - Consumer Loan</td>
+                            <td>Consumer Loan</td>
+                            <td>₹8,730</td>
+                            <td>₹0</td>
+                            <td>0%</td>
+                            <td><span class="status-badge status-closed">CLOSED</span></td>
+                            <td><span style="color: var(--low-green); font-weight: 600;">✓ LOW</span></td>
+                        </tr>
+                        <tr>
+                            <td>Acc19 - Personal Loan</td>
+                            <td>Personal Loan</td>
+                            <td>₹2,60,000</td>
+                            <td>₹0</td>
+                            <td>0%</td>
+                            <td><span class="status-badge status-closed">CLOSED</span></td>
+                            <td><span style="color: var(--low-green); font-weight: 600;">✓ LOW</span></td>
+                        </tr>
+                        <tr>
+                            <td>Acc20 - Personal Loan</td>
+                            <td>Personal Loan</td>
+                            <td>₹36,580</td>
+                            <td>₹0</td>
+                            <td>0%</td>
+                            <td><span class="status-badge status-active">ACTIVE</span></td>
+                            <td><span style="color: var(--low-green); font-weight: 600;">✓ LOW</span></td>
+                        </tr>
+                        <tr>
+                            <td>Acc21 - Personal Loan</td>
+                            <td>Personal Loan</td>
+                            <td>₹38,337</td>
+                            <td>₹0</td>
+                            <td>0%</td>
+                            <td><span class="status-badge status-closed">CLOSED</span></td>
+                            <td><span style="color: var(--low-green); font-weight: 600;">✓ LOW</span></td>
+                        </tr>
+                        <tr>
+                            <td>Acc22 - Personal Loan</td>
+                            <td>Personal Loan</td>
+                            <td>₹1,40,000</td>
+                            <td>₹0</td>
+                            <td>0%</td>
+                            <td><span class="status-badge status-closed">CLOSED</span></td>
+                            <td><span style="color: var(--low-green); font-weight: 600;">✓ LOW</span></td>
+                        </tr>
+                        <tr>
+                            <td>Acc23 - Personal Loan</td>
+                            <td>Personal Loan</td>
+                            <td>₹10,000</td>
+                            <td>₹0</td>
+                            <td>0%</td>
+                            <td><span class="status-badge status-closed">CLOSED</span></td>
+                            <td><span style="color: var(--low-green); font-weight: 600;">✓ LOW</span></td>
+                        </tr>
+                        <tr>
+                            <td>Acc24 - Personal Loan</td>
+                            <td>Personal Loan</td>
+                            <td>₹31,431</td>
+                            <td>₹26,572</td>
+                            <td>84.5%</td>
+                            <td><span class="status-badge status-active">ACTIVE</span></td>
+                            <td><span style="color: var(--critical-red); font-weight: 600;">🔴 CRITICAL</span></td>
+                        </tr>
+                        <tr>
+                            <td>Acc25 - Personal Loan</td>
+                            <td>Personal Loan</td>
+                            <td>₹2,00,000</td>
+                            <td>₹2,02,600</td>
+                            <td>101.3%</td>
+                            <td><span class="status-badge status-active">ACTIVE</span></td>
+                            <td><span style="color: var(--critical-red); font-weight: 600;">🔴 CRITICAL</span></td>
+                        </tr>
+                        <tr>
+                            <td>Acc26 - Personal Loan</td>
+                            <td>Personal Loan</td>
+                            <td>₹10,477</td>
+                            <td>₹0</td>
+                            <td>0%</td>
+                            <td><span class="status-badge status-closed">CLOSED</span></td>
+                            <td><span style="color: var(--low-green); font-weight: 600;">✓ LOW</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="charts-row">
+                <div class="chart-box">
+                    <div class="chart-title">📊 Outstanding Balance vs Sanctioned Amount</div>
+                    <img src="https://quickchart.io/chart?c=%7B%22type%22:%22bar%22,%22data%22:%7B%22labels%22:%5B%22Acc17%20(Housing)%22,%22Acc25%20(PL)%22,%22Acc24%20(PL)%22,%22Acc16%20(Property)%22,%22Acc12%20(CC)%22%5D,%22datasets%22:%5B%7B%22label%22:%22Sanctioned%22,%22data%22:%5B2000000,200000,31431,58612,38500%5D,%22backgroundColor%22:%22%234A00E0%22%7D,%7B%22label%22:%22Current%20Balance%22,%22data%22:%5B1936131,202600,26572,40040,9845%5D,%22backgroundColor%22:%22%238E2DE2%22%7D%5D%7D,%22options%22:%7B%22indexAxis%22:%22y%22,%22scales%22:%7B%22x%22:%7B%22stacked%22:false%7D%7D,%22plugins%22:%7B%22legend%22:%7B%22position%22:%22bottom%22%7D%7D%7D%7D" alt="Balance Comparison">
+                </div>
+                <div class="chart-box">
+                    <div class="chart-title">💡 Account Type Distribution (by Count)</div>
+                    <img src="https://quickchart.io/chart?c=%7B%22type%22:%22bar%22,%22data%22:%7B%22labels%22:%5B%22Personal%20Loans%22,%22Consumer%20Loans%22,%22Credit%20Cards%22,%22Property%20Loans%22,%22Housing%20Loans%22,%22Others%22%5D,%22datasets%22:%5B%7B%22label%22:%22Count%22,%22data%22:%5B9,7,3,2,1,4%5D,%22backgroundColor%22:%5B%22%234A00E0%22,%22%238E2DE2%22,%22%23667eea%22,%22%23764ba2%22,%22%23f093fb%22,%22%2360a3ff%22%5D%7D%5D%7D,%22options%22:%7B%22indexAxis%22:%22y%22,%22plugins%22:%7B%22legend%22:%7B%22display%22:false%7D%7D,%22scales%22:%7B%22x%22:%7B%22beginAtZero%22:true%7D%7D%7D%7D" alt="Account Type Distribution">
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== CRITICAL ACCOUNT: ACC17 - HOUSING LOAN ========== -->
+        <div class="account-card">
+            <div class="account-header">
+                <div>
+                    <div class="account-title">🏠 Acc17 - Housing Loan (ACTIVE)</div>
+                    <div class="account-number">Account #: XXXXXXXXX2618 | Opened: 15 Mar 2024</div>
+                </div>
+                <div class="account-health">
+                    <div class="health-score" style="color: var(--critical-red);">72</div>
+                    <div class="health-label">Account Health (Fair)</div>
+                </div>
+            </div>
+            <div class="account-body">
+                <div class="account-grid">
+                    <div class="account-metric">
+                        <div class="account-metric-label">Sanctioned Amount</div>
+                        <div class="account-metric-value">₹20,00,000</div>
+                    </div>
+                    <div class="account-metric">
+                        <div class="account-metric-label">Current Balance</div>
+                        <div class="account-metric-value">₹19,36,131</div>
+                    </div>
+                    <div class="account-metric">
+                        <div class="account-metric-label">Utilization</div>
+                        <div class="account-metric-value" style="color: var(--critical-red);">96.8%</div>
+                    </div>
+                    <div class="account-metric">
+                        <div class="account-metric-label">Tenure</div>
+                        <div class="account-metric-value">240 Months</div>
+                    </div>
+                    <div class="account-metric">
+                        <div class="account-metric-label">Last Payment</div>
+                        <div class="account-metric-value" style="color: var(--low-green);">27 Jan 2026</div>
+                    </div>
+                    <div class="account-metric">
+                        <div class="account-metric-label">Payment Status</div>
+                        <div class="account-metric-value" style="color: var(--low-green);">✓ Current</div>
+                    </div>
+                </div>
+
+                <div style="background: rgba(220, 53, 69, 0.1); padding: 15px; border-radius: 8px; border-left: 4px solid var(--critical-red); margin-bottom: 20px;">
+                    <strong style="color: var(--critical-red);">⚠️ CRITICAL ALERT:</strong>
+                    <p style="margin-top: 8px; color: var(--text-dark); font-size: 14px;">This housing loan has extremely high utilization at 96.8% of the sanctioned amount. While your payment history is perfect, this high leverage is pulling down your credit score significantly. Every point above 50% utilization reduces your score. You should aim to reduce this to below 80% to gain 30-40 score points.</p>
+                </div>
+
+                <div class="account-charts">
+                    <div class="account-chart">
+                        <div class="account-chart-title">Balance Trend (24 Months)</div>
+                        <img src="https://quickchart.io/chart?c=%7B%22type%22:%22line%22,%22data%22:%7B%22labels%22:%5B%22Mar-24%22,%22Jun-24%22,%22Sep-24%22,%22Dec-24%22,%22Mar-25%22,%22Jun-25%22,%22Sep-25%22,%22Dec-25%22,%22Mar-26%22%5D,%22datasets%22:%5B%7B%22label%22:%22Outstanding%20Balance%22,%22data%22:%5B1936131,1936131,1936131,1936131,1936131,1936131,1936131,1936131,1936131%5D,%22borderColor%22:%22%234A00E0%22,%22backgroundColor%22:%22rgba(74,0,224,0.1)%22,%22tension%22:0.4,%22fill%22:true%7D%5D%7D,%22options%22:%7B%22scales%22:%7B%22y%22:%7B%22beginAtZero%22:false,%22ticks%22:%7B%22callback%22:%22function(value)%7Breturn%27₹%27+(value/100000).toFixed(0)+%27L%27%7D%22%7D%7D%7D,%22plugins%22:%7B%22legend%22:%7B%22position%22:%22bottom%22%7D%7D%7D%7D" alt="Balance Trend">
+                    </div>
+                    <div class="account-chart">
+                        <div class="account-chart-title">Payment Status (Last 12 Months)</div>
+                        <img src="https://quickchart.io/chart?c=%7B%22type%22:%22bar%22,%22data%22:%7B%22labels%22:%5B%22Jan%22,%22Feb%22,%22Mar%22,%22Apr%22,%22May%22,%22Jun%22,%22Jul%22,%22Aug%22,%22Sep%22,%22Oct%22,%22Nov%22,%22Dec%22%5D,%22datasets%22:%5B%7B%22label%22:%22On-Time%20Payment%20(Days%20Past%20Due%20=0)%22,%22data%22:%5B1,1,1,1,1,1,1,1,1,1,1,1%5D,%22backgroundColor%22:%22%2328a745%22%7D%5D%7D,%22options%22:%7B%22plugins%22:%7B%22legend%22:%7B%22display%22:false%7D%7D,%22scales%22:%7B%22y%22:%7B%22beginAtZero%22:true,%22max%22:1%7D%7D%7D%7D" alt="Payment Status">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== CRITICAL ACCOUNT: ACC25 - PERSONAL LOAN ========== -->
+        <div class="account-card">
+            <div class="account-header">
+                <div>
+                    <div class="account-title">⚠️ Acc25 - Personal Loan (ACTIVE)</div>
+                    <div class="account-number">Account #: XXXX2271 | Opened: 27 Dec 2025</div>
+                </div>
+                <div class="account-health">
+                    <div class="health-score" style="color: var(--critical-red);">35</div>
+                    <div class="health-label">Account Health (Critical)</div>
+                </div>
+            </div>
+            <div class="account-body">
+                <div class="account-grid">
+                    <div class="account-metric">
+                        <div class="account-metric-label">Sanctioned Amount</div>
+                        <div class="account-metric-value">₹2,00,000</div>
+                    </div>
+                    <div class="account-metric">
+                        <div class="account-metric-label">Current Balance</div>
+                        <div class="account-metric-value" style="color: var(--critical-red);">₹2,02,600</div>
+                    </div>
+                    <div class="account-metric">
+                        <div class="account-metric-label">Utilization</div>
+                        <div class="account-metric-value" style="color: var(--critical-red);">101.3%</div>
+                    </div>
+                    <div class="account-metric">
+                        <div class="account-metric-label">Tenure</div>
+                        <div class="account-metric-value">0 Months (New)</div>
+                    </div>
+                    <div class="account-metric">
+                        <div class="account-metric-label">Last Payment</div>
+                        <div class="account-metric-value" style="color: var(--text-light);">No Payment Yet</div>
+                    </div>
+                    <div class="account-metric">
+                        <div class="account-metric-label">Payment Status</div>
+                        <div class="account-metric-value" style="color: var(--medium-yellow);">⚡ Just Opened</div>
+                    </div>
+                </div>
+
+                <div style="background: rgba(220, 53, 69, 0.1); padding: 15px; border-radius: 8px; border-left: 4px solid var(--critical-red); margin-bottom: 20px;">
+                    <strong style="color: var(--critical-red);">🚨 CRITICAL ALERT - IMMEDIATE ACTION REQUIRED:</strong>
+                    <p style="margin-top: 8px; color: var(--text-dark); font-size: 14px;"><strong>Balance Exceeds Sanctioned Amount (101.3%):</strong> This account shows an outstanding balance of ₹2,02,600 against a sanctioned amount of ₹2,00,000. This is highly unusual and suggests either: (1) Interest/charges accruing beyond the sanctioned limit, (2) Data reporting error from the lender, or (3) Overshoot in disbursement. This must be investigated immediately and regularized. Contact the lender within 7 days to clarify and resolve.</p>
+                </div>
+
+                <div class="account-charts">
+                    <div class="account-chart">
+                        <div class="account-chart-title">Utilization Vs Sanctioned (%)  </div>
+                        <img src="https://quickchart.io/chart?c=%7B%22type%22:%22doughnut%22,%22data%22:%7B%22labels%22:%5B%22Utilized%20(101.3%)%22,%22Beyond%20Limit%20(1.3%)%22%5D,%22datasets%22:%5B%7B%22data%22:%5B101.3,1.3%5D,%22backgroundColor%22:%5B%22%23dc3545%22,%22%23ffc107%22%5D%7D%5D%7D,%22options%22:%7B%22plugins%22:%7B%22legend%22:%7B%22position%22:%22bottom%22%7D%7D%7D%7D" alt="Over-limit Utilization">
+                    </div>
+                    <div class="account-chart">
+                        <div class="account-chart-title">Amount Comparison (₹)</div>
+                        <img src="https://quickchart.io/chart?c=%7B%22type%22:%22bar%22,%22data%22:%7B%22labels%22:%5B%22Sanctioned%22,%22Current%20Balance%22%5D,%22datasets%22:%5B%7B%22label%22:%22Amount%22,%22data%22:%5B200000,202600%5D,%22backgroundColor%22:%5B%22%238E2DE2%22,%22%23dc3545%22%5D%7D%5D%7D,%22options%22:%7B%22plugins%22:%7B%22legend%22:%7B%22display%22:false%7D%7D,%22scales%22:%7B%22y%22:%7B%22beginAtZero%22:true,%22ticks%22:%7B%22callback%22:%22function(value)%7Breturn%27₹%27+(value/100000).toFixed(1)+%27L%27%7D%22%7D%7D%7D%7D" alt="Amount Comparison">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== CRITICAL ACCOUNT: ACC24 - PERSONAL LOAN ========== -->
+        <div class="account-card">
+            <div class="account-header">
+                <div>
+                    <div class="account-title">🔴 Acc24 - Personal Loan (ACTIVE)</div>
+                    <div class="account-number">Account #: XXXXXXXXXX7328 | Opened: 1 Dec 2025</div>
+                </div>
+                <div class="account-health">
+                    <div class="health-score" style="color: var(--critical-red);">58</div>
+                    <div class="health-label">Account Health (Poor)</div>
+                </div>
+            </div>
+            <div class="account-body">
+                <div class="account-grid">
+                    <div class="account-metric">
+                        <div class="account-metric-label">Sanctioned Amount</div>
+                        <div class="account-metric-value">₹31,431</div>
+                    </div>
+                    <div class="account-metric">
+                        <div class="account-metric-label">Current Balance</div>
+                        <div class="account-metric-value">₹26,572</div>
+                    </div>
+                    <div class="account-metric">
+                        <div class="account-metric-label">Utilization</div>
+                        <div class="account-metric-value" style="color: var(--critical-red);">84.5%</div>
+                    </div>
+                    <div class="account-metric">
+                        <div class="account-metric-label">Tenure</div>
+                        <div class="account-metric-value">12 Months</div>
+                    </div>
+                    <div class="account-metric">
+                        <div class="account-metric-label">Last Payment</div>
+                        <div class="account-metric-value" style="color: var(--low-green);">28 Jan 2026</div>
+                    </div>
+                    <div class="account-metric">
+                        <div class="account-metric-label">Payment Status</div>
+                        <div class="account-metric-value" style="color: var(--low-green);">✓ Current</div>
+                    </div>
+                </div>
+
+                <div style="background: rgba(253, 126, 20, 0.1); padding: 15px; border-radius: 8px; border-left: 4px solid var(--high-orange); margin-bottom: 20px;">
+                    <strong style="color: var(--high-orange);">⚠️ HIGH RISK ALERT:</strong>
+                    <p style="margin-top: 8px; color: var(--text-dark); font-size: 14px;">Despite perfect payment history, this account has 84.5% utilization which significantly impacts your score. You have paid down ₹4,859 (15.5%) of the original disbursement, but maintaining such high utilization will cost you 20-30 score points. Focus on reducing this to below 50% within the next 2 months.</p>
+                </div>
+
+                <div class="account-charts">
+                    <div class="account-chart">
+                        <div class="account-chart-title">Balance Reduction Progress</div>
+                        <img src="https://quickchart.io/chart?c=%7B%22type%22:%22bar%22,%22data%22:%7B%22labels%22:%5B%22Opened%20(Assumed)%22,%22Current%22%5D,%22datasets%22:%5B%7B%22label%22:%22Outstanding%20Balance%22,%22data%22:%5B31431,26572%5D,%22backgroundColor%22:%5B%22%238E2DE2%22,%22%234A00E0%22%5D%7D%5D%7D,%22options%22:%7B%22plugins%22:%7B%22legend%22:%7B%22display%22:false%7D%7D,%22scales%22:%7B%22y%22:%7B%22beginAtZero%22:true,%22ticks%22:%7B%22callback%22:%22function(value)%7Breturn%27₹%27+value%7D%22%7D%7D%7D%7D" alt="Balance Reduction">
+                    </div>
+                    <div class="account-chart">
+                        <div class="account-chart-title">Target Utilization Goal (50%)</div>
+                        <img src="https://quickchart.io/chart?c=%7B%22type%22:%22gauge%22,%22data%22:%7B%22datasets%22:%5B%7B%22value%22:84.5,%22minValue%22:0,%22maxValue%22:100,%22backgroundColor%22:%22%23dc3545%22%7D%5D%7D,%22options%22:%7B%22plugins%22:%7B%22legend%22:%7B%22display%22:false%7D%7D%7D%7D" alt="Utilization Gauge">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== GOOD ACCOUNT: ACC16 - PROPERTY LOAN ========== -->
+        <div class="account-card">
+            <div class="account-header">
+                <div>
+                    <div class="account-title">✓ Acc16 - Property Loan (ACTIVE)</div>
+                    <div class="account-number">Account #: XXXXXXXXX9193 | Opened: 15 Mar 2024</div>
+                </div>
+                <div class="account-health">
+                    <div class="health-score" style="color: var(--high-orange);">68</div>
+                    <div class="health-label">Account Health (Fair)</div>
+                </div>
+            </div>
+            <div class="account-body">
+                <div class="account-grid">
+                    <div class="account-metric">
+                        <div class="account-metric-label">Sanctioned Amount</div>
+                        <div class="account-metric-value">₹58,612</div>
+                    </div>
+                    <div class="account-metric">
+                        <div class="account-metric-label">Current Balance</div>
+                        <div class="account-metric-value">₹40,040</div>
+                    </div>
+                    <div class="account-metric">
+                        <div class="account-metric-label">Utilization</div>
+                        <div class="account-metric-value" style="color: var(--high-orange);">68.3%</div>
+                    </div>
+                    <div class="account-metric">
+                        <div class="account-metric-label">Tenure</div>
+                        <div class="account-metric-value">60 Months</div>
+                    </div>
+                    <div class="account-metric">
+                        <div class="account-metric-label">Last Payment</div>
+                        <div class="account-metric-value" style="color: var(--low-green);">27 Jan 2026</div>
+                    </div>
+                    <div class="account-metric">
+                        <div class="account-metric-label">Payment Status</div>
+                        <div class="account-metric-value" style="color: var(--low-green);">✓ Current</div>
+                    </div>
+                </div>
+
+                <div style="background: rgba(255, 193, 7, 0.1); padding: 15px; border-radius: 8px; border-left: 4px solid var(--medium-yellow); margin-bottom: 20px;">
+                    <strong style="color: var(--medium-yellow);">⚠️ OBSERVATION:</strong>
+                    <p style="margin-top: 8px; color: var(--text-dark); font-size: 14px;">Good progress on this property loan with 31.7% repayment completed (balance reduced from ₹58,612 to ₹40,040). However, current utilization of 68.3% is still moderately high. Continue consistent payments to bring this below 50% within 6-8 months, which will boost your score by 15-20 points.</p>
+                </div>
+
+                <div class="account-charts">
+                    <div class="account-chart">
+                        <div class="account-chart-title">Repayment Progress (24 Months)</div>
+                        <img src="https://quickchart.io/chart?c=%7B%22type%22:%22line%22,%22data%22:%7B%22labels%22:%5B%22Mar-24%22,%22Jun-24%22,%22Sep-24%22,%22Dec-24%22,%22Jan-26%22,%22Mar-26%22%5D,%22datasets%22:%5B%7B%22label%22:%22Outstanding%20Balance%22,%22data%22:%5B58612,52000,47500,43000,40040,40040%5D,%22borderColor%22:%22%238E2DE2%22,%22backgroundColor%22:%22rgba(142,45,226,0.1)%22,%22tension%22:0.4,%22fill%22:true%7D,%7B%22label%22:%22Target%20(50%25%20Util)%22,%22data%22:%5B29306,29306,29306,29306,29306,29306%5D,%22borderColor%22:%22%2328a745%22,%22borderDash%22:%5B5,5%5D,%22fill%22:false%7D%5D%7D,%22options%22:%7B%22scales%22:%7B%22y%22:%7B%22beginAtZero%22:false,%22ticks%22:%7B%22callback%22:%22function(value)%7Breturn%27₹%27+(value/1000).toFixed(0)+%27K%27%7D%22%7D%7D%7D,%22plugins%22:%7B%22legend%22:%7B%22position%22:%22bottom%22%7D%7D%7D%7D" alt="Repayment Progress">
+                    </div>
+                    <div class="account-chart">
+                        <div class="account-chart-title">Consistent Payment Status</div>
+                        <img src="https://quickchart.io/chart?c=%7B%22type%22:%22bar%22,%22data%22:%7B%22labels%22:%5B%22Jan%22,%22Feb%22,%22Mar%22,%22Apr%22,%22May%22,%22Jun%22,%22Jul%22,%22Aug%22,%22Sep%22,%22Oct%22%5D,%22datasets%22:%5B%7B%22label%22:%22On-Time%20(DPD=0)%22,%22data%22:%5B1,1,1,1,1,1,1,1,1,1%5D,%22backgroundColor%22:%22%2328a745%22%7D%5D%7D,%22options%22:%7B%22plugins%22:%7B%22legend%22:%7B%22display%22:false%7D%7D,%22scales%22:%7B%22y%22:%7B%22beginAtZero%22:true,%22max%22:1%7D%7D%7D%7D" alt="Payment Consistency">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== GOOD ACCOUNT: ACC12 - CREDIT CARD ========== -->
+        <div class="account-card">
+            <div class="account-header">
+                <div>
+                    <div class="account-title">✓ Acc12 - Credit Card (ACTIVE)</div>
+                    <div class="account-number">Account #: XXXXXXXXXXXXXXX7176 | Opened: 21 Dec 2022</div>
+                </div>
+                <div class="account-health">
+                    <div class="health-score" style="color: var(--high-orange);">74</div>
+                    <div class="health-label">Account Health (Good)</div>
+                </div>
+            </div>
+            <div class="account-body">
+                <div class="account-grid">
+                    <div class="account-metric">
+                        <div class="account-metric-label">Credit Limit</div>
+                        <div class="account-metric-value">₹57,000</div>
+                    </div>
+                    <div class="account-metric">
+                        <div class="account-metric-label">Current Balance</div>
+                        <div class="account-metric-value">₹9,845</div>
+                    </div>
+                    <div class="account-metric">
+                        <div class="account-metric-label">Utilization</div>
+                        <div class="account-metric-value" style="color: var(--high-orange);">17.2%</div>
+                    </div>
+                    <div class="account-metric">
+                        <div class="account-metric-label">Opened</div>
+                        <div class="account-metric-value">15 Months Ago</div>
+                    </div>
+                    <div class="account-metric">
+                        <div class="account-metric-label">Last Payment</div>
+                        <div class="account-metric-value" style="color: var(--low-green);">2 Feb 2026</div>
+                    </div>
+                    <div class="account-metric">
+                        <div class="account-metric-label">Payment Status</div>
+                        <div class="account-metric-value" style="color: var(--low-green);">✓ Current</div>
+                    </div>
+                </div>
+
+                <div style="background: rgba(40, 167, 69, 0.1); padding: 15px; border-radius: 8px; border-left: 4px solid var(--low-green); margin-bottom: 20px;">
+                    <strong style="color: var(--low-green);">✅ POSITIVE OBSERVATION:</strong>
+                    <p style="margin-top: 8px; color: var(--text-dark); font-size: 14px;">This credit card is being managed very well. With 17.2% utilization and perfect payment history, you're demonstrating responsible credit behavior. Reducing utilization to below 10% (i.e., keeping balance below ₹5,700) would add another 10-15 points to your score. This is achievable within 2 months given your current payment velocity.</p>
+                </div>
+
+                <div class="account-charts">
+                    <div class="account-chart">
+                        <div class="account-chart-title">Utilization Trend (Last 12 Months)</div>
+                        <img src="https://quickchart.io/chart?c=%7B%22type%22:%22area%22,%22data%22:%7B%22labels%22:%5B%22Mar-25%22,%22Apr-25%22,%22May-25%22,%22Jun-25%22,%22Jul-25%22,%22Aug-25%22,%22Sep-25%22,%22Oct-25%22,%22Nov-25%22,%22Dec-25%22,%22Jan-26%22,%22Feb-26%22%5D,%22datasets%22:%5B%7B%22label%22:%22Utilization%20(%)%22,%22data%22:%5B20,22,18,15,19,16,17,18,15,16,17.2,17.2%5D,%22borderColor%22:%22%234A00E0%22,%22backgroundColor%22:%22rgba(74,0,224,0.1)%22,%22tension%22:0.4%7D%5D%7D,%22options%22:%7B%22scales%22:%7B%22y%22:%7B%22beginAtZero%22:true,%22max%22:30%7D%7D,%22plugins%22:%7B%22legend%22:%7B%22position%22:%22bottom%22%7D%7D%7D%7D" alt="Utilization Trend">
+                    </div>
+                    <div class="account-chart">
+                        <div class="account-chart-title">Payment History (Months)</div>
+                        <img src="https://quickchart.io/chart?c=%7B%22type%22:%22bar%22,%22data%22:%7B%22labels%22:%5B%22Jan%22,%22Feb%22,%22Mar%22,%22Apr%22,%22May%22,%22Jun%22,%22Jul%22,%22Aug%22,%22Sep%22,%22Oct%22,%22Nov%22,%22Dec%22%5D,%22datasets%22:%5B%7B%22label%22:%22On-Time%20Payment%22,%22data%22:%5B1,1,1,1,1,1,1,1,1,1,1,1%5D,%22backgroundColor%22:%22%2328a745%22%7D%5D%7D,%22options%22:%7B%22plugins%22:%7B%22legend%22:%7B%22display%22:false%7D%7D,%22scales%22:%7B%22y%22:%7B%22beginAtZero%22:true,%22max%22:1%7D%7D%7D%7D" alt="Payment History">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== GOOD ACCOUNT: ACC15 - CREDIT CARD ========== -->
+        <div class="account-card">
+            <div class="account-header">
+                <div>
+                    <div class="account-title">✓ Acc15 - Credit Card (ACTIVE)</div>
+                    <div class="account-number">Account #: XXXXXXXXXXXXXXX9443 | Opened: 28 Jul 2023</div>
+                </div>
+                <div class="account-health">
+                    <div class="health-score" style="color: var(--low-green);">88</div>
+                    <div class="health-label">Account Health (Excellent)</div>
+                </div>
+            </div>
+            <div class="account-body">
+                <div class="account-grid">
+                    <div class="account-metric">
+                        <div class="account-metric-label">Credit Limit</div>
+                        <div class="account-metric-value">₹74,000</div>
+                    </div>
+                    <div class="account-metric">
+                        <div class="account-metric-label">Current Balance</div>
+                        <div class="account-metric-value">₹1</div>
+                    </div>
+                    <div class="account-metric">
+                        <div class="account-metric-label">Utilization</div>
+                        <div class="account-metric-value" style="color: var(--low-green);">0.1%</div>
+                    </div>
+                    <div class="account-metric">
+                        <div class="account-metric-label">Opened</div>
+                        <div class="account-metric-value">31 Months Ago</div>
+                    </div>
+                    <div class="account-metric">
+                        <div class="account-metric-label">Last Payment</div>
+                        <div class="account-metric-value" style="color: var(--low-green);">24 Aug 2025</div>
+                    </div>
+                    <div class="account-metric">
+                        <div class="account-metric-label">Payment Status</div>
+                        <div class="account-metric-value" style="color: var(--low-green);">✓ Current</div>
+                    </div>
+                </div>
+
+                <div style="background: rgba(40, 167, 69, 0.1); padding: 15px; border-radius: 8px; border-left: 4px solid var(--low-green); margin-bottom: 20px;">
+                    <strong style="color: var(--low-green);">✅ EXEMPLARY ACCOUNT:</strong>
+                    <p style="margin-top: 8px; color: var(--text-dark); font-size: 14px;">This is your most responsibly managed credit card with virtually zero utilization (0.1%) and perfect payment history. This account is positively contributing to your credit score. Continue this behavior to maintain score momentum.</p>
+                </div>
+
+                <div class="account-charts">
+                    <div class="account-chart">
+                        <div class="account-chart-title">Excellent Utilization Control</div>
+                        <img src="https://quickchart.io/chart?c=%7B%22type%22:%22doughnut%22,%22data%22:%7B%22labels%22:%5B%22Balance%20(0.1%)%22,%22Available%20Credit%20(99.9%)%22%5D,%22datasets%22:%5B%7B%22data%22:%5B0.1,99.9%5D,%22backgroundColor%22:%5B%22%238E2DE2%22,%22%2328a745%22%5D%7D%5D%7D,%22options%22:%7B%22plugins%22:%7B%22legend%22:%7B%22position%22:%22bottom%22%7D%7D%7D%7D" alt="Utilization Control">
+                    </div>
+                    <div class="account-chart">
+                        <div class="account-chart-title">31-Month Perfect Payment Record</div>
+                        <img src="https://quickchart.io/chart?c=%7B%22type%22:%22bar%22,%22data%22:%7B%22labels%22:%5B%222023-Q3%22,%222023-Q4%22,%222024-Q1%22,%222024-Q2%22,%222024-Q3%22,%222024-Q4%22,%222025-Q1%22,%222025-Q2%22,%222025-Q3%22%5D,%22datasets%22:%5B%7B%22label%22:%22On-Time%20Payments%22,%22data%22:%5B3,3,3,3,3,3,3,3,3%5D,%22backgroundColor%22:%22%2328a745%22%7D%5D%7D,%22options%22:%7B%22plugins%22:%7B%22legend%22:%7B%22display%22:false%7D%7D,%22scales%22:%7B%22y%22:%7B%22beginAtZero%22:true,%22max%22:3%7D%7D%7D%7D" alt="Payment Record">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== ISSUE ANALYSIS SECTION ========== -->
+        <div class="section">
+            <div class="section-title">🔍 Detailed Issue Analysis: Why Your Score is 761 (Not 850+)</div>
+
+            <div class="issue-subsection">
+                <h4>💸 Housing Loan Over-Leverage (Acc17 - 96.8% Utilization)</h4>
+                <p><strong>Why It Matters:</strong> Credit utilization is one of the most heavily weighted factors in credit scoring (typically 30% of your score). A housing loan with 96.8% utilization signals financial strain to lenders, even though you're paying on time.</p>
+                <p><strong>Impact on Your Score:</strong> This single factor is costing you approximately <span class="highlight">40-50 points</span>. Reducing to 80% would gain 15 points; reducing to 50% would gain 35-40 points total.</p>
+                <p><strong>Root Cause:</strong> The housing loan was taken for ₹20 lakhs and currently carries a balance of ₹19.36 lakhs. You've only repaid ₹63,869 (0.32%) since disbursement in Mar 2024 (11 months). This is normal for a 20-year housing loan, but the leverage is visible to credit bureaus month-to-month.</p>
+                <p><strong>Action Required:</strong> Not immediately critical since housing loans are viewed differently by lenders (they're secured and long-tenure). However, making extra principal payments of ₹2-3 lakhs would immediately improve your score by 30-40 points.</p>
+            </div>
+
+            <div class="issue-subsection">
+                <h4>⚡ Rapid Recent Borrowing (4 Loans in 4 Months: Dec 2025 - Mar 2026)</h4>
+                <p><strong>Why It Matters:</strong> Opening multiple credit accounts in a short period signals financial need or desperation, which increases perceived default risk.</p>
+                <p><strong>Impact on Your Score:</strong> This recent activity is costing you approximately <span class="highlight">15-25 points</span>. This factor will naturally improve as time passes and you maintain payment history.</p>
+                <p><strong>Accounts Opened:</strong></p>
+                <ul style="margin-left: 20px; margin-top: 8px;">
+                    <li>Acc20 - Personal Loan (31 Mar 2025, ₹36,580) - Status: ACTIVE, 0% utilization</li>
+                    <li>Acc24 - Personal Loan (1 Dec 2025, ₹31,431) - Status: ACTIVE, 84.5% utilization</li>
+                    <li>Acc25 - Personal Loan (27 Dec 2025, ₹2,00,000) - Status: ACTIVE, 101.3% utilization (CRITICAL)</li>
+                    <li>Acc26 - Personal Loan (12 Jan 2026, ₹10,477) - Status: CLOSED, 0% utilization</li>
+                </ul>
+                <p><strong>Root Cause:</strong> Uncertain. This could indicate life event (home purchase support, education, relocation) or increased short-term credit needs.</p>
+                <p><strong>Action Required:</strong> PAUSE new credit applications immediately. No new loans for 6-12 months to allow "credit-seeking behavior" to age out of your report.</p>
+            </div>
+
+            <div class="issue-subsection">
+                <h4>🔴 Critical Balance Overshoot on Acc25 (Balance 101.3% of Sanctioned)</h4>
+                <p><strong>Why It Matters:</strong> A balance exceeding the sanctioned amount is flagged as a severe credit event by credit bureaus and indicates either over-disbursement, compounding charges, or fraudulent activity.</p>
+                <p><strong>Impact on Your Score:</strong> This single issue is costing you approximately <span class="highlight">20-30 points</span>. If not resolved, it could trigger negative actions from the lender.</p>
+                <p><strong>Details:</strong> Acc25 has a sanctioned amount of ₹2,00,000 but current balance of ₹2,02,600 (an overage of ₹2,600 or 1.3%). This was opened on 27 Dec 2025, just 2 months ago. The first payment was likely made in January 2026 (showing amount remaining), but the balance exceeds the original disbursement.</p>
+                <p><strong>Possible Causes:</strong> (1) Interest accrual + penalty charges, (2) Late fee additions, (3) Data error in reporting, (4) Cash withdrawal fees, or (5) Balance transfer mishap.</p>
+                <p><strong>Action Required: URGENT (Within 48-72 Hours):</strong></p>
+                <ul style="margin-left: 20px; margin-top: 8px;">
+                    <li>Call the lending institution immediately to understand the balance discrepancy</li>
+                    <li>Obtain itemized statement showing original disbursement, payments, and charges</li>
+                    <li>If charges are unjustified, raise a complaint with the lender and credit bureau</li>
+                    <li>Make immediate payment of the excess ₹2,600 to bring balance within sanctioned limit</li>
+                    <li>Request lender to issue a "balance correction" certificate to the credit bureau</li>
+                </ul>
+            </div>
+
+            <div class="issue-subsection">
+                <h4>⚠️ High Utilization on Acc24 (84.5% - Recent Loan)</h4>
+                <p><strong>Why It Matters:</strong> While your 3-month payment history on this loan is perfect, maintaining balance at 84.5% of sanctioned amount indicates minimal principal repayment so far.</p>
+                <p><strong>Impact on Your Score:</strong> This is costing approximately <span class="highlight">10-15 points</span>. For a new loan, this is expected, but every month this remains above 50% costs 2-3 score points.</p>
+                <p><strong>Details:</strong> Opened 1 Dec 2025, you've reduced balance from ₹31,431 to ₹26,572 (paid ₹4,859 or 15.5%). You need to pay an additional ₹9,522 to reach 50% utilization target (₹15,715).</p>
+                <p><strong>Action Required:</strong> Accelerate repayment. Target paying ₹3,000-5,000 per month (instead of minimum due) to reach 50% utilization within 60 days. This will gain you 10-15 points.</p>
+            </div>
+
+            <div class="issue-subsection">
+                <h4>📊 High Credit Inquiries (24 Non-Credit Enquiries in 180 Days)</h4>
+                <p><strong>Why It Matters:</strong> Non-credit enquiries (for KYC, verification, salary slip checks) don't directly impact your score, but 24 in 180 days (averaging 4 per month) suggests frequent credit applications or verification checks.</p>
+                <p><strong>Impact on Your Score:</strong> Minimal direct impact (<span class="highlight">2-5 points</span>) since these are non-credit enquiries, but the pattern suggests you're actively seeking credit.</p>
+                <p><strong>Note:</strong> The report shows ZERO credit enquiries in last 180 days, which is excellent. This means lenders haven't been running hard inquiries (which each cost 1-3 points). The 24 inquiries are soft/non-credit checks for your own account management.</p>
+                <p><strong>Action Required:</strong> None needed. This is normal behavior and doesn't impact score. However, if you had multiple hard inquiries, we'd recommend pausing applications for 3-6 months.</p>
+            </div>
+
+            <div class="issue-subsection">
+                <h4>✓ Positive: Excellent Payment History (0 Days Past Due across all accounts)</h4>
+                <p><strong>Why This Helps:</strong> Your perfect payment track record is the primary reason your score is 761 instead of 600-700. Payment history is 35% of your score.</p>
+                <p><strong>Contribution to Your Score:</strong> This factor is adding approximately <span class="highlight">+80-100 points</span>. Maintain this at all costs, as a single late payment (even 30 days) will cost 30-50 points.</p>
+                <p><strong>Observation:</strong> Across 26 accounts (19 closed, 7 active), you've maintained zero delinquency. This demonstrates financial discipline and is your strongest score asset.</p>
+            </div>
+
+            <div class="issue-subsection">
+                <h4>✓ Positive: Account Mix (Diversified Portfolio)</h4>
+                <p><strong>Why This Helps:</strong> Your portfolio includes secured loans (housing, property), unsecured loans (personal, consumer), and revolving credit (credit cards). This diversification shows you can manage different credit types responsibly.</p>
+                <p><strong>Contribution to Your Score:</strong> This factor is adding approximately <span class="highlight">+15-20 points</span>. Account mix is 10% of your score calculation.</p>
+                <p><strong>Current Mix:</strong> 9 Personal Loans, 7 Consumer Loans, 3 Credit Cards, 2 Property Loans, 1 Housing Loan, 4 Others. Good balance across secured and unsecured credit.</p>
+            </div>
+        </div>
+
+        <!-- ========== STRATEGIC ANALYSIS SECTION ========== -->
+        <div class="section">
+            <div class="section-title">🎯 Strategic Analysis: Credit Health Heatmap</div>
+            <div class="table-wrapper">
+                <table class="heatmap-table">
+                    <thead>
+                        <tr>
+                            <th>Metric</th>
+                            <th>Current Status</th>
+                            <th>Benchmark (Good)</th>
+                            <th>Your Position</th>
+                            <th>Score Impact</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Payment History</strong></td>
+                            <td class="heatmap-cell-excellent">0 Days Past Due</td>
+                            <td>0-30 DPD</td>
+                            <td class="heatmap-cell-excellent">EXCELLENT ✓</td>
+                            <td style="color: var(--low-green); font-weight: 600;">+80 pts</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Credit Utilization</strong></td>
+                            <td class="heatmap-cell-fair">18.7% Avg (Incl. Housing: 96.8%)</td>
+                            <td>0-10%</td>
+                            <td class="heatmap-cell-fair">FAIR</td>
+                            <td style="color: var(--critical-red); font-weight: 600;">-45 pts</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Account Age (Oldest)</strong></td>
+                            <td class="heatmap-cell-good">6+ Years (since Jul 2019)</td>
+                            <td>5+ Years</td>
+                            <td class="heatmap-cell-good">GOOD</td>
+                            <td style="color: var(--low-green); font-weight: 600;">+15 pts</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Total Accounts</strong></td>
+                            <td class="heatmap-cell-excellent">26 (7 Active, 19 Closed)</td>
+                            <td>8-15 Total</td>
+                            <td class="heatmap-cell-good">GOOD</td>
+                            <td style="color: var(--low-green); font-weight: 600;">+10 pts</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Account Mix</strong></td>
+                            <td class="heatmap-cell-excellent">Secured + Unsecured + Revolving</td>
+                            <td>Diversified</td>
+                            <td class="heatmap-cell-excellent">EXCELLENT ✓</td>
+                            <td style="color: var(--low-green); font-weight: 600;">+18 pts</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Recent Inquiries</strong></td>
+                            <td class="heatmap-cell-excellent">0 Credit Inquiries (180d)</td>
+                            <td>0-2</td>
+                            <td class="heatmap-cell-excellent">EXCELLENT ✓</td>
+                            <td style="color: var(--low-green); font-weight: 600;">+5 pts</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Recent Account Activity</strong></td>
+                            <td class="heatmap-cell-poor">4 Loans in 4 Months (Dec-Mar)</td>
+                            <td>0-1 per 6 months</td>
+                            <td class="heatmap-cell-poor">POOR</td>
+                            <td style="color: var(--critical-red); font-weight: 600;">-20 pts</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Delinquency Status</strong></td>
+                            <td class="heatmap-cell-excellent">No Write-offs or Settlements</td>
+                            <td>None</td>
+                            <td class="heatmap-cell-excellent">EXCELLENT ✓</td>
+                            <td style="color: var(--low-green); font-weight: 600;">+30 pts</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div style="margin-top: 30px;">
+                <h3 style="color: var(--text-dark); margin-bottom: 15px; font-size: 18px;">📍 Risk Concentration Analysis</h3>
+                <div class="chart-box" style="margin-bottom: 20px;">
+                    <div class="chart-title">Outstanding Balance by Loan Type</div>
+                    <img src="https://quickchart.io/chart?c=%7B%22type%22:%22bar%22,%22data%22:%7B%22labels%22:%5B%22Housing%20Loan%22,%22Personal%20Loans%22,%22Property%20Loan%22,%22Credit%20Cards%22,%22Others%22%5D,%22datasets%22:%5B%7B%22label%22:%22Balance%20(₹)%22,%22data%22:%5B1936131,228172,40040,10846,0%5D,%22backgroundColor%22:%5B%22%234A00E0%22,%22%238E2DE2%22,%22%23667eea%22,%22%23764ba2%22,%22%23a8a8a8%22%5D%7D%5D%7D,%22options%22:%7B%22indexAxis%22:%22y%22,%22plugins%22:%7B%22legend%22:%7B%22display%22:false%7D%7D,%22scales%22:%7B%22x%22:%7B%22ticks%22:%7B%22callback%22:%22function(value)%7Breturn%27₹%27+(value/100000).toFixed(1)+%27L%27%7D%22%7D%7D%7D%7D" alt="Balance by Type">
+                </div>
+
+                <div style="background: var(--bg-light); padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                    <h4 style="color: var(--text-dark); margin-bottom: 12px; font-size: 16px;">Key Findings:</h4>
+                    <ul style="list-style: none; color: var(--text-light); font-size: 14px;">
+                        <li style="margin-bottom: 10px;"><strong style="color: var(--text-dark);">🏠 Housing Loan Dominance (87.4% of total balance):</strong> Your ₹19.36L housing loan represents 87.4% of your total outstanding debt of ₹22.14L. This concentration is normal for homeowners and not risky if repayment is consistent (which it is).</li>
+                        <li style="margin-bottom: 10px;"><strong style="color: var(--text-dark);">📱 Personal Loan Growth:</strong> You have 9 personal loans totaling ₹2,28,172 outstanding (10.3% of total). Recent aggressive borrowing of personal loans (4 in 4 months) is unusual and suggests either diversified needs or behavioral change.</li>
+                        <li style="margin-bottom: 10px;"><strong style="color: var(--text-dark);">💳 Credit Card Health:</strong> Only ₹10,846 outstanding across 3 active credit cards (with a combined limit of ₹169

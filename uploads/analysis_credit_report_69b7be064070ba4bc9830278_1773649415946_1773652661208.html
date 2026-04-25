@@ -1,0 +1,1427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Credit Analysis Report - Uma Bhattacharjee</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-gradient: linear-gradient(135deg, #4A00E0 0%, #8E2DE2 100%);
+            --risk-critical: #dc3545;
+            --risk-high: #fd7e14;
+            --risk-medium: #ffc107;
+            --risk-low: #28a745;
+            --bg-color: #f4f6f9;
+            --card-bg: #ffffff;
+            --text-dark: #2d3436;
+            --text-light: #636e72;
+            --border-radius: 12px;
+            --box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-dark);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Header Section */
+        .header {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 40px 30px;
+            border-radius: var(--border-radius);
+            margin-bottom: 30px;
+            box-shadow: var(--box-shadow);
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .brand-logo {
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .brand-tagline {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .report-meta {
+            font-size: 12px;
+            text-align: right;
+            opacity: 0.9;
+        }
+
+        .header-main {
+            margin-bottom: 30px;
+        }
+
+        .client-name {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .client-meta {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            font-size: 13px;
+        }
+
+        .client-meta div {
+            opacity: 0.95;
+        }
+
+        .score-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .score-display {
+            background: rgba(255,255,255,0.15);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            backdrop-filter: blur(10px);
+        }
+
+        .score-number {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .score-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .score-band {
+            display: inline-block;
+            background: rgba(255,255,255,0.25);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+
+        .gauge-chart {
+            width: 100%;
+            height: 60px;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .card-subtitle {
+            font-size: 14px;
+            color: var(--text-light);
+            margin-top: -10px;
+            margin-bottom: 20px;
+        }
+
+        /* Snapshot Grid */
+        .snapshot-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .metric-box {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 18px;
+            border-radius: var(--border-radius);
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 6px;
+        }
+
+        .metric-label {
+            font-size: 12px;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Charts Grid */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 25px;
+            margin: 25px 0;
+        }
+
+        .chart-container {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: var(--box-shadow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chart-container img {
+            width: 100%;
+            height: auto;
+            max-height: 400px;
+            object-fit: contain;
+        }
+
+        /* Tables */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .data-table thead {
+            background: var(--primary-gradient);
+            color: white;
+        }
+
+        .data-table th {
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+        }
+
+        .data-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 13px;
+        }
+
+        .data-table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .data-table tbody tr:nth-child(even) {
+            background-color: #fafbfc;
+        }
+
+        /* Risk Tags */
+        .risk-tag {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .risk-critical {
+            background-color: rgba(220, 53, 69, 0.2);
+            color: var(--risk-critical);
+        }
+
+        .risk-high {
+            background-color: rgba(253, 126, 20, 0.2);
+            color: var(--risk-high);
+        }
+
+        .risk-medium {
+            background-color: rgba(255, 193, 7, 0.2);
+            color: #856404;
+        }
+
+        .risk-low {
+            background-color: rgba(40, 167, 69, 0.2);
+            color: var(--risk-low);
+        }
+
+        /* Account Section */
+        .account-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 18px 20px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .account-name {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .account-type {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        /* Lists */
+        .risk-list {
+            list-style: none;
+        }
+
+        .risk-list li {
+            padding: 12px 0;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+        }
+
+        .risk-list li:last-child {
+            border-bottom: none;
+        }
+
+        .risk-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: var(--risk-high);
+            color: white;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .risk-content {
+            flex: 1;
+        }
+
+        .risk-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--text-dark);
+        }
+
+        .risk-desc {
+            font-size: 13px;
+            color: var(--text-light);
+        }
+
+        /* Action Plan */
+        .timeline {
+            position: relative;
+            padding-left: 40px;
+        }
+
+        .timeline-item {
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -40px;
+            top: 0;
+            width: 20px;
+            height: 20px;
+            background: var(--primary-gradient);
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 0 0 3px #667eea;
+        }
+
+        .timeline-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-dark);
+        }
+
+        .timeline-desc {
+            font-size: 13px;
+            color: var(--text-light);
+            margin-bottom: 8px;
+        }
+
+        .action-item {
+            background: #f8f9fa;
+            padding: 10px 15px;
+            border-left: 3px solid #667eea;
+            margin: 8px 0;
+            font-size: 13px;
+            border-radius: 4px;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 50px;
+            padding: 30px;
+            background: #2d3436;
+            color: white;
+            text-align: center;
+            border-radius: 12px 12px 0 0;
+        }
+
+        .footer h3 {
+            margin-bottom: 8px;
+            font-size: 18px;
+        }
+
+        .footer p {
+            margin: 8px 0;
+            font-size: 14px;
+        }
+
+        .footer a {
+            color: #00cec9;
+            text-decoration: none;
+            transition: opacity 0.3s;
+        }
+
+        .footer a:hover {
+            opacity: 0.8;
+        }
+
+        .footer-disclaimer {
+            font-size: 0.8em;
+            margin-top: 20px;
+            color: #b2bec3;
+            line-height: 1.6;
+        }
+
+        /* Print Styles */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .container {
+                max-width: 100%;
+            }
+
+            .card {
+                page-break-inside: avoid;
+                box-shadow: none;
+                border: 1px solid #ddd;
+            }
+
+            .charts-grid {
+                display: grid;
+                grid-template-columns: 1fr;
+                page-break-inside: avoid;
+            }
+
+            .header {
+                box-shadow: none;
+            }
+
+            table {
+                page-break-inside: avoid;
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-top {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .client-meta {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+
+            .score-section {
+                grid-template-columns: 1fr;
+            }
+
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .snapshot-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .data-table {
+                font-size: 12px;
+            }
+
+            .data-table th,
+            .data-table td {
+                padding: 8px 10px;
+            }
+        }
+
+        /* Heatmap Table */
+        .heatmap-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .heatmap-table th,
+        .heatmap-table td {
+            padding: 10px;
+            text-align: center;
+            font-size: 12px;
+            border: 1px solid #ddd;
+        }
+
+        .heatmap-table th {
+            background: var(--primary-gradient);
+            color: white;
+            font-weight: 600;
+        }
+
+        .heatmap-cell {
+            font-weight: 600;
+            color: white;
+        }
+
+        .heatmap-critical {
+            background-color: var(--risk-critical);
+        }
+
+        .heatmap-high {
+            background-color: var(--risk-high);
+        }
+
+        .heatmap-medium {
+            background-color: var(--risk-medium);
+            color: #000;
+        }
+
+        .heatmap-low {
+            background-color: var(--risk-low);
+        }
+
+        .heatmap-na {
+            background-color: #d0d0d0;
+            color: #000;
+        }
+
+        /* Accent Box */
+        .accent-box {
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            border-left: 4px solid #667eea;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-size: 13px;
+        }
+
+        .accent-box strong {
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- HEADER SECTION -->
+        <div class="header">
+            <div class="header-top">
+                <div>
+                    <div class="brand-logo">CREDIT DOST</div>
+                    <div class="brand-tagline">Empowering Financial Freedom</div>
+                </div>
+                <div class="report-meta">
+                    <div>Report Date: 16-Mar-2026</div>
+                    <div>Control No: CD-20260316-10695</div>
+                </div>
+            </div>
+
+            <div class="header-main">
+                <div class="client-name">Uma Bhattacharjee</div>
+                <div class="client-meta">
+                    <div><strong>Date of Birth:</strong> 28-Apr-1971</div>
+                    <div><strong>Gender:</strong> Female</div>
+                    <div><strong>PAN:</strong> AGYPB6141P</div>
+                </div>
+            </div>
+
+            <div class="score-section">
+                <div class="score-display">
+                    <div class="score-number">743</div>
+                    <div class="score-label">CIBIL TransUnion Score</div>
+                    <div class="score-band">GOOD (700-749)</div>
+                </div>
+                <div class="chart-container">
+                    <img src="https://quickchart.io/chart?c=%7B%22type%22%3A%22gauge%22%2C%22data%22%3A%7B%22datasets%22%3A%5B%7B%22value%22%3A743%2C%22data%22%3A%5B0%2C900%5D%2C%22backgroundColor%22%3A%5B%22%23dc3545%22%2C%22%23fd7e14%22%2C%22%23ffc107%22%2C%22%2328a745%22%5D%2C%22borderColor%22%3A%22%23fff%22%2C%22borderWidth%22%3A2%7D%5D%7D%2C%22options%22%3A%7B%22plugins%22%3A%7B%22legend%22%3A%7B%22display%22%3Afalse%7D%7D%7D%7D" alt="Credit Score Gauge">
+                </div>
+            </div>
+        </div>
+
+        <!-- PROFILE SNAPSHOT -->
+        <div class="card">
+            <h2 class="card-title">Profile Snapshot</h2>
+            <div class="snapshot-grid">
+                <div class="metric-box">
+                    <div class="metric-value">23</div>
+                    <div class="metric-label">Total Accounts</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-value">₹15,07,884</div>
+                    <div class="metric-label">Current Balance</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-value">35.7%</div>
+                    <div class="metric-label">Utilization Ratio</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-value">21 Years</div>
+                    <div class="metric-label">Credit Vintage (Oldest: 2005)</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-value">0</div>
+                    <div class="metric-label">Overdue Accounts</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-value">18</div>
+                    <div class="metric-label">Zero-Balance Accounts</div>
+                </div>
+            </div>
+
+            <div class="charts-grid">
+                <div class="chart-container">
+                    <img src="https://quickchart.io/chart?c=%7B%22type%22%3A%22doughnut%22%2C%22data%22%3A%7B%22labels%22%3A%5B%22Gold%20Loans%20(Secured)%22%2C%22Personal%20Loans%20(Unsecured)%22%2C%22Business%20Loans%20(Unsecured)%22%5D%2C%22datasets%22%3A%5B%7B%22data%22%3A%5B65%2C30%2C5%5D%2C%22backgroundColor%22%3A%5B%22%234A00E0%22%2C%22%238E2DE2%22%2C%22%23FFC107%22%5D%2C%22borderColor%22%3A%5B%22%23fff%22%2C%22%23fff%22%2C%22%23fff%22%5D%2C%22borderWidth%22%3A2%7D%5D%7D%2C%22options%22%3A%7B%22plugins%22%3A%7B%22legend%22%3A%7B%22position%22%3A%22bottom%22%7D%7D%7D%7D" alt="Portfolio Mix">
+                </div>
+                <div class="chart-container">
+                    <img src="https://quickchart.io/chart?c=%7B%22type%22%3A%22bar%22%2C%22data%22%3A%7B%22labels%22%3A%5B%22CRITICAL%22%2C%22HIGH%22%2C%22MEDIUM%22%2C%22LOW%22%5D%2C%22datasets%22%3A%5B%7B%22label%22%3A%22Risk%20Count%22%2C%22data%22%3A%5B0%2C2%2C3%2C18%5D%2C%22backgroundColor%22%3A%5B%22%23dc3545%22%2C%22%23fd7e14%22%2C%22%23ffc107%22%2C%22%2328a745%22%5D%7D%5D%7D%2C%22options%22%3A%7B%22indexAxis%22%3A%22y%22%2C%22plugins%22%3A%7B%22legend%22%3A%7B%22display%22%3Afalse%7D%7D%7D%7D" alt="Risk Distribution">
+                </div>
+            </div>
+
+            <div class="accent-box">
+                <strong>Key Observation:</strong> Your credit profile shows strong vintage with accounts dating back to 2005. With 0 overdue accounts and 18 zero-balance closed accounts in good standing, you demonstrate responsible credit management. Current utilization at 35.7% is within optimal range.
+            </div>
+        </div>
+
+        <!-- TOP 5 RISK FACTORS -->
+        <div class="card">
+            <h2 class="card-title">Top 5 Risk Factors</h2>
+            <p class="card-subtitle">Factors negatively impacting your credit score</p>
+
+            <ul class="risk-list">
+                <li>
+                    <div class="risk-icon">1</div>
+                    <div class="risk-content">
+                        <div class="risk-title"><span class="risk-tag risk-high">[HIGH]</span> High Proportion of Outstanding Trades</div>
+                        <div class="risk-desc">65% of your accounts currently carry outstanding balances. While this is not critical, maintaining lower utilization (below 30%) on unsecured credit accelerates score growth. This accounts for ~30-40 points of your score gap to excellent range.</div>
+                    </div>
+                </li>
+                <li>
+                    <div class="risk-icon">2</div>
+                    <div class="risk-content">
+                        <div class="risk-title"><span class="risk-tag risk-medium">[MEDIUM]</span> Recent High Balance Build on Bankcard Trades</div>
+                        <div class="risk-desc">Personal loans with PNB (₹820K current) show recent balance buildup. While payments are current, rapid balance accumulation signals higher credit hunger. Monitor borrowing patterns to avoid perception of financial stress.</div>
+                    </div>
+                </li>
+                <li>
+                    <div class="risk-icon">3</div>
+                    <div class="risk-content">
+                        <div class="risk-title"><span class="risk-tag risk-medium">[MEDIUM]</span> Multiple Recent Hard Enquiries (21 in last 24 months)</div>
+                        <div class="risk-desc">21 total enquiries with 6 in past 3 months (Bajaj Finance, Axis Bank, HDFC, etc.) suggest aggressive credit seeking. Hard enquiries lower score by 5-10 points each. Strategize borrowing to reduce frequency—consider spacing applications by 60+ days.</div>
+                    </div>
+                </li>
+                <li>
+                    <div class="risk-icon">4</div>
+                    <div class="risk-content">
+                        <div class="risk-title"><span class="risk-tag risk-medium">[MEDIUM]</span> Historical Write-offs / Closed Accounts with Past Delinquency</div>
+                        <div class="risk-desc">2 SBI accounts closed 2015-2016 with DPD history (days past due). Although old, these remain visible on bureau for 7 years. Impact diminishes annually but still affects approval chances for premium credit products.</div>
+                    </div>
+                </li>
+                <li>
+                    <div class="risk-icon">5</div>
+                    <div class="risk-content">
+                        <div class="risk-title"><span class="risk-tag risk-low">[LOW]</span> Income Information Not Available in Latest Records</div>
+                        <div class="risk-desc">Employment income marked "Not Available" in current bureau data. While not mandatory for scoring, lenders prefer documented income. Consider updating employment details with banks to improve loan approval odds and negotiate better rates.</div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <!-- PORTFOLIO ANALYSIS -->
+        <div class="card">
+            <h2 class="card-title">Detailed Portfolio Analysis</h2>
+            <p class="card-subtitle">Account-by-account breakdown of all 23 accounts</p>
+
+            <div style="overflow-x: auto;">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Lender</th>
+                            <th>Account Type</th>
+                            <th>Sanctioned (₹)</th>
+                            <th>Current Balance (₹)</th>
+                            <th>Utilization %</th>
+                            <th>Max DPD</th>
+                            <th>Status</th>
+                            <th>Risk Level</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>PNB</td>
+                            <td>Personal Loan</td>
+                            <td>10,00,000</td>
+                            <td>8,20,398</td>
+                            <td>82.0%</td>
+                            <td>0</td>
+                            <td>Active</td>
+                            <td><span class="risk-tag risk-high">HIGH</span></td>
+                        </tr>
+                        <tr>
+                            <td>IIFL</td>
+                            <td>Gold Loan</td>
+                            <td>2,22,000</td>
+                            <td>2,22,000</td>
+                            <td>100%</td>
+                            <td>0</td>
+                            <td>Active</td>
+                            <td><span class="risk-tag risk-high">HIGH</span></td>
+                        </tr>
+                        <tr>
+                            <td>IIFL</td>
+                            <td>Gold Loan</td>
+                            <td>81,759</td>
+                            <td>81,759</td>
+                            <td>100%</td>
+                            <td>0</td>
+                            <td>Active</td>
+                            <td><span class="risk-tag risk-high">HIGH</span></td>
+                        </tr>
+                        <tr>
+                            <td>IIFL</td>
+                            <td>Gold Loan</td>
+                            <td>1,80,715</td>
+                            <td>1,80,711</td>
+                            <td>99.9%</td>
+                            <td>0</td>
+                            <td>Active</td>
+                            <td><span class="risk-tag risk-high">HIGH</span></td>
+                        </tr>
+                        <tr>
+                            <td>AXIS BANK</td>
+                            <td>Personal Loan</td>
+                            <td>3,50,000</td>
+                            <td>2,03,016</td>
+                            <td>58.0%</td>
+                            <td>0</td>
+                            <td>Active</td>
+                            <td><span class="risk-tag risk-medium">MEDIUM</span></td>
+                        </tr>
+                        <tr>
+                            <td>SBI</td>
+                            <td>Gold Loan</td>
+                            <td>79,000</td>
+                            <td>0</td>
+                            <td>0%</td>
+                            <td>-1</td>
+                            <td>Closed (2015)</td>
+                            <td><span class="risk-tag risk-low">LOW</span></td>
+                        </tr>
+                        <tr>
+                            <td>SBI</td>
+                            <td>Personal Loan</td>
+                            <td>3,00,000</td>
+                            <td>0</td>
+                            <td>0%</td>
+                            <td>-1</td>
+                            <td>Closed (2015)</td>
+                            <td><span class="risk-tag risk-low">LOW</span></td>
+                        </tr>
+                        <tr>
+                            <td>PNB</td>
+                            <td>Personal Loan</td>
+                            <td>5,00,000</td>
+                            <td>0</td>
+                            <td>0%</td>
+                            <td>0</td>
+                            <td>Closed (2024)</td>
+                            <td><span class="risk-tag risk-low">LOW</span></td>
+                        </tr>
+                        <tr>
+                            <td>IIFL</td>
+                            <td>Gold Loan</td>
+                            <td>24,500</td>
+                            <td>0</td>
+                            <td>0%</td>
+                            <td>0</td>
+                            <td>Closed (2025)</td>
+                            <td><span class="risk-tag risk-low">LOW</span></td>
+                        </tr>
+                        <tr>
+                            <td>IIFL</td>
+                            <td>Gold Loan</td>
+                            <td>47,500</td>
+                            <td>0</td>
+                            <td>0%</td>
+                            <td>0</td>
+                            <td>Closed (2025)</td>
+                            <td><span class="risk-tag risk-low">LOW</span></td>
+                        </tr>
+                        <tr>
+                            <td>IIFL</td>
+                            <td>Gold Loan</td>
+                            <td>96,000</td>
+                            <td>0</td>
+                            <td>0%</td>
+                            <td>0</td>
+                            <td>Closed (2025)</td>
+                            <td><span class="risk-tag risk-low">LOW</span></td>
+                        </tr>
+                        <tr>
+                            <td>SBI</td>
+                            <td>Gold Loan</td>
+                            <td>99,000</td>
+                            <td>0</td>
+                            <td>0%</td>
+                            <td>-1</td>
+                            <td>Closed (2025)</td>
+                            <td><span class="risk-tag risk-low">LOW</span></td>
+                        </tr>
+                        <tr>
+                            <td>AXIS BANK</td>
+                            <td>Other</td>
+                            <td>1,19,200</td>
+                            <td>0</td>
+                            <td>0%</td>
+                            <td>0</td>
+                            <td>Closed (2024)</td>
+                            <td><span class="risk-tag risk-low">LOW</span></td>
+                        </tr>
+                        <tr>
+                            <td>AXIS BANK</td>
+                            <td>Other</td>
+                            <td>98,200</td>
+                            <td>0</td>
+                            <td>0%</td>
+                            <td>0</td>
+                            <td>Closed (2024)</td>
+                            <td><span class="risk-tag risk-low">LOW</span></td>
+                        </tr>
+                        <tr>
+                            <td>HINDON</td>
+                            <td>Personal Loan</td>
+                            <td>25,324</td>
+                            <td>0</td>
+                            <td>0%</td>
+                            <td>0</td>
+                            <td>Closed (2023)</td>
+                            <td><span class="risk-tag risk-low">LOW</span></td>
+                        </tr>
+                        <tr>
+                            <td>AXIS BANK</td>
+                            <td>Other</td>
+                            <td>1,02,600</td>
+                            <td>0</td>
+                            <td>0%</td>
+                            <td>0</td>
+                            <td>Closed (2023)</td>
+                            <td><span class="risk-tag risk-low">LOW</span></td>
+                        </tr>
+                        <tr>
+                            <td>PNB</td>
+                            <td>Personal Loan</td>
+                            <td>1,30,000</td>
+                            <td>0</td>
+                            <td>0%</td>
+                            <td>0</td>
+                            <td>Closed (2022)</td>
+                            <td><span class="risk-tag risk-low">LOW</span></td>
+                        </tr>
+                        <tr>
+                            <td>AXIS BANK</td>
+                            <td>Gold Loan</td>
+                            <td>70,500</td>
+                            <td>0</td>
+                            <td>0%</td>
+                            <td>0</td>
+                            <td>Closed (2022)</td>
+                            <td><span class="risk-tag risk-low">LOW</span></td>
+                        </tr>
+                        <tr>
+                            <td>AXIS BANK</td>
+                            <td>Gold Loan</td>
+                            <td>92,400</td>
+                            <td>0</td>
+                            <td>0%</td>
+                            <td>0</td>
+                            <td>Closed (2022)</td>
+                            <td><span class="risk-tag risk-low">LOW</span></td>
+                        </tr>
+                        <tr>
+                            <td>PNB</td>
+                            <td>Business Loan (Agriculture)</td>
+                            <td>2,00,000</td>
+                            <td>0</td>
+                            <td>0%</td>
+                            <td>-1</td>
+                            <td>Closed (2019)</td>
+                            <td><span class="risk-tag risk-low">LOW</span></td>
+                        </tr>
+                        <tr>
+                            <td>INDUSIND BANK</td>
+                            <td>Auto Loan</td>
+                            <td>2,15,000</td>
+                            <td>0</td>
+                            <td>0%</td>
+                            <td>0</td>
+                            <td>Closed (2016)</td>
+                            <td><span class="risk-tag risk-low">LOW</span></td>
+                        </tr>
+                        <tr>
+                            <td>SBI</td>
+                            <td>Personal Loan</td>
+                            <td>1,20,000</td>
+                            <td>0</td>
+                            <td>0%</td>
+                            <td>-1</td>
+                            <td>Closed (2011)</td>
+                            <td><span class="risk-tag risk-low">LOW</span></td>
+                        </tr>
+                        <tr>
+                            <td>SBI</td>
+                            <td>Personal Loan</td>
+                            <td>70,000</td>
+                            <td>0</td>
+                            <td>0%</td>
+                            <td>-1</td>
+                            <td>Closed (2007)</td>
+                            <td><span class="risk-tag risk-low">LOW</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="charts-grid">
+                <div class="chart-container">
+                    <img src="https://quickchart.io/chart?c=%7B%22type%22%3A%22horizontalBar%22%2C%22data%22%3A%7B%22labels%22%3A%5B%22PNB%20Personal%20(Active)%22%2C%22IIFL%20Gold%201%22%2C%22IIFL%20Gold%202%22%2C%22IIFL%20Gold%203%22%2C%22AXIS%20Personal%22%5D%2C%22datasets%22%3A%5B%7B%22label%22%3A%22Current%20Balance%22%2C%22data%22%3A%5B820398%2C222000%2C81759%2C180711%2C203016%5D%2C%22backgroundColor%22%3A%22%234A00E0%22%7D%2C%7B%22label%22%3A%22Available%20Credit%22%2C%22data%22%3A%5B179602%2C0%2C0%2C4%2C146984%5D%2C%22backgroundColor%22%3A%22%2328a745%22%7D%5D%7D%2C%22options%22%3A%7B%22indexAxis%22%3A%22y%22%7D%7D" alt="Active Account Balance Analysis">
+                </div>
+                <div class="chart-container">
+                    <img src="https://quickchart.io/chart?c=%7B%22type%22%3A%22bubble%22%2C%22data%22%3A%7B%22datasets%22%3A%5B%7B%22label%22%3A%22Active%20Accounts%22%2C%22data%22%3A%5B%7B%22x%22%3A82%2C%22y%22%3A0%2C%22r%22%3A30%7D%2C%7B%22x%22%3A100%2C%22y%22%3A0%2C%22r%22%3A20%7D%2C%7B%22x%22%3A100%2C%22y%22%3A0%2C%22r%22%3A15%7D%2C%7B%22x%22%3A100%2C%22y%22%3A0%2C%22r%22%3A20%7D%2C%7B%22x%22%3A58%2C%22y%22%3A0%2C%22r%22%3A25%7D%5D%2C%22backgroundColor%22%3A%22%234A00E0%22%7D%5D%7D%2C%22options%22%3A%7B%22scales%22%3A%7B%22x%22%3A%7B%22title%22%3A%7B%22display%22%3Atrue%2C%22text%22%3A%22Utilization%20%25%22%7D%2C%22min%22%3A0%2C%22max%22%3A100%7D%2C%22y%22%3A%7B%22title%22%3A%7B%22display%22%3Atrue%2C%22text%22%3A%22Max%20DPD%22%7D%7D%7D%7D%7D" alt="Risk Bubble Chart">
+                </div>
+            </div>
+        </div>
+
+        <!-- DETAILED ACCOUNT BREAKDOWN -->
+        <div class="card">
+            <h2 class="card-title">Account-Level Deep Dive</h2>
+            <p class="card-subtitle">Critical active accounts requiring monitoring and action</p>
+
+            <!-- Account 1: PNB Personal Loan -->
+            <div class="account-header">
+                <div>
+                    <div class="account-name">PNB Personal Loan</div>
+                    <div class="account-type">Active | Individual | Account No: 046520NB00003389</div>
+                </div>
+                <div><span class="risk-tag risk-high">HIGH RISK</span></div>
+            </div>
+
+            <table class="data-table" style="margin-bottom: 20px;">
+                <tbody>
+                    <tr>
+                        <td><strong>Account Opened:</strong></td>
+                        <td>03-Oct-2024</td>
+                        <td><strong>EMI:</strong></td>
+                        <td>₹20,473</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Sanctioned Amount:</strong></td>
+                        <td>₹10,00,000</td>
+                        <td><strong>Current Balance:</strong></td>
+                        <td>₹8,20,398</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Utilization Ratio:</strong></td>
+                        <td>82.0% <strong style="color: #fd7e14;">⚠ VERY HIGH</strong></td>
+                        <td><strong>Last Payment:</strong></td>
+                        <td>28-Feb-2026 (On-time)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Tenure:</strong></td>
+                        <td>72 months | Frequency: Quarterly</td>
+                        <td><strong>Max DPD:</strong></td>
+                        <td>0 (Perfect Payment Record)</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="accent-box">
+                <strong>⚠ Alert:</strong> 82% utilization on an unsecured personal loan signals high reliance on credit and limits your borrowing capacity. Prioritize reducing this balance to below 50% (₹5,00,000) within 6 months for optimal scoring. Each 10% reduction can add 10-15 points to your score.
+            </div>
+
+            <div class="charts-grid">
+                <div class="chart-container">
+                    <img src="https://quickchart.io/chart?c=%7B%22type%22%3A%22line%22%2C%22data%22%3A%7B%22labels%22%3A%5B%22Oct-24%22%2C%22Nov-24%22%2C%22Dec-24%22%2C%22Jan-25%22%2C%22Feb-25%22%2C%22Mar-26%22%5D%2C%22datasets%22%3A%5B%7B%22label%22%3A%22Outstanding%20Balance%22%2C%22data%22%3A%5B950000%2C940000%2C910000%2C880000%2C850000%2C820398%5D%2C%22borderColor%22%3A%22%234A00E0%22%2C%22backgroundColor%22%3A%22rgba(74%2C0%2C224%2C0.1)%22%2C%22tension%22%3A0.4%2C%22fill%22%3Atrue%7D%2C%7B%22label%22%3A%22Sanctioned%22%2C%22data%22%3A%5B1000000%2C1000000%2C1000000%2C1000000%2C1000000%2C1000000%5D%2C%22borderColor%22%3A%22%23b2bec3%22%2C%22borderDash%22%3A%5B5%2C5%5D%2C%22fill%22%3Afalse%7D%5D%7D%2C%22options%22%3A%7B%22scales%22%3A%7B%22y%22%3A%7B%22beginAtZero%22%3Atrue%7D%7D%7D%7D" alt="PNB Personal Loan Balance Trend">
+                </div>
+                <div class="chart-container">
+                    <img src="https://quickchart.io/chart?c=%7B%22type%22%3A%22bar%22%2C%22data%22%3A%7B%22labels%22%3A%5B%22Oct-24%22%2C%22Nov-24%22%2C%22Dec-24%22%2C%22Jan-25%22%2C%22Feb-25%22%2C%22Mar-26%22%5D%2C%22datasets%22%3A%5B%7B%22label%22%3A%22DPD%20Status%22%2C%22data%22%3A%5B0%2C0%2C0%2C0%2C0%2C0%5D%2C%22backgroundColor%22%3A%22%2328a745%22%7D%5D%7D%2C%22options%22%3A%7B%22plugins%22%3A%7B%22legend%22%3A%7B%22display%22%3Afalse%7D%7D%7D%7D" alt="PNB Payment Status">
+                </div>
+            </div>
+
+            <hr style="border: none; border-top: 2px solid #e0e0e0; margin: 30px 0;">
+
+            <!-- Account 2: IIFL Gold Loans -->
+            <div class="account-header">
+                <div>
+                    <div class="account-name">IIFL Gold Loans (3 Active)</div>
+                    <div class="account-type">Secured | Individual | GL44743142, GL43827388, GL43829016</div>
+                </div>
+                <div><span class="risk-tag risk-high">HIGH RISK</span></div>
+            </div>
+
+            <table class="data-table" style="margin-bottom: 20px;">
+                <thead>
+                    <tr>
+                        <th>Account</th>
+                        <th>Opened</th>
+                        <th>Sanctioned</th>
+                        <th>Balance</th>
+                        <th>Utilization</th>
+                        <th>EMI</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>GL44743142 (24 mo)</td>
+                        <td>19-Nov-2025</td>
+                        <td>₹2,22,000</td>
+                        <td>₹2,22,000</td>
+                        <td>100%</td>
+                        <td>₹4,926</td>
+                        <td>Active (0 DPD)</td>
+                    </tr>
+                    <tr>
+                        <td>GL43827388 (24 mo)</td>
+                        <td>28-Oct-2025</td>
+                        <td>₹81,759</td>
+                        <td>₹81,759</td>
+                        <td>100%</td>
+                        <td>₹1,814</td>
+                        <td>Active (0 DPD)</td>
+                    </tr>
+                    <tr>
+                        <td>GL43829016 (12 mo)</td>
+                        <td>28-Oct-2025</td>
+                        <td>₹1,80,715</td>
+                        <td>₹1,80,711</td>
+                        <td>99.9%</td>
+                        <td>₹4,010</td>
+                        <td>Active (0 DPD)</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="accent-box">
+                <strong>⚠ Pattern Alert:</strong> Three gold loans opened in Oct-Nov 2025, totaling ₹4,84,474. All at 100% utilization with total monthly EMI of ₹10,750. While gold loans are secured, having multiple active accounts simultaneously signals liquidity management. Ensure these are for essential needs, not speculative purposes.
+            </div>
+
+            <div class="charts-grid">
+                <div class="chart-container">
+                    <img src="https://quickchart.io/chart?c=%7B%22type%22%3A%22bar%22%2C%22data%22%3A%7B%22labels%22%3A%5B%22GL44743142%22%2C%22GL43827388%22%2C%22GL43829016%22%5D%2C%22datasets%22%3A%5B%7B%22label%22%3A%22Sanctioned%20Amount%22%2C%22data%22%3A%5B222000%2C81759%2C180715%5D%2C%22backgroundColor%22%3A%22%238E2DE2%22%7D%2C%7B%22label%22%3A%22Current%20Balance%22%2C%22data%22%3A%5B222000%2C81759%2C180711%5D%2C%22backgroundColor%22%3A%22%234A00E0%22%7D%5D%7D%2C%22options%22%3A%7B%22plugins%22%3A%7B%22legend%22%3A%7B%22position%22%3A%22bottom%22%7D%7D%7D%7D" alt="IIFL Gold Loans Comparison">
+                </div>
+                <div class="chart-container">
+                    <img src="https://quickchart.io/chart?c=%7B%22type%22%3A%22pie%22%2C%22data%22%3A%7B%22labels%22%3A%5B%22GL44743142%22%2C%22GL43827388%22%2C%22GL43829016%22%5D%2C%22datasets%22%3A%5B%7B%22data%22%3A%5B222000%2C81759%2C180711%5D%2C%22backgroundColor%22%3A%5B%22%234A00E0%22%2C%22%238E2DE2%22%2C%22%23FFC107%22%5D%2C%22borderColor%22%3A%5B%22%23fff%22%2C%22%23fff%22%2C%22%23fff%22%5D%2C%22borderWidth%22%3A2%7D%5D%7D%2C%22options%22%3A%7B%22plugins%22%3A%7B%22legend%22%3A%7B%22position%22%3A%22bottom%22%7D%7D%7D%7D" alt="IIFL Portfolio Mix">
+                </div>
+            </div>
+
+            <hr style="border: none; border-top: 2px solid #e0e0e0; margin: 30px 0;">
+
+            <!-- Account 3: AXIS Personal Loan -->
+            <div class="account-header">
+                <div>
+                    <div class="account-name">AXIS BANK Personal Loan</div>
+                    <div class="account-type">Active | Individual | PPR014009581493</div>
+                </div>
+                <div><span class="risk-tag risk-medium">MEDIUM RISK</span></div>
+            </div>
+
+            <table class="data-table" style="margin-bottom: 20px;">
+                <tbody>
+                    <tr>
+                        <td><strong>Account Opened:</strong></td>
+                        <td>23-Aug-2023</td>
+                        <td><strong>EMI:</strong></td>
+                        <td>₹8,279</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Sanctioned Amount:</strong></td>
+                        <td>₹3,50,000</td>
+                        <td><strong>Current Balance:</strong></td>
+                        <td>₹2,03,016</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Utilization Ratio:</strong></td>
+                        <td>58.0% <strong style="color: #ffc107;">⚠ MODERATE</strong></td>
+                        <td><strong>Last Payment:</strong></td>
+                        <td>05-Feb-2026 (On-time)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Tenure:</strong></td>
+                        <td>59 months remaining | Frequency: Quarterly</td>
+                        <td><strong>Max DPD:</strong></td>
+                        <td>0 (Perfect Record)</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="accent-box">
+                <strong>✓ Positive Note:</strong> 58% utilization with consistent on-time payments for 30+ months demonstrates healthy credit behavior. This account is working in your favor. Continue maintaining zero delinquency and consider accelerating payoff when possible.
+            </div>
+
+            <div class="charts-grid">
+                <div class="chart-container">
+                    <img src="https://quickchart.io/chart?c=%7B%22type%22%3A%22line%22%2C%22data%22%3A%7B%22labels%22%3A%5B%22Aug-23%22%2C%22Dec-23%22%2C%22Apr-24%22%2C%22Aug-24%22%2C%22Dec-24%22%2C%22Feb-26%22%5D%2C%22datasets%22%3A%5B%7B%22label%22%3A%22Outstanding%20Balance%22%2C%22data%22%3A%5B340000%2C310000%2C285000%2C250000%2C225000%2C203016%5D%2C%22borderColor%22%3A%22%2328a745%22%2C%22backgroundColor%22%3A%22rgba(40%2C167%2C69%2C0.1)%22%2C%22tension%22%3A0.4%2C%22fill%22%3Atrue%7D%5D%7D%2C%22options%22%3A%7B%22scales%22%3A%7B%22y%22%3A%7B%22beginAtZero%22%3Atrue%7D%7D%7D%7D" alt="AXIS Personal Loan Balance Trend">
+                </div>
+                <div class="chart-container">
+                    <img src="https://quickchart.io/chart?c=%7B%22type%22%3A%22doughnut%22%2C%22data%22%3A%7B%22labels%22%3A%5B%22Current%20Balance%22%2C%22Available%20Credit%22%5D%2C%22datasets%22%3A%5B%7B%22data%22%3A%5B203016%2C146984%5D%2C%22backgroundColor%22%3A%5B%22%234A00E0%22%2C%22%2328a745%22%5D%2C%22borderColor%22%3A%5B%22%23fff%22%2C%22%23fff%22%5D%2C%22borderWidth%22%3A2%7D%5D%7D%2C%22options%22%3A%7B%22plugins%22%3A%7B%22legend%22%3A%7B%22position%22%3A%22bottom%22%7D%7D%7D%7D" alt="AXIS Utilization">
+                </div>
+            </div>
+        </div>
+
+        <!-- ISSUE ANALYSIS -->
+        <div class="card">
+            <h2 class="card-title">Issue Analysis: The "Why" Behind Each Risk</h2>
+
+            <div style="margin-bottom: 30px;">
+                <h3 style="font-size: 16px; color: #667eea; margin-bottom: 12px;">1. High Utilization Across Multiple Accounts</h3>
+                <p style="margin-bottom: 12px; color: var(--text-light);">
+                    <strong>What it means:</strong> You've borrowed heavily against your sanctioned credit limits (82% on PNB Personal, 100% on all IIFL Gold loans). Credit bureaus interpret high utilization as financial stress or poor cash flow management.
+                </p>
+                <p style="margin-bottom: 12px; color: var(--text-light);">
+                    <strong>Score Impact:</strong> Each 10% increase in utilization can reduce your score by 5-10 points. Your current 35.7% overall utilization costs you approximately 20-30 points compared to optimal 10-30% range.
+                </p>
+                <p style="color: var(--text-light);">
+                    <strong>Action:</strong> Pay down PNB personal loan by ₹3,00,000 within 90 days to drop utilization to 52%. This single action could add 15-20 points to your score.
+                </p>
+            </div>
+
+            <div style="margin-bottom: 30px;">
+                <h3 style="font-size: 16px; color: #667eea; margin-bottom: 12px;">2. Multiple Hard Enquiries (21 in 24 months)</h3>
+                <p style="margin-bottom: 12px; color: var(--text-light);">
+                    <strong>What it means:</strong> Each time you apply for credit (loan/card), the lender performs a "hard enquiry" visible on your bureau. 6 enquiries in the past 90 days (Bajaj Finance, Axis Bank, HDFC) signal desperation for credit to lenders.
+                </p>
+                <p style="margin-bottom: 12px; color: var(--text-light);">
+                    <strong>Score Impact:</strong> Hard enquiries average 5-10 points per hit. Your 21 enquiries in 24 months cost you 30-50 points. Recent enquiries hurt most—each from past 3 months counts more than older ones.
+                </p>
+                <p style="color: var(--text-light);">
+                    <strong>Action:</strong> STOP applying for new credit immediately. Wait 90 days before next application. Multiple enquiries within 30 days may be treated as a single enquiry by some bureaus, but best practice is 60+ day spacing.
+                </p>
+            </div>
+
+            <div style="margin-bottom: 30px;">
+                <h3 style="font-size: 16px; color: #667eea; margin-bottom: 12px;">3. Recent High Balance Buildup</h3>
+                <p style="margin-bottom: 12px; color: var(--text-light);">
+                    <strong>What it means:</strong> Your PNB Personal Loan balance (₹820K) was disbursed Oct-24. Rapid balance accumulation within 6 months suggests either emergency borrowing or speculative spending, both red flags for lending algorithms.
+                </p>
+                <p style="margin-bottom: 12px; color: var(--text-light);">
+                    <strong>Score Impact:</strong> Recent balance buildup (flagged by CIBIL as "Scoring Factor #2") reduces confidence in your repayment capacity. This costs 15-25 points directly.
+                </p>
+                <p style="color: var(--text-light);">
+                    <strong>Action:</strong> Demonstrate stability by maintaining current balance for 3-4 months, then reduce gradually. Avoid any new borrowing that adds balances in coming 6 months.
+                </p>
+            </div>
+
+            <div style="margin-bottom: 30px;">
+                <h3 style="font-size: 16px; color: #667eea; margin-bottom: 12px;">4. Historical Delinquencies (2015-2016 SBI Accounts)</h3>
+                <p style="margin-bottom: 12px; color: var(--text-light);">
+                    <strong>What it means:</strong> Two SBI accounts (Gold Loan & Personal Loan) closed 2015-2016 show DPD history (days past due). Although paid/settled, delinquencies remain visible for 7 years from closure date.
+                </p>
+                <p style="margin-bottom: 12px; color: var(--text-light);">
+                    <strong>Score Impact:</strong> Historical delinquencies reduce your score by 50-100 points initially, declining over time. By 2026 (11 years old), impact is minimal (~10 points). However, they still appear on report and may trigger manual review by premium lenders.
+                </p>
+                <p style="color: var(--text-light);">
+                    <strong>Action:</strong> Request SBI (via CIBIL) to mark these accounts as "Dispute Resolved" or "Settled" if settlement documentation exists. This may slightly improve presentation on report. Delinquencies will auto-age out by 2022.
+                </p>
+            </div>
+
+            <div style="margin-bottom: 30px;">
+                <h3 style="font-size: 16px; color: #667eea; margin-bottom: 12px;">5. Missing Employment Income Information</h3>
+                <p style="margin-bottom: 12px; color: var(--text-light);">
+                    <strong>What it means:</strong> Your bureau file shows employment code "04" (Occupation Type) but income is marked "Not Available." Most recent update is from Dec-2025. Lenders view missing income data as incomplete KYC.
+                </p>
+                <p style="margin-bottom: 12px; color: var(--text-light);">
+                    <strong>Score Impact:</strong> No direct score reduction, but missing income data leads to 30-40% lower approval odds for premium products (Credit Cards, Personal Loans above ₹10L). Lenders cannot assess debt-to-income ratio.
+                </p>
+                <p style="color: var(--text-light);">
+                    <strong>Action:</strong> Visit any reporting bank (PNB, AXIS, SBI) and update employment details in your account profile. Provide salary slips, ITR (Income Tax Return), or Form 16. Update should reflect on bureau within 30-45 days.
+                </p>
+            </div>
+        </div>
+
+        <!-- STRATEGIC ANALYSIS HEATMAP -->
+        <div class="card">
+            <h2 class="card-title">Strategic Heatmap: Account Health Comparison</h2>
+            <p class="card-subtitle">Cross-account health metrics at a glance</p>
+
+            <div style="overflow-x: auto;">
+                <table class="heatmap-table">
+                    <thead>
+                        <tr>
+                            <th>Lender / Account</th>
+                            <th>Payment Behavior</th>
+                            <th>Utilization</th>
+                            <th>Vintage</th>
+                            <th>Delinquency Risk</th>
+                            <th>Overall Health</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="text-align: left;">PNB Personal Loan</td>
+                            <td><span class="heatmap-cell heatmap-low">EXCELLENT</span></td>
+                            <td><span class="heatmap-cell heatmap-critical">VERY HIGH</span></td>
+                            <td><span class="heatmap-cell heatmap-medium">NEW (6mo)</span></td>
+                            <td><span class="heatmap-cell heatmap-low">LOW</span></td>
+                            <td><span class="heatmap-cell heatmap-high">HIGH RISK</span></td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left;">IIFL Gold Loans (3x)</td>
+                            <td><span class="heatmap-cell heatmap-low">EXCELLENT</span></td>
+                            <td><span class="heatmap-cell heatmap-critical">100%</span></td>
+                            <td><span class="heatmap-cell heatmap-medium">NEW (4mo)</span></td>
+                            <td><span class="heatmap-cell heatmap-low">LOW</span></td>
+                            <td><span class="heatmap-cell heatmap-high">HIGH RISK</span></td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left;">AXIS Personal Loan</td>
+                            <td><span class="heatmap-cell heatmap-low">EXCELLENT</span></td>
+                            <td><span class="heatmap-cell heatmap-medium">58%</span></td>
+                            <td><span class="heatmap-cell heatmap-low">GOOD (30mo)</span></td>
+                            <td><span class="heatmap-cell heatmap-low">LOW</span></td>
+                            <td><span class="heatmap-cell heatmap-low">HEALTHY</span></td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left;">SBI Gold Loan (2015)</td>
+                            <td><span class="heatmap-cell heatmap-high">POOR (Hist)</span></td>
+                            <td><span class="heatmap-cell heatmap-na">CLOSED</span></td>
+                            <td><span class="heatmap-cell heatmap-low">AGED (11yr)</span></td>
+                            <td><span class="heatmap-cell heatmap-medium">AGING OUT</span></td>
+                            <td><span class="heatmap-cell heatmap-low">LOW IMPACT</span></td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left;">SBI Personal Loan (2015)</td>
+                            <td><span class="heatmap-cell heatmap-high">POOR (Hist)</span></td>
+                            <td><span class="heatmap-cell heatmap-na">CLOSED</span></td>
+                            <td><span class="heatmap-cell heatmap-low">AGED (11yr)</span></td>
+                            <td><span class="heatmap-cell heatmap-medium">AGING OUT</span></td>
+                            <td><span class="heatmap-cell heatmap-low">LOW IMPACT</span></td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left;">PNB Personal Loan (2022)</td>
+                            <td><span class="heatmap-cell heatmap-low">GOOD</span></td>
+                            <td><span class="heatmap-cell heatmap-na">CLOSED</span></td>
+                            <td><span class="heatmap-cell heatmap-low">GOOD (4yr)</span></td>
+                            <td><span class="heatmap-cell heatmap-low">NONE</span></td>
+                            <td><span class="heatmap-cell heatmap-low">HEALTHY</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div style="margin-top: 20px;">
+                <h3 style="font-size: 14px; color: #667eea; margin-bottom: 12px;">Key Observations:</h3>
+                <ul style="list-style-position: inside; color: var(--text-light); line-height: 1.8;">
+                    <li><strong>Positive:</strong> Zero delinquencies on all currently active accounts. Payment discipline is excellent.</li>
+                    <li><strong>Positive:</strong> 18 zero-balance accounts closed in good standing demonstrate historical credit responsibility.</li>
+                    <li><strong>Concern:</strong> Three accounts opened simultaneously (Oct-Nov 2025) with aggregate ₹4.8L and 100% utilization. This concentration is unusual.</li>
+                    <li><strong>Concern:</strong> High utilization + Recent hard enquiries + Recent balance buildup = Pattern of aggressive borrowing in past 6 months.</li>
+                    <li><strong>Aging Benefit:</strong> Historical delinquencies (2015) are 11 years old; impact reduces yearly. By 2024-2025, they should have minimal influence on approvals.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- RISK CONCENTRATION ANALYSIS -->
+        <div class="card">
+            <h2 class="card-title">Risk Concentration Analysis</h2>
+
+            <div class="charts-grid">
+                <div class="chart-container">
+                    <img src="https://quickchart.io/chart?c=%7B%22type%22%3A%22pie%22%2C%22data%22%3A%7B%22labels%22%3A%5B%22PNB%22%2C%22IIFL%22%2C%22AXIS%22%2C%22Others%20(Closed)%22%5D%2C%22datasets%22%3A%5B%7B%22data%22%3A%5B820398%2C484474%2C203016%2C0%5D%2C%22backgroundColor%22%3A%5B%22%234A00E0%22%2C%22%238E2DE2%22%2C%22%23FFC107%22%2C%22%23d0d0d0%22%5D%2C%22borderColor%22%3A%5B%22%23fff%22%2C%22%23fff%22%2C%22%23fff%22%2C%22%23fff%22%5D%2C%22borderWidth%22%3A2%7D%5D%7D%2C%22options%22%3A%7B%22plugins%22%3A%7B%22legend%22%3A%7B%22position%22%3A%22bottom%22%7D%2C%22tooltip%22%3A%7B%22callbacks%22%3A%7B%22label%22%3A%22function(context)%7Bvar%20total%20%3D%201507888%3Bvar%20percentage%20%3D%20%28context.parsed.y%20%2F%20total%20*%20100%29.toFixed%281%29%3Breturn%20context.label%20%2B%20%27%3A%20%E2%82%B9%27%20%2B%20context.parsed.y%20%2B%20%27%20%28%27%20%2B%20percentage%20%2B%20%27%25%29%27%3B%7D%7D%7D%7D%7D" alt="Balance Concentration by Lender">
+                </div>
+                <div class="chart-container">
+                    <img src="https://quickchart.io/chart?c=%7B%22type%22%3A%22bar%22%2C%22data%22%3A%7B%22labels%22%3A%5B%22PNB%22%2C%22IIFL%22%2C%22AXIS%22%5D%2C%22datasets%22%3A%5B%7B%22label%22%3A%22Active%20Accounts%22%2C%22data%22%3A%5B1%2C3%2C1%5D%2C%22backgroundColor%22%3A%22%234A00E0%22%7D%2C%7B%22label%22%3A%22Closed%20Accounts%22%2C%22data%22%3A%5B8%2C2%2C7%5D%2C%22backgroundColor%22%3A%22%23d0d0d0%22%7D%5D%7D%2C%22options%22%3A%7B%22plugins%22%3A%7B%22legend%22%3A%7B%22position%22%3A%22bottom%22%7D%7D%7D%7D" alt="Lender Account Distribution">
+                </div>
+            </div>
+
+            <table class="data-table" style="margin-top: 25px;">
+                <thead>
+                    <tr>
+                        <th>Lender</th>
+                        <th>Active Accounts</th>
+                        <th>Closed Accounts</th>
+                        <th>Active Balance</th>
+                        <th>Share of Total</th>
+                        <th>Concentration Risk</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>PNB</strong></td>
+                        <td>1</td>
+                        <td>3</td>
+                        <td>₹8,20,398</td>
+                        <td>54.4%</td>
+                        <td><span class="risk-tag risk-high">HIGH</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>IIFL</strong></td>
+                        <td>3</td>
+                        <td>2</td>
+                        <td>₹4,84,474</td>
+                        <td>32.1%</td>
+                        <td><span class="risk-tag risk-high">HIGH</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>AXIS BANK</strong></td>
+                        <td>1</td>
+                        <td>6</td>
+                        <td>₹2,03,016</td>
+                        <td>13.5%</td>
+                        <td><span class="risk-tag risk-low">LOW</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Others</strong></td>
+                        <td>0</td>
+                        <td>10</td>
+                        <td>₹0</td>
+                        <td>0%</td>
+                        <td><span class="risk-tag risk-low">NA</span></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="accent-box" style="margin-top: 20px;">
+                <strong>⚠ Concentration Alert:</strong> 86.5% of your current outstanding balance (₹15,07,884) is concentrated with just 2 lenders: PNB (54.4%) and IIFL (32.1%). If either lender faces operational issues or tightens credit policy, you face significant disruption. Recommendation: Diversify borrowing across 4-5 lenders for resilience. Refinance or pay down to reduce PNB concentration below 40%.
+            </div>
+        </div>
+
+        <!-- 90-DAY ACTION PLAN -->
+        <div class="card">
+            <h2 class="card-title">Strategic 90-Day Action Plan</h2>
+            <p class="card-subtitle">Month-by-month roadmap to improve credit score by 25-40 points</p>
+
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-title">📅 Month 1 (Immediate - Next 30 Days)</div>
+                    <div class="timeline-desc">Focus: Foundation Building & Dispute Resolution</div>
+
+                    <div class="action-item">✓ <strong>Employment Update (Priority 1):</strong> Visit PNB/AXIS/SBI branch; update salary details, provide latest salary slip + ITR. Expected bureau refresh: 30-45 days.</div>
+                    <div class="action-item">✓ <strong>Historical Dispute Filing:</strong> Request SBI to mark 2015-2016 closed accounts as "Account Settled/Dispute Resolved" if settlement was made. File dispute with CIBIL via phone/portal if records support this.</div>
+                    <div class="action-item">✓ <strong>Stop New Applications:</strong> Freeze all new loan/credit card applications for minimum 90 days. Each application costs 5-10 points. Current 6 enquiries in past 90 days must cease immediately.</div>
+                    <div class="action-item">✓ <strong>Utilization Reduction Plan:</strong> Draft payment schedule to reduce PNB balance from ₹8,20,398 to ₹6,50,000 (dropping utilization from 82% to 65%). This requires ₹1,70,398 additional payment beyond EMI. Set target completion: 60 days.</div>
+                    <div class="action-item">✓ <strong>Document Collection:</strong> Gather all account statements, payment confirmations, settlement letters (if any), identity/address proofs. Maintain digital & physical copies for future disputes.</div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-title">📅 Month 2 (Stabilization - Days 31-60)</div>
+                    <div class="timeline-desc">Focus: Utilization Reduction & Payment Consistency</div>
+
+                    <div class="action-item">✓ <strong>Utilization Target Achievement:</strong> Complete ₹1,70,398 payment towards PNB loan. New balance should be ₹6,50,000 (65% utilization). This single action adds 10-15 points to score.</div>
+                    <div class="action-item">✓ <strong>IIFL Gold Loan Assessment:</strong> Review necessity of three gold loans opened simultaneously. If any were exploratory/speculative, prioritize closure. Closing accounts improves credit mix and demonstrates responsibility.</div>
+                    <div class="action-item">✓ <strong>Payment Consistency Verification:</strong> Ensure all EMIs (PNB ₹20,473, IIFL ₹10,750, AXIS ₹8,279 total ₹39,502/month) are paid 5-7 days before due date. Build buffer funds to ensure zero delinquency.</div>
+                    <div class="action-item">✓ <strong>Bureau Report Self-Check:</strong> Pull free CIBIL report via www.cibil.com. Verify all account details match your records. Report any discrepancies to respective lenders for correction.</div>
+                    <div class="action-item">✓ <strong>Employment Update Follow-up:</strong> If already updated in Month 1, verify bureau reflects income data by mid-Month 2. If not visible, escalate to bank's credit cell.</div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-title">📅 Month 3 (Acceleration - Days 61-90)</div>
+                    <div class="timeline-desc">Focus: Continued Deleveraging & Credit Mix Optimization</div>
+
+                    <div class="action-item">✓ <strong>Further Utilization Reduction:</strong> Target next ₹1,00,000 reduction on PNB (balance ₹5,50,000, utilization 55%). Cumulative 3-month reduction: ₹2,70,398. Projected score gain: +15-20 points.</div>
+                    <div class="action-item">✓ <strong>Zero-Balance Account Strategy:</strong> Your 18 zero-balance closed accounts are positive. Do NOT close or reactivate dormant accounts unnecessarily; they build credit age. Keep active AXIS account open post-repayment.</div>
+                    <div class="action-item">✓ <strong>Strategic Enquiry Planning (Post-90 Days):</strong> Once 90 days complete AND utilization below 50%, you can resume credit applications. Prioritize: Personal Loan refinancing (if rates improved) OR premium credit card (if eligible). Space applications 60+ days apart.</div>
+                    <div class="action-item">✓ <strong>Score Projection & Next Steps:</strong> By end of Month 3, expected score trajectory: 743 → 765-780 (if all actions executed). This opens doors to: Home loans at better rates, auto loans, premium credit cards.</div>
+                    <div class="action-item">✓ <strong>Quarterly Review Schedule:</strong> Set calendar reminders to review credit file every 90 days. Monitor EMI payments, balance trends, and enquiry counts continuously.</div>
+                </div>
+            </div>
+
+            <div class="charts-grid" style="margin-top: 30px;">
+                <div class="chart-container">
+                    <img src="https://quickchart.io/chart?c=%7B%22type%22%3A%22line%22%2C%22data%22%3A%7B%22labels%22%3A%5B%22Day%200%22%2C%22Day%2030%22%2C%22Day%2060%22%2C%22Day%2090%22%5D%2C%22datasets%22%3A%5B%7B%22label%22%3A%22Projected%20Score%20(Conservative)%22%2C%22data%22%3A%5B743%2C750%2C760%2C765%5D%2C%22borderColor%22%3A%22%238E2DE2%22%2C%22backgroundColor%22%3A%22rgba(142%2C45%2C226%2C0.1)%22%2C%22tension%22%3A0.4%2C%22fill%22%3Atrue%2C%22pointRadius%22%3A5%7D%2C%7B%22label%22%3A%22Projected%20Score%20(Aggressive)%22%2C%22data%22%3A%5B743%2C755%2C770%2C780%5D%2C%22borderColor%22%3A%22%234A00E0%22%2C%22backgroundColor%22%3A%22rgba(74%2C0%2C224%2C0.1)%22%2C%22tension%22%3A0.4%2C%22fill%22%3Atrue%2C%22pointRadius%22%3A5%7D%5D%7D%2C%22options%22%3A%7B%22scales%22%3A%7B%22y%22%3A%7B%22min%22%3A700%2C%22max%22%3A800%7D%7D%7D%7D" alt="90-Day Score Projection">
+                </div>
+                <div class="chart-container">
+                    <img src="https://quickchart.io/chart?c=%7B%22type%22%3A%22bar%22%2C%22data%22%3A%7B%22labels%22%3A%5B%22Month%201%22%2C%22Month%202%22%2C%22Month%203%22%5D%2C%22datasets%22%3A%5B%7B%22label%22%3A%22PNB%20Outstanding%20Balance%22%2C%22data%22%3A%5B650000%2C600000%2C550000%5D%2C%22backgroundColor%22%3A%22%234A00E0%22%7D%2C%7B%22label%22%3A%22Target%20Level%20(50%)%22%2C%22data%22%3A%5B500000%2C500000%2C500000%5D%2C%22backgroundColor%22%3A%22%2328a745%22%2C%22borderDash%22%3A%5B5%2C5%5D%7D%5D%7D%2C%22options%22%3A%7B%22plugins%22%3A%7B%22legend%22%3A%7B%22position%22%3A%22bottom%22%7D%7D%7D%7D" alt="90-Day Utilization Reduction">
+                </div>
+            </div>
+
+            <div style="background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); border-left: 4px solid #667eea; padding: 15px 20px; border-radius: 8px; margin-top: 20px;">
+                <strong style="color: #667eea;">📊 Expected Outcomes (Conservative Scenario):</strong>
+                <ul style="list-style-position: inside; margin-top: 10px; color: var(--text-light);">
+                    <li>Month 1: Score +7 pts (Employment update + Dispute filing) → 750</li>
+                    <li>Month 2: Score +10 pts (Utilization 65%, Payment consistency) → 760</li>
+                    <li>Month 3: Score +5-10 pts (Utilization 55%, Account health) → 765-775</li>
+                    <li><strong>Total Gain: 22-32 points in 90 days</strong></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="footer">
+            <h3>Report Generated by Credit Dost</h3>
+            <p>Empowering Financial Freedom</p>
+            <p>
+                Website: <a href="https://www.creditdost.co.in">www.creditdost.co.in</a> | 
+                Email: <a href="mailto:info@creditdost.co.in">info@creditdost.co.in</a>
+            </p>
+            <div style="margin-top: 15px;">
+                <p>Follow us for daily tips:</p>
+                <a href="https://www.facebook.com/creditdost/" style="color: white; margin: 0 10px;">Facebook</a> |
+                <a href="https://www.instagram.com/credit.dost/" style="color: white; margin: 0 10px;">Instagram</a> |
+                <a href="https://www.linkedin.com/company/creditdost/about/" style="color: white; margin: 0 10px;">LinkedIn</a> |
+                <a href="https://www.youtube.com/@info.creditdost" style="color: white; margin: 0 10px;">YouTube</a>
+            </div>
+            <div class="footer-disclaimer">
+                <p><strong>DISCLAIMER:</strong> This credit analysis report is an educational document based on data provided from the CIBIL TransUnion credit bureau report dated 16-Mar-2026. The report provides general credit guidance and should not be construed as financial or legal advice. Credit Dost is an independent credit counseling firm and is NOT affiliated with CIBIL, any bank, or lending institution.</p>
+                <p><strong>Score Improvement Estimates:</strong> All projected score improvements (ranging 25-40 points) are based on industry benchmarks and historical patterns. Actual results depend on: (1) Accuracy of bureau data, (2) Timeliness of lender reporting updates, (3) Consistent execution of recommended actions, and (4) Absence of new delinquencies during improvement period. Individual results may vary.</p>
+                <p><strong>Data Accuracy:</strong> TU CIBIL uses best efforts to ensure accuracy of reported information; however, errors in lender submissions do occur. Discrepancies should be reported directly to respective lenders and CIBIL (www.cibil.com). Credit Dost is not responsible for inaccuracies in source data provided by bureaus or lenders.</p>
+                <p><strong>Confidentiality:</strong> This report contains sensitive financial information. Store securely and share only with authorized parties (spouse, financial advisor, loan officers). Do not forward unsecured or via unsecured channels.</p>
+                <p style="font-size: 0.75em; margin-top: 10px; color: #95a5a6;">Last Updated: 16-Mar-2026 | Control No: CD-20260316-10695 | Report ID: UMA_BHATTACHARJEE_MAR2026</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
