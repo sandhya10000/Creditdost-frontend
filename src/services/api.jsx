@@ -211,6 +211,11 @@ export const adminAPI = {
   },
   // Business forms
   getAllBusinessForms: () => api.get("/business/all"),
+  //business form close case
+  closeBusinessCase: (id) =>
+    api.put(`/admin/business/${id}/close`, {
+      adminRemark: "Case completed",
+    }),
   // Surepass settings
   getSurepassApiKey: () => api.get("/credit/settings/api-key"),
   updateSurepassApiKey: (apiKey) =>

@@ -312,6 +312,12 @@ const FranchiseDashboard = () => {
       icon: <PersonIcon />,
       path: "/franchise/relationship-manager",
     },
+    //Contact support need to check here sandhya
+    {
+      text: "Customer Support",
+      icon: <PersonIcon />,
+      path: "/franchise/support",
+    },
   ];
 
   // Filter menu items based on KYC status
@@ -409,7 +415,7 @@ const FranchiseDashboard = () => {
         {menuItems.map((item) => (
           <NavItem
             key={item.text}
-            active={isActive(item.path) ? true : undefined}
+            active={isActive(item.path) ? "true" : undefined}
             onClick={() => {
               if (item.path === "/franchise") {
                 // For the Dashboard tab, navigate to the base route without redirect

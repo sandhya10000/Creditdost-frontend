@@ -70,6 +70,14 @@ const BusinessMIS = () => {
     );
   };
 
+  const getWorkStatusChip = (status) => {
+    switch (status) {
+      case "Closed":
+        return <Chip label="Closed" color="success" />;
+      default:
+        return <Chip label="In Progress" color="warning" />;
+    }
+  };
   const filteredBusinessForms = businessForms.filter(
     (form) =>
       form.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -111,7 +119,6 @@ const BusinessMIS = () => {
                 <TableHead>
                   <TableRow>
                     <TableCell>Customer ID</TableCell>
-
                     <TableCell>Customer Name</TableCell>
                     <TableCell>Email</TableCell>
                     <TableCell>Phone</TableCell>
@@ -119,6 +126,7 @@ const BusinessMIS = () => {
                     <TableCell>Amount</TableCell>
                     <TableCell>Payment Status</TableCell>
                     <TableCell>Date</TableCell>
+                    <TableCell>Work Status</TableCell>{" "}
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -146,6 +154,9 @@ const BusinessMIS = () => {
                         {getPaymentStatusChip(form.paymentStatus)}
                       </TableCell>
                       <TableCell>{formatDate(form.createdAt)}</TableCell>
+                      <TableCell>
+                        {getWorkStatusChip(form.workStatus)}
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

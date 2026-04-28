@@ -1,23 +1,24 @@
-import React from 'react';
-import { Routes, Route } from 'react-router-dom';
-import Dashboard from './Dashboard';
-import DashboardHome from './DashboardHome';
-import Profile from './Profile';
-import KycVerification from './KycVerification';
-import Packages from './Packages';
-import Payment from './Payment';
-import CreditCheck from './CreditCheck';
-import Leads from './Leads';
-import ViewReports from './ViewReports';
-import Referrals from './Referrals';
-import Business from './Business';
-import BusinessMIS from './BusinessMIS';
-import AIAnalysis from './AIAnalysis';
-import Certificate from './Certificate';
-import DigitalAgreement from './DigitalAgreement';
-import Payouts from './Payouts';
-import RelationshipManagerInfo from './RelationshipManagerInfo';
-import WhatsAppGroups from './WhatsAppGroups';
+import React from "react";
+import { Routes, Route } from "react-router-dom";
+import Dashboard from "./Dashboard";
+import DashboardHome from "./DashboardHome";
+import Profile from "./Profile";
+import KycVerification from "./KycVerification";
+import Packages from "./Packages";
+import Payment from "./Payment";
+import CreditCheck from "./CreditCheck";
+import Leads from "./Leads";
+import ViewReports from "./ViewReports";
+import Referrals from "./Referrals";
+import Business from "./Business";
+import BusinessMIS from "./BusinessMIS";
+import AIAnalysis from "./AIAnalysis";
+import Certificate from "./Certificate";
+import DigitalAgreement from "./DigitalAgreement";
+import Payouts from "./Payouts";
+import RelationshipManagerInfo from "./RelationshipManagerInfo";
+import WhatsAppGroups from "./WhatsAppGroups";
+import Support from "./Support";
 
 const FranchiseRoutes = () => {
   return (
@@ -39,7 +40,11 @@ const FranchiseRoutes = () => {
         <Route path="certificate" element={<Certificate />} />
         <Route path="agreement" element={<DigitalAgreement />} />
         <Route path="payouts" element={<Payouts />} />
-        <Route path="relationship-manager" element={<RelationshipManagerInfo />} />
+        <Route path="support" element={<Support />} />
+        <Route
+          path="relationship-manager"
+          element={<RelationshipManagerInfo />}
+        />
       </Route>
     </Routes>
   );

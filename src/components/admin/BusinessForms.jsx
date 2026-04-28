@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -17,14 +17,14 @@ import {
   TableRow,
   Paper,
   Chip,
-} from '@mui/material';
-import { adminAPI } from '../../services/api';
+} from "@mui/material";
+import { adminAPI } from "../../services/api";
 
 const BusinessForms = () => {
   const [businessForms, setBusinessForms] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [error, setError] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
 
   // Fetch all business forms on component mount
   useEffect(() => {
@@ -34,31 +34,46 @@ const BusinessForms = () => {
   const fetchBusinessForms = async () => {
     try {
       setLoading(true);
-      setError('');
+      setError("");
       const response = await adminAPI.getAllBusinessForms();
       setBusinessForms(response.data);
     } catch (err) {
-      setError('Failed to fetch business forms. Please try again later.');
-      console.error('Error fetching business forms:', err);
+      setError("Failed to fetch business forms. Please try again later.");
+      console.error("Error fetching business forms:", err);
     } finally {
       setLoading(false);
     }
   };
-
+  //function for case close update from admin api
+  const closeCase = async (id) => {
+    try {
+      setLoading(true);
+      setError("");
+      const response = await adminAPI.closeBusinessCase(id);
+      alert(response.message || "Case Closed Successfully");
+      // Refress update list
+      fetchBusinessForms();
+    } catch (err) {
+      setError("Failed to close case. Please try again later.");
+      console.error("Error closing case:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
   const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
+    if (!dateString) return "N/A";
     return new Date(dateString).toLocaleDateString();
   };
 
   const getPaymentStatusChip = (status) => {
     const statusConfig = {
-      'pending': { label: 'Pending', color: 'warning' },
-      'paid': { label: 'Paid', color: 'success' },
-      'failed': { label: 'Failed', color: 'error' },
+      pending: { label: "Pending", color: "warning" },
+      paid: { label: "Paid", color: "success" },
+      failed: { label: "Failed", color: "error" },
     };
-    
-    const config = statusConfig[status] || { label: status, color: 'default' };
-    
+
+    const config = statusConfig[status] || { label: status, color: "default" };
+
     return (
       <Chip
         label={config.label}
@@ -69,28 +84,31 @@ const BusinessForms = () => {
     );
   };
 
-  const filteredBusinessForms = businessForms.filter(form => 
-    form.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    form.customerEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    form.customerPhone.includes(searchTerm) ||
-    (form.franchiseId?.businessName || '').toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredBusinessForms = businessForms.filter(
+    (form) =>
+      form.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      form.customerEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      form.customerPhone.includes(searchTerm) ||
+      (form.franchiseId?.businessName || "")
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()),
   );
 
   return (
     <Box>
       <Typography variant="h4" gutterBottom>
         Business MIS
-      </Typography>     
-      
+      </Typography>
+
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
         </Alert>
       )}
-      
+
       <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
         <CardContent>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
+          <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
             <TextField
               fullWidth
               placeholder="Search by customer name, email, phone, or franchise"
@@ -99,7 +117,7 @@ const BusinessForms = () => {
               sx={{ maxWidth: 400 }}
             />
           </Box>
-          
+
           {loading && businessForms.length === 0 ? (
             <Box display="flex" justifyContent="center" my={4}>
               <CircularProgress />
@@ -117,13 +135,14 @@ const BusinessForms = () => {
                     <TableCell>Amount</TableCell>
                     <TableCell>Payment Status</TableCell>
                     <TableCell>Date</TableCell>
+                    <TableCell>Action</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {filteredBusinessForms.map((form) => (
                     <TableRow
                       key={form._id}
-                      sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                      sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
                     >
                       <TableCell component="th" scope="row">
                         {form.customerName}
@@ -131,18 +150,28 @@ const BusinessForms = () => {
                       <TableCell>{form.customerEmail}</TableCell>
                       <TableCell>{form.customerPhone}</TableCell>
                       <TableCell>
-                        {form.franchiseId?.businessName || 'N/A'}
+                        {form.franchiseId?.businessName || "N/A"}
                       </TableCell>
                       <TableCell>
-                        {form.selectedPackage?.name || 'N/A'}
+                        {form.selectedPackage?.name || "N/A"}
                       </TableCell>
                       <TableCell>
-                        ₹{form.selectedPackage?.price || 'N/A'}
+                        ₹{form.selectedPackage?.price || "N/A"}
                       </TableCell>
                       <TableCell>
                         {getPaymentStatusChip(form.paymentStatus)}
                       </TableCell>
                       <TableCell>{formatDate(form.createdAt)}</TableCell>
+                      <TableCell>
+                        <Button
+                          variant="contained"
+                          color="success"
+                          size="small"
+                          onClick={() => closeCase(form._id)}
+                        >
+                          Close Case
+                        </Button>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
