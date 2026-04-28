@@ -244,7 +244,8 @@ const CreditCheck = () => {
           ) {
             errorMessage += ": " + err.response.data.details.join(", ");
           }
-          setError(errorMessage);
+          // setError(errorMessage);
+          setError(errorMessage || "Something went wrong");
         } else if (err.response?.status === 400) {
           setError(
             "Invalid request data. Please check all fields and try again.",
