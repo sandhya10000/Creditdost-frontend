@@ -148,6 +148,29 @@ const FranchiseMarketing = () => {
                       >
                         WhatsApp
                       </Button>
+                      {/* Facebook */}
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        target="_blank"
+                        rel="noreferrer"
+                        href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(fileUrl)}`}
+                        size="small"
+                      >
+                        Facebook
+                      </Button>
+
+                      {/* Instagram */}
+                      <Button
+                        variant="contained"
+                        color="secondary"
+                        target="_blank"
+                        rel="noreferrer"
+                        href="https://www.instagram.com/"
+                        size="small"
+                      >
+                        Instagram
+                      </Button>
                     </Stack>
                   </CardContent>
                 </Card>
