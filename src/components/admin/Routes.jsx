@@ -1,25 +1,26 @@
-import React from 'react';
-import { Routes, Route } from 'react-router-dom';
-import Dashboard from './Dashboard';
-import ManageFranchises from './ManageFranchises';
-import ManagePackages from './ManagePackages';
-import ManageCustomerPackages from './ManageCustomerPackages';
-import ManageLeads from './ManageLeads';
-import ManagePayouts from './ManagePayouts';
-import ViewReports from './ViewReports';
-import ManageReferrals from './ManageReferrals';
-import SurepassSettings from './SurepassSettings';
-import RechargeCredits from './RechargeCredits';
-import BusinessForms from './BusinessForms';
-import ManageBlogs from './ManageBlogs';
-import ManageRelationshipManagers from './ManageRelationshipManagers';
-import AdminDashboardHome from './AdminDashboardHome';
-import GoogleSheetsSettings from './GoogleSheetsSettings';
-import ManageDigitalAgreements from './ManageDigitalAgreements';
-import ManageAIAnalysis from './ManageAIAnalysis';
+import React from "react";
+import { Routes, Route } from "react-router-dom";
+import Dashboard from "./Dashboard";
+import ManageFranchises from "./ManageFranchises";
+import ManagePackages from "./ManagePackages";
+import ManageCustomerPackages from "./ManageCustomerPackages";
+import ManageLeads from "./ManageLeads";
+import ManagePayouts from "./ManagePayouts";
+import ViewReports from "./ViewReports";
+import ManageReferrals from "./ManageReferrals";
+import SurepassSettings from "./SurepassSettings";
+import RechargeCredits from "./RechargeCredits";
+import BusinessForms from "./BusinessForms";
+import ManageBlogs from "./ManageBlogs";
+import ManageRelationshipManagers from "./ManageRelationshipManagers";
+import AdminDashboardHome from "./AdminDashboardHome";
+import GoogleSheetsSettings from "./GoogleSheetsSettings";
+import ManageDigitalAgreements from "./ManageDigitalAgreements";
+import ManageAIAnalysis from "./ManageAIAnalysis";
+import AdminMarketing from "./AdminMarketing";
 
 const AdminRoutes = () => {
-  return ( 
+  return (
     <Routes>
       <Route path="/" element={<Dashboard />}>
         <Route index element={<AdminDashboardHome />} />
@@ -36,8 +37,12 @@ const AdminRoutes = () => {
         <Route path="blogs" element={<ManageBlogs />} />
         <Route path="rms" element={<ManageRelationshipManagers />} />
         <Route path="google-sheets" element={<GoogleSheetsSettings />} />
-        <Route path="digital-agreements" element={<ManageDigitalAgreements />} />
+        <Route
+          path="digital-agreements"
+          element={<ManageDigitalAgreements />}
+        />
         <Route path="ai-analysis" element={<ManageAIAnalysis />} />
+        <Route path="marketing-materials" element={<AdminMarketing />} />
       </Route>
     </Routes>
   );

@@ -154,8 +154,8 @@ const AdminDashboard = () => {
 
   // Redirect non-admin users to appropriate dashboard
   useEffect(() => {
-    if (user && user.role !== 'admin') {
-      navigate('/franchise');
+    if (user && user.role !== "admin") {
+      navigate("/franchise");
     }
   }, [user, navigate]);
 
@@ -250,6 +250,11 @@ const AdminDashboard = () => {
       icon: <AutoGraphIcon />,
       path: "/admin/ai-analysis",
     },
+    {
+      text: "Marketing Materials",
+      icon: <AutoGraphIcon />,
+      path: "/admin/marketing-materials",
+    },
   ];
 
   const isActive = (path) => {
@@ -264,9 +269,11 @@ const AdminDashboard = () => {
 
   // Redirect from base route to default child route only on initial load
   useEffect(() => {
-    if ((location.pathname === '/admin' || location.pathname === '/admin/') && 
-        location.state?.redirect !== false) {
-      navigate('/admin', { replace: true });
+    if (
+      (location.pathname === "/admin" || location.pathname === "/admin/") &&
+      location.state?.redirect !== false
+    ) {
+      navigate("/admin", { replace: true });
     }
   }, [location.pathname, navigate, location.state]);
 
@@ -276,7 +283,11 @@ const AdminDashboard = () => {
         <SidebarLogo>
           {open ? (
             <>
-              <img src="/images/cred.png" alt="Logo" style={{width: "140px"}}/>
+              <img
+                src="/images/cred.png"
+                alt="Logo"
+                style={{ width: "140px" }}
+              />
             </>
           ) : (
             <Box
@@ -307,7 +318,7 @@ const AdminDashboard = () => {
                 navigate(item.path);
               }
             }}
-            style={{cursor: "pointer"}}
+            style={{ cursor: "pointer" }}
           >
             <ListItemIcon>{item.icon}</ListItemIcon>
             <ListItemText

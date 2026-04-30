@@ -19,6 +19,7 @@ import Payouts from "./Payouts";
 import RelationshipManagerInfo from "./RelationshipManagerInfo";
 import WhatsAppGroups from "./WhatsAppGroups";
 import Support from "./Support";
+import FranchiseMarketing from "./FranchiseMarketing"; // new page
 
 const FranchiseRoutes = () => {
   return (
@@ -42,10 +43,15 @@ const FranchiseRoutes = () => {
         <Route path="payouts" element={<Payouts />} />
         <Route path="support" element={<Support />} />
         <Route
+          path="/franchise-marketing"
+          element={<FranchiseMarketing />}
+        />{" "}
+        <Route
           path="relationship-manager"
           element={<RelationshipManagerInfo />}
         />
       </Route>
+      {/* New Marketing Route */}
     </Routes>
   );
 };

@@ -128,6 +128,8 @@ export const franchiseAPI = {
     api.get(`/ai-analysis/franchise/download-analysis/${docId}`, {
       responseType: "blob",
     }),
+  //get marketing material
+  getMarketingMaterials: () => api.get("/marketing"),
 };
 
 // Blog API functions
@@ -201,6 +203,8 @@ export const adminAPI = {
   createLead: (leadData) => api.post("/admin/leads", leadData),
   updateLead: (id, data) => api.put(`/admin/leads/${id}`, data),
   deleteLead: (id) => api.delete(`/admin/leads/${id}`),
+  //admin upload marketing materials post method
+  UploadDocument: (formData) => api.post("/admin/marketing/upload", formData),
   bulkUploadLeads: (formData) => {
     const config = {
       headers: {

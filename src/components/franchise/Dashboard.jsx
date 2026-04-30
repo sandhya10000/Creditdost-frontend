@@ -318,6 +318,11 @@ const FranchiseDashboard = () => {
       icon: <PersonIcon />,
       path: "/franchise/support",
     },
+    {
+      text: "Marketing Materials",
+      icon: <PersonIcon />,
+      path: "/franchise/franchise-marketing",
+    },
   ];
 
   // Filter menu items based on KYC status
