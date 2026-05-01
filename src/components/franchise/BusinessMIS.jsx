@@ -78,12 +78,20 @@ const BusinessMIS = () => {
         return <Chip label="In Progress" color="warning" />;
     }
   };
-  const filteredBusinessForms = businessForms.filter(
-    (form) =>
-      form.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      form.customerEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      form.customerPhone.includes(searchTerm),
-  );
+
+  const normalizedSearch = searchTerm.trim().toLowerCase();
+
+  const filteredBusinessForms = businessForms.filter((form) => {
+    const name = form.customerName?.toLowerCase() || "";
+    const email = form.customerEmail?.toLowerCase() || "";
+    const phone = String(form.customerPhone || "");
+
+    return (
+      name.includes(normalizedSearch) ||
+      email.includes(normalizedSearch) ||
+      phone.includes(normalizedSearch)
+    );
+  });
 
   return (
     <Box>
@@ -102,6 +110,7 @@ const BusinessMIS = () => {
           <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
             <TextField
               fullWidth
+              size="small"
               placeholder="Search by customer name, email, or phone"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
