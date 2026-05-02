@@ -130,6 +130,7 @@ export const franchiseAPI = {
     }),
   //get marketing material
   getMarketingMaterials: () => api.get("/marketing"),
+  createCaseStudy: (formData) => api.post("/franchise/case-studies", formData),
 };
 
 // Blog API functions

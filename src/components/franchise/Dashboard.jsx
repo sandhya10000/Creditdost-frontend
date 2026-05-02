@@ -44,6 +44,7 @@ import {
   ChevronLeft as ChevronLeftIcon,
   WhatsApp as WhatsAppIcon,
   Logout as LogoutIcon,
+  LibraryBooks as CaseStudiesIcon,
 } from "@mui/icons-material";
 import { useAuth } from "../../hooks/useAuth.jsx";
 import { franchiseAPI } from "../../services/api";
@@ -320,8 +321,13 @@ const FranchiseDashboard = () => {
     },
     {
       text: "Marketing Materials",
-      icon: <PersonIcon />,
+      icon: <DescriptionIcon />,
       path: "/franchise/franchise-marketing",
+    },
+    {
+      text: "Case Studies",
+      icon: <CaseStudiesIcon />,
+      path: "/franchise/case-studies",
     },
   ];
 

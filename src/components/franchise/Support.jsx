@@ -88,9 +88,12 @@ export default function Support() {
               onChange={handleChange}
               margin="normal"
             >
-              <MenuItem value="CIBIL Report Issue">CIBIL Report Issue</MenuItem>
-              <MenuItem value="Recharge Issue">Recharge Issue</MenuItem>
+              <MenuItem value="CIBIL Report Issue">
+                Credit Report Issue
+              </MenuItem>
+              <MenuItem value="AI Issue">AI Analysis Issue</MenuItem>
               <MenuItem value="Technical Issue">Technical Issue</MenuItem>
+              <MenuItem value="Reopen Case">Reopen Case</MenuItem>
             </TextField>
 
             <Typography variant="caption" fontWeight="bold">

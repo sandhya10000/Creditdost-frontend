@@ -93,6 +93,48 @@ const BusinessMIS = () => {
     );
   });
 
+  //Download bussiness mis users data function
+  const handleDownloadCSV = () => {
+    const headers = [
+      "Customer ID",
+      "Customer Name",
+      "Email",
+      "Phone",
+      "Package",
+      "Amount",
+      "Payment Status",
+      "Date",
+      "Work Status",
+    ];
+
+    const rows = filteredBusinessForms.map((form) => [
+      `CUST-${form._id.slice(-6).toUpperCase()}`,
+      form.customerName || "",
+      form.customerEmail || "",
+      form.customerPhone || "",
+      form.selectedPackage?.name || "N/A",
+      form.selectedPackage?.price || "N/A",
+      form.paymentStatus || "",
+      formatDate(form.createdAt),
+      form.workStatus || "",
+    ]);
+
+    const csvContent = [headers, ...rows]
+      .map((row) => row.join(","))
+      .join("\n");
+
+    const encodedUri =
+      "data:text/csv;charset=utf-8," + encodeURIComponent(csvContent);
+
+    const link = document.createElement("a");
+    link.href = encodedUri;
+    link.download = "business_mis.csv";
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <Box>
       <Typography variant="h4" gutterBottom>
@@ -107,7 +149,17 @@ const BusinessMIS = () => {
 
       <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
         <CardContent>
-          <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
+          {/* Search + Download */}
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: 2,
+              mb: 3,
+              flexWrap: "wrap",
+            }}
+          >
             <TextField
               fullWidth
               size="small"
@@ -116,6 +168,14 @@ const BusinessMIS = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
               sx={{ maxWidth: 400 }}
             />
+
+            <Button
+              variant="contained"
+              color="success"
+              onClick={handleDownloadCSV}
+            >
+              Download CSV
+            </Button>
           </Box>
 
           {loading && businessForms.length === 0 ? (
@@ -124,7 +184,7 @@ const BusinessMIS = () => {
             </Box>
           ) : (
             <TableContainer component={Paper}>
-              <Table sx={{ minWidth: 650 }} aria-label="business forms table">
+              <Table sx={{ minWidth: 650 }}>
                 <TableHead>
                   <TableRow>
                     <TableCell>Customer ID</TableCell>
@@ -135,22 +195,17 @@ const BusinessMIS = () => {
                     <TableCell>Amount</TableCell>
                     <TableCell>Payment Status</TableCell>
                     <TableCell>Date</TableCell>
-                    <TableCell>Work Status</TableCell>{" "}
+                    <TableCell>Work Status</TableCell>
                   </TableRow>
                 </TableHead>
+
                 <TableBody>
                   {filteredBusinessForms.map((form) => (
-                    <TableRow
-                      key={form._id}
-                      sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-                    >
-                      {/* add customer id here */}
-                      <TableCell component="th" scope="row">
+                    <TableRow key={form._id}>
+                      <TableCell>
                         CUST-{form._id.slice(-6).toUpperCase()}
                       </TableCell>
-                      <TableCell component="th" scope="row">
-                        {form.customerName}
-                      </TableCell>
+                      <TableCell>{form.customerName}</TableCell>
                       <TableCell>{form.customerEmail}</TableCell>
                       <TableCell>{form.customerPhone}</TableCell>
                       <TableCell>
