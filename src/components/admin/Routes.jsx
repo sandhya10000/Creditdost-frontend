@@ -18,7 +18,8 @@ import GoogleSheetsSettings from "./GoogleSheetsSettings";
 import ManageDigitalAgreements from "./ManageDigitalAgreements";
 import ManageAIAnalysis from "./ManageAIAnalysis";
 import AdminMarketing from "./AdminMarketing";
-
+import AdminReward from "./AdminReward";
+import AdminCaseStudies from "./AdminCaseStudy";
 const AdminRoutes = () => {
   return (
     <Routes>
@@ -43,6 +44,8 @@ const AdminRoutes = () => {
         />
         <Route path="ai-analysis" element={<ManageAIAnalysis />} />
         <Route path="marketing-materials" element={<AdminMarketing />} />
+        <Route path="reward" element={<AdminReward />} />
+        <Route path="case-study" element={<AdminCaseStudies />} />
       </Route>
     </Routes>
   );

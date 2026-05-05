@@ -55,6 +55,7 @@ const CreditCheck = () => {
   //for prefilled data mobile
   const [loadingPrefill, setLoadingPrefill] = useState(false);
   const [prefillError, setPrefillError] = useState("");
+  const [disablePan, setDisablePan] = useState(false);
 
   // Bureau options
   const bureauOptions = [
@@ -327,7 +328,7 @@ const CreditCheck = () => {
       }
 
       const details = apiData.details;
-
+      setDisablePan(false);
       setFormData((prev) => ({
         ...prev,
         name: details.personal_info?.full_name?.trim() || "",
@@ -340,6 +341,8 @@ const CreditCheck = () => {
       if (err?.response?.status === 500 || err?.response?.status === 404) {
         alert("No PAN record found for this mobile number");
       }
+      //  PAN disable karo
+      setDisablePan(true);
       setPrefillError("API failed");
     } finally {
       setLoadingPrefill(false);
@@ -480,11 +483,20 @@ const CreditCheck = () => {
                     label="PAN Number"
                     fullWidth
                     value={formData.pan}
+                    disabled={disablePan}
                     onChange={handleInputChange}
                     inputProps={{
                       style: { textTransform: "uppercase" },
                       maxLength: 10,
                       pattern: "[A-Za-z0-9]{10}",
+                    }}
+                    sx={{
+                      "& .MuiInputBase-root.Mui-disabled": {
+                        backgroundColor: "#f5f5f5", //  grey background
+                      },
+                      "& .MuiInputBase-input.Mui-disabled": {
+                        WebkitTextFillColor: "#999", //  text grey
+                      },
                     }}
                     helperText="PAN number (e.g., ABCDE1234F)"
                   />

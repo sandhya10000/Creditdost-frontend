@@ -62,7 +62,7 @@ const AdminMarketing = () => {
     <Box>
       <Card sx={{ maxWidth: 700, mx: "auto", mt: 4 }}>
         <CardContent>
-          <Typography variant="h5" gutterBottom>
+          <Typography variant="h5" textAlign="center" gutterBottom>
             Admin Marketing Upload
           </Typography>
 

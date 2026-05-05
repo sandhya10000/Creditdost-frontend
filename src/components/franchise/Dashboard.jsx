@@ -256,11 +256,11 @@ const FranchiseDashboard = () => {
   const allMenuItems = [
     { text: "Dashboard", icon: <DashboardIcon />, path: "/franchise" },
     { text: "My Profile", icon: <PersonIcon />, path: "/franchise/profile" },
-    {
-      text: "KYC Verification",
-      icon: <VerifiedUserIcon />,
-      path: "/franchise/kyc",
-    },
+    // {
+    //   text: "KYC Verification",
+    //   icon: <VerifiedUserIcon />,
+    //   path: "/franchise/kyc",
+    // },
     {
       text: "WhatsApp Groups",
       icon: <WhatsAppIcon />,
@@ -277,7 +277,7 @@ const FranchiseDashboard = () => {
       icon: <AccountBalanceIcon />,
       path: "/franchise/payouts",
     },
-    { text: "Referrals", icon: <GroupAddIcon />, path: "/franchise/referrals" },
+    // { text: "Referrals", icon: <GroupAddIcon />, path: "/franchise/referrals" },
     {
       text: "Business",
       icon: <BusinessCenterIcon />,
@@ -328,6 +328,11 @@ const FranchiseDashboard = () => {
       text: "Case Studies",
       icon: <CaseStudiesIcon />,
       path: "/franchise/case-studies",
+    },
+    {
+      text: "Reward",
+      icon: <CaseStudiesIcon />,
+      path: "/franchise/reward",
     },
   ];
 

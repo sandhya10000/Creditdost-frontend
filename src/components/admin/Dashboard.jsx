@@ -255,6 +255,16 @@ const AdminDashboard = () => {
       icon: <AutoGraphIcon />,
       path: "/admin/marketing-materials",
     },
+    {
+      text: "Reward",
+      icon: <AutoGraphIcon />,
+      path: "/admin/reward",
+    },
+    {
+      text: "Case Studies",
+      icon: <AutoGraphIcon />,
+      path: "/admin/case-study",
+    },
   ];
 
   const isActive = (path) => {
