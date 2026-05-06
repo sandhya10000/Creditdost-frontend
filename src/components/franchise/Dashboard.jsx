@@ -261,25 +261,22 @@ const FranchiseDashboard = () => {
     //   icon: <VerifiedUserIcon />,
     //   path: "/franchise/kyc",
     // },
-    {
-      text: "WhatsApp Groups",
-      icon: <WhatsAppIcon />,
-      path: "/franchise/whatsapp-groups",
-    },
+
     {
       text: "Credit Check",
       icon: <CreditScoreIcon />,
       path: "/franchise/credit-check",
     },
-    { text: "My Leads", icon: <PeopleIcon />, path: "/franchise/leads" },
     {
-      text: "Payouts",
-      icon: <AccountBalanceIcon />,
-      path: "/franchise/payouts",
+      text: "View Reports",
+      icon: <AssessmentIcon />,
+      path: "/franchise/reports",
     },
+    { text: "My Leads", icon: <PeopleIcon />, path: "/franchise/leads" },
+
     // { text: "Referrals", icon: <GroupAddIcon />, path: "/franchise/referrals" },
     {
-      text: "Business",
+      text: "Business Login",
       icon: <BusinessCenterIcon />,
       path: "/franchise/business",
     },
@@ -288,11 +285,7 @@ const FranchiseDashboard = () => {
       icon: <AssessmentIcon />,
       path: "/franchise/business-mis",
     },
-    {
-      text: "View Reports",
-      icon: <AssessmentIcon />,
-      path: "/franchise/reports",
-    },
+
     // {
     //   text: "Digital Agreement",
     //   icon: <DescriptionIcon />,
@@ -319,11 +312,7 @@ const FranchiseDashboard = () => {
       icon: <PersonIcon />,
       path: "/franchise/support",
     },
-    {
-      text: "Marketing Materials",
-      icon: <DescriptionIcon />,
-      path: "/franchise/franchise-marketing",
-    },
+
     {
       text: "Case Studies",
       icon: <CaseStudiesIcon />,
@@ -333,6 +322,21 @@ const FranchiseDashboard = () => {
       text: "Reward",
       icon: <CaseStudiesIcon />,
       path: "/franchise/reward",
+    },
+    {
+      text: "Marketing Materials",
+      icon: <DescriptionIcon />,
+      path: "/franchise/franchise-marketing",
+    },
+    {
+      text: "Payouts",
+      icon: <AccountBalanceIcon />,
+      path: "/franchise/payouts",
+    },
+    {
+      text: "WhatsApp Groups",
+      icon: <WhatsAppIcon />,
+      path: "/franchise/whatsapp-groups",
     },
   ];
 

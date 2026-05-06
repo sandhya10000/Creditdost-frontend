@@ -42,6 +42,7 @@ const AIAnalysis = () => {
   const [loadingDocuments, setLoadingDocuments] = useState(false);
   const [analyzingDocId, setAnalyzingDocId] = useState(null);
   const [currentStatus, setCurrentStatus] = useState("pending"); // Track actual backend status
+  const [uploadError, setUploadError] = useState("");
 
   // Snackbar state for notifications
   const [snackbar, setSnackbar] = useState({

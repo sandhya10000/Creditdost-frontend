@@ -56,6 +56,7 @@ const CreditCheck = () => {
   const [loadingPrefill, setLoadingPrefill] = useState(false);
   const [prefillError, setPrefillError] = useState("");
   const [disablePan, setDisablePan] = useState(false);
+  const [showCreditButton, setShowCreditButton] = useState(true);
 
   // Bureau options
   const bureauOptions = [
@@ -328,7 +329,8 @@ const CreditCheck = () => {
       }
 
       const details = apiData.details;
-      setDisablePan(false);
+      // setDisablePan(false);
+      setShowCreditButton(true); //Show button on success
       setFormData((prev) => ({
         ...prev,
         name: details.personal_info?.full_name?.trim() || "",
@@ -339,10 +341,17 @@ const CreditCheck = () => {
     } catch (err) {
       console.error("API Error:", err);
       if (err?.response?.status === 500 || err?.response?.status === 404) {
-        alert("No PAN record found for this mobile number");
+        alert(
+          "No PAN record found for this mobile number. Still you want to check credit bureau then you can proceed with Experian",
+        );
+
+        setShowCreditButton(false); //  hide only in this case
+      } else {
+        // optional: dusre errors me button show rehne do ya hide?
+        setShowCreditButton(false);
       }
       //  PAN disable karo
-      setDisablePan(true);
+      //setDisablePan(true);
       setPrefillError("API failed");
     } finally {
       setLoadingPrefill(false);
@@ -483,7 +492,6 @@ const CreditCheck = () => {
                     label="PAN Number"
                     fullWidth
                     value={formData.pan}
-                    disabled={disablePan}
                     onChange={handleInputChange}
                     inputProps={{
                       style: { textTransform: "uppercase" },
@@ -571,15 +579,21 @@ const CreditCheck = () => {
                 </Grid>
                 <Grid item xs={12}>
                   <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-                    <Button
-                      type="submit"
-                      variant="contained"
-                      startIcon={<CreditScore />}
-                      disabled={saving}
-                      sx={{ py: 1.5, px: 4 }}
-                    >
-                      {saving ? <CircularProgress size={24} /> : "Check Credit"}
-                    </Button>
+                    {showCreditButton && (
+                      <Button
+                        type="submit"
+                        variant="contained"
+                        startIcon={<CreditScore />}
+                        disabled={saving}
+                        sx={{ py: 1.5, px: 4 }}
+                      >
+                        {saving ? (
+                          <CircularProgress size={24} />
+                        ) : (
+                          "Check Credit"
+                        )}
+                      </Button>
+                    )}
                   </Box>
                 </Grid>
               </Grid>
