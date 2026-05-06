@@ -57,7 +57,6 @@ const CreditCheck = () => {
   const [prefillError, setPrefillError] = useState("");
   const [disablePan, setDisablePan] = useState(false);
   const [showCreditButton, setShowCreditButton] = useState(true);
-
   // Bureau options
   const bureauOptions = [
     { value: "cibil", label: "CIBIL" },
@@ -348,7 +347,7 @@ const CreditCheck = () => {
         setShowCreditButton(false); //  hide only in this case
       } else {
         // optional: dusre errors me button show rehne do ya hide?
-        setShowCreditButton(false);
+        setShowCreditButton(true);
       }
       //  PAN disable karo
       //setDisablePan(true);
