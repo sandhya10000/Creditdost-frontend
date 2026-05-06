@@ -22,6 +22,9 @@ import Support from "./Support";
 import FranchiseMarketing from "./FranchiseMarketing"; // new page
 import FranchiseCaseStudies from "./FranchiseCaseStudies";
 import FranchiseReward from "./Reward";
+import CRIF from "./creditBureau/CRIF";
+import Experian from "./creditBureau/Experian";
+import Equifax from "./creditBureau/Equifax";
 
 const FranchiseRoutes = () => {
   return (
@@ -55,6 +58,9 @@ const FranchiseRoutes = () => {
           element={<RelationshipManagerInfo />}
         />
       </Route>
+      <Route path="/credit-check/crif" element={<CRIF />} />
+      <Route path="/credit-check/experian" element={<Experian />} />
+      <Route path="/credit-check/equifax" element={<Equifax />} />
       {/* New Marketing Route */}
     </Routes>
   );

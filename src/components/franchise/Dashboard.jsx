@@ -20,6 +20,8 @@ import {
   useMediaQuery,
   Tooltip,
   Alert,
+  ListItemButton,
+  Collapse,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
@@ -46,6 +48,8 @@ import {
   Logout as LogoutIcon,
   LibraryBooks as CaseStudiesIcon,
 } from "@mui/icons-material";
+import { ExpandLess, ExpandMore } from "@mui/icons-material";
+
 import { useAuth } from "../../hooks/useAuth.jsx";
 import { franchiseAPI } from "../../services/api";
 
@@ -163,6 +167,8 @@ const FranchiseDashboard = () => {
   const [kycStatus, setKycStatus] = useState(null);
   const [kycRejectedReason, setKycRejectedReason] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [openMenu, setOpenMenu] = useState(null);
+
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
@@ -265,7 +271,25 @@ const FranchiseDashboard = () => {
     {
       text: "Credit Check",
       icon: <CreditScoreIcon />,
-      path: "/franchise/credit-check",
+      // path: "/franchise/credit-check",
+      children: [
+        { text: "CIBIL", path: "/franchise/credit-check" },
+        {
+          text: "CRIF",
+          path: "/franchise/credit-check/crif",
+          icon: <CreditScoreIcon />,
+        },
+        {
+          text: "Experian",
+          path: "/franchise/credit-check/experian",
+          icon: <CreditScoreIcon />,
+        },
+        {
+          text: "Equifax",
+          path: "/franchise/credit-check/equifax",
+          icon: <CreditScoreIcon />,
+        },
+      ],
     },
     {
       text: "View Reports",
@@ -388,7 +412,10 @@ const FranchiseDashboard = () => {
     // For all other items, do exact match
     return location.pathname === path;
   };
-
+  //new function for dropdown
+  const handleToggle = (menu) => {
+    setOpenMenu(openMenu === menu ? null : menu);
+  };
   const drawer = (
     <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
       <DrawerHeader>
@@ -432,23 +459,69 @@ const FranchiseDashboard = () => {
       )}
 
       <List sx={{ flexGrow: 1, pt: 2 }}>
-        {menuItems.map((item) => (
-          <NavItem
-            key={item.text}
-            active={isActive(item.path) ? "true" : undefined}
-            onClick={() => {
-              if (item.path === "/franchise") {
-                // For the Dashboard tab, navigate to the base route without redirect
-                navigate("/franchise", { state: { redirect: false } });
-              } else {
-                navigate(item.path);
-              }
-            }}
-          >
-            <ListItemIcon>{item.icon}</ListItemIcon>
-            <ListItemText primary={item.text} sx={{ opacity: open ? 1 : 0 }} />
-          </NavItem>
-        ))}
+        {menuItems.map((item) => {
+          const hasChildren = item.children && item.children.length > 0;
+
+          return (
+            <Box key={item.text}>
+              {/* 🔹 Parent Item */}
+              <NavItem
+                active={
+                  isActive(item.path) ||
+                  item.children?.some(
+                    (child) => location.pathname === child.path,
+                  )
+                    ? "true"
+                    : undefined
+                }
+                onClick={() => {
+                  if (hasChildren) {
+                    handleToggle(item.text); // dropdown toggle
+                  } else {
+                    if (item.path === "/franchise") {
+                      navigate("/franchise", { state: { redirect: false } });
+                    } else {
+                      navigate(item.path);
+                    }
+                  }
+                }}
+              >
+                <ListItemIcon>{item.icon}</ListItemIcon>
+                <ListItemText
+                  primary={item.text}
+                  sx={{ opacity: open ? 1 : 0 }}
+                />
+
+                {/* 🔹 Expand Icon */}
+                {hasChildren &&
+                  (openMenu === item.text ? <ExpandLess /> : <ExpandMore />)}
+              </NavItem>
+
+              {/* 🔹 CHILD MENU */}
+              {hasChildren && (
+                <Collapse
+                  in={openMenu === item.text}
+                  timeout="auto"
+                  unmountOnExit
+                >
+                  {item.children.map((child) => (
+                    <ListItemButton
+                      key={child.text}
+                      sx={{ pl: 6 }}
+                      selected={location.pathname === child.path}
+                      onClick={() => navigate(child.path)}
+                    >
+                      <ListItemText
+                        primary={child.text}
+                        sx={{ opacity: open ? 1 : 0 }}
+                      />
+                    </ListItemButton>
+                  ))}
+                </Collapse>
+              )}
+            </Box>
+          );
+        })}
       </List>
       <Divider />
       <List>{/* Logout is now in the top right dropdown menu */}</List>

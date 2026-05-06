@@ -52,11 +52,23 @@ const DashboardHome = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [stats, setStats] = useState({
-    credits: 0,
-    totalLeads: 0,
-    newLeads: 0,
-    totalCreditReports: 0,
-    totalReferrals: 0,
+    credits: {
+      used: 0,
+      available: 0,
+    },
+    ai: {
+      used: 0,
+      available: 0,
+    },
+    business: {
+      manual: 0,
+      dashboard: 0,
+      total: 0,
+    },
+    // totalLeads: 0,
+    // newLeads: 0,
+    // totalCreditReports: 0,
+    // totalReferrals: 0,
   });
   const [recentReports, setRecentReports] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -93,11 +105,14 @@ const DashboardHome = () => {
           paidTransactions.length > 0 ? paidTransactions[0] : null;
 
         setStats({
-          credits: dashboardResponse.data.stats.credits,
-          totalLeads: dashboardResponse.data.stats.totalLeads,
-          newLeads: dashboardResponse.data.stats.newLeads,
-          totalCreditReports: dashboardResponse.data.stats.totalCreditReports,
-          totalReferrals: dashboardResponse.data.stats.totalReferrals,
+          credits: dashboardResponse.data.stats.creditDetails,
+          ai: dashboardResponse.data.stats.aiDetails,
+          business: dashboardResponse.data.stats.business,
+          totalCases: dashboardResponse.data.stats.totalCases,
+          // totalLeads: dashboardResponse.data.stats.totalLeads,
+          // newLeads: dashboardResponse.data.stats.newLeads,
+          // totalCreditReports: dashboardResponse.data.stats.totalCreditReports,
+          // totalReferrals: dashboardResponse.data.stats.totalReferrals,
         });
 
         setRecentReports(recentReports);
@@ -319,28 +334,29 @@ const DashboardHome = () => {
 
   const statCards = [
     {
-      title: "Available Credits",
-      value: stats.credits,
+      title: "Credits",
+      value: `${stats.credits.used} /${stats.credits.available}`,
       icon: <CreditScore sx={{ fontSize: 40 }} />,
       color: "#6200ea",
     },
     {
-      title: "Total Leads",
-      value: stats.totalLeads,
+      title: "AI Usage",
+      value: `${stats.ai.used} / ${stats.ai.available}`,
       icon: <People sx={{ fontSize: 40 }} />,
       color: "#03dac6",
     },
     {
-      title: "New Leads",
-      value: stats.newLeads,
+      title: "Total Business",
+      value: `₹ ${stats.business.total}`,
       icon: <TrendingUp sx={{ fontSize: 40 }} />,
-      color: "#ff4081",
-    },
-    {
-      title: "Credit Reports",
-      value: stats.totalCreditReports,
-      icon: <AccountBalance sx={{ fontSize: 40 }} />,
       color: "#00c853",
+    },
+
+    {
+      title: "Total Cases",
+      value: stats.totalCases,
+      icon: <People sx={{ fontSize: 40 }} />,
+      color: "#03dac6",
     },
   ];
 
