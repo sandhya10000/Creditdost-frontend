@@ -283,6 +283,15 @@ export const adminAPI = {
 
   //admin upload contest reward post
   createReward: (formData) => api.post("/admin/reward/upload", formData),
+  getDownloadStats: () => api.get("/admin/download-stats"),
+  //Bureau save for mini crm
+  getSinglebusinessform: (customerId) =>
+    api.get(`/business/customer/${customerId}`),
+  //get single report data using userId
+  getSingleCreditReport: (pan) => api.get(`/report/${pan}`),
+  saveBureauData: (customerId, bureauData) =>
+    api.post(`/customer/bureau/${customerId}`, bureauData),
+  checkCreditV2: (payload) => api.post("/credit/credit-check-v2", payload),
 };
 
 // Credit API functions

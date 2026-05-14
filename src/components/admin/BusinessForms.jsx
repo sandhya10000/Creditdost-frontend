@@ -19,12 +19,15 @@ import {
   Chip,
 } from "@mui/material";
 import { adminAPI } from "../../services/api";
+//import { useNavigate } from "react-router-dom";
 
 const BusinessForms = () => {
   const [businessForms, setBusinessForms] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+
+  //const navigate = useNavigate();
 
   // Fetch all business forms on component mount
   useEffect(() => {
@@ -93,6 +96,47 @@ const BusinessForms = () => {
         .toLowerCase()
         .includes(searchTerm.toLowerCase()),
   );
+  //Download bussiness mis users data function
+  const handleDownloadCSV = () => {
+    const headers = [
+      "Customer ID",
+      "Customer Name",
+      "Email",
+      "Phone",
+      "Package",
+      "Amount",
+      "Payment Status",
+      "Date",
+      "Work Status",
+    ];
+
+    const rows = filteredBusinessForms.map((form) => [
+      form.customerId,
+      form.customerName || "",
+      form.customerEmail || "",
+      form.customerPhone || "",
+      form.selectedPackage?.name || "N/A",
+      form.selectedPackage?.price || "N/A",
+      form.paymentStatus || "",
+      formatDate(form.createdAt),
+      form.workStatus || "",
+    ]);
+
+    const csvContent = [headers, ...rows]
+      .map((row) => row.join(","))
+      .join("\n");
+
+    const encodedUri =
+      "data:text/csv;charset=utf-8," + encodeURIComponent(csvContent);
+
+    const link = document.createElement("a");
+    link.href = encodedUri;
+    link.download = "business_mis.csv";
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   return (
     <Box>
@@ -116,6 +160,13 @@ const BusinessForms = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
               sx={{ maxWidth: 400 }}
             />
+            <Button
+              variant="contained"
+              color="success"
+              onClick={handleDownloadCSV}
+            >
+              Download CSV
+            </Button>
           </Box>
 
           {loading && businessForms.length === 0 ? (
@@ -127,6 +178,8 @@ const BusinessForms = () => {
               <Table sx={{ minWidth: 650 }} aria-label="business forms table">
                 <TableHead>
                   <TableRow>
+                    <TableCell>Customer ID</TableCell>
+
                     <TableCell>Customer Name</TableCell>
                     <TableCell>Email</TableCell>
                     <TableCell>Phone</TableCell>
@@ -144,6 +197,17 @@ const BusinessForms = () => {
                       key={form._id}
                       sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
                     >
+                      <TableCell
+                        sx={{
+                          cursor: "pointer",
+                          color: "blue",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        <a href={`customer/${form.customerId}`}>
+                          {form.customerId}
+                        </a>
+                      </TableCell>
                       <TableCell component="th" scope="row">
                         {form.customerName}
                       </TableCell>

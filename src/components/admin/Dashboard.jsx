@@ -36,6 +36,10 @@ import {
   Description as DescriptionIcon,
   AutoGraph as AutoGraphIcon,
 } from "@mui/icons-material";
+import CampaignIcon from "@mui/icons-material/Campaign";
+import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
+import MenuBookIcon from "@mui/icons-material/MenuBook";
+import AnalyticsIcon from "@mui/icons-material/Analytics";
 import { useAuth } from "../../hooks/useAuth.jsx";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useEffect } from "react";
@@ -246,24 +250,29 @@ const AdminDashboard = () => {
       path: "/admin/digital-agreements",
     },
     {
-      text: "AI Analysis",
-      icon: <AutoGraphIcon />,
-      path: "/admin/ai-analysis",
-    },
-    {
       text: "Marketing Materials",
-      icon: <AutoGraphIcon />,
+      icon: <CampaignIcon />,
       path: "/admin/marketing-materials",
     },
     {
       text: "Reward",
-      icon: <AutoGraphIcon />,
+      icon: <EmojiEventsIcon />,
       path: "/admin/reward",
     },
     {
       text: "Case Studies",
-      icon: <AutoGraphIcon />,
+      icon: <MenuBookIcon />,
       path: "/admin/case-study",
+    },
+    {
+      text: "Report Analytics",
+      icon: <AnalyticsIcon />,
+      path: "/admin/report-analytics",
+    },
+    {
+      text: "Mini CRM",
+      icon: <AnalyticsIcon />,
+      path: "/admin/customer/:customerId",
     },
   ];
 
