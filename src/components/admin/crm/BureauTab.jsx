@@ -14,10 +14,14 @@ import {
 } from "@mui/material";
 import { adminAPI } from "../../../services/api";
 
-const BureauTab = ({ customerBureau, setCreditReports, onSearchSucess }) => {
+const BureauTab = ({
+  customerBureau,
+  setCreditReports,
+  onSearchSucess,
+  customer,
+}) => {
   const fullName = customerBureau?.customerName || "";
   const pan = customerBureau?.panNumber || "";
-  //API Type SELECT
   const [cibilApiType, setCibilApiType] = useState("ongrid");
   const [bureauData, setBureauData] = useState({
     cibil: {
@@ -59,45 +63,51 @@ const BureauTab = ({ customerBureau, setCreditReports, onSearchSucess }) => {
       },
     }));
   };
-  const getPayload = () => ({
-    name: fullName,
-    pan,
-    mobile: bureauData.cibil.mobile,
-    bureau: "cibil",
-    cibilApiType,
-  });
+  const getPayload = (bureau) => {
+    const dob = customer?.dob
+      ? new Date(customer.dob).toISOString().split("T")[0]
+      : "";
+
+    if (bureau === "equifax") {
+      return {
+        name: customer?.customerName,
+        pan: customer?.panNumber,
+        mobile: customer?.customerPhone,
+        gender: customer?.gender?.toLowerCase(),
+        dob,
+        bureau: "equifax",
+        cibilApiType: "surepass",
+      };
+    }
+
+    return {
+      name: customer?.customerName,
+      pan: customer?.panNumber,
+      mobile: customer?.customerPhone,
+      bureau,
+      cibilApiType: bureau !== "cibil" ? "surepass" : cibilApiType,
+    };
+  };
 
   //COMMON CIBIL CHECK
-  const handleCheckCibil = async () => {
+  const handleCheckCibil = async (bureau) => {
     try {
       setLoading(true);
       setError("");
       setSuccess("");
-
-      const payload = getPayload();
-
+      const payload = getPayload(bureau);
       const response = await adminAPI.checkCreditV2(payload);
-
-      console.log(response.data);
-
-      // RESPONSE DATA
       const responseData = response.data;
-
-      // SAVE REPORT DATA
       const reportData = {
         pan,
-        bureau: "cibil",
+        bureau: bureau,
         score: responseData.score,
         reportUrl: responseData.reportUrl,
         apiType: responseData.apiType,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
-      console.log(reportData, "reportData=====================");
-
-      // SAVE IN STATE
       setCreditReports((prev) => [reportData, ...prev]);
-
       setSuccess(responseData?.message);
       onSearchSucess();
     } catch (error) {
@@ -168,7 +178,6 @@ const BureauTab = ({ customerBureau, setCreditReports, onSearchSucess }) => {
             />
           </Grid>
 
-          {/* MOBILE */}
           <Grid item xs={12} md={4}>
             <TextField
               fullWidth
@@ -178,7 +187,6 @@ const BureauTab = ({ customerBureau, setCreditReports, onSearchSucess }) => {
             />
           </Grid>
 
-          {/* API TYPE SELECT */}
           {keyName === "cibil" && (
             <Grid item xs={12} md={4}>
               <TextField
@@ -196,14 +204,11 @@ const BureauTab = ({ customerBureau, setCreditReports, onSearchSucess }) => {
           )}
         </Grid>
 
-        {/* BUTTON */}
         <Box mt={2}>
           <Button
             variant="contained"
             onClick={() => {
-              if (keyName === "cibil") {
-                handleCheckCibil();
-              }
+              handleCheckCibil(keyName);
             }}
             disabled={loading}
           >

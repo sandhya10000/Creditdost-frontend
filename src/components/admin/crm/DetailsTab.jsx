@@ -1,15 +1,32 @@
 import React from "react";
-import {
-  Grid,
-  Typography,
-  Paper,
-  Divider,
-  Chip,
-  Box,
-  CircularProgress,
-} from "@mui/material";
+import { Grid, Typography, Paper, Divider, Chip, Box } from "@mui/material";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import HomeIcon from "@mui/icons-material/Home";
+import LocalAtmIcon from "@mui/icons-material/LocalAtm";
+import DomainAddIcon from "@mui/icons-material/DomainAdd";
+import StyleIcon from "@mui/icons-material/Style";
 
-const DetailsTab = ({ customer }) => {
+const DetailsTab = ({ customer, creditReport }) => {
+  const renderSectionTitle = (title, icon) => (
+    <Box mt={4} mb={2}>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 1,
+        }}
+      >
+        {icon}
+
+        <Typography variant="h6" fontWeight="bold" color="primary">
+          {title}
+        </Typography>
+      </Box>
+
+      <Divider sx={{ mt: 1 }} />
+    </Box>
+  );
+
   return (
     <Paper
       sx={{
@@ -35,61 +52,46 @@ const DetailsTab = ({ customer }) => {
         />
       </Box>
 
-      <Divider sx={{ mb: 4 }} />
+      {/* ================= PERSONAL DETAILS ================= */}
+
+      {renderSectionTitle(
+        "Personal Details",
+        <AccountCircleIcon color="primary" />,
+      )}
 
       <Grid container spacing={3}>
-        {/* CUSTOMER ID */}
-
         <Grid item xs={12} md={6}>
-          <Typography fontWeight="bold">Customer ID</Typography>
-
+          <Typography fontWeight="Medium">Customer ID</Typography>
           <Typography>{customer?.customerId || "-"}</Typography>
         </Grid>
 
-        {/* CUSTOMER NAME */}
-
         <Grid item xs={12} md={6}>
-          <Typography fontWeight="bold">Customer Name</Typography>
-
+          <Typography fontWeight="Medium">Name</Typography>
           <Typography>{customer?.customerName || "-"}</Typography>
         </Grid>
 
-        {/* EMAIL */}
-
         <Grid item xs={12} md={6}>
-          <Typography fontWeight="bold">Email</Typography>
-
+          <Typography fontWeight="Medium">Email</Typography>
           <Typography>{customer?.customerEmail || "-"}</Typography>
         </Grid>
 
-        {/* PHONE */}
-
         <Grid item xs={12} md={6}>
-          <Typography fontWeight="bold">Phone</Typography>
-
+          <Typography fontWeight="Medium">Phone</Typography>
           <Typography>{customer?.customerPhone || "-"}</Typography>
         </Grid>
 
-        {/* PAN */}
-
         <Grid item xs={12} md={6}>
-          <Typography fontWeight="bold">PAN Number</Typography>
-
+          <Typography fontWeight="Medium">PAN Number</Typography>
           <Typography>{customer?.panNumber || "-"}</Typography>
         </Grid>
 
-        {/* AADHAAR */}
-
         <Grid item xs={12} md={6}>
-          <Typography fontWeight="bold">Aadhaar Number</Typography>
-
+          <Typography fontWeight="Medium">Aadhaar Number</Typography>
           <Typography>{customer?.aadharNumber || "-"}</Typography>
         </Grid>
 
-        {/* DOB */}
-
         <Grid item xs={12} md={6}>
-          <Typography fontWeight="bold">Date Of Birth</Typography>
+          <Typography fontWeight="Medium">Date Of Birth</Typography>
 
           <Typography>
             {customer?.dob
@@ -102,108 +104,105 @@ const DetailsTab = ({ customer }) => {
           </Typography>
         </Grid>
 
-        {/* GENDER */}
-
         <Grid item xs={12} md={6}>
-          <Typography fontWeight="bold">Gender</Typography>
-
+          <Typography fontWeight="Medium">Gender</Typography>
           <Typography>{customer?.gender || "-"}</Typography>
         </Grid>
 
-        {/* CITY */}
-
-        <Grid item xs={12} md={4}>
-          <Typography fontWeight="bold">City</Typography>
-
-          <Typography>{customer?.city || "-"}</Typography>
-        </Grid>
-
-        {/* STATE */}
-
-        <Grid item xs={12} md={4}>
-          <Typography fontWeight="bold">State</Typography>
-
-          <Typography>{customer?.state || "-"}</Typography>
-        </Grid>
-
-        {/* PINCODE */}
-
-        <Grid item xs={12} md={4}>
-          <Typography fontWeight="bold">Pincode</Typography>
-
-          <Typography>{customer?.pincode || "-"}</Typography>
-        </Grid>
-
-        {/* LANGUAGE */}
-
         <Grid item xs={12} md={6}>
-          <Typography fontWeight="bold">Language</Typography>
-
+          <Typography fontWeight="Medium">Language</Typography>
           <Typography>{customer?.language || "-"}</Typography>
         </Grid>
 
-        {/* OCCUPATION */}
-
         <Grid item xs={12} md={6}>
-          <Typography fontWeight="bold">Occupation</Typography>
-
+          <Typography fontWeight="Medium">Occupation</Typography>
           <Typography>{customer?.occupation || "-"}</Typography>
         </Grid>
+      </Grid>
 
-        {/* MONTHLY INCOME */}
+      {/* ================= ADDRESS DETAILS ================= */}
 
+      {renderSectionTitle("Address Details", <HomeIcon color="primary" />)}
+
+      <Grid container spacing={3}>
+        <Grid item xs={12}>
+          <Typography fontWeight="Medium">Full Address</Typography>
+          <Typography>{customer?.fullAddress || "-"}</Typography>
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <Typography fontWeight="Medium">City</Typography>
+          <Typography>{customer?.city || "-"}</Typography>
+        </Grid>
+
+        <Grid item xs={12} md={4}>
+          <Typography fontWeight="Medium">State</Typography>
+          <Typography>{customer?.state || "-"}</Typography>
+        </Grid>
+
+        <Grid item xs={12} md={4}>
+          <Typography fontWeight="Medium">Pincode</Typography>
+          <Typography>{customer?.pincode || "-"}</Typography>
+        </Grid>
+      </Grid>
+
+      {/* ================= FINANCIAL DETAILS ================= */}
+
+      {renderSectionTitle(
+        "Financial Details",
+        <LocalAtmIcon color="primary" />,
+      )}
+
+      <Grid container spacing={3}>
         <Grid item xs={12} md={6}>
-          <Typography fontWeight="bold">Monthly Income</Typography>
-
+          <Typography fontWeight="Medium">Monthly Income</Typography>
           <Typography>₹ {customer?.monthlyIncome || "-"}</Typography>
         </Grid>
 
-        {/* CREDIT SCORE */}
-
         <Grid item xs={12} md={6}>
-          <Typography fontWeight="bold">Credit Score</Typography>
+          <Typography fontWeight="Medium">Credit Score</Typography>
 
-          <Typography>{customer?.creditScore || "-"}</Typography>
+          <Typography>{creditReport}</Typography>
         </Grid>
 
-        {/* ADDRESS */}
-
-        <Grid item xs={12}>
-          <Typography fontWeight="bold">Full Address</Typography>
-
-          <Typography>{customer?.fullAddress || "-"}</Typography>
-        </Grid>
-
-        {/* BANK ACCOUNT */}
-
         <Grid item xs={12} md={6}>
-          <Typography fontWeight="bold">Bank Account Number</Typography>
-
+          <Typography fontWeight="Medium">Bank Account Number</Typography>
           <Typography>{customer?.bankAccountNumber || "-"}</Typography>
         </Grid>
 
-        {/* IFSC */}
-
         <Grid item xs={12} md={6}>
-          <Typography fontWeight="bold">IFSC Code</Typography>
-
+          <Typography fontWeight="Medium">IFSC Code</Typography>
           <Typography>{customer?.ifscCode || "-"}</Typography>
         </Grid>
 
-        {/* PAYMENT STATUS */}
-
         <Grid item xs={12} md={6}>
-          <Typography fontWeight="bold">Payment Status</Typography>
-
+          <Typography fontWeight="Medium">Payment Status</Typography>
           <Typography>{customer?.paymentStatus || "-"}</Typography>
         </Grid>
+      </Grid>
 
-        {/* PACKAGE */}
+      {/* ================= PACKAGE DETAILS ================= */}
 
+      {renderSectionTitle("Package Details", <StyleIcon color="primary" />)}
+
+      <Grid container spacing={3}>
         <Grid item xs={12} md={6}>
-          <Typography fontWeight="bold">Selected Package</Typography>
-
+          <Typography fontWeight="Medium">Selected Package</Typography>
           <Typography>{customer?.selectedPackage?.name || "-"}</Typography>
+        </Grid>
+      </Grid>
+
+      {/* ================= FRANCHISE DETAILS ================= */}
+
+      {renderSectionTitle(
+        "Franchise Details",
+        <DomainAddIcon color="primary" />,
+      )}
+
+      <Grid container spacing={3}>
+        <Grid item xs={12} md={6}>
+          <Typography fontWeight="Medium">Business Name</Typography>
+
+          <Typography>{customer?.franchiseId?.businessName || "-"}</Typography>
         </Grid>
       </Grid>
     </Paper>

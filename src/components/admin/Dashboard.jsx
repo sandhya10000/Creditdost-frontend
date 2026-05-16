@@ -269,11 +269,6 @@ const AdminDashboard = () => {
       icon: <AnalyticsIcon />,
       path: "/admin/report-analytics",
     },
-    {
-      text: "Mini CRM",
-      icon: <AnalyticsIcon />,
-      path: "/admin/customer/:customerId",
-    },
   ];
 
   const isActive = (path) => {

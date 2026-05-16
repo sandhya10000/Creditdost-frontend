@@ -53,50 +53,7 @@ const CustomerCRM = () => {
   return (
     <Box p={3}>
       <Grid container spacing={3}>
-        {/* LEFT SIDE */}
-
-        {/* <Grid item xs={12} md={3}>
-          <Card
-            sx={{
-              borderRadius: 3,
-            }}
-          >
-            <CardContent>
-              <Typography variant="h6" fontWeight="bold">
-                {customer?.customerName}
-              </Typography>
-
-              <Typography mt={2}>
-                Customer ID:
-                {customer?.customerId}
-              </Typography>
-
-              <Typography>
-                PAN:
-                {customer?.panNumber}
-              </Typography>
-
-              <Typography>
-                Mobile:
-                {customer?.customerPhone}
-              </Typography>
-
-              <Typography>
-                Status:
-                {customer?.workStatus}
-              </Typography>
-
-              <Typography>
-                Email:
-                {customer?.customerEmail}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid> */}
-
-        {/* RIGHT SIDE */}
-
-        <Grid item xs={12} md={9}>
+        <Grid item xs={12} md={12}>
           <Card
             sx={{
               borderRadius: 3,
@@ -117,7 +74,10 @@ const CustomerCRM = () => {
 
               <Box mt={3}>
                 {tab === 0 && (
-                  <DetailsTab customer={customerInfo?.customerData} />
+                  <DetailsTab
+                    customer={customerInfo?.customerData}
+                    creditReport={customerInfo?.report[0]?.score || "NA"}
+                  />
                 )}
 
                 {/* {tab === 1 && (
@@ -145,10 +105,13 @@ const CustomerCRM = () => {
                     onSearchSucess={() => {
                       fetchCustomer;
                     }}
+                    customer={customerInfo?.customerData}
                   />
                 )}
 
-                {/* {tab === 3 && <RemarksTab />} */}
+                {tab === 3 && (
+                  <RemarksTab customerRemark={customerInfo?.customerData} />
+                )}
               </Box>
             </CardContent>
           </Card>

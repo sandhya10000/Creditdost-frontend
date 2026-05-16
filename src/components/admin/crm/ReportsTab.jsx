@@ -50,23 +50,23 @@ const ReportsTab = ({ customerReport }) => {
           <TableHead>
             <TableRow>
               <TableCell>
-                <strong>PAN Card</strong>
+                <Typography fontWeight="Medium">PAN Card</Typography>
               </TableCell>
 
               <TableCell>
-                <strong>Bureau</strong>
+                <Typography fontWeight="Medium">Bureau</Typography>
               </TableCell>
 
               <TableCell>
-                <strong>Credit Score</strong>
+                <Typography fontWeight="Medium">Credit Score</Typography>
               </TableCell>
 
               <TableCell>
-                <strong>Date</strong>
+                <Typography fontWeight="Medium">Date</Typography>
               </TableCell>
 
               <TableCell align="center">
-                <strong>Action</strong>
+                <Typography fontWeight="Medium">Action</Typography>
               </TableCell>
             </TableRow>
           </TableHead>

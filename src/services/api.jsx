@@ -292,6 +292,9 @@ export const adminAPI = {
   saveBureauData: (customerId, bureauData) =>
     api.post(`/customer/bureau/${customerId}`, bureauData),
   checkCreditV2: (payload) => api.post("/credit/credit-check-v2", payload),
+  addRemarksforCustomer: (payload) =>
+    api.post("/admin/addremark/customer", payload),
+  getCustomerRemarks: (customerId) => api.get(`/addRemark/${customerId}`),
 };
 
 // Credit API functions
