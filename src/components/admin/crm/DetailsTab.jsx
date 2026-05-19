@@ -6,7 +6,7 @@ import LocalAtmIcon from "@mui/icons-material/LocalAtm";
 import DomainAddIcon from "@mui/icons-material/DomainAdd";
 import StyleIcon from "@mui/icons-material/Style";
 
-const DetailsTab = ({ customer, creditReport }) => {
+const DetailsTab = ({ customer, creditReport, ifscDeatails }) => {
   const renderSectionTitle = (title, icon) => (
     <Box mt={4} mb={2}>
       <Box
@@ -173,6 +173,33 @@ const DetailsTab = ({ customer, creditReport }) => {
           <Typography fontWeight="Medium">IFSC Code</Typography>
           <Typography>{customer?.ifscCode || "-"}</Typography>
         </Grid>
+        {ifscDeatails && (
+          <>
+            <Grid item xs={12} md={6}>
+              <Typography fontWeight="Medium">Bank Name</Typography>
+              <Typography>{ifscDeatails.bank_name || "-"}</Typography>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <Typography fontWeight="Medium">Branch</Typography>
+              <Typography>{ifscDeatails.branch || "-"}</Typography>
+            </Grid>
+            <Grid item xs={12}>
+              <Typography fontWeight="Medium">Banch Address</Typography>
+              <Typography>{ifscDeatails?.address || "-"}</Typography>
+              <Typography>{ifscDeatails?.city || "-"}</Typography>
+              <Typography>{ifscDeatails?.state || "-"}</Typography>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <Typography fontWeight="Medium">City</Typography>
+              <Typography>{ifscDeatails?.city || "-"}</Typography>
+            </Grid>
+
+            <Grid item xs={12} md={4}>
+              <Typography fontWeight="Medium">State</Typography>
+              <Typography>{ifscDeatails?.state || "-"}</Typography>
+            </Grid>
+          </>
+        )}
 
         <Grid item xs={12} md={6}>
           <Typography fontWeight="Medium">Payment Status</Typography>

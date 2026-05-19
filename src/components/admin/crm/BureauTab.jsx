@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 import {
   Box,
@@ -54,14 +54,28 @@ const BureauTab = ({
   const [error, setError] = useState("");
 
   //HANDLE INPUT
-  const handleChange = (bureau, field, value) => {
-    setBureauData((prev) => ({
-      ...prev,
+  const handleChange = async (bureau, field, value) => {
+    const updatedData = {
+      ...bureauData,
       [bureau]: {
-        ...prev[bureau],
+        ...bureauData[bureau],
         [field]: value,
       },
-    }));
+    };
+
+    // State update
+    setBureauData(updatedData);
+
+    // Auto save API
+    try {
+      const payload = {
+        bureauCredentials: updatedData,
+      };
+
+      await adminAPI.saveBureauData(customerBureau?._id, payload);
+    } catch (error) {
+      console.log(error);
+    }
   };
   const getPayload = (bureau) => {
     const dob = customer?.dob
@@ -114,34 +128,6 @@ const BureauTab = ({
       console.log(error);
 
       setError(error?.response?.data?.message || "CIBIL Check Failed");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  //SAVE BUREAU DATA
-  const handleSaveBureauData = async () => {
-    try {
-      setLoading(true);
-
-      setError("");
-
-      setSuccess("");
-      const payload = {
-        bureauCredentials: bureauData,
-      };
-      const response = await adminAPI.saveBureauData(
-        customerBureau?._id,
-        payload,
-      );
-
-      setSuccess(
-        response?.data?.message || "All Bureau Data Saved Successfully",
-      );
-    } catch (error) {
-      console.log(error);
-
-      setError(error?.response?.data?.message || "Failed To Save Bureau Data");
     } finally {
       setLoading(false);
     }
@@ -218,6 +204,19 @@ const BureauTab = ({
       </CardContent>
     </Card>
   );
+  useEffect(() => {
+    fetchSavedBureauData();
+  }, []);
+  const fetchSavedBureauData = async () => {
+    try {
+      const response = await adminAPI.getBureauData(customerBureau?._id);
+      if (response?.data.data.bureauCredentials) {
+        setBureauData(response?.data.data.bureauCredentials);
+      }
+    } catch (error) {
+      console.log(error, "errrr");
+    }
+  };
   return (
     <Box>
       {/* USER DETAILS */}
@@ -259,19 +258,6 @@ const BureauTab = ({
       {renderBureauSection("EXPERIAN", "experian")}
 
       {renderBureauSection("EQUIFAX", "equifax")}
-
-      {/* SAVE BUTTON */}
-      <Box textAlign="center" mt={4}>
-        <Button
-          variant="contained"
-          size="large"
-          color="success"
-          onClick={handleSaveBureauData}
-          disabled={loading}
-        >
-          {loading ? "Saving..." : "Auto Save All"}
-        </Button>
-      </Box>
     </Box>
   );
 };

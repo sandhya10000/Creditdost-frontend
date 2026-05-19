@@ -40,6 +40,7 @@ const Profile = () => {
   });
 
   const [panDetails, setPanDetails] = useState(null);
+
   const [bankDetails, setBankDetails] = useState(null);
 
   const [loading, setLoading] = useState(false);
@@ -660,6 +661,7 @@ const Profile = () => {
                         helperText="Format: ABCDE1234F"
                         placeholder="ABCDE1234F"
                         error={!!panError && panError.includes("PAN")}
+                        disabled={!!panDetails?.data}
                       />
                     </Grid>
                     <Grid item xs={12}>
@@ -775,6 +777,7 @@ const Profile = () => {
                         helperText="Enter your 9-18 digit bank account number"
                         placeholder="123456789012"
                         error={!!bankError && bankError.includes("account")}
+                        disabled={!!bankDetails?.data}
                       />
                     </Grid>
                     <Grid item xs={12} sm={6}>
@@ -790,6 +793,7 @@ const Profile = () => {
                         helperText="Format: BBBB0XXXXXX (11 characters)"
                         placeholder="SBIN0002499"
                         error={!!bankError && bankError.includes("IFSC")}
+                        disabled={!!bankDetails?.data}
                       />
                     </Grid>
                     <Grid item xs={12}>

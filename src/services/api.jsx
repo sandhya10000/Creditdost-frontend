@@ -134,6 +134,8 @@ export const franchiseAPI = {
   getRewards: () => api.get("/franchise/reward"),
   //get case studies
   getCaseStudies: () => api.get("/franchise/case-studies"),
+  uploaddocBusiness: (formData) =>
+    api.post("/franchise/uploadDocBusiness", formData),
 };
 
 // Blog API functions
@@ -291,6 +293,7 @@ export const adminAPI = {
   getSingleCreditReport: (pan) => api.get(`/report/${pan}`),
   saveBureauData: (customerId, bureauData) =>
     api.post(`/customer/bureau/${customerId}`, bureauData),
+  getBureauData: (customerId) => api.get(`/bureau-data/${customerId}`),
   checkCreditV2: (payload) => api.post("/credit/credit-check-v2", payload),
   addRemarksforCustomer: (payload) =>
     api.post("/admin/addremark/customer", payload),

@@ -55,7 +55,7 @@ const CreditCheck = () => {
   //for prefilled data mobile
   const [loadingPrefill, setLoadingPrefill] = useState(false);
   const [prefillError, setPrefillError] = useState("");
-  const [disablePan, setDisablePan] = useState(false);
+
   const [showCreditButton, setShowCreditButton] = useState(true);
   // Bureau options
   const bureauOptions = [
@@ -64,6 +64,9 @@ const CreditCheck = () => {
     { value: "experian", label: "Experian" },
     { value: "equifax", label: "Equifax" },
   ];
+  const filteredBureauOption = bureauOptions.filter(
+    (item) => item.value === "cibil",
+  );
 
   // Load recent credit reports and available credits on component mount
   useEffect(() => {
@@ -568,7 +571,7 @@ const CreditCheck = () => {
                       label="Credit Bureau"
                       onChange={handleBureauChange}
                     >
-                      {bureauOptions.map((option) => (
+                      {filteredBureauOption.map((option) => (
                         <MenuItem key={option.value} value={option.value}>
                           {option.label}
                         </MenuItem>

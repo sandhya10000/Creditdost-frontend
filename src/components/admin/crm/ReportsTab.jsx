@@ -76,7 +76,7 @@ const ReportsTab = ({ customerReport }) => {
               <TableRow hover key={index}>
                 <TableCell>{report?.pan || "-"}</TableCell>
 
-                <TableCell>{report?.bureau || "-"}</TableCell>
+                <TableCell>{report?.bureau.toUpperCase() || "-"}</TableCell>
 
                 <TableCell>
                   <Chip

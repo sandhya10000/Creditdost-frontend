@@ -77,6 +77,7 @@ const CustomerCRM = () => {
                   <DetailsTab
                     customer={customerInfo?.customerData}
                     creditReport={customerInfo?.report[0]?.score || "NA"}
+                    ifscDeatails={customerInfo?.bankInfo?.ifsc_details}
                   />
                 )}
 

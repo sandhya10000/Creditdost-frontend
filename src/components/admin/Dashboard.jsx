@@ -203,17 +203,13 @@ const AdminDashboard = () => {
       path: "/admin/customer-packages",
     },
     { text: "Manage Leads", icon: <PeopleIcon />, path: "/admin/leads" },
-    {
-      text: "Manage Payouts",
-      icon: <AccountBalanceIcon />,
-      path: "/admin/payouts",
-    },
+
     { text: "View Reports", icon: <AssessmentIcon />, path: "/admin/reports" },
-    {
-      text: "Manage Referrals",
-      icon: <GroupAddIcon />,
-      path: "/admin/referrals",
-    },
+    // {
+    //   text: "Manage Referrals",
+    //   icon: <GroupAddIcon />,
+    //   path: "/admin/referrals",
+    // },
     {
       text: "Business MIS",
       icon: <DescriptionIcon />,
@@ -268,6 +264,11 @@ const AdminDashboard = () => {
       text: "Report Analytics",
       icon: <AnalyticsIcon />,
       path: "/admin/report-analytics",
+    },
+    {
+      text: "Manage Payouts",
+      icon: <AccountBalanceIcon />,
+      path: "/admin/payouts",
     },
   ];
 
