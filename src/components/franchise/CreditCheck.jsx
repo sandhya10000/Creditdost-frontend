@@ -71,18 +71,18 @@ const CreditCheck = () => {
 
   // Load recent credit reports and available credits on component mount
   useEffect(() => {
-    // loadCreditReports();
-    //  loadDashboardStats();
+    loadCreditReports();
+    loadDashboardStats();
   }, []);
 
-  // const loadDashboardStats = async () => {
-  //   try {
-  //     const response = await franchiseAPI.getDashboardStats();
-  //     setAvailableCredits(response.data.stats.credits);
-  //   } catch (err) {
-  //     console.error("Error loading dashboard stats:", err);
-  //   }
-  // };
+  const loadDashboardStats = async () => {
+    try {
+      const response = await franchiseAPI.getDashboardStats();
+      setAvailableCredits(response.data.stats.credits);
+    } catch (err) {
+      console.error("Error loading dashboard stats:", err);
+    }
+  };
 
   const loadCreditReports = async () => {
     try {
@@ -343,6 +343,12 @@ const CreditCheck = () => {
     } catch (err) {
       console.error("API Error:", err);
       if (err?.response?.status === 500 || err?.response?.status === 404) {
+        await franchiseAPI.savePrefillFailure({
+          mobile,
+
+          message: "No Pan record found",
+          statusCode: err?.response?.status,
+        });
         alert(
           "No PAN record found for this mobile number. Still you want to check credit bureau then you can proceed with Experian",
         );

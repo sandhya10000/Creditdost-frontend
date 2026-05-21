@@ -210,6 +210,11 @@ const AdminDashboard = () => {
     },
 
     { text: "View Reports", icon: <AssessmentIcon />, path: "/admin/reports" },
+    {
+      text: "Prefill Failed Logs",
+      icon: <AssessmentIcon />,
+      path: "/admin/prefill-failed-logs",
+    },
 
     // {
     //   text: "Manage Referrals",

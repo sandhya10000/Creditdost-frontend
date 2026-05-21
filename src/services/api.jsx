@@ -78,8 +78,7 @@ export const franchiseAPI = {
   getCreditReport: (data) => api.post("/credit/check", data),
   getCreditReports: () => api.get("/credit/reports"),
   getDashboardStats: () => api.get("/dashboard"),
-  //api for mobiled prefilled data
-  getfetchPrefillData: (mobile) => api.post("/prefill", { mobile }),
+
   getFranchiseLeads: () => api.get("/leads/franchise"),
   updateLeadStatus: (leadId, data) => api.put(`/leads/${leadId}/status`, data),
   // Business form functions
@@ -128,6 +127,10 @@ export const franchiseAPI = {
     api.get(`/ai-analysis/franchise/download-analysis/${docId}`, {
       responseType: "blob",
     }),
+  //api for mobiled prefilled data
+  getfetchPrefillData: (mobile) => api.post("/prefill", { mobile }),
+  savePrefillFailure: (data) => api.post("/save-prefill-failure", data),
+  getPrefillFailedLog: () => api.get("/prefill-failed-logs"),
   //get marketing material
   getMarketingMaterials: () => api.get("/marketing"),
   //get reward from admin
