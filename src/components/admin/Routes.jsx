@@ -22,6 +22,7 @@ import AdminReward from "./AdminReward";
 import AdminCaseStudies from "./AdminCaseStudy";
 import ReportAnalytics from "./ReportAnalytics";
 import CustomerCRM from "../pages/CustomerCRM";
+import AdminCreditBureau from "../admin/AdminCreditcheck";
 const AdminRoutes = () => {
   return (
     <Routes>
@@ -50,6 +51,7 @@ const AdminRoutes = () => {
         <Route path="case-study" element={<AdminCaseStudies />} />
         <Route path="report-analytics" element={<ReportAnalytics />} />
         <Route path="/customer/:customerId" element={<CustomerCRM />} />
+        <Route path="/credit-check" element={<AdminCreditBureau />} />
       </Route>
     </Routes>
   );

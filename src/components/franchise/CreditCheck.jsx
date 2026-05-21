@@ -9,6 +9,7 @@ import {
   Grid,
   Alert,
   CircularProgress,
+  Backdrop,
   Table,
   TableBody,
   TableCell,
@@ -70,19 +71,18 @@ const CreditCheck = () => {
 
   // Load recent credit reports and available credits on component mount
   useEffect(() => {
-    loadCreditReports();
-    loadDashboardStats();
-    fetchPrefillData();
+    // loadCreditReports();
+    //  loadDashboardStats();
   }, []);
 
-  const loadDashboardStats = async () => {
-    try {
-      const response = await franchiseAPI.getDashboardStats();
-      setAvailableCredits(response.data.stats.credits);
-    } catch (err) {
-      console.error("Error loading dashboard stats:", err);
-    }
-  };
+  // const loadDashboardStats = async () => {
+  //   try {
+  //     const response = await franchiseAPI.getDashboardStats();
+  //     setAvailableCredits(response.data.stats.credits);
+  //   } catch (err) {
+  //     console.error("Error loading dashboard stats:", err);
+  //   }
+  // };
 
   const loadCreditReports = async () => {
     try {
@@ -307,11 +307,11 @@ const CreditCheck = () => {
     }
     return report.reportUrl;
   };
-  const formatDate = (dateStr) => {
-    if (!dateStr) return "";
-    const [year, month, day] = dateStr.split("-");
-    return `${day}-${month}-${year}`;
-  };
+  // const formatDate = (dateStr) => {
+  //   if (!dateStr) return "";
+  //   const [year, month, day] = dateStr.split("-");
+  //   return `${day}-${month}-${year}`;
+  // };
 
   const fetchPrefillData = async (mobile) => {
     try {
@@ -360,7 +360,7 @@ const CreditCheck = () => {
     }
   };
 
-  const handleMobileChange = (e) => {
+  const handleMobileChange = async (e) => {
     const value = e.target.value.replace(/\D/g, "");
 
     console.log("Typing:", value); //  check typing
@@ -368,12 +368,22 @@ const CreditCheck = () => {
     setFormData((prev) => ({ ...prev, mobile: value }));
 
     if (value.length === 10) {
-      console.log("Calling API..."); //  MUST print
-      fetchPrefillData(value);
+      try {
+        setLoadingPrefill(true);
+
+        console.log("Calling Prefill API...");
+
+        await fetchPrefillData(value);
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setLoadingPrefill(false);
+      }
     }
   };
   return (
     <Box>
+      {loading && <CircularProgress />}
       <Typography variant="h4" gutterBottom>
         Credit Check
       </Typography>
@@ -434,6 +444,11 @@ const CreditCheck = () => {
           {success}
         </Alert>
       )}
+      {/* {prefillError && (
+                    <Alert severity="warning" sx={{ mt: 1 }}>
+                      {prefillError}
+                    </Alert>
+                  )} */}
 
       {activeTab === 0 && (
         <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
@@ -442,7 +457,28 @@ const CreditCheck = () => {
               Check Customer Credit
             </Typography>
 
-            <Box component="form" onSubmit={handleCheckCredit}>
+            <Box
+              component="form"
+              onSubmit={handleCheckCredit}
+              sx={{
+                position: "relative",
+              }}
+            >
+              <Backdrop
+                open={saving || loadingPrefill}
+                sx={{
+                  position: "absolute",
+                  top: 10,
+                  left: 0,
+                  width: "100%",
+                  height: "100%",
+                  zIndex: 10,
+                  color: "#fff",
+                  backgroundColor: "rgba(255,255,255,0.5)",
+                }}
+              >
+                <CircularProgress color="primary" />
+              </Backdrop>
               <Grid container spacing={3}>
                 <Grid
                   item
@@ -479,9 +515,20 @@ const CreditCheck = () => {
                       maxLength: 10,
                       pattern: "[0-9]{10}",
                     }}
+                    InputProps={{
+                      endAdornment: loadingPrefill ? (
+                        <CircularProgress size={20} />
+                      ) : null,
+                    }}
                     helperText="Enter exactly 10 digits without spaces or dashes"
                   />
+                  {prefillError && (
+                    <Alert severity="error" sx={{ mb: 2 }}>
+                      {prefillError}
+                    </Alert>
+                  )}
                 </Grid>
+
                 <Grid
                   item
                   xs={12}

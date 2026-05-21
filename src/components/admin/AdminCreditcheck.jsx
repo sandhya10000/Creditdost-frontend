@@ -24,6 +24,7 @@ import {
   Tab,
   Chip,
   Link,
+  Backdrop,
 } from "@mui/material";
 import {
   Search,
@@ -32,9 +33,15 @@ import {
   Download,
   Info,
 } from "@mui/icons-material";
-import { franchiseAPI } from "../../../services/api";
+import { franchiseAPI } from "../../services/api";
 
-const CreditBureau = ({ bureauOptions = [], defaultBureau }) => {
+const AdminCreditBureau = ({ defaultBureau = "" }) => {
+  const bureauOptions = [
+    { value: "cibil", label: "CIBIL" },
+    { value: "crif", label: "CRIF" },
+    { value: "experian", label: "Experian" },
+    { value: "equifax", label: "Equifax" },
+  ];
   const [activeTab, setActiveTab] = useState(0);
   const [formData, setFormData] = useState({
     name: "",
@@ -52,8 +59,6 @@ const CreditBureau = ({ bureauOptions = [], defaultBureau }) => {
   const [creditReports, setCreditReports] = useState([]);
   const [recentReport, setRecentReport] = useState(null);
   const [availableCredits, setAvailableCredits] = useState(0);
-
-  // const [showCreditButton, setShowCreditButton] = useState(true);
 
   // Load recent credit reports and available credits on component mount
   useEffect(() => {
@@ -307,7 +312,23 @@ const CreditBureau = ({ bureauOptions = [], defaultBureau }) => {
   };
   return (
     <Box>
-      {loading && <CircularProgress />}
+      {loading && (
+        <Backdrop
+          open={loading}
+          sx={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            zIndex: 10,
+            color: "#fff",
+            backgroundColor: "rgba(255,255,255,0.5)",
+          }}
+        >
+          <CircularProgress color="primary" />
+        </Backdrop>
+      )}
       <Typography variant="h4" gutterBottom>
         Credit Check
       </Typography>
@@ -732,4 +753,4 @@ const CreditBureau = ({ bureauOptions = [], defaultBureau }) => {
   );
 };
 
-export default CreditBureau;
+export default AdminCreditBureau;

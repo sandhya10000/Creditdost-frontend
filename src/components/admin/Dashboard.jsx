@@ -203,8 +203,14 @@ const AdminDashboard = () => {
       path: "/admin/customer-packages",
     },
     { text: "Manage Leads", icon: <PeopleIcon />, path: "/admin/leads" },
+    {
+      text: "Credit Check",
+      icon: <AssessmentIcon />,
+      path: "/admin/credit-check",
+    },
 
     { text: "View Reports", icon: <AssessmentIcon />, path: "/admin/reports" },
+
     // {
     //   text: "Manage Referrals",
     //   icon: <GroupAddIcon />,
