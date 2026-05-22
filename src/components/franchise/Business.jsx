@@ -27,6 +27,7 @@ import {
   StepLabel,
   StepContent,
   Snackbar,
+  Paper,
 } from "@mui/material";
 import { Check as CheckIcon, Close as CloseIcon } from "@mui/icons-material";
 import api, { franchiseAPI } from "../../services/api";
@@ -64,6 +65,7 @@ const Business = () => {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("success");
+  const [uploadFiles, setUploadFiles] = useState({});
 
   // Fetch customer packages
   useEffect(() => {
@@ -270,6 +272,79 @@ const Business = () => {
     rzp.open();
   };
 
+  const documentFields = [
+    {
+      label: "PAN Card",
+      key: "panCard",
+    },
+    {
+      label: "Aadhar Front",
+      key: "aadharFront",
+    },
+    {
+      label: "Aadhar Back",
+      key: "aadharBack",
+    },
+    {
+      label: "Cancel Cheque",
+      key: "cancelCheque",
+    },
+    {
+      label: "Bank Proof (Settlement letter)",
+      key: "bankProof",
+    },
+    {
+      label: "Extra Bank Document",
+      key: "extraBankDocument",
+    },
+  ];
+
+  const handleUploadDoc = async () => {
+    try {
+      // const requiredFields = [
+      //   "panCard",
+      //   "aadharFront",
+      //   "aadharBack",
+      //   "cancelCheque",
+      //   "bankProof",
+      // ];
+
+      // const missingFields = requiredFields.filter(
+      //   (field) => !uploadFiles[field],
+      // );
+
+      // if (missingFields.length > 0) {
+      //   setUploadValidationError("Please upload all required documents");
+      //   return;
+      // }
+
+      const formData = new FormData();
+
+      Object.keys(uploadFiles).forEach((key) => {
+        if (uploadFiles[key]) {
+          formData.append(key, uploadFiles[key]);
+        }
+      });
+
+      let response = await franchiseAPI.uploaddocBusiness(formData);
+      console.log(response, "upload docs==========");
+      handleNext();
+    } catch (error) {
+      console.log(error, "error");
+    }
+  };
+
+  const handleFileChange = (e, key) => {
+    const file = e.target.files[0];
+
+    if (file) {
+      setUploadFiles((prev) => ({
+        ...prev,
+        [key]: file,
+      }));
+    }
+  };
+
   const resetForm = () => {
     setFormData({
       customerName: "",
@@ -345,17 +420,33 @@ const Business = () => {
     "Assamese",
   ];
 
-  const occupations = [
-    "Salaried",
-    "Self Employed",
-    "Business Owner",
-    "Student",
-    "Retired",
-    "Homemaker",
-    "Others",
+  const occupations = ["Salaried", "Self Employed", "Others"];
+
+  const steps = [
+    "Customer Information",
+    "Upload Document",
+    "Package Selection",
+    "Payment",
   ];
 
-  const steps = ["Customer Information", "Package Selection", "Payment"];
+  const validateForm = () => {
+    for (const key in formData) {
+      if (!formData[key]) {
+        setError("Please enter all the required fields");
+        return false;
+      }
+    }
+
+    // Email Validation
+    if (
+      formData.customerEmail &&
+      !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(formData.customerEmail)
+    ) {
+      setError("Please enter valid Email ID");
+      return false;
+    }
+    handleNext();
+  };
 
   return (
     <Box>
@@ -642,7 +733,6 @@ const Business = () => {
                           sx={{ minWidth: { xs: "0px", md: "350px" } }}
                         >
                           <TextField
-                            required
                             fullWidth
                             label="Bank Account Number"
                             name="bankAccountNumber"
@@ -659,7 +749,6 @@ const Business = () => {
                           sx={{ minWidth: { xs: "0px", md: "350px" } }}
                         >
                           <TextField
-                            required
                             fullWidth
                             label="IFSC Code"
                             name="ifscCode"
@@ -681,7 +770,9 @@ const Business = () => {
                           >
                             <Button
                               variant="contained"
-                              onClick={handleNext}
+                              onClick={() => {
+                                validateForm();
+                              }}
                               disabled={loading}
                             >
                               {loading ? (
@@ -697,6 +788,128 @@ const Business = () => {
                   )}
 
                   {index === 1 && (
+                    <Grid container spacing={2}>
+                      {documentFields.map((item, index) => (
+                        <Grid item xs={12} sm={6} md={4} key={index}>
+                          <Box
+                            sx={{
+                              border: "1px solid #d9d9d9",
+                              borderRadius: "12px",
+                              px: 2,
+                              py: 1.5,
+                              display: "flex",
+                              flexDirection: "column",
+                              gap: 1,
+                              backgroundColor: "#fff",
+                              minHeight: "90px",
+                              transition: "0.3s",
+                              "&:hover": {
+                                boxShadow: "0px 4px 14px rgba(0,0,0,0.08)",
+                                borderColor: "#9333ea",
+                              },
+                            }}
+                          >
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "space-between",
+                                gap: 1,
+                              }}
+                            >
+                              <Typography
+                                sx={{
+                                  fontSize: "15px",
+                                  fontWeight: 500,
+                                  color: "#555",
+                                }}
+                              >
+                                {item.label}
+                              </Typography>
+
+                              <Button
+                                variant="outlined"
+                                component="label"
+                                size="small"
+                                sx={{
+                                  borderRadius: "10px",
+                                  textTransform: "none",
+                                  borderColor: "#c084fc",
+                                  color: "#9333ea",
+                                  fontWeight: 600,
+                                  px: 2,
+                                  minWidth: "100px",
+                                  "&:hover": {
+                                    borderColor: "#9333ea",
+                                    backgroundColor: "#faf5ff",
+                                  },
+                                }}
+                              >
+                                {uploadFiles[item.key]?.name
+                                  ? "Replace"
+                                  : "Upload"}
+                                <input
+                                  type="file"
+                                  hidden
+                                  onChange={(e) =>
+                                    handleFileChange(e, item.key)
+                                  }
+                                />
+                              </Button>
+                            </Box>
+
+                            {uploadFiles[item.key] && (
+                              <Typography
+                                variant="caption"
+                                sx={{
+                                  color: "green",
+                                  fontWeight: 500,
+                                  wordBreak: "break-word",
+                                }}
+                              >
+                                {uploadFiles[item.key]?.name}
+                              </Typography>
+                            )}
+                          </Box>
+                        </Grid>
+                      ))}
+
+                      <Grid
+                        item
+                        xs={12}
+                        sx={{ minWidth: { xs: "0px", md: "350px" } }}
+                      >
+                        <Box
+                          sx={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                          }}
+                        >
+                          <Button
+                            onClick={() => {
+                              handleBack();
+                            }}
+                          >
+                            Back
+                          </Button>
+
+                          <Button
+                            variant="contained"
+                            onClick={handleUploadDoc}
+                            disabled={loading}
+                          >
+                            {loading ? (
+                              <CircularProgress size={24} />
+                            ) : (
+                              "Submit Documents"
+                            )}
+                          </Button>
+                        </Box>
+                      </Grid>
+                    </Grid>
+                  )}
+
+                  {index === 2 && (
                     <Box>
                       <Typography
                         variant="h6"
@@ -916,7 +1129,7 @@ const Business = () => {
                     </Box>
                   )}
 
-                  {index === 2 && (
+                  {index === 3 && (
                     <Box>
                       <Typography variant="h6" gutterBottom>
                         Payment Confirmation

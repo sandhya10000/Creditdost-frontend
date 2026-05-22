@@ -51,6 +51,9 @@ const FranchiseRoutes = () => {
           path="/franchise-marketing"
           element={<FranchiseMarketing />}
         />{" "}
+        <Route path="/credit-check/crif" element={<CRIF />} />
+        <Route path="/credit-check/experian" element={<Experian />} />
+        <Route path="/credit-check/equifax" element={<Equifax />} />
         <Route path="/case-studies" element={<FranchiseCaseStudies />} />{" "}
         <Route path="/reward" element={<FranchiseReward />} />{" "}
         <Route
@@ -58,9 +61,7 @@ const FranchiseRoutes = () => {
           element={<RelationshipManagerInfo />}
         />
       </Route>
-      <Route path="/credit-check/crif" element={<CRIF />} />
-      <Route path="/credit-check/experian" element={<Experian />} />
-      <Route path="/credit-check/equifax" element={<Equifax />} />
+
       {/* New Marketing Route */}
     </Routes>
   );

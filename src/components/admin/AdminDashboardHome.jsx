@@ -181,7 +181,7 @@ const AdminDashboardHome = () => {
           console.log("Full visitor response:", visitorResponse);
           console.log(
             "visitorResponse.data.totalStats:",
-            visitorResponse.data?.totalStats
+            visitorResponse.data?.totalStats,
           );
 
           // Add defensive checks
@@ -445,7 +445,7 @@ const AdminDashboardHome = () => {
   const tempVisitorStatCards = getVisitorStatCards();
   console.log(
     "Temp visitorStatCards created from current state:",
-    tempVisitorStatCards
+    tempVisitorStatCards,
   );
   console.log("Final visitorStatCards created:", visitorStatCards);
 
@@ -648,10 +648,10 @@ const AdminDashboardHome = () => {
                                 activity.status === "completed"
                                   ? "#4caf50"
                                   : activity.status === "pending"
-                                  ? "#ff9800"
-                                  : activity.status === "rejected"
-                                  ? "#f44336"
-                                  : "#2196f3",
+                                    ? "#ff9800"
+                                    : activity.status === "rejected"
+                                      ? "#f44336"
+                                      : "#2196f3",
                             }}
                           >
                             {activity.status === "completed" ? (
@@ -826,7 +826,8 @@ const AdminDashboardHome = () => {
               <Box sx={{ height: 400 }}>
                 {performanceData.chartData &&
                 performanceData.chartData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height="100%">
+                  <ResponsiveContainer width="100%" height={300}>
+                    {" "}
                     <LineChart
                       data={performanceData.chartData}
                       margin={{ top: 5, right: 30, left: 20, bottom: 50 }}

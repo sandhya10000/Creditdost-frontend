@@ -42,6 +42,61 @@ const FranchiseMarketing = () => {
     }
   };
 
+  //Handle share function
+  const handleShare = async (fileUrl, item) => {
+    try {
+      let response = await fetch(fileUrl);
+      const blob = await response.blob();
+      const extension = fileUrl.split(".").pop();
+      const file = new File(
+        [blob],
+        `${item.title || "marketing-file"}.${extension}`,
+        { type: blob.type },
+      );
+      if (navigator.share && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          title: item.title,
+          text: item.description || "",
+          files: [file],
+        });
+      } else {
+        window.open(
+          `https://wa.me/?text=${encodeURIComponent(fileUrl)}`,
+          "_blank",
+        );
+      }
+    } catch (error) {
+      console.log("Share failed", error);
+    }
+  };
+
+  const downloadImage = async (imageUrl, fileName = "image.jpg") => {
+    try {
+      const response = await fetch(imageUrl);
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch image");
+      }
+
+      const blob = await response.blob();
+
+      const blobUrl = window.URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = fileName;
+
+      document.body.appendChild(link);
+      link.click();
+
+      document.body.removeChild(link);
+
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      console.error("Download failed:", error);
+    }
+  };
+
   return (
     <Box sx={{ p: 3 }}>
       <Typography
@@ -114,20 +169,6 @@ const FranchiseMarketing = () => {
                   )}
 
                   <CardContent>
-                    <Typography variant="h6" fontWeight="bold" gutterBottom>
-                      {item.title}
-                    </Typography>
-
-                    {item.description && (
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        sx={{ mb: 2 }}
-                      >
-                        {item.description}
-                      </Typography>
-                    )}
-
                     <Stack
                       direction="row"
                       spacing={1}
@@ -136,9 +177,8 @@ const FranchiseMarketing = () => {
                     >
                       <Button
                         variant="contained"
-                        href={fileUrl}
-                        download
                         size="small"
+                        onClick={() => downloadImage(fileUrl)}
                       >
                         Download
                       </Button>
@@ -148,33 +188,10 @@ const FranchiseMarketing = () => {
                         color="success"
                         target="_blank"
                         rel="noreferrer"
-                        href={`https://wa.me/?text=${fileUrl}`}
+                        onClick={() => handleShare(fileUrl, item)}
                         size="small"
                       >
                         WhatsApp
-                      </Button>
-                      {/* Facebook */}
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        target="_blank"
-                        rel="noreferrer"
-                        href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(fileUrl)}`}
-                        size="small"
-                      >
-                        Facebook
-                      </Button>
-
-                      {/* Instagram */}
-                      <Button
-                        variant="contained"
-                        color="secondary"
-                        target="_blank"
-                        rel="noreferrer"
-                        href="https://www.instagram.com/"
-                        size="small"
-                      >
-                        Instagram
                       </Button>
                     </Stack>
                   </CardContent>

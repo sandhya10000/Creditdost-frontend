@@ -21,6 +21,7 @@
     "@tiptap/react": "^3.20.0",
     "@tiptap/starter-kit": "^3.20.0",
     "axios": "^1.12.2",
+    "crypto-js": "^4.2.0",
     "date-fns": "^4.1.0",
     "express-rate-limit": "^8.1.0",
     "googleapis": "^166.0.0",
@@ -29,6 +30,7 @@
     "pdf-lib": "^1.17.1",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
+    "react-error-boundary": "^6.1.1",
     "react-ga4": "^2.1.0",
     "react-router-dom": "^7.9.4",
     "recharts": "^3.6.0"

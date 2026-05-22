@@ -119,10 +119,6 @@ const DashboardHome = () => {
 
         // Set purchased package from latest transaction
         if (latestTransaction && latestTransaction.packageId) {
-          console.log(
-            "Latest transaction package data:",
-            latestTransaction.packageId,
-          );
           setPurchasedPackage({
             name: latestTransaction.packageId.name,
             credits: latestTransaction.packageId.creditsIncluded || 0,
@@ -179,24 +175,11 @@ const DashboardHome = () => {
       // Get all packages
       const response = await franchiseAPI.getCreditPackages();
 
-      console.log("All packages:", response.data);
-      console.log("Purchased package:", purchasedPackage);
-      console.log("Assigned packages:", assignedPackages);
-
       // Filter packages with higher price (higher tier) than current package
       let filteredPackages = [];
       if (purchasedPackage) {
-        console.log(
-          "Filtering by purchased package price:",
-          purchasedPackage.price || purchasedPackage.credits,
-        );
         filteredPackages = response.data.filter((pkg) => {
           const result = pkg.price > (purchasedPackage.price || 0);
-          console.log(
-            `Package ${pkg.name} (price: ${pkg.price}) > ${
-              purchasedPackage.price || 0
-            }: ${result}`,
-          );
           return result;
         });
       } else if (assignedPackages.length > 0) {
@@ -205,20 +188,13 @@ const DashboardHome = () => {
         const highestCredits = Math.max(
           ...assignedPackages.map((pkg) => pkg.creditsIncluded || 0),
         );
-        console.log(
-          "Filtering by assigned packages highest credits:",
-          highestCredits,
-        );
         filteredPackages = response.data.filter((pkg) => {
-          const result = pkg.creditsIncluded > highestCredits;
-          console.log(
-            `Package ${pkg.name} (credits: ${pkg.creditsIncluded}) > ${highestCredits}: ${result}`,
-          );
+          const result =
+            pkg.creditsIncluded > highestCredits ||
+            pkg.creditsIncluded === "Unlimited";
           return result;
         });
       }
-
-      console.log("Filtered packages:", filteredPackages);
 
       // Sort packages by price in ascending order (lowest to highest)
       const sortedPackages = [...filteredPackages].sort(
@@ -556,7 +532,13 @@ const DashboardHome = () => {
                       {pkg.name}
                     </Typography>
                     <Typography variant="body1" sx={{ mb: 1 }}>
-                      <strong>{pkg.creditsIncluded} Credits</strong> included
+                      <strong>
+                        {pkg.creditsIncluded === "Unlimited"
+                          ? "Unlimited"
+                          : pkg.creditsIncluded}{" "}
+                        Credits
+                      </strong>{" "}
+                      included
                     </Typography>
                   </Box>
                 ))}
@@ -821,7 +803,7 @@ const DashboardHome = () => {
               fontWeight="bold"
               sx={{ color: "primary.main" }}
             >
-              Upgrade Your Package Hello sandhya
+              Upgrade Your Package
             </Typography>
             <IconButton
               onClick={() => setUpgradeDialogOpen(false)}

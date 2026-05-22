@@ -108,7 +108,7 @@ const BusinessMIS = () => {
     ];
 
     const rows = filteredBusinessForms.map((form) => [
-      `CUST-${form._id.slice(-6).toUpperCase()}`,
+      form.customerId,
       form.customerName || "",
       form.customerEmail || "",
       form.customerPhone || "",
@@ -202,9 +202,7 @@ const BusinessMIS = () => {
                 <TableBody>
                   {filteredBusinessForms.map((form) => (
                     <TableRow key={form._id}>
-                      <TableCell>
-                        CUST-{form._id.slice(-6).toUpperCase()}
-                      </TableCell>
+                      <TableCell>{form.customerId}</TableCell>
                       <TableCell>{form.customerName}</TableCell>
                       <TableCell>{form.customerEmail}</TableCell>
                       <TableCell>{form.customerPhone}</TableCell>

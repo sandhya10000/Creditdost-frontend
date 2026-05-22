@@ -78,8 +78,7 @@ export const franchiseAPI = {
   getCreditReport: (data) => api.post("/credit/check", data),
   getCreditReports: () => api.get("/credit/reports"),
   getDashboardStats: () => api.get("/dashboard"),
-  //api for mobiled prefilled data
-  getfetchPrefillData: (mobile) => api.post("/prefill", { mobile }),
+
   getFranchiseLeads: () => api.get("/leads/franchise"),
   updateLeadStatus: (leadId, data) => api.put(`/leads/${leadId}/status`, data),
   // Business form functions
@@ -128,12 +127,18 @@ export const franchiseAPI = {
     api.get(`/ai-analysis/franchise/download-analysis/${docId}`, {
       responseType: "blob",
     }),
+  //api for mobiled prefilled data
+  getfetchPrefillData: (mobile) => api.post("/prefill", { mobile }),
+  savePrefillFailure: (data) => api.post("/save-prefill-failure", data),
+  getPrefillFailedLog: () => api.get("/prefill-failed-logs"),
   //get marketing material
   getMarketingMaterials: () => api.get("/marketing"),
   //get reward from admin
   getRewards: () => api.get("/franchise/reward"),
   //get case studies
   getCaseStudies: () => api.get("/franchise/case-studies"),
+  uploaddocBusiness: (formData) =>
+    api.post("/franchise/uploadDocBusiness", formData),
 };
 
 // Blog API functions
@@ -283,6 +288,19 @@ export const adminAPI = {
 
   //admin upload contest reward post
   createReward: (formData) => api.post("/admin/reward/upload", formData),
+  getDownloadStats: () => api.get("/admin/download-stats"),
+  //Bureau save for mini crm
+  getSinglebusinessform: (customerId) =>
+    api.get(`/business/customer/${customerId}`),
+  //get single report data using userId
+  getSingleCreditReport: (pan) => api.get(`/report/${pan}`),
+  saveBureauData: (customerId, bureauData) =>
+    api.post(`/customer/bureau/${customerId}`, bureauData),
+  getBureauData: (customerId) => api.get(`/bureau-data/${customerId}`),
+  checkCreditV2: (payload) => api.post("/credit/credit-check-v2", payload),
+  addRemarksforCustomer: (payload) =>
+    api.post("/admin/addremark/customer", payload),
+  getCustomerRemarks: (customerId) => api.get(`/addRemark/${customerId}`),
 };
 
 // Credit API functions

@@ -98,6 +98,8 @@ const ManageFranchises = () => {
   const [packages, setPackages] = useState([]);
   const [selectedPackages, setSelectedPackages] = useState([]); // For create franchise dialog
   const [approvalPackages, setApprovalPackages] = useState([]); // For registration approval dialog
+  const [editingPackageIndex, setEditingPackageIndex] = useState(null);
+  const [originalPackages, setOriginalPackages] = useState([]);
 
   // Fetch all franchises and packages on component mount
   useEffect(() => {
@@ -105,6 +107,19 @@ const ManageFranchises = () => {
     fetchPackages();
   }, []);
 
+  const handlePackageChange = (index, field, value) => {
+    const updatedPackages = [...editFranchiseData.allPackages.assigned];
+
+    updatedPackages[index][field] = value;
+
+    setEditFranchiseData({
+      ...editFranchiseData,
+      allPackages: {
+        ...editFranchiseData.allPackages,
+        assigned: updatedPackages,
+      },
+    });
+  };
   const fetchPackages = async () => {
     try {
       const response = await adminAPI.getAllPackages();
@@ -403,6 +418,13 @@ const ManageFranchises = () => {
         credits: parseInt(editFranchiseData.credits) || 0,
         totalCreditsPurchased:
           parseInt(editFranchiseData.totalCreditsPurchased) || 0,
+        assignedPackages: editFranchiseData.allPackages.assigned.map(
+          (pkg) => pkg._id,
+        ),
+
+        allPackages: {
+          assigned: editFranchiseData.allPackages.assigned,
+        },
       };
 
       await adminAPI.updateFranchise(editFranchiseData._id, updateData);
@@ -1812,30 +1834,143 @@ const ManageFranchises = () => {
                             <Box
                               key={pkg._id || `assigned-${index}`}
                               sx={{
-                                mb: 1,
+                                mb: 2,
                                 p: 2,
-                                bgcolor: "lightblue",
-                                borderRadius: 1,
+                                bgcolor: "#f5f9ff",
+                                borderRadius: 2,
                                 border: "1px solid #b3d9ff",
                               }}
                             >
-                              <Typography
-                                variant="body1"
-                                fontWeight="bold"
-                                gutterBottom
-                              >
-                                {pkg.name}
-                              </Typography>
-                              <Typography
-                                variant="body2"
-                                color="textSecondary"
-                                gutterBottom
-                              >
-                                Price: ₹{pkg.price}
-                              </Typography>
-                              <Typography variant="body2" color="textSecondary">
-                                Credits Included: {pkg.creditsIncluded}
-                              </Typography>
+                              {editingPackageIndex === index ? (
+                                <>
+                                  <TextField
+                                    fullWidth
+                                    label="Package Name"
+                                    value={pkg.name}
+                                    onChange={(e) =>
+                                      handlePackageChange(
+                                        index,
+                                        "name",
+                                        e.target.value,
+                                      )
+                                    }
+                                    sx={{ mb: 2 }}
+                                  />
+
+                                  <TextField
+                                    fullWidth
+                                    type="number"
+                                    label="Price"
+                                    value={pkg.price}
+                                    onChange={(e) =>
+                                      handlePackageChange(
+                                        index,
+                                        "price",
+                                        e.target.value,
+                                      )
+                                    }
+                                    sx={{ mb: 2 }}
+                                  />
+
+                                  <TextField
+                                    fullWidth
+                                    type="number"
+                                    label="Credits Included"
+                                    value={pkg.creditsIncluded}
+                                    onChange={(e) =>
+                                      handlePackageChange(
+                                        index,
+                                        "creditsIncluded",
+                                        e.target.value,
+                                      )
+                                    }
+                                    sx={{ mb: 2 }}
+                                  />
+
+                                  <Box
+                                    sx={{
+                                      display: "flex",
+                                      gap: 1,
+                                    }}
+                                  >
+                                    <Button
+                                      variant="contained"
+                                      color="success"
+                                      sx={{
+                                        color: "#fff !important",
+                                      }}
+                                      onClick={() =>
+                                        setEditingPackageIndex(null)
+                                      }
+                                    >
+                                      Save
+                                    </Button>
+
+                                    <Button
+                                      variant="outlined"
+                                      color="error"
+                                      onClick={() => {
+                                        setEditFranchiseData({
+                                          ...editFranchiseData,
+                                          allPackages: {
+                                            ...editFranchiseData.allPackages,
+                                            assigned: originalPackages,
+                                          },
+                                        });
+
+                                        setEditingPackageIndex(null);
+                                      }}
+                                    >
+                                      Cancel
+                                    </Button>
+                                  </Box>
+                                </>
+                              ) : (
+                                <>
+                                  <Typography
+                                    variant="body1"
+                                    fontWeight="bold"
+                                    gutterBottom
+                                  >
+                                    {pkg.name}
+                                  </Typography>
+
+                                  <Typography
+                                    variant="body2"
+                                    color="text.secondary"
+                                    gutterBottom
+                                  >
+                                    Price: ₹{pkg.price}
+                                  </Typography>
+
+                                  <Typography
+                                    variant="body2"
+                                    color="text.secondary"
+                                  >
+                                    Credits Included: {pkg.creditsIncluded}
+                                  </Typography>
+
+                                  <Button
+                                    variant="outlined"
+                                    size="small"
+                                    sx={{ mt: 2 }}
+                                    onClick={() => {
+                                      setOriginalPackages(
+                                        JSON.parse(
+                                          JSON.stringify(
+                                            editFranchiseData.allPackages
+                                              .assigned,
+                                          ),
+                                        ),
+                                      );
+
+                                      setEditingPackageIndex(index);
+                                    }}
+                                  >
+                                    Edit
+                                  </Button>
+                                </>
+                              )}
                             </Box>
                           ),
                         )}

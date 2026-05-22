@@ -9,7 +9,6 @@ import {
   Grid,
   Alert,
   CircularProgress,
-  Backdrop,
   Table,
   TableBody,
   TableCell,
@@ -33,9 +32,9 @@ import {
   Download,
   Info,
 } from "@mui/icons-material";
-import { franchiseAPI } from "../../services/api";
+import { franchiseAPI } from "../../../services/api";
 
-const CreditCheck = () => {
+const CreditBureau = ({ bureauOptions = [], defaultBureau }) => {
   const [activeTab, setActiveTab] = useState(0);
   const [formData, setFormData] = useState({
     name: "",
@@ -44,7 +43,7 @@ const CreditCheck = () => {
     aadhaar: "",
     dob: "",
     gender: "",
-    bureau: "cibil", // Default to CIBIL as per Surepass documentation
+    bureau: defaultBureau || "cibil", // Default to CIBIL as per Surepass documentation
   });
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -53,21 +52,8 @@ const CreditCheck = () => {
   const [creditReports, setCreditReports] = useState([]);
   const [recentReport, setRecentReport] = useState(null);
   const [availableCredits, setAvailableCredits] = useState(0);
-  //for prefilled data mobile
-  const [loadingPrefill, setLoadingPrefill] = useState(false);
-  const [prefillError, setPrefillError] = useState("");
 
-  const [showCreditButton, setShowCreditButton] = useState(true);
-  // Bureau options
-  const bureauOptions = [
-    { value: "cibil", label: "CIBIL" },
-    { value: "crif", label: "CRIF" },
-    { value: "experian", label: "Experian" },
-    { value: "equifax", label: "Equifax" },
-  ];
-  const filteredBureauOption = bureauOptions.filter(
-    (item) => item.value === "cibil",
-  );
+  // const [showCreditButton, setShowCreditButton] = useState(true);
 
   // Load recent credit reports and available credits on component mount
   useEffect(() => {
@@ -307,66 +293,8 @@ const CreditCheck = () => {
     }
     return report.reportUrl;
   };
-  // const formatDate = (dateStr) => {
-  //   if (!dateStr) return "";
-  //   const [year, month, day] = dateStr.split("-");
-  //   return `${day}-${month}-${year}`;
-  // };
 
-  const fetchPrefillData = async (mobile) => {
-    try {
-      setLoadingPrefill(true);
-      setPrefillError("");
-
-      const response = await franchiseAPI.getfetchPrefillData(mobile);
-
-      console.log("Prefill API Response:", response);
-
-      //  Correct data extraction
-      const apiData = response?.data?.data;
-
-      if (!apiData || !apiData.details) {
-        setPrefillError("No data found");
-        return;
-      }
-
-      const details = apiData.details;
-      // setDisablePan(false);
-      setShowCreditButton(true); //Show button on success
-      setFormData((prev) => ({
-        ...prev,
-        name: details.personal_info?.full_name?.trim() || "",
-        pan: details.identity_info?.pan_number?.[0]?.id_number || "",
-        dob: details.personal_info?.dob || "",
-        gender: details.personal_info?.gender || "",
-      }));
-    } catch (err) {
-      console.error("API Error:", err);
-      if (err?.response?.status === 500 || err?.response?.status === 404) {
-        await franchiseAPI.savePrefillFailure({
-          mobile,
-
-          message: "No Pan record found",
-          statusCode: err?.response?.status,
-        });
-        alert(
-          "No PAN record found for this mobile number. Still you want to check credit bureau then you can proceed with Experian",
-        );
-
-        setShowCreditButton(false); //  hide only in this case
-      } else {
-        // optional: dusre errors me button show rehne do ya hide?
-        setShowCreditButton(true);
-      }
-      //  PAN disable karo
-      //setDisablePan(true);
-      setPrefillError("API failed");
-    } finally {
-      setLoadingPrefill(false);
-    }
-  };
-
-  const handleMobileChange = async (e) => {
+  const handleMobileChange = (e) => {
     const value = e.target.value.replace(/\D/g, "");
 
     console.log("Typing:", value); //  check typing
@@ -374,17 +302,7 @@ const CreditCheck = () => {
     setFormData((prev) => ({ ...prev, mobile: value }));
 
     if (value.length === 10) {
-      try {
-        setLoadingPrefill(true);
-
-        console.log("Calling Prefill API...");
-
-        await fetchPrefillData(value);
-      } catch (error) {
-        console.log(error);
-      } finally {
-        setLoadingPrefill(false);
-      }
+      console.log("Calling API..."); //  MUST print
     }
   };
   return (
@@ -450,11 +368,6 @@ const CreditCheck = () => {
           {success}
         </Alert>
       )}
-      {/* {prefillError && (
-                    <Alert severity="warning" sx={{ mt: 1 }}>
-                      {prefillError}
-                    </Alert>
-                  )} */}
 
       {activeTab === 0 && (
         <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
@@ -463,28 +376,7 @@ const CreditCheck = () => {
               Check Customer Credit
             </Typography>
 
-            <Box
-              component="form"
-              onSubmit={handleCheckCredit}
-              sx={{
-                position: "relative",
-              }}
-            >
-              <Backdrop
-                open={saving || loadingPrefill}
-                sx={{
-                  position: "absolute",
-                  top: 10,
-                  left: 0,
-                  width: "100%",
-                  height: "100%",
-                  zIndex: 10,
-                  color: "#fff",
-                  backgroundColor: "rgba(255,255,255,0.5)",
-                }}
-              >
-                <CircularProgress color="primary" />
-              </Backdrop>
+            <Box component="form" onSubmit={handleCheckCredit}>
               <Grid container spacing={3}>
                 <Grid
                   item
@@ -521,20 +413,9 @@ const CreditCheck = () => {
                       maxLength: 10,
                       pattern: "[0-9]{10}",
                     }}
-                    InputProps={{
-                      endAdornment: loadingPrefill ? (
-                        <CircularProgress size={20} />
-                      ) : null,
-                    }}
                     helperText="Enter exactly 10 digits without spaces or dashes"
                   />
-                  {prefillError && (
-                    <Alert severity="error" sx={{ mb: 2 }}>
-                      {prefillError}
-                    </Alert>
-                  )}
                 </Grid>
-
                 <Grid
                   item
                   xs={12}
@@ -624,7 +505,7 @@ const CreditCheck = () => {
                       label="Credit Bureau"
                       onChange={handleBureauChange}
                     >
-                      {filteredBureauOption.map((option) => (
+                      {bureauOptions.map((option) => (
                         <MenuItem key={option.value} value={option.value}>
                           {option.label}
                         </MenuItem>
@@ -634,21 +515,15 @@ const CreditCheck = () => {
                 </Grid>
                 <Grid item xs={12}>
                   <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-                    {showCreditButton && (
-                      <Button
-                        type="submit"
-                        variant="contained"
-                        startIcon={<CreditScore />}
-                        disabled={saving}
-                        sx={{ py: 1.5, px: 4 }}
-                      >
-                        {saving ? (
-                          <CircularProgress size={24} />
-                        ) : (
-                          "Check Credit"
-                        )}
-                      </Button>
-                    )}
+                    <Button
+                      type="submit"
+                      variant="contained"
+                      startIcon={<CreditScore />}
+                      disabled={saving}
+                      sx={{ py: 1.5, px: 4 }}
+                    >
+                      {saving ? <CircularProgress size={24} /> : "Check Credit"}
+                    </Button>
                   </Box>
                 </Grid>
               </Grid>
@@ -857,4 +732,4 @@ const CreditCheck = () => {
   );
 };
 
-export default CreditCheck;
+export default CreditBureau;

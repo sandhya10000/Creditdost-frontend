@@ -20,6 +20,10 @@ import ManageAIAnalysis from "./ManageAIAnalysis";
 import AdminMarketing from "./AdminMarketing";
 import AdminReward from "./AdminReward";
 import AdminCaseStudies from "./AdminCaseStudy";
+import ReportAnalytics from "./ReportAnalytics";
+import CustomerCRM from "../pages/CustomerCRM";
+import AdminCreditBureau from "../admin/AdminCreditcheck";
+import PrefillFailedLog from "../admin/PrefillFailedLog";
 const AdminRoutes = () => {
   return (
     <Routes>
@@ -46,6 +50,10 @@ const AdminRoutes = () => {
         <Route path="marketing-materials" element={<AdminMarketing />} />
         <Route path="reward" element={<AdminReward />} />
         <Route path="case-study" element={<AdminCaseStudies />} />
+        <Route path="report-analytics" element={<ReportAnalytics />} />
+        <Route path="/customer/:customerId" element={<CustomerCRM />} />
+        <Route path="/credit-check" element={<AdminCreditBureau />} />
+        <Route path="/prefill-failed-logs" element={<PrefillFailedLog />} />
       </Route>
     </Routes>
   );
