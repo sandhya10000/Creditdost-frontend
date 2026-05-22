@@ -178,9 +178,7 @@ const FranchiseMarketing = () => {
                       <Button
                         variant="contained"
                         size="small"
-                        onClick={() =>
-                          downloadImage(fileUrl, item.title.toLowerCase())
-                        }
+                        onClick={() => downloadImage(fileUrl)}
                       >
                         Download
                       </Button>

@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Typography,
   TextField,
   Button,
   Box,
   Alert,
-  styled,
   InputAdornment,
   FormControl,
   InputLabel,
@@ -67,7 +66,12 @@ const indianStates = [
   "Puducherry",
 ];
 
-const RegistrationForm = ({ onSubmit, successMessage = "Registration successful! Please check your email for further instructions.", submitButtonText = "Register", formTitle = "Create Your Account" }) => {
+const RegistrationForm = ({
+  onSubmit,
+  successMessage = "Registration successful! Please check your email for further instructions.",
+  submitButtonText = "Register",
+  formTitle = "Create Your Account",
+}) => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -143,7 +147,7 @@ const RegistrationForm = ({ onSubmit, successMessage = "Registration successful!
       setSuccess(true);
     } catch (err) {
       setError(
-        err.response?.data?.message || "Registration failed. Please try again."
+        err.response?.data?.message || "Registration failed. Please try again.",
       );
     } finally {
       setLoading(false);
@@ -164,105 +168,92 @@ const RegistrationForm = ({ onSubmit, successMessage = "Registration successful!
         </Alert>
       )}
 
-      <Typography
-        component="h2"
-        variant="h6"
-        mb={3}
-        fontWeight="700"
-      >
+      <Typography component="h2" variant="h6" mb={3} fontWeight="700">
         {formTitle}
       </Typography>
 
       <Grid container spacing={2}>
-        <div
-          style={{ display: "flex", gap: "16px", width: "100%" }}
-        >
-          <Grid item xs={12} sm={6} style={{ width: "100%" }}>
-            <TextField
-              fullWidth
-              required
-              id="name"
-              label="Full Name"
-              name="name"
-              autoComplete="name"
-              autoFocus
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <PersonIcon />
-                  </InputAdornment>
-                ),
-              }}
-            />
-          </Grid>
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            required
+            id="name"
+            label="Full Name"
+            name="name"
+            autoComplete="name"
+            autoFocus
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <PersonIcon />
+                </InputAdornment>
+              ),
+            }}
+          />
+        </Grid>
 
-          <Grid item xs={12} sm={6} style={{ width: "100%" }}>
-            <TextField
-              fullWidth
-              required
-              id="email"
-              label="Email Address"
-              name="email"
-              autoComplete="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <EmailIcon />
-                  </InputAdornment>
-                ),
-              }}
-            />
-          </Grid>
-        </div>
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            required
+            id="email"
+            label="Email Address"
+            name="email"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <EmailIcon />
+                </InputAdornment>
+              ),
+            }}
+          />
+        </Grid>
 
-        <div
-          style={{ display: "flex", gap: "16px", width: "100%" }}
-        >
-          <Grid item xs={12} sm={6} style={{ width: "100%" }}>
-            <TextField
-              fullWidth
-              required
-              id="phone"
-              label="Phone Number"
-              name="phone"
-              autoComplete="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <PhoneIcon />
-                  </InputAdornment>
-                ),
-              }}
-            />
-          </Grid>
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            required
+            id="phone"
+            label="Phone Number"
+            name="phone"
+            autoComplete="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <PhoneIcon />
+                </InputAdornment>
+              ),
+            }}
+          />
+        </Grid>
 
-          <Grid item xs={12} sm={6} style={{ width: "100%" }}>
-            <TextField
-              fullWidth
-              required
-              id="pincode"
-              label="Pincode"
-              name="pincode"
-              value={pincode}
-              onChange={(e) => setPincode(e.target.value)}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <LocationIcon />
-                  </InputAdornment>
-                ),
-              }}
-            />
-          </Grid>
-        </div>
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            required
+            id="pincode"
+            label="Pincode"
+            name="pincode"
+            value={pincode}
+            onChange={(e) => setPincode(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <LocationIcon />
+                </InputAdornment>
+              ),
+            }}
+          />
+        </Grid>
 
-        <Grid item xs={12} sm={6} style={{ width: "100%" }}>
+        <Grid item xs={12} sm={12}>
           <FormControl fullWidth required>
             <InputLabel id="state-label">State</InputLabel>
             <Select
@@ -290,17 +281,8 @@ const RegistrationForm = ({ onSubmit, successMessage = "Registration successful!
         </Grid>
 
         <Grid item xs={12} sm={6}>
-          <FormControl
-            component="fieldset"
-            fullWidth
-            margin="normal"
-            required
-          >
-            <Typography
-              component="legend"
-              variant="body1"
-              sx={{ mb: 1 }}
-            >
+          <FormControl component="fieldset" fullWidth margin="normal" required>
+            <Typography component="legend" variant="body1" sx={{ mb: 1 }}>
               Preferred Language
             </Typography>
             <RadioGroup
