@@ -391,7 +391,7 @@ const FranchiseDashboard = () => {
       }
       //comment out krna or yaha se allmenu return ko remove bhi krna hai testing ke baad sandhya
       return baseItems;
-      // return allMenuItems;
+      //return allMenuItems;
     }
 
     // Default: show only Dashboard and KYC Verification
