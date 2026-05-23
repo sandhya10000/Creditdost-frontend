@@ -407,7 +407,7 @@ const ManageFranchises = () => {
         kycStatus: editFranchiseData.kycStatus,
         isActive: editFranchiseData.isActive,
         credits: parseInt(editFranchiseData.credits) || 0,
-        assignedPackages: editFranchiseData.assignedPackages,
+        // assignedPackages: editFranchiseData.assignedPackages,
         totalCreditsPurchased:
           parseInt(editFranchiseData.totalCreditsPurchased) || 0,
 
