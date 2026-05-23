@@ -1556,21 +1556,6 @@ const FranchiseOpportunityPage = () => {
                                   // If franchise submission fails but registration succeeded, we still consider it a success
                                   setSubmitted(true);
                                   // Log the specific error for debugging
-                                  console.log(
-                                    "Franchise opportunity form data:",
-                                    {
-                                      fullName: registrationData.name,
-                                      mobileNumber: registrationData.phone,
-                                      email: registrationData.email,
-                                      city:
-                                        registrationData.state ||
-                                        registrationData.pincode ||
-                                        "",
-                                      state: registrationData.state,
-                                      profession:
-                                        "Franchise Opportunity Inquiry",
-                                    },
-                                  );
                                   return Promise.resolve();
                                 }
                               } else {

@@ -451,7 +451,7 @@ const Business = () => {
   return (
     <Box>
       <Typography variant="h4" gutterBottom>
-        Business Form Hello sandhya
+        Business Form
       </Typography>
 
       {error && (
