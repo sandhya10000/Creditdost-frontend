@@ -28,13 +28,15 @@ import {
   StepContent,
   Snackbar,
   Paper,
+  Autocomplete,
 } from "@mui/material";
 import { Check as CheckIcon, Close as CloseIcon } from "@mui/icons-material";
 import api, { franchiseAPI } from "../../services/api";
 import IconButton from "@mui/material/IconButton";
 //import FileUploadField from "./FileUploadField";
 
-const Business = () => {
+const Business = ({ userType }) => {
+  // console.log("userType", userType);
   const [customerPackages, setCustomerPackages] = useState([]);
   const [filteredPackages, setFilteredPackages] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -66,11 +68,37 @@ const Business = () => {
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("success");
   const [uploadFiles, setUploadFiles] = useState({});
+  const [franchiseData1, setFranchiseData1] = useState({
+    franchiseId: "",
+  });
 
+  const [franchises, setFranchises] = useState([]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    setFranchiseData1((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
   // Fetch customer packages
   useEffect(() => {
     fetchCustomerPackages();
+
+    if (userType === "admin") {
+      fetchFranchisesNameList();
+    }
   }, []);
+
+  const fetchFranchisesNameList = async () => {
+    try {
+      let response = await franchiseAPI.getfranchiseList();
+      setFranchises(response.data.data || []);
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   const fetchCustomerPackages = async () => {
     try {
@@ -80,6 +108,12 @@ const Business = () => {
       // Fetch customer packages
       const packagesResponse = await api.get("/customer-packages");
       const allPackages = packagesResponse.data;
+      // ADMIN CASE
+      if (userType === "admin") {
+        setCustomerPackages(allPackages);
+        setFilteredPackages(allPackages);
+        return;
+      }
 
       // Fetch franchise details to get assigned packages
       const franchiseResponse = await franchiseAPI.getDashboardStats();
@@ -180,6 +214,8 @@ const Business = () => {
       const formDataWithPackage = {
         ...formData,
         selectedPackage: selectedPackage._id,
+        franchiseId:
+          userType === "admin" ? franchiseData1.franchiseId : undefined,
       };
 
       const response =
@@ -451,7 +487,7 @@ const Business = () => {
   return (
     <Box>
       <Typography variant="h4" gutterBottom>
-        Business Form Hello sandhya
+        Business Form
       </Typography>
 
       {error && (
@@ -511,6 +547,7 @@ const Business = () => {
                             onChange={handleInputChange}
                           />
                         </Grid>
+
                         <Grid
                           item
                           xs={12}
@@ -526,6 +563,41 @@ const Business = () => {
                             onChange={handleInputChange}
                           />
                         </Grid>
+
+                        {userType === "admin" && (
+                          <Grid
+                            item
+                            xs={12}
+                            sm={6}
+                            sx={{ minWidth: { xs: "0px", md: "350px" } }}
+                          >
+                            <Autocomplete
+                              options={franchises}
+                              getOptionLabel={(option) =>
+                                option?.businessName || ""
+                              }
+                              value={
+                                franchises.find(
+                                  (f) => f._id === franchiseData1.franchiseId,
+                                ) || null
+                              }
+                              onChange={(event, newValue) => {
+                                setFranchiseData1((prev) => ({
+                                  ...prev,
+                                  franchiseId: newValue?._id || "",
+                                }));
+                              }}
+                              renderInput={(params) => (
+                                <TextField
+                                  {...params}
+                                  label="Select Franchise"
+                                  fullWidth
+                                  margin="none"
+                                />
+                              )}
+                            />
+                          </Grid>
+                        )}
                         <Grid
                           item
                           xs={12}

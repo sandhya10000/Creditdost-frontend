@@ -281,6 +281,11 @@ const AdminDashboard = () => {
       icon: <AccountBalanceIcon />,
       path: "/admin/payouts",
     },
+    {
+      text: "Manual Business",
+      icon: <AccountBalanceIcon />,
+      path: "/admin/manual-business",
+    },
   ];
 
   const isActive = (path) => {
