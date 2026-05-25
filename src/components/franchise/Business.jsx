@@ -431,7 +431,7 @@ const Business = () => {
 
   const validateForm = () => {
     for (const key in formData) {
-      if (!formData[key]) {
+      if (!formData[key] && !["bankAccountNumber", "ifscCode"].includes(key)) {
         setError("Please enter all the required fields");
         return false;
       }
@@ -445,6 +445,7 @@ const Business = () => {
       setError("Please enter valid Email ID");
       return false;
     }
+    setError("");
     handleNext();
   };
 
