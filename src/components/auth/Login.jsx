@@ -171,7 +171,8 @@ const Login = () => {
       trackEvent("User Authentication", "Login Attempt", "Login Page");
 
       const response = await login({ email, password });
-
+      // ADD THIS
+      localStorage.setItem("user", JSON.stringify(response.user));
       // Track successful login
       trackEvent("User Authentication", "Login Successful", "Login Page");
 
@@ -190,7 +191,7 @@ const Login = () => {
       // Track login failure
       trackException(
         `Login failed: ${err.response?.data?.message || err.message}`,
-        false
+        false,
       );
       trackEvent("User Authentication", "Login Failed", "Login Page");
 
@@ -199,12 +200,12 @@ const Login = () => {
         setError(
           err.response.data?.message ||
             err.response.data?.details ||
-            "Login failed. Please check your credentials."
+            "Login failed. Please check your credentials.",
         );
       } else if (err.request) {
         // Request was made but no response received
         setError(
-          "Unable to connect to server. Please check your internet connection."
+          "Unable to connect to server. Please check your internet connection.",
         );
       } else {
         // Something else happened
@@ -232,7 +233,7 @@ const Login = () => {
       console.error("Forgot password error:", err);
       if (err.response) {
         setForgotError(
-          err.response.data?.message || "Failed to reset password"
+          err.response.data?.message || "Failed to reset password",
         );
       } else {
         setForgotError("Unable to connect to server. Please try again.");
