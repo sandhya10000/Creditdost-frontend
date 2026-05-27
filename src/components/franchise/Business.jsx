@@ -59,6 +59,8 @@ const Business = ({ userType }) => {
     gender: "",
     bankAccountNumber: "",
     ifscCode: "",
+    // ADD THIS
+    manualAmount: "",
   });
   const [selectedPackage, setSelectedPackage] = useState(null);
   const [razorpayOrderId, setRazorpayOrderId] = useState("");
@@ -200,7 +202,7 @@ const Business = ({ userType }) => {
   };
 
   const handleSubmitForm = async () => {
-    if (!selectedPackage) {
+    if (userType !== "admin" && !selectedPackage) {
       setError("Please select a package before proceeding.");
       return;
     }
@@ -211,11 +213,23 @@ const Business = ({ userType }) => {
 
     try {
       // Include selected package in the form data
+      //   const formDataWithPackage = {
+      //     ...formData,
+      //     selectedPackage: userType === "admin" ? null : selectedPackage._id,
+      //     franchiseId:
+      //       userType === "admin" ? franchiseData1.franchiseId : undefined,
+      //   };
       const formDataWithPackage = {
         ...formData,
-        selectedPackage: selectedPackage._id,
-        franchiseId:
-          userType === "admin" ? franchiseData1.franchiseId : undefined,
+
+        ...(userType !== "admin" && {
+          selectedPackage: selectedPackage?._id,
+        }),
+
+        ...(userType === "admin" && {
+          franchiseId: franchiseData1.franchiseId,
+          manualAmount: Number(formData.manualAmount),
+        }),
       };
 
       const response =
@@ -364,7 +378,11 @@ const Business = ({ userType }) => {
 
       let response = await franchiseAPI.uploaddocBusiness(formData);
       console.log(response, "upload docs==========");
-      handleNext();
+      if (userType === "admin") {
+        await handleSubmitForm();
+      } else {
+        handleNext();
+      }
     } catch (error) {
       console.log(error, "error");
     }
@@ -458,20 +476,26 @@ const Business = ({ userType }) => {
 
   const occupations = ["Salaried", "Self Employed", "Others"];
 
-  const steps = [
-    "Customer Information",
-    "Upload Document",
-    "Package Selection",
-    "Payment",
-  ];
+  let steps = [];
+
+  if (userType === "admin") {
+    steps = ["Customer Information", "Upload Document"];
+  } else {
+    steps = [
+      "Customer Information",
+      "Upload Document",
+      "Package Selection",
+      "Payment",
+    ];
+  }
 
   const validateForm = () => {
-    for (const key in formData) {
-      if (!formData[key]) {
-        setError("Please enter all the required fields");
-        return false;
-      }
-    }
+    // for (const key in formData) {
+    //   if (!formData[key]) {
+    //     setError("Please enter all the required fields");
+    //     return false;
+    //   }
+    // }
 
     // Email Validation
     if (
@@ -516,6 +540,40 @@ const Business = ({ userType }) => {
                       </Typography>
 
                       <Grid container spacing={2}>
+                        {userType === "admin" && (
+                          <Grid
+                            item
+                            xs={12}
+                            sm={6}
+                            sx={{ minWidth: { xs: "0px", md: "350px" } }}
+                          >
+                            <Autocomplete
+                              options={franchises}
+                              getOptionLabel={(option) =>
+                                option?.businessName || ""
+                              }
+                              value={
+                                franchises.find(
+                                  (f) => f._id === franchiseData1.franchiseId,
+                                ) || null
+                              }
+                              onChange={(event, newValue) => {
+                                setFranchiseData1((prev) => ({
+                                  ...prev,
+                                  franchiseId: newValue?._id || "",
+                                }));
+                              }}
+                              renderInput={(params) => (
+                                <TextField
+                                  {...params}
+                                  label="Select Franchise (Optional)"
+                                  fullWidth
+                                  margin="none"
+                                />
+                              )}
+                            />
+                          </Grid>
+                        )}
                         <Grid
                           item
                           xs={12}
@@ -564,40 +622,6 @@ const Business = ({ userType }) => {
                           />
                         </Grid>
 
-                        {userType === "admin" && (
-                          <Grid
-                            item
-                            xs={12}
-                            sm={6}
-                            sx={{ minWidth: { xs: "0px", md: "350px" } }}
-                          >
-                            <Autocomplete
-                              options={franchises}
-                              getOptionLabel={(option) =>
-                                option?.businessName || ""
-                              }
-                              value={
-                                franchises.find(
-                                  (f) => f._id === franchiseData1.franchiseId,
-                                ) || null
-                              }
-                              onChange={(event, newValue) => {
-                                setFranchiseData1((prev) => ({
-                                  ...prev,
-                                  franchiseId: newValue?._id || "",
-                                }));
-                              }}
-                              renderInput={(params) => (
-                                <TextField
-                                  {...params}
-                                  label="Select Franchise"
-                                  fullWidth
-                                  margin="none"
-                                />
-                              )}
-                            />
-                          </Grid>
-                        )}
                         <Grid
                           item
                           xs={12}
@@ -739,6 +763,25 @@ const Business = ({ userType }) => {
                             onChange={handleInputChange}
                           />
                         </Grid>
+                        {/**admin manual amount field */}
+                        {userType === "admin" && (
+                          <Grid
+                            item
+                            xs={12}
+                            sm={6}
+                            sx={{ minWidth: { xs: "0px", md: "350px" } }}
+                          >
+                            <TextField
+                              required
+                              fullWidth
+                              label="Business Amount"
+                              name="manualAmount"
+                              type="number"
+                              value={formData.manualAmount}
+                              onChange={handleInputChange}
+                            />
+                          </Grid>
+                        )}
                         <Grid
                           item
                           xs={12}
@@ -972,8 +1015,10 @@ const Business = ({ userType }) => {
                           >
                             {loading ? (
                               <CircularProgress size={24} />
+                            ) : userType === "admin" ? (
+                              "Submit Business"
                             ) : (
-                              "Submit Documents"
+                              "Next"
                             )}
                           </Button>
                         </Box>
@@ -1193,6 +1238,8 @@ const Business = ({ userType }) => {
                         >
                           {loading ? (
                             <CircularProgress size={24} />
+                          ) : userType === "admin" ? (
+                            "Submit Business"
                           ) : (
                             "Proceed to Payment"
                           )}

@@ -96,6 +96,7 @@ const BusinessForms = () => {
         .toLowerCase()
         .includes(searchTerm.toLowerCase()),
   );
+  console.log(filteredBusinessForms, "filteredBusinessForms----------------");
   //Download bussiness mis users data function
   const handleDownloadCSV = () => {
     const headers = [
@@ -116,7 +117,8 @@ const BusinessForms = () => {
       form.customerEmail || "",
       form.customerPhone || "",
       form.selectedPackage?.name || "N/A",
-      form.selectedPackage?.price || "N/A",
+      form.manualAmount || form.selectedPackage?.price || "N/A",
+      form.manualAmount || "N/A",
       form.paymentStatus || "",
       formatDate(form.createdAt),
       form.workStatus || "",
@@ -187,6 +189,7 @@ const BusinessForms = () => {
                     <TableCell>Package</TableCell>
                     <TableCell>Amount</TableCell>
                     <TableCell>Payment Status</TableCell>
+                    <TableCell>Role</TableCell>
                     <TableCell>Date</TableCell>
                     <TableCell>Action</TableCell>
                   </TableRow>
@@ -219,12 +222,19 @@ const BusinessForms = () => {
                       <TableCell>
                         {form.selectedPackage?.name || "N/A"}
                       </TableCell>
-                      <TableCell>
+                      {/* <TableCell>
                         ₹{form.selectedPackage?.price || "N/A"}
+                      </TableCell> */}
+                      <TableCell>
+                        ₹
+                        {form.manualAmount
+                          ? form.manualAmount
+                          : form.selectedPackage?.price || "N/A"}
                       </TableCell>
                       <TableCell>
                         {getPaymentStatusChip(form.paymentStatus)}
                       </TableCell>
+                      <TableCell>{form.createdByRole || "franchise"}</TableCell>
                       <TableCell>{formatDate(form.createdAt)}</TableCell>
                       <TableCell>
                         <Button
