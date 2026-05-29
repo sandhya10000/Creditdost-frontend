@@ -434,7 +434,11 @@ const AdminDashboard = () => {
                       alignSelf: "flex-start",
                     }}
                   >
-                    {user?.role}
+                    {user?.subRole === "super_admin"
+                      ? "Admin"
+                      : user?.subRole === "relationship_manager"
+                        ? "Relationship Manager"
+                        : "Credit Analyst"}
                   </Typography>
                 </Box>
               </MenuItem>
