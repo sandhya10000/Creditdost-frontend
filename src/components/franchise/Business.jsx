@@ -490,12 +490,12 @@ const Business = ({ userType }) => {
   }
 
   const validateForm = () => {
-    // for (const key in formData) {
-    //   if (!formData[key]) {
-    //     setError("Please enter all the required fields");
-    //     return false;
-    //   }
-    // }
+    for (const key in formData) {
+      if (!formData[key]) {
+        setError("Please enter all the required fields");
+        return false;
+      }
+    }
 
     // Email Validation
     if (
