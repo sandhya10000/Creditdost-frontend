@@ -35,6 +35,7 @@ import {
   Checkbox,
   ListItemText,
   Snackbar,
+  Menu,
 } from "@mui/material";
 import {
   Search,
@@ -50,6 +51,7 @@ import {
   Add as AddIcon,
   Delete,
   Info,
+  Password,
 } from "@mui/icons-material";
 import { adminAPI } from "../../services/api";
 
@@ -80,6 +82,7 @@ const ManageFranchises = () => {
     businessName: "",
     ownerName: "",
   });
+
   const [tabValue, setTabValue] = useState(0);
 
   // Certificate name update state
@@ -98,6 +101,11 @@ const ManageFranchises = () => {
   const [packages, setPackages] = useState([]);
   const [selectedPackages, setSelectedPackages] = useState([]); // For create franchise dialog
   const [approvalPackages, setApprovalPackages] = useState([]); // For registration approval dialog
+
+  const [createTitle, setCreateTitle] = useState("Create New Franchise User");
+  const [createBtnTxt, setCreateBtnTxt] = useState("Create Franchise User");
+  const [createUserRole, setCreateUserRole] = useState("franchise_user");
+
   const [newPackage, setNewPackage] = useState(null);
   const [snackbar, setSnackbar] = useState({
     open: false,
@@ -109,6 +117,32 @@ const ManageFranchises = () => {
     fetchFranchises();
     fetchPackages();
   }, []);
+
+  const id = React.useId();
+  const buttonId = `${id}-button`;
+  const menuId = `${id}-menu`;
+  const [anchorEl, setAnchorEl] = React.useState(null);
+  const open = Boolean(anchorEl);
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handlePackageChange = (index, field, value) => {
+    const updatedPackages = [...editFranchiseData.allPackages.assigned];
+
+    updatedPackages[index][field] = value;
+
+    setEditFranchiseData({
+      ...editFranchiseData,
+      allPackages: {
+        ...editFranchiseData.allPackages,
+        assigned: updatedPackages,
+      },
+    });
+  };
 
   const fetchPackages = async () => {
     try {
@@ -551,7 +585,40 @@ const ManageFranchises = () => {
     setFranchiseToDelete(null);
   };
 
-  const handleOpenCreateDialog = () => {
+  const handleOpenCreateDialog = (userType = "franchise") => {
+    let title;
+    let btnTxt;
+    let role;
+
+    switch (userType) {
+      case "franchise":
+        title = "Create New Franchise User";
+        btnTxt = "Create Franchise User";
+        role = "franchise_user";
+        break;
+
+      case "relation_manager":
+        title = "Create New Relationship Manager";
+        btnTxt = "Create Relationship Manager";
+        role = "relationship_manager";
+        break;
+
+      case "credit_analyst":
+        title = "Create New Credit Analysist";
+        btnTxt = "Create Credit Analysist";
+        role = "credit_analyst";
+        break;
+
+      default:
+        title = "Create New Franchise User";
+        btnTxt = "Create Franchise User";
+        role = "franchise_user";
+        break;
+    }
+    setCreateTitle(title);
+    setCreateBtnTxt(btnTxt);
+    setCreateUserRole(role);
+
     setCreateDialogOpen(true);
   };
 
@@ -599,22 +666,26 @@ const ManageFranchises = () => {
       }
 
       // Include assigned packages in the request
+      const isFranchiseUser = createUserRole === "franchise_user";
+
       const franchiseData = {
         name: newFranchise.name,
         email: newFranchise.email,
-        assignedPackages: selectedPackages,
+        role: isFranchiseUser ? "franchise_user" : "admin",
+        subRole: isFranchiseUser ? "franchise" : createUserRole,
+        assignedPackages: isFranchiseUser ? selectedPackages : null,
       };
 
       await adminAPI.createFranchiseUser(franchiseData);
       setSuccess(
-        "Franchise user created successfully! Login credentials sent to user email.",
+        "User created successfully! Login credentials sent to user email.",
       );
       handleCloseCreateDialog();
       fetchFranchises();
     } catch (err) {
       setError(
         err.response?.data?.message ||
-          "Failed to create franchise user. Please try again.",
+          "Failed to create user. Please try again.",
       );
       console.error("Error creating franchise user:", err);
     } finally {
@@ -878,14 +949,63 @@ const ManageFranchises = () => {
                 </Grid>
               </Box>
 
-              <Button
+              {/* <Button
                 variant="contained"
                 startIcon={<AddIcon />}
                 onClick={handleOpenCreateDialog}
                 sx={{ mb: 2 }}
               >
                 Create New Franchise
+              </Button> */}
+
+              <Button
+                id={buttonId}
+                aria-controls={open ? menuId : undefined}
+                aria-haspopup="true"
+                aria-expanded={open}
+                onClick={handleClick}
+                variant="contained"
+                startIcon={<AddIcon />}
+                sx={{ mb: 2 }}
+              >
+                Create User
               </Button>
+              <Menu
+                id={menuId}
+                anchorEl={anchorEl}
+                open={open}
+                onClose={handleClose}
+                slotProps={{
+                  list: {
+                    "aria-labelledby": buttonId,
+                  },
+                }}
+              >
+                <MenuItem
+                  onClick={() => {
+                    handleClose();
+                    handleOpenCreateDialog("franchise");
+                  }}
+                >
+                  Franchise
+                </MenuItem>
+                <MenuItem
+                  onClick={() => {
+                    handleClose();
+                    handleOpenCreateDialog("relation_manager");
+                  }}
+                >
+                  Relationship Manager
+                </MenuItem>
+                <MenuItem
+                  onClick={() => {
+                    handleClose();
+                    handleOpenCreateDialog("credit_analyst");
+                  }}
+                >
+                  Credit Analysist
+                </MenuItem>
+              </Menu>
 
               {loading && filteredFranchises.length === 0 ? (
                 <Box display="flex" justifyContent="center" my={4}>
@@ -1361,7 +1481,7 @@ const ManageFranchises = () => {
         maxWidth="md"
         fullWidth
       >
-        <DialogTitle>Create New Franchise User</DialogTitle>
+        <DialogTitle>{createTitle}</DialogTitle>
         <DialogContent>
           <Box component="form" onSubmit={handleCreateFranchise}>
             <Grid container spacing={2}>
@@ -1391,41 +1511,43 @@ const ManageFranchises = () => {
               </Grid>
 
               {/* Package Selection */}
-              <Grid item xs={12}>
-                <FormControl
-                  fullWidth
-                  margin="normal"
-                  style={{ minWidth: "200px" }}
-                >
-                  <InputLabel>Assign Packages (Optional)</InputLabel>
-                  <Select
-                    multiple
-                    value={selectedPackages}
-                    onChange={(e) => setSelectedPackages(e.target.value)}
-                    label="Assign Packages (Optional)"
-                    renderValue={(selected) =>
-                      selected
-                        .map((id) => {
-                          const pkg = packages.find((p) => p._id === id);
-                          return pkg ? pkg.name : "";
-                        })
-                        .join(", ")
-                    }
+              {createUserRole === "franchise_user" && (
+                <Grid item xs={12}>
+                  <FormControl
+                    fullWidth
+                    margin="normal"
+                    style={{ minWidth: "200px" }}
                   >
-                    {packages.map((pkg) => (
-                      <MenuItem key={pkg._id} value={pkg._id}>
-                        <Checkbox
-                          checked={selectedPackages.indexOf(pkg._id) > -1}
-                        />
-                        <ListItemText
-                          primary={pkg.name}
-                          secondary={`₹${pkg.price} - ${pkg.creditsIncluded} credits`}
-                        />
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
+                    <InputLabel>Assign Packages (Optional)</InputLabel>
+                    <Select
+                      multiple
+                      value={selectedPackages}
+                      onChange={(e) => setSelectedPackages(e.target.value)}
+                      label="Assign Packages (Optional)"
+                      renderValue={(selected) =>
+                        selected
+                          .map((id) => {
+                            const pkg = packages.find((p) => p._id === id);
+                            return pkg ? pkg.name : "";
+                          })
+                          .join(", ")
+                      }
+                    >
+                      {packages.map((pkg) => (
+                        <MenuItem key={pkg._id} value={pkg._id}>
+                          <Checkbox
+                            checked={selectedPackages.indexOf(pkg._id) > -1}
+                          />
+                          <ListItemText
+                            primary={pkg.name}
+                            secondary={`₹${pkg.price} - ${pkg.creditsIncluded} credits`}
+                          />
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+              )}
             </Grid>
           </Box>
         </DialogContent>
@@ -1438,7 +1560,7 @@ const ManageFranchises = () => {
             variant="contained"
             disabled={loading}
           >
-            {loading ? <CircularProgress size={24} /> : "Create Franchise User"}
+            {loading ? <CircularProgress size={24} /> : createBtnTxt}
           </Button>
         </DialogActions>
       </Dialog>

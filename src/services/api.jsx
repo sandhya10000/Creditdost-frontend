@@ -139,6 +139,7 @@ export const franchiseAPI = {
   getCaseStudies: () => api.get("/franchise/case-studies"),
   uploaddocBusiness: (formData) =>
     api.post("/franchise/uploadDocBusiness", formData),
+  getfranchiseList: () => api.get("/franchises/admin/allFranchises-Namelist"),
 };
 
 // Blog API functions

@@ -24,6 +24,7 @@ import ReportAnalytics from "./ReportAnalytics";
 import CustomerCRM from "../pages/CustomerCRM";
 import AdminCreditBureau from "../admin/AdminCreditcheck";
 import PrefillFailedLog from "../admin/PrefillFailedLog";
+import ManualBusiness from "../admin/ManualBusiness";
 const AdminRoutes = () => {
   return (
     <Routes>
@@ -54,6 +55,7 @@ const AdminRoutes = () => {
         <Route path="/customer/:customerId" element={<CustomerCRM />} />
         <Route path="/credit-check" element={<AdminCreditBureau />} />
         <Route path="/prefill-failed-logs" element={<PrefillFailedLog />} />
+        <Route path="/manual-business" element={<ManualBusiness />} />
       </Route>
     </Routes>
   );

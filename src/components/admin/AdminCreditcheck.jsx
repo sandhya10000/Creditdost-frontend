@@ -310,8 +310,6 @@ const AdminCreditBureau = ({ defaultBureau = "" }) => {
       console.log("Calling API..."); //  MUST print
     }
   };
-  const user = JSON.parse(localStorage.getItem("user"));
-
   return (
     <Box>
       {loading && (
@@ -352,11 +350,9 @@ const AdminCreditBureau = ({ defaultBureau = "" }) => {
               justifyContent: "space-between",
             }}
           >
-            {user?.role !== "admin" && (
-              <Typography variant="h6" component="div">
-                Available Credits
-              </Typography>
-            )}
+            <Typography variant="h6" component="div">
+              Available Credits
+            </Typography>
             <Chip
               label={availableCredits}
               color="primary"
