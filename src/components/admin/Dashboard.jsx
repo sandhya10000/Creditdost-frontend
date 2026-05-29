@@ -340,7 +340,7 @@ const AdminDashboard = () => {
         {menuItems.map((item) => (
           <NavItem
             key={item.text}
-            active={isActive(item.path)}
+            active={isActive(item.path) ? "true" : undefined}
             onClick={() => {
               if (item.path === "/admin") {
                 // For the Dashboard tab, navigate to the base route without redirect

@@ -88,7 +88,7 @@ const RemarksTab = ({ customerRemark }) => {
           fullWidth
           multiline
           rows={4}
-          placeholder="Type your remark here... e.g. Sandy ko call karni hai evening mein"
+          placeholder="Type your remark here..."
           value={remark}
           onChange={(e) => setRemark(e.target.value)}
           sx={{

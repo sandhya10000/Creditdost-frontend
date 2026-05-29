@@ -311,13 +311,13 @@ const DashboardHome = () => {
   const statCards = [
     {
       title: "Credits",
-      value: `${stats.credits.used} /${stats.credits.available}`,
+      value: `${stats.credits?.used} /${stats.credits.available}`,
       icon: <CreditScore sx={{ fontSize: 40 }} />,
       color: "#6200ea",
     },
     {
       title: "AI Usage",
-      value: `${stats.ai.used} / ${stats.ai.available}`,
+      value: `${stats.ai?.used} / ${stats.ai.available}`,
       icon: <People sx={{ fontSize: 40 }} />,
       color: "#03dac6",
     },

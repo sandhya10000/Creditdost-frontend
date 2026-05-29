@@ -101,12 +101,17 @@ const ManageFranchises = () => {
   const [packages, setPackages] = useState([]);
   const [selectedPackages, setSelectedPackages] = useState([]); // For create franchise dialog
   const [approvalPackages, setApprovalPackages] = useState([]); // For registration approval dialog
-  const [editingPackageIndex, setEditingPackageIndex] = useState(null);
-  const [originalPackages, setOriginalPackages] = useState([]);
+
   const [createTitle, setCreateTitle] = useState("Create New Franchise User");
   const [createBtnTxt, setCreateBtnTxt] = useState("Create Franchise User");
   const [createUserRole, setCreateUserRole] = useState("franchise_user");
 
+  const [newPackage, setNewPackage] = useState(null);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
   // Fetch all franchises and packages on component mount
   useEffect(() => {
     fetchFranchises();
@@ -138,6 +143,7 @@ const ManageFranchises = () => {
       },
     });
   };
+
   const fetchPackages = async () => {
     try {
       const response = await adminAPI.getAllPackages();
@@ -375,6 +381,7 @@ const ManageFranchises = () => {
         all: franchise.assignedPackages || [],
       },
     });
+    setNewPackage(null);
     setEditDialogOpen(true);
   };
 
@@ -413,7 +420,7 @@ const ManageFranchises = () => {
       setLoading(true);
       setError("");
       setSuccess("");
-
+      // return;
       // Prepare data for update (exclude fields that shouldn't be updated by admin)
       const updateData = {
         businessName: editFranchiseData.businessName,
@@ -434,16 +441,24 @@ const ManageFranchises = () => {
         kycStatus: editFranchiseData.kycStatus,
         isActive: editFranchiseData.isActive,
         credits: parseInt(editFranchiseData.credits) || 0,
+        // assignedPackages: editFranchiseData.assignedPackages,
         totalCreditsPurchased:
           parseInt(editFranchiseData.totalCreditsPurchased) || 0,
-        assignedPackages: editFranchiseData.allPackages.assigned.map(
-          (pkg) => pkg._id,
-        ),
 
         allPackages: {
           assigned: editFranchiseData.allPackages.assigned,
         },
       };
+
+      if (
+        newPackage &&
+        newPackage !== editFranchiseData.assignedPackages[0]._id
+      ) {
+        updateData.assignedPackages = [newPackage];
+        // updateData.credits = packages.find(
+        //   (pkg) => pkg._id === newPackage,
+        // )?.creditsIncluded;
+      }
 
       await adminAPI.updateFranchise(editFranchiseData._id, updateData);
       setSuccess("Franchise updated successfully!");
@@ -836,6 +851,13 @@ const ManageFranchises = () => {
     "Lakshadweep",
     "Puducherry",
   ];
+  const showSnackbar = (message, severity = "success") => {
+    setSnackbar({
+      open: true,
+      message,
+      severity,
+    });
+  };
 
   return (
     <Box>
@@ -855,6 +877,33 @@ const ManageFranchises = () => {
           <Tab label="Create New Franchise" />
         </Tabs>
       </AppBar>
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={() =>
+          setSnackbar({
+            ...snackbar,
+            open: false,
+          })
+        }
+        anchorOrigin={{
+          vertical: "top",
+          horizontal: "right",
+        }}
+      >
+        <Alert
+          severity={snackbar.severity}
+          variant="filled"
+          onClose={() =>
+            setSnackbar({
+              ...snackbar,
+              open: false,
+            })
+          }
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
 
       {tabValue === 0 && (
         <>
@@ -1760,6 +1809,7 @@ const ManageFranchises = () => {
                 <TextField
                   fullWidth
                   label="Current Credits"
+                  disabled="true"
                   name="credits"
                   type="number"
                   value={editFranchiseData.credits || 0}
@@ -1774,6 +1824,7 @@ const ManageFranchises = () => {
                   label="Total Credits Purchased"
                   name="totalCreditsPurchased"
                   type="number"
+                  disabled="true"
                   value={editFranchiseData.totalCreditsPurchased || 0}
                   onChange={handleEditFranchiseChange}
                   margin="normal"
@@ -1935,151 +1986,30 @@ const ManageFranchises = () => {
                         >
                           Current Assigned Packages:
                         </Typography>
-                        {editFranchiseData.allPackages.assigned.map(
-                          (pkg, index) => (
-                            <Box
-                              key={pkg._id || `assigned-${index}`}
-                              sx={{
-                                mb: 2,
-                                p: 2,
-                                bgcolor: "#f5f9ff",
-                                borderRadius: 2,
-                                border: "1px solid #b3d9ff",
+                        <Grid item xs={12} sm={12}>
+                          <FormControl fullWidth margin="normal">
+                            <InputLabel>Select New Package</InputLabel>
+                            <Select
+                              fullWidth
+                              name="assignedPackages"
+                              value={
+                                newPackage ||
+                                editFranchiseData.assignedPackages[0]._id
+                              }
+                              onChange={(e) => {
+                                setNewPackage(e.target.value);
                               }}
+                              label="Select Package"
+                              sx={{ mb: 2 }}
                             >
-                              {editingPackageIndex === index ? (
-                                <>
-                                  <TextField
-                                    fullWidth
-                                    label="Package Name"
-                                    value={pkg.name}
-                                    onChange={(e) =>
-                                      handlePackageChange(
-                                        index,
-                                        "name",
-                                        e.target.value,
-                                      )
-                                    }
-                                    sx={{ mb: 2 }}
-                                  />
-
-                                  <TextField
-                                    fullWidth
-                                    type="number"
-                                    label="Price"
-                                    value={pkg.price}
-                                    onChange={(e) =>
-                                      handlePackageChange(
-                                        index,
-                                        "price",
-                                        e.target.value,
-                                      )
-                                    }
-                                    sx={{ mb: 2 }}
-                                  />
-
-                                  <TextField
-                                    fullWidth
-                                    type="number"
-                                    label="Credits Included"
-                                    value={pkg.creditsIncluded}
-                                    onChange={(e) =>
-                                      handlePackageChange(
-                                        index,
-                                        "creditsIncluded",
-                                        e.target.value,
-                                      )
-                                    }
-                                    sx={{ mb: 2 }}
-                                  />
-
-                                  <Box
-                                    sx={{
-                                      display: "flex",
-                                      gap: 1,
-                                    }}
-                                  >
-                                    <Button
-                                      variant="contained"
-                                      color="success"
-                                      sx={{
-                                        color: "#fff !important",
-                                      }}
-                                      onClick={() =>
-                                        setEditingPackageIndex(null)
-                                      }
-                                    >
-                                      Save
-                                    </Button>
-
-                                    <Button
-                                      variant="outlined"
-                                      color="error"
-                                      onClick={() => {
-                                        setEditFranchiseData({
-                                          ...editFranchiseData,
-                                          allPackages: {
-                                            ...editFranchiseData.allPackages,
-                                            assigned: originalPackages,
-                                          },
-                                        });
-
-                                        setEditingPackageIndex(null);
-                                      }}
-                                    >
-                                      Cancel
-                                    </Button>
-                                  </Box>
-                                </>
-                              ) : (
-                                <>
-                                  <Typography
-                                    variant="body1"
-                                    fontWeight="bold"
-                                    gutterBottom
-                                  >
-                                    {pkg.name}
-                                  </Typography>
-
-                                  <Typography
-                                    variant="body2"
-                                    color="text.secondary"
-                                    gutterBottom
-                                  >
-                                    Price: ₹{pkg.price}
-                                  </Typography>
-
-                                  <Typography
-                                    variant="body2"
-                                    color="text.secondary"
-                                  >
-                                    Credits Included: {pkg.creditsIncluded}
-                                  </Typography>
-
-                                  <Button
-                                    variant="outlined"
-                                    size="small"
-                                    sx={{ mt: 2 }}
-                                    onClick={() => {
-                                      setOriginalPackages(
-                                        JSON.parse(
-                                          JSON.stringify(
-                                            editFranchiseData.allPackages
-                                              .assigned,
-                                          ),
-                                        ),
-                                      );
-
-                                      setEditingPackageIndex(index);
-                                    }}
-                                  >
-                                    Edit
-                                  </Button>
-                                </>
-                              )}
-                            </Box>
-                          ),
-                        )}
+                              {packages.map((packageOption) => (
+                                <MenuItem value={packageOption._id}>
+                                  {packageOption.name}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+                        </Grid>
                       </Box>
                     )}
 
