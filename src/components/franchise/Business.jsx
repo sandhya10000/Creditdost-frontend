@@ -495,281 +495,93 @@ const Business = ({ userType }) => {
         continue;
       }
       if (!formData[key]) {
-      if (!formData[key] && !["bankAccountNumber", "ifscCode"].includes(key)) {
-        setError("Please enter all the required fields");
+        if (
+          !formData[key] &&
+          !["bankAccountNumber", "ifscCode"].includes(key)
+        ) {
+          setError("Please enter all the required fields");
+          return false;
+        }
+      }
+
+      // Email Validation
+      if (
+        formData.customerEmail &&
+        !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(formData.customerEmail)
+      ) {
+        setError("Please enter valid Email ID");
         return false;
       }
+      setError("");
+      handleNext();
     }
 
-    // Email Validation
-    if (
-      formData.customerEmail &&
-      !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(formData.customerEmail)
-    ) {
-      setError("Please enter valid Email ID");
-      return false;
-    }
-    setError("");
-    handleNext();
-  };
+    return (
+      <Box>
+        <Typography variant="h4" gutterBottom>
+          Business Form
+        </Typography>
 
-  return (
-    <Box>
-      <Typography variant="h4" gutterBottom>
-        Business Form
-      </Typography>
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
 
-      {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
-      )}
+        {success && (
+          <Alert severity="success" sx={{ mb: 2 }}>
+            {success}
+          </Alert>
+        )}
 
-      {success && (
-        <Alert severity="success" sx={{ mb: 2 }}>
-          {success}
-        </Alert>
-      )}
+        <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
+          <CardContent>
+            <Stepper activeStep={activeStep} orientation="vertical">
+              {steps.map((step, index) => (
+                <Step key={step}>
+                  <StepLabel>{step}</StepLabel>
+                  <StepContent>
+                    {index === 0 && (
+                      <Box>
+                        <Typography variant="h6" gutterBottom>
+                          Customer Information
+                        </Typography>
 
-      <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
-        <CardContent>
-          <Stepper activeStep={activeStep} orientation="vertical">
-            {steps.map((step, index) => (
-              <Step key={step}>
-                <StepLabel>{step}</StepLabel>
-                <StepContent>
-                  {index === 0 && (
-                    <Box>
-                      <Typography variant="h6" gutterBottom>
-                        Customer Information
-                      </Typography>
-
-                      <Grid container spacing={2}>
-                        {userType === "admin" && (
-                          <Grid
-                            item
-                            xs={12}
-                            sm={6}
-                            sx={{ minWidth: { xs: "0px", md: "350px" } }}
-                          >
-                            <Autocomplete
-                              options={franchises}
-                              getOptionLabel={(option) =>
-                                option?.businessName || ""
-                              }
-                              value={
-                                franchises.find(
-                                  (f) => f._id === franchiseData1.franchiseId,
-                                ) || null
-                              }
-                              onChange={(event, newValue) => {
-                                setFranchiseData1((prev) => ({
-                                  ...prev,
-                                  franchiseId: newValue?._id || "",
-                                }));
-                              }}
-                              renderInput={(params) => (
-                                <TextField
-                                  {...params}
-                                  label="Select Franchise (Optional)"
-                                  fullWidth
-                                  margin="none"
-                                />
-                              )}
-                            />
-                          </Grid>
-                        )}
-                        <Grid
-                          item
-                          xs={12}
-                          sm={6}
-                          sx={{ minWidth: { xs: "0px", md: "350px" } }}
-                        >
-                          <TextField
-                            required
-                            fullWidth
-                            label="Customer Name"
-                            name="customerName"
-                            value={formData.customerName}
-                            onChange={handleInputChange}
-                          />
-                        </Grid>
-                        <Grid
-                          item
-                          xs={12}
-                          sm={6}
-                          sx={{ minWidth: { xs: "0px", md: "350px" } }}
-                        >
-                          <TextField
-                            required
-                            fullWidth
-                            label="Customer Email"
-                            name="customerEmail"
-                            type="email"
-                            value={formData.customerEmail}
-                            onChange={handleInputChange}
-                          />
-                        </Grid>
-
-                        <Grid
-                          item
-                          xs={12}
-                          sm={6}
-                          sx={{ minWidth: { xs: "0px", md: "350px" } }}
-                        >
-                          <TextField
-                            required
-                            fullWidth
-                            label="Customer Phone"
-                            name="customerPhone"
-                            value={formData.customerPhone}
-                            onChange={handleInputChange}
-                          />
-                        </Grid>
-
-                        <Grid
-                          item
-                          xs={12}
-                          sm={6}
-                          sx={{ minWidth: { xs: "0px", md: "350px" } }}
-                        >
-                          <TextField
-                            required
-                            fullWidth
-                            label="PAN Number"
-                            name="panNumber"
-                            value={formData.panNumber}
-                            onChange={handleInputChange}
-                            inputProps={{ maxLength: 10 }}
-                          />
-                        </Grid>
-                        <Grid
-                          item
-                          xs={12}
-                          sm={6}
-                          sx={{ minWidth: { xs: "0px", md: "350px" } }}
-                        >
-                          <TextField
-                            required
-                            fullWidth
-                            label="Aadhar Number"
-                            name="aadharNumber"
-                            value={formData.aadharNumber}
-                            onChange={handleInputChange}
-                            inputProps={{ maxLength: 12 }}
-                          />
-                        </Grid>
-                        <Grid
-                          item
-                          xs={12}
-                          sm={6}
-                          sx={{ minWidth: { xs: "0px", md: "350px" } }}
-                        >
-                          <TextField
-                            required
-                            fullWidth
-                            label="Pincode"
-                            name="pincode"
-                            value={formData.pincode}
-                            onChange={handleInputChange}
-                          />
-                        </Grid>
-                        <Grid
-                          item
-                          xs={12}
-                          sm={6}
-                          sx={{ minWidth: { xs: "0px", md: "350px" } }}
-                        >
-                          <FormControl
-                            fullWidth
-                            required
-                            style={{ minWidth: "200px" }}
-                          >
-                            <InputLabel>State</InputLabel>
-                            <Select
-                              name="state"
-                              value={formData.state}
-                              onChange={handleInputChange}
-                              label="State"
+                        <Grid container spacing={2}>
+                          {userType === "admin" && (
+                            <Grid
+                              item
+                              xs={12}
+                              sm={6}
+                              sx={{ minWidth: { xs: "0px", md: "350px" } }}
                             >
-                              {states.map((state) => (
-                                <MenuItem key={state} value={state}>
-                                  {state}
-                                </MenuItem>
-                              ))}
-                            </Select>
-                          </FormControl>
-                        </Grid>
-                        <Grid
-                          item
-                          xs={12}
-                          sm={6}
-                          sx={{ minWidth: { xs: "0px", md: "350px" } }}
-                        >
-                          <FormControl
-                            fullWidth
-                            required
-                            style={{ minWidth: "200px" }}
-                          >
-                            <InputLabel>Language</InputLabel>
-                            <Select
-                              name="language"
-                              value={formData.language}
-                              onChange={handleInputChange}
-                              label="Language"
-                            >
-                              {languages.map((language) => (
-                                <MenuItem key={language} value={language}>
-                                  {language}
-                                </MenuItem>
-                              ))}
-                            </Select>
-                          </FormControl>
-                        </Grid>
-                        <Grid
-                          item
-                          xs={12}
-                          sm={6}
-                          sx={{ minWidth: { xs: "0px", md: "350px" } }}
-                        >
-                          <FormControl
-                            fullWidth
-                            required
-                            style={{ minWidth: "200px" }}
-                          >
-                            <InputLabel>Occupation</InputLabel>
-                            <Select
-                              name="occupation"
-                              value={formData.occupation}
-                              onChange={handleInputChange}
-                              label="Occupation"
-                            >
-                              {occupations.map((occupation) => (
-                                <MenuItem key={occupation} value={occupation}>
-                                  {occupation}
-                                </MenuItem>
-                              ))}
-                            </Select>
-                          </FormControl>
-                        </Grid>
-                        <Grid
-                          item
-                          xs={12}
-                          sm={6}
-                          sx={{ minWidth: { xs: "0px", md: "350px" } }}
-                        >
-                          <TextField
-                            required
-                            fullWidth
-                            label="Monthly Income"
-                            name="monthlyIncome"
-                            type="number"
-                            value={formData.monthlyIncome}
-                            onChange={handleInputChange}
-                          />
-                        </Grid>
-                        {/**admin manual amount field */}
-                        {userType === "admin" && (
+                              <Autocomplete
+                                options={franchises}
+                                getOptionLabel={(option) =>
+                                  option?.businessName || ""
+                                }
+                                value={
+                                  franchises.find(
+                                    (f) => f._id === franchiseData1.franchiseId,
+                                  ) || null
+                                }
+                                onChange={(event, newValue) => {
+                                  setFranchiseData1((prev) => ({
+                                    ...prev,
+                                    franchiseId: newValue?._id || "",
+                                  }));
+                                }}
+                                renderInput={(params) => (
+                                  <TextField
+                                    {...params}
+                                    label="Select Franchise (Optional)"
+                                    fullWidth
+                                    margin="none"
+                                  />
+                                )}
+                              />
+                            </Grid>
+                          )}
                           <Grid
                             item
                             xs={12}
@@ -779,106 +591,414 @@ const Business = ({ userType }) => {
                             <TextField
                               required
                               fullWidth
-                              label="Amount"
-                              name="manualAmount"
-                              type="number"
-                              value={formData.manualAmount}
+                              label="Customer Name"
+                              name="customerName"
+                              value={formData.customerName}
                               onChange={handleInputChange}
                             />
                           </Grid>
-                        )}
-                        <Grid
-                          item
-                          xs={12}
-                          sx={{ minWidth: { xs: "0px", md: "350px" } }}
-                        >
-                          <TextField
-                            required
-                            fullWidth
-                            label="Full Address"
-                            name="fullAddress"
-                            value={formData.fullAddress}
-                            onChange={handleInputChange}
-                            multiline
-                            rows={3}
-                            sx={{ minWidth: { xs: "0px", md: "280px" } }}
-                          />
-                        </Grid>
-                        {/* DOB */}
-                        <Grid
-                          item
-                          xs={12}
-                          sm={6}
-                          sx={{ minWidth: { xs: "0px", md: "350px" } }}
-                        >
-                          <TextField
-                            required
-                            fullWidth
-                            label="Date of Birth"
-                            name="dob"
-                            type="date"
-                            value={formData.dob}
-                            onChange={handleInputChange}
-                            InputLabelProps={{ shrink: true }}
-                          />
-                        </Grid>
-
-                        {/* Gender */}
-                        <Grid
-                          item
-                          xs={12}
-                          sm={6}
-                          sx={{ minWidth: { xs: "0px", md: "350px" } }}
-                        >
-                          <FormControl fullWidth required>
-                            <InputLabel>Gender</InputLabel>
-                            <Select
-                              name="gender"
-                              value={formData.gender}
+                          <Grid
+                            item
+                            xs={12}
+                            sm={6}
+                            sx={{ minWidth: { xs: "0px", md: "350px" } }}
+                          >
+                            <TextField
+                              required
+                              fullWidth
+                              label="Customer Email"
+                              name="customerEmail"
+                              type="email"
+                              value={formData.customerEmail}
                               onChange={handleInputChange}
-                              label="Gender"
+                            />
+                          </Grid>
+
+                          <Grid
+                            item
+                            xs={12}
+                            sm={6}
+                            sx={{ minWidth: { xs: "0px", md: "350px" } }}
+                          >
+                            <TextField
+                              required
+                              fullWidth
+                              label="Customer Phone"
+                              name="customerPhone"
+                              value={formData.customerPhone}
+                              onChange={handleInputChange}
+                            />
+                          </Grid>
+
+                          <Grid
+                            item
+                            xs={12}
+                            sm={6}
+                            sx={{ minWidth: { xs: "0px", md: "350px" } }}
+                          >
+                            <TextField
+                              required
+                              fullWidth
+                              label="PAN Number"
+                              name="panNumber"
+                              value={formData.panNumber}
+                              onChange={handleInputChange}
+                              inputProps={{ maxLength: 10 }}
+                            />
+                          </Grid>
+                          <Grid
+                            item
+                            xs={12}
+                            sm={6}
+                            sx={{ minWidth: { xs: "0px", md: "350px" } }}
+                          >
+                            <TextField
+                              required
+                              fullWidth
+                              label="Aadhar Number"
+                              name="aadharNumber"
+                              value={formData.aadharNumber}
+                              onChange={handleInputChange}
+                              inputProps={{ maxLength: 12 }}
+                            />
+                          </Grid>
+                          <Grid
+                            item
+                            xs={12}
+                            sm={6}
+                            sx={{ minWidth: { xs: "0px", md: "350px" } }}
+                          >
+                            <TextField
+                              required
+                              fullWidth
+                              label="Pincode"
+                              name="pincode"
+                              value={formData.pincode}
+                              onChange={handleInputChange}
+                            />
+                          </Grid>
+                          <Grid
+                            item
+                            xs={12}
+                            sm={6}
+                            sx={{ minWidth: { xs: "0px", md: "350px" } }}
+                          >
+                            <FormControl
+                              fullWidth
+                              required
+                              style={{ minWidth: "200px" }}
                             >
-                              <MenuItem value="Male">Male</MenuItem>
-                              <MenuItem value="Female">Female</MenuItem>
-                              <MenuItem value="Other">Other</MenuItem>
-                            </Select>
-                          </FormControl>
-                        </Grid>
+                              <InputLabel>State</InputLabel>
+                              <Select
+                                name="state"
+                                value={formData.state}
+                                onChange={handleInputChange}
+                                label="State"
+                              >
+                                {states.map((state) => (
+                                  <MenuItem key={state} value={state}>
+                                    {state}
+                                  </MenuItem>
+                                ))}
+                              </Select>
+                            </FormControl>
+                          </Grid>
+                          <Grid
+                            item
+                            xs={12}
+                            sm={6}
+                            sx={{ minWidth: { xs: "0px", md: "350px" } }}
+                          >
+                            <FormControl
+                              fullWidth
+                              required
+                              style={{ minWidth: "200px" }}
+                            >
+                              <InputLabel>Language</InputLabel>
+                              <Select
+                                name="language"
+                                value={formData.language}
+                                onChange={handleInputChange}
+                                label="Language"
+                              >
+                                {languages.map((language) => (
+                                  <MenuItem key={language} value={language}>
+                                    {language}
+                                  </MenuItem>
+                                ))}
+                              </Select>
+                            </FormControl>
+                          </Grid>
+                          <Grid
+                            item
+                            xs={12}
+                            sm={6}
+                            sx={{ minWidth: { xs: "0px", md: "350px" } }}
+                          >
+                            <FormControl
+                              fullWidth
+                              required
+                              style={{ minWidth: "200px" }}
+                            >
+                              <InputLabel>Occupation</InputLabel>
+                              <Select
+                                name="occupation"
+                                value={formData.occupation}
+                                onChange={handleInputChange}
+                                label="Occupation"
+                              >
+                                {occupations.map((occupation) => (
+                                  <MenuItem key={occupation} value={occupation}>
+                                    {occupation}
+                                  </MenuItem>
+                                ))}
+                              </Select>
+                            </FormControl>
+                          </Grid>
+                          <Grid
+                            item
+                            xs={12}
+                            sm={6}
+                            sx={{ minWidth: { xs: "0px", md: "350px" } }}
+                          >
+                            <TextField
+                              required
+                              fullWidth
+                              label="Monthly Income"
+                              name="monthlyIncome"
+                              type="number"
+                              value={formData.monthlyIncome}
+                              onChange={handleInputChange}
+                            />
+                          </Grid>
+                          {/**admin manual amount field */}
+                          {userType === "admin" && (
+                            <Grid
+                              item
+                              xs={12}
+                              sm={6}
+                              sx={{ minWidth: { xs: "0px", md: "350px" } }}
+                            >
+                              <TextField
+                                required
+                                fullWidth
+                                label="Amount"
+                                name="manualAmount"
+                                type="number"
+                                value={formData.manualAmount}
+                                onChange={handleInputChange}
+                              />
+                            </Grid>
+                          )}
+                          <Grid
+                            item
+                            xs={12}
+                            sx={{ minWidth: { xs: "0px", md: "350px" } }}
+                          >
+                            <TextField
+                              required
+                              fullWidth
+                              label="Full Address"
+                              name="fullAddress"
+                              value={formData.fullAddress}
+                              onChange={handleInputChange}
+                              multiline
+                              rows={3}
+                              sx={{ minWidth: { xs: "0px", md: "280px" } }}
+                            />
+                          </Grid>
+                          {/* DOB */}
+                          <Grid
+                            item
+                            xs={12}
+                            sm={6}
+                            sx={{ minWidth: { xs: "0px", md: "350px" } }}
+                          >
+                            <TextField
+                              required
+                              fullWidth
+                              label="Date of Birth"
+                              name="dob"
+                              type="date"
+                              value={formData.dob}
+                              onChange={handleInputChange}
+                              InputLabelProps={{ shrink: true }}
+                            />
+                          </Grid>
 
-                        {/* Bank Account Number */}
-                        <Grid
-                          item
-                          xs={12}
-                          sm={6}
-                          sx={{ minWidth: { xs: "0px", md: "350px" } }}
-                        >
-                          <TextField
-                            fullWidth
-                            label="Bank Account Number"
-                            name="bankAccountNumber"
-                            value={formData.bankAccountNumber}
-                            onChange={handleInputChange}
-                          />
-                        </Grid>
+                          {/* Gender */}
+                          <Grid
+                            item
+                            xs={12}
+                            sm={6}
+                            sx={{ minWidth: { xs: "0px", md: "350px" } }}
+                          >
+                            <FormControl fullWidth required>
+                              <InputLabel>Gender</InputLabel>
+                              <Select
+                                name="gender"
+                                value={formData.gender}
+                                onChange={handleInputChange}
+                                label="Gender"
+                              >
+                                <MenuItem value="Male">Male</MenuItem>
+                                <MenuItem value="Female">Female</MenuItem>
+                                <MenuItem value="Other">Other</MenuItem>
+                              </Select>
+                            </FormControl>
+                          </Grid>
 
-                        {/* IFSC Code */}
-                        <Grid
-                          item
-                          xs={12}
-                          sm={6}
-                          sx={{ minWidth: { xs: "0px", md: "350px" } }}
-                        >
-                          <TextField
-                            fullWidth
-                            label="IFSC Code"
-                            name="ifscCode"
-                            value={formData.ifscCode}
-                            onChange={handleInputChange}
-                            inputProps={{
-                              style: { textTransform: "uppercase" },
-                            }}
-                          />
+                          {/* Bank Account Number */}
+                          <Grid
+                            item
+                            xs={12}
+                            sm={6}
+                            sx={{ minWidth: { xs: "0px", md: "350px" } }}
+                          >
+                            <TextField
+                              fullWidth
+                              label="Bank Account Number"
+                              name="bankAccountNumber"
+                              value={formData.bankAccountNumber}
+                              onChange={handleInputChange}
+                            />
+                          </Grid>
+
+                          {/* IFSC Code */}
+                          <Grid
+                            item
+                            xs={12}
+                            sm={6}
+                            sx={{ minWidth: { xs: "0px", md: "350px" } }}
+                          >
+                            <TextField
+                              fullWidth
+                              label="IFSC Code"
+                              name="ifscCode"
+                              value={formData.ifscCode}
+                              onChange={handleInputChange}
+                              inputProps={{
+                                style: { textTransform: "uppercase" },
+                              }}
+                            />
+                          </Grid>
+
+                          <Grid
+                            item
+                            xs={12}
+                            sx={{ minWidth: { xs: "0px", md: "350px" } }}
+                          >
+                            <Box
+                              sx={{
+                                display: "flex",
+                                justifyContent: "flex-end",
+                              }}
+                            >
+                              <Button
+                                variant="contained"
+                                onClick={() => {
+                                  validateForm();
+                                }}
+                                disabled={loading}
+                              >
+                                {loading ? (
+                                  <CircularProgress size={24} />
+                                ) : (
+                                  "Next"
+                                )}
+                              </Button>
+                            </Box>
+                          </Grid>
                         </Grid>
+                      </Box>
+                    )}
+
+                    {index === 1 && (
+                      <Grid container spacing={2}>
+                        {documentFields.map((item, index) => (
+                          <Grid item xs={12} sm={6} md={4} key={index}>
+                            <Box
+                              sx={{
+                                border: "1px solid #d9d9d9",
+                                borderRadius: "12px",
+                                px: 2,
+                                py: 1.5,
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: 1,
+                                backgroundColor: "#fff",
+                                minHeight: "90px",
+                                transition: "0.3s",
+                                "&:hover": {
+                                  boxShadow: "0px 4px 14px rgba(0,0,0,0.08)",
+                                  borderColor: "#9333ea",
+                                },
+                              }}
+                            >
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "space-between",
+                                  gap: 1,
+                                }}
+                              >
+                                <Typography
+                                  sx={{
+                                    fontSize: "15px",
+                                    fontWeight: 500,
+                                    color: "#555",
+                                  }}
+                                >
+                                  {item.label}
+                                </Typography>
+
+                                <Button
+                                  variant="outlined"
+                                  component="label"
+                                  size="small"
+                                  sx={{
+                                    borderRadius: "10px",
+                                    textTransform: "none",
+                                    borderColor: "#c084fc",
+                                    color: "#9333ea",
+                                    fontWeight: 600,
+                                    px: 2,
+                                    minWidth: "100px",
+                                    "&:hover": {
+                                      borderColor: "#9333ea",
+                                      backgroundColor: "#faf5ff",
+                                    },
+                                  }}
+                                >
+                                  {uploadFiles[item.key]?.name
+                                    ? "Replace"
+                                    : "Upload"}
+                                  <input
+                                    type="file"
+                                    hidden
+                                    onChange={(e) =>
+                                      handleFileChange(e, item.key)
+                                    }
+                                  />
+                                </Button>
+                              </Box>
+
+                              {uploadFiles[item.key] && (
+                                <Typography
+                                  variant="caption"
+                                  sx={{
+                                    color: "green",
+                                    fontWeight: 500,
+                                    wordBreak: "break-word",
+                                  }}
+                                >
+                                  {uploadFiles[item.key]?.name}
+                                </Typography>
+                              )}
+                            </Box>
+                          </Grid>
+                        ))}
 
                         <Grid
                           item
@@ -886,17 +1006,28 @@ const Business = ({ userType }) => {
                           sx={{ minWidth: { xs: "0px", md: "350px" } }}
                         >
                           <Box
-                            sx={{ display: "flex", justifyContent: "flex-end" }}
+                            sx={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                            }}
                           >
                             <Button
-                              variant="contained"
                               onClick={() => {
-                                validateForm();
+                                handleBack();
                               }}
+                            >
+                              Back
+                            </Button>
+
+                            <Button
+                              variant="contained"
+                              onClick={handleUploadDoc}
                               disabled={loading}
                             >
                               {loading ? (
                                 <CircularProgress size={24} />
+                              ) : userType === "admin" ? (
+                                "Submit Business"
                               ) : (
                                 "Next"
                               )}
@@ -904,118 +1035,221 @@ const Business = ({ userType }) => {
                           </Box>
                         </Grid>
                       </Grid>
-                    </Box>
-                  )}
+                    )}
 
-                  {index === 1 && (
-                    <Grid container spacing={2}>
-                      {documentFields.map((item, index) => (
-                        <Grid item xs={12} sm={6} md={4} key={index}>
-                          <Box
-                            sx={{
-                              border: "1px solid #d9d9d9",
-                              borderRadius: "12px",
-                              px: 2,
-                              py: 1.5,
-                              display: "flex",
-                              flexDirection: "column",
-                              gap: 1,
-                              backgroundColor: "#fff",
-                              minHeight: "90px",
-                              transition: "0.3s",
-                              "&:hover": {
-                                boxShadow: "0px 4px 14px rgba(0,0,0,0.08)",
-                                borderColor: "#9333ea",
-                              },
-                            }}
-                          >
-                            <Box
-                              sx={{
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "space-between",
-                                gap: 1,
-                              }}
-                            >
-                              <Typography
+                    {index === 2 && (
+                      <Box>
+                        <Typography
+                          variant="h6"
+                          gutterBottom
+                          sx={{
+                            pb: 1,
+                            borderBottom: "2px solid #6200ea",
+                            display: "inline-block",
+                            mb: 2,
+                          }}
+                        >
+                          Select Package for Customer
+                        </Typography>
+
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          sx={{ mb: 3 }}
+                        >
+                          Choose the best package for your customer's credit
+                          needs
+                        </Typography>
+
+                        {filteredPackages.length === 0 ? (
+                          <Alert severity="info">
+                            No packages available at the moment.
+                          </Alert>
+                        ) : (
+                          <Grid container spacing={3}>
+                            {filteredPackages.map((pkg) => (
+                              <Grid
+                                item
+                                xs={12}
+                                sm={6}
+                                md={4}
+                                key={pkg._id}
                                 sx={{
-                                  fontSize: "15px",
-                                  fontWeight: 500,
-                                  color: "#555",
+                                  minWidth: { xs: "265px", md: "350px" },
+                                  maxWidth: { xs: "265px", md: "350px" },
                                 }}
                               >
-                                {item.label}
-                              </Typography>
+                                <Card
+                                  sx={{
+                                    height: "100%",
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    cursor: "pointer",
+                                    border:
+                                      selectedPackage?._id === pkg._id
+                                        ? "2px solid #6200ea"
+                                        : "1px solid #e0e0e0",
+                                    borderRadius: "12px",
+                                    boxShadow:
+                                      selectedPackage?._id === pkg._id
+                                        ? "0 8px 16px rgba(98, 0, 234, 0.2)"
+                                        : "0 2px 8px rgba(0, 0, 0, 0.1)",
+                                    transition: "all 0.3s ease",
+                                    "&:hover": {
+                                      boxShadow:
+                                        "0 8px 16px rgba(0, 0, 0, 0.15)",
+                                      transform: "translateY(-4px)",
+                                    },
+                                  }}
+                                  onClick={() => handlePackageSelect(pkg)}
+                                >
+                                  <CardContent sx={{ flexGrow: 1, p: 3 }}>
+                                    <Box
+                                      sx={{
+                                        display: "flex",
+                                        justifyContent: "space-between",
+                                        alignItems: "flex-start",
+                                        mb: 2,
+                                      }}
+                                    >
+                                      <Box>
+                                        <Typography
+                                          variant="h6"
+                                          component="h3"
+                                          fontWeight="bold"
+                                          sx={{
+                                            color:
+                                              selectedPackage?._id === pkg._id
+                                                ? "#6200ea"
+                                                : "text.primary",
+                                            mb: 0.5,
+                                          }}
+                                        >
+                                          {pkg.name}
+                                        </Typography>
+                                      </Box>
+                                      {selectedPackage?._id === pkg._id && (
+                                        <Chip
+                                          label="Selected"
+                                          color="primary"
+                                          size="small"
+                                          sx={{
+                                            fontWeight: "bold",
+                                            height: "24px",
+                                          }}
+                                        />
+                                      )}
+                                    </Box>
 
-                              <Button
-                                variant="outlined"
-                                component="label"
-                                size="small"
-                                sx={{
-                                  borderRadius: "10px",
-                                  textTransform: "none",
-                                  borderColor: "#c084fc",
-                                  color: "#9333ea",
-                                  fontWeight: 600,
-                                  px: 2,
-                                  minWidth: "100px",
-                                  "&:hover": {
-                                    borderColor: "#9333ea",
-                                    backgroundColor: "#faf5ff",
-                                  },
-                                }}
-                              >
-                                {uploadFiles[item.key]?.name
-                                  ? "Replace"
-                                  : "Upload"}
-                                <input
-                                  type="file"
-                                  hidden
-                                  onChange={(e) =>
-                                    handleFileChange(e, item.key)
-                                  }
-                                />
-                              </Button>
-                            </Box>
+                                    <Typography
+                                      variant="body2"
+                                      color="text.secondary"
+                                      sx={{
+                                        mb: 3,
+                                        minHeight: 30,
+                                        lineHeight: 1.5,
+                                      }}
+                                    >
+                                      {pkg.description}
+                                    </Typography>
 
-                            {uploadFiles[item.key] && (
-                              <Typography
-                                variant="caption"
-                                sx={{
-                                  color: "green",
-                                  fontWeight: 500,
-                                  wordBreak: "break-word",
-                                }}
-                              >
-                                {uploadFiles[item.key]?.name}
-                              </Typography>
-                            )}
-                          </Box>
-                        </Grid>
-                      ))}
+                                    <Box
+                                      sx={{
+                                        mb: 3,
+                                        textAlign: "center",
+                                        py: 2,
+                                        backgroundColor:
+                                          selectedPackage?._id === pkg._id
+                                            ? "rgba(98, 0, 234, 0.05)"
+                                            : "rgba(0, 0, 0, 0.02)",
+                                        borderRadius: "8px",
+                                        border:
+                                          selectedPackage?._id === pkg._id
+                                            ? "1px solid rgba(98, 0, 234, 0.2)"
+                                            : "1px solid rgba(0, 0, 0, 0.05)",
+                                      }}
+                                    >
+                                      <Typography
+                                        variant="h3"
+                                        component="div"
+                                        color="primary.main"
+                                        fontWeight="bold"
+                                        sx={{
+                                          mb: 0.5,
+                                          fontSize: "2rem",
+                                        }}
+                                      >
+                                        ₹
+                                        {pkg.price +
+                                          (pkg.price *
+                                            (pkg.gstPercentage || 0)) /
+                                            100}
+                                      </Typography>
+                                      <p>(Inclusive of GST)</p>
+                                    </Box>
 
-                      <Grid
-                        item
-                        xs={12}
-                        sx={{ minWidth: { xs: "0px", md: "350px" } }}
-                      >
+                                    <Box sx={{ mb: 2 }}>
+                                      <Typography
+                                        variant="subtitle2"
+                                        fontWeight="bold"
+                                        sx={{
+                                          mb: 1,
+                                          color: "text.secondary",
+                                          display: "flex",
+                                          alignItems: "center",
+                                          gap: 1,
+                                        }}
+                                      >
+                                        What's Included:
+                                      </Typography>
+                                      <List dense sx={{ py: 0 }}>
+                                        {pkg.features &&
+                                          pkg.features.map((feature, index) => (
+                                            <ListItem
+                                              key={index}
+                                              sx={{ py: 0.5, px: 0 }}
+                                            >
+                                              <ListItemIcon
+                                                sx={{ minWidth: 24 }}
+                                              >
+                                                <CheckIcon
+                                                  color="primary"
+                                                  fontSize="small"
+                                                  sx={{
+                                                    width: "18px",
+                                                    height: "18px",
+                                                  }}
+                                                />
+                                              </ListItemIcon>
+                                              <ListItemText
+                                                primary={feature}
+                                                primaryTypographyProps={{
+                                                  variant: "body2",
+                                                  fontSize: "0.875rem",
+                                                }}
+                                              />
+                                            </ListItem>
+                                          ))}
+                                      </List>
+                                    </Box>
+                                  </CardContent>
+                                </Card>
+                              </Grid>
+                            ))}
+                          </Grid>
+                        )}
+
                         <Box
                           sx={{
                             display: "flex",
                             justifyContent: "space-between",
+                            mt: 3,
                           }}
                         >
-                          <Button
-                            onClick={() => {
-                              handleBack();
-                            }}
-                          >
-                            Back
-                          </Button>
-
+                          <Button onClick={handleBack}>Back</Button>
                           <Button
                             variant="contained"
-                            onClick={handleUploadDoc}
+                            onClick={handleSubmitForm}
                             disabled={loading}
                           >
                             {loading ? (
@@ -1023,341 +1257,119 @@ const Business = ({ userType }) => {
                             ) : userType === "admin" ? (
                               "Submit Business"
                             ) : (
-                              "Next"
+                              "Proceed to Payment"
                             )}
                           </Button>
                         </Box>
-                      </Grid>
-                    </Grid>
-                  )}
-
-                  {index === 2 && (
-                    <Box>
-                      <Typography
-                        variant="h6"
-                        gutterBottom
-                        sx={{
-                          pb: 1,
-                          borderBottom: "2px solid #6200ea",
-                          display: "inline-block",
-                          mb: 2,
-                        }}
-                      >
-                        Select Package for Customer
-                      </Typography>
-
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        sx={{ mb: 3 }}
-                      >
-                        Choose the best package for your customer's credit needs
-                      </Typography>
-
-                      {filteredPackages.length === 0 ? (
-                        <Alert severity="info">
-                          No packages available at the moment.
-                        </Alert>
-                      ) : (
-                        <Grid container spacing={3}>
-                          {filteredPackages.map((pkg) => (
-                            <Grid
-                              item
-                              xs={12}
-                              sm={6}
-                              md={4}
-                              key={pkg._id}
-                              sx={{
-                                minWidth: { xs: "265px", md: "350px" },
-                                maxWidth: { xs: "265px", md: "350px" },
-                              }}
-                            >
-                              <Card
-                                sx={{
-                                  height: "100%",
-                                  display: "flex",
-                                  flexDirection: "column",
-                                  cursor: "pointer",
-                                  border:
-                                    selectedPackage?._id === pkg._id
-                                      ? "2px solid #6200ea"
-                                      : "1px solid #e0e0e0",
-                                  borderRadius: "12px",
-                                  boxShadow:
-                                    selectedPackage?._id === pkg._id
-                                      ? "0 8px 16px rgba(98, 0, 234, 0.2)"
-                                      : "0 2px 8px rgba(0, 0, 0, 0.1)",
-                                  transition: "all 0.3s ease",
-                                  "&:hover": {
-                                    boxShadow: "0 8px 16px rgba(0, 0, 0, 0.15)",
-                                    transform: "translateY(-4px)",
-                                  },
-                                }}
-                                onClick={() => handlePackageSelect(pkg)}
-                              >
-                                <CardContent sx={{ flexGrow: 1, p: 3 }}>
-                                  <Box
-                                    sx={{
-                                      display: "flex",
-                                      justifyContent: "space-between",
-                                      alignItems: "flex-start",
-                                      mb: 2,
-                                    }}
-                                  >
-                                    <Box>
-                                      <Typography
-                                        variant="h6"
-                                        component="h3"
-                                        fontWeight="bold"
-                                        sx={{
-                                          color:
-                                            selectedPackage?._id === pkg._id
-                                              ? "#6200ea"
-                                              : "text.primary",
-                                          mb: 0.5,
-                                        }}
-                                      >
-                                        {pkg.name}
-                                      </Typography>
-                                    </Box>
-                                    {selectedPackage?._id === pkg._id && (
-                                      <Chip
-                                        label="Selected"
-                                        color="primary"
-                                        size="small"
-                                        sx={{
-                                          fontWeight: "bold",
-                                          height: "24px",
-                                        }}
-                                      />
-                                    )}
-                                  </Box>
-
-                                  <Typography
-                                    variant="body2"
-                                    color="text.secondary"
-                                    sx={{
-                                      mb: 3,
-                                      minHeight: 30,
-                                      lineHeight: 1.5,
-                                    }}
-                                  >
-                                    {pkg.description}
-                                  </Typography>
-
-                                  <Box
-                                    sx={{
-                                      mb: 3,
-                                      textAlign: "center",
-                                      py: 2,
-                                      backgroundColor:
-                                        selectedPackage?._id === pkg._id
-                                          ? "rgba(98, 0, 234, 0.05)"
-                                          : "rgba(0, 0, 0, 0.02)",
-                                      borderRadius: "8px",
-                                      border:
-                                        selectedPackage?._id === pkg._id
-                                          ? "1px solid rgba(98, 0, 234, 0.2)"
-                                          : "1px solid rgba(0, 0, 0, 0.05)",
-                                    }}
-                                  >
-                                    <Typography
-                                      variant="h3"
-                                      component="div"
-                                      color="primary.main"
-                                      fontWeight="bold"
-                                      sx={{
-                                        mb: 0.5,
-                                        fontSize: "2rem",
-                                      }}
-                                    >
-                                      ₹
-                                      {pkg.price +
-                                        (pkg.price * (pkg.gstPercentage || 0)) /
-                                          100}
-                                    </Typography>
-                                    <p>(Inclusive of GST)</p>
-                                  </Box>
-
-                                  <Box sx={{ mb: 2 }}>
-                                    <Typography
-                                      variant="subtitle2"
-                                      fontWeight="bold"
-                                      sx={{
-                                        mb: 1,
-                                        color: "text.secondary",
-                                        display: "flex",
-                                        alignItems: "center",
-                                        gap: 1,
-                                      }}
-                                    >
-                                      What's Included:
-                                    </Typography>
-                                    <List dense sx={{ py: 0 }}>
-                                      {pkg.features &&
-                                        pkg.features.map((feature, index) => (
-                                          <ListItem
-                                            key={index}
-                                            sx={{ py: 0.5, px: 0 }}
-                                          >
-                                            <ListItemIcon sx={{ minWidth: 24 }}>
-                                              <CheckIcon
-                                                color="primary"
-                                                fontSize="small"
-                                                sx={{
-                                                  width: "18px",
-                                                  height: "18px",
-                                                }}
-                                              />
-                                            </ListItemIcon>
-                                            <ListItemText
-                                              primary={feature}
-                                              primaryTypographyProps={{
-                                                variant: "body2",
-                                                fontSize: "0.875rem",
-                                              }}
-                                            />
-                                          </ListItem>
-                                        ))}
-                                    </List>
-                                  </Box>
-                                </CardContent>
-                              </Card>
-                            </Grid>
-                          ))}
-                        </Grid>
-                      )}
-
-                      <Box
-                        sx={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          mt: 3,
-                        }}
-                      >
-                        <Button onClick={handleBack}>Back</Button>
-                        <Button
-                          variant="contained"
-                          onClick={handleSubmitForm}
-                          disabled={loading}
-                        >
-                          {loading ? (
-                            <CircularProgress size={24} />
-                          ) : userType === "admin" ? (
-                            "Submit Business"
-                          ) : (
-                            "Proceed to Payment"
-                          )}
-                        </Button>
                       </Box>
-                    </Box>
-                  )}
+                    )}
 
-                  {index === 3 && (
-                    <Box>
-                      <Typography variant="h6" gutterBottom>
-                        Payment Confirmation
-                      </Typography>
+                    {index === 3 && (
+                      <Box>
+                        <Typography variant="h6" gutterBottom>
+                          Payment Confirmation
+                        </Typography>
 
-                      {selectedPackage && (
-                        <Card sx={{ mb: 3 }}>
-                          <CardContent>
-                            <Typography variant="h5" gutterBottom>
-                              {selectedPackage.name}
-                            </Typography>
-                            <Typography
-                              variant="body1"
-                              color="text.secondary"
-                              sx={{ mb: 2 }}
-                            >
-                              {selectedPackage.description}
-                            </Typography>
-                            <Typography
-                              variant="h6"
-                              color="text.secondary"
-                              sx={{ mb: 1, fontSize: "1rem" }}
-                            >
-                              Base Price: ₹{selectedPackage.price}
-                            </Typography>
-                            {selectedPackage.gstPercentage > 0 && (
+                        {selectedPackage && (
+                          <Card sx={{ mb: 3 }}>
+                            <CardContent>
+                              <Typography variant="h5" gutterBottom>
+                                {selectedPackage.name}
+                              </Typography>
+                              <Typography
+                                variant="body1"
+                                color="text.secondary"
+                                sx={{ mb: 2 }}
+                              >
+                                {selectedPackage.description}
+                              </Typography>
                               <Typography
                                 variant="h6"
                                 color="text.secondary"
                                 sx={{ mb: 1, fontSize: "1rem" }}
                               >
-                                GST ({selectedPackage.gstPercentage}%): ₹
-                                {(
-                                  (selectedPackage.price *
-                                    selectedPackage.gstPercentage) /
-                                  100
-                                ).toFixed(2)}
+                                Base Price: ₹{selectedPackage.price}
                               </Typography>
-                            )}
-                            <Typography
-                              variant="h4"
-                              color="primary.main"
-                              sx={{ mt: 2, fontSize: "1.5rem" }}
-                            >
-                              Total (with GST): ₹
-                              {selectedPackage.price +
-                                (selectedPackage.price *
-                                  (selectedPackage.gstPercentage || 0)) /
-                                  100}
-                            </Typography>
-                          </CardContent>
-                        </Card>
-                      )}
+                              {selectedPackage.gstPercentage > 0 && (
+                                <Typography
+                                  variant="h6"
+                                  color="text.secondary"
+                                  sx={{ mb: 1, fontSize: "1rem" }}
+                                >
+                                  GST ({selectedPackage.gstPercentage}%): ₹
+                                  {(
+                                    (selectedPackage.price *
+                                      selectedPackage.gstPercentage) /
+                                    100
+                                  ).toFixed(2)}
+                                </Typography>
+                              )}
+                              <Typography
+                                variant="h4"
+                                color="primary.main"
+                                sx={{ mt: 2, fontSize: "1.5rem" }}
+                              >
+                                Total (with GST): ₹
+                                {selectedPackage.price +
+                                  (selectedPackage.price *
+                                    (selectedPackage.gstPercentage || 0)) /
+                                    100}
+                              </Typography>
+                            </CardContent>
+                          </Card>
+                        )}
 
-                      <Box
-                        sx={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                        }}
-                      >
-                        <Button onClick={handleBack}>Back</Button>
-                        <Button
-                          variant="contained"
-                          onClick={handlePayment}
-                          disabled={loading || paymentProcessing}
+                        <Box
+                          sx={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                          }}
                         >
-                          {paymentProcessing ? (
-                            <>
-                              <CircularProgress size={24} sx={{ mr: 1 }} />
-                              Processing...
-                            </>
-                          ) : loading ? (
-                            <CircularProgress size={24} />
-                          ) : (
-                            "Pay Now"
-                          )}
-                        </Button>
+                          <Button onClick={handleBack}>Back</Button>
+                          <Button
+                            variant="contained"
+                            onClick={handlePayment}
+                            disabled={loading || paymentProcessing}
+                          >
+                            {paymentProcessing ? (
+                              <>
+                                <CircularProgress size={24} sx={{ mr: 1 }} />
+                                Processing...
+                              </>
+                            ) : loading ? (
+                              <CircularProgress size={24} />
+                            ) : (
+                              "Pay Now"
+                            )}
+                          </Button>
+                        </Box>
                       </Box>
-                    </Box>
-                  )}
-                </StepContent>
-              </Step>
-            ))}
-          </Stepper>
-        </CardContent>
-      </Card>
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={6000}
-        onClose={() => setSnackbarOpen(false)}
-        message={snackbarMessage}
-        action={
-          <IconButton
-            size="small"
-            aria-label="close"
-            color="inherit"
-            onClick={() => setSnackbarOpen(false)}
-          >
-            <CloseIcon fontSize="small" />
-          </IconButton>
-        }
-      />
-    </Box>
-  );
+                    )}
+                  </StepContent>
+                </Step>
+              ))}
+            </Stepper>
+          </CardContent>
+        </Card>
+        <Snackbar
+          open={snackbarOpen}
+          autoHideDuration={6000}
+          onClose={() => setSnackbarOpen(false)}
+          message={snackbarMessage}
+          action={
+            <IconButton
+              size="small"
+              aria-label="close"
+              color="inherit"
+              onClick={() => setSnackbarOpen(false)}
+            >
+              <CloseIcon fontSize="small" />
+            </IconButton>
+          }
+        />
+      </Box>
+    );
+  };
 };
 
 export default Business;
