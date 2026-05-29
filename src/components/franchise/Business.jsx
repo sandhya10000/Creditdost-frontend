@@ -304,7 +304,7 @@ const Business = ({ userType }) => {
       },
       prefill: {
         name: formData.customerName,
-        email: formData.customerEmail,
+        // email: formData.customerEmail,
         contact: formData.customerPhone,
       },
       theme: {
@@ -491,6 +491,9 @@ const Business = ({ userType }) => {
 
   const validateForm = () => {
     for (const key in formData) {
+      if (key === "manualAmount" && userType !== "admin") {
+        continue;
+      }
       if (!formData[key]) {
         setError("Please enter all the required fields");
         return false;
@@ -774,7 +777,7 @@ const Business = ({ userType }) => {
                             <TextField
                               required
                               fullWidth
-                              label="Business Amount"
+                              label="Amount"
                               name="manualAmount"
                               type="number"
                               value={formData.manualAmount}
