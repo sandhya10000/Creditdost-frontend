@@ -166,6 +166,7 @@ const BusinessForms = () => {
               variant="contained"
               color="success"
               onClick={handleDownloadCSV}
+              sx={{ color: "#fff" }}
             >
               Download CSV
             </Button>
