@@ -231,7 +231,7 @@ const WhatsAppGroups = () => {
           <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold" }}>
             Need Help?
           </Typography>
-          <Typography variant="body2" paragraph>
+          <Typography variant="body2" component="div">
             If you're having trouble joining any of our groups or accessing our
             social media accounts, please contact our support team at{" "}
             <Chip
