@@ -104,6 +104,14 @@ const DashboardHome = () => {
         const latestTransaction =
           paidTransactions.length > 0 ? paidTransactions[0] : null;
 
+        console.log("Full Response:", dashboardResponse.data);
+        console.log("Stats:", dashboardResponse.data.stats);
+        console.log(
+          "Credit Details:",
+          dashboardResponse.data.stats?.creditDetails,
+        );
+        console.log("AI Details:", dashboardResponse.data.stats?.aiDetails);
+        console.log("Business:", dashboardResponse.data.stats?.business);
         setStats({
           credits: dashboardResponse.data.stats.creditDetails,
           ai: dashboardResponse.data.stats.aiDetails,
@@ -311,26 +319,27 @@ const DashboardHome = () => {
   const statCards = [
     {
       title: "Credits",
-      value: `${stats.credits?.used} /${stats.credits.available}`,
+
+      value: `${stats.credits?.used ?? 0} / ${stats.credits?.available ?? 0}`,
       icon: <CreditScore sx={{ fontSize: 40 }} />,
       color: "#6200ea",
     },
     {
       title: "AI Usage",
-      value: `${stats.ai?.used} / ${stats.ai.available}`,
+      value: `${stats.ai?.used ?? 0} / ${stats.ai?.available ?? 0}`,
       icon: <People sx={{ fontSize: 40 }} />,
       color: "#03dac6",
     },
     {
       title: "Total Business",
-      value: `₹ ${stats.business.total}`,
+      value: `₹ ${stats.business?.total ?? 0}`,
       icon: <TrendingUp sx={{ fontSize: 40 }} />,
       color: "#00c853",
     },
 
     {
       title: "Total Cases",
-      value: stats.totalCases,
+      value: stats.totalCases ?? 0,
       icon: <People sx={{ fontSize: 40 }} />,
       color: "#03dac6",
     },
