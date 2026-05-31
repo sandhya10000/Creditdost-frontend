@@ -1,7 +1,6 @@
 // ReportAnalytics.jsx
 
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import {
   Grid,
   Card,
@@ -12,12 +11,18 @@ import {
   TableCell,
   TableHead,
   TableRow,
+  Box,
+  CircularProgress,
 } from "@mui/material";
 import { adminAPI } from "../../services/api";
 
 const ReportAnalytics = () => {
   const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(false);
 
+  const showNotification = (message) => {
+    alert(message);
+  };
   useEffect(() => {
     fetchStats();
   }, []);
@@ -38,8 +43,24 @@ const ReportAnalytics = () => {
     }
   };
 
-  if (!stats) return <p>Loading...</p>;
+  // Loading State
+  if (loading) {
+    return (
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="300px"
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
 
+  // No Data State
+  if (!stats) {
+    return <Typography>No data found</Typography>;
+  }
   return (
     <div>
       <Grid container spacing={2}>
