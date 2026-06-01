@@ -47,6 +47,7 @@ import {
   WhatsApp as WhatsAppIcon,
   Logout as LogoutIcon,
   LibraryBooks as CaseStudiesIcon,
+  Summarize as SummarizeIcon,
 } from "@mui/icons-material";
 import { ExpandLess, ExpandMore } from "@mui/icons-material";
 
@@ -239,6 +240,7 @@ const FranchiseDashboard = () => {
   const handleDrawerClose = () => {
     if (isMobile) {
       setMobileOpen(false);
+      setOpen(false);
     } else {
       setOpen(false);
     }
@@ -273,21 +275,25 @@ const FranchiseDashboard = () => {
       icon: <CreditScoreIcon />,
       // path: "/franchise/credit-check",
       children: [
-        { text: "CIBIL", path: "/franchise/credit-check" },
+        {
+          text: "CIBIL",
+          path: "/franchise/credit-check",
+          icon: <SummarizeIcon />,
+        },
         {
           text: "CRIF",
           path: "/franchise/credit-check/crif",
-          icon: <CreditScoreIcon />,
+          icon: <SummarizeIcon />,
         },
         {
           text: "Experian",
           path: "/franchise/credit-check/experian",
-          icon: <CreditScoreIcon />,
+          icon: <SummarizeIcon />,
         },
         {
           text: "Equifax",
           path: "/franchise/credit-check/equifax",
-          icon: <CreditScoreIcon />,
+          icon: <SummarizeIcon />,
         },
       ],
     },
@@ -507,6 +513,25 @@ const FranchiseDashboard = () => {
                   {item.children.map((child) => (
                     <ListItemButton
                       key={child.text}
+                      selected={location.pathname === child.path}
+                      onClick={() => navigate(child.path)}
+                      sx={{
+                        pl: { xs: 2, sm: 5 },
+                        minHeight: 44,
+                      }}
+                    >
+                      {child.icon && <ListItemIcon>{child.icon}</ListItemIcon>}
+                      <ListItemText
+                        primary={child.text}
+                        primaryTypographyProps={{
+                          fontSize: { xs: "0.875rem", sm: "1rem" },
+                        }}
+                      />
+                    </ListItemButton>
+                  ))}
+                  {/* {item.children.map((child) => (
+                    <ListItemButton
+                      key={child.text}
                       sx={{ pl: 6 }}
                       selected={location.pathname === child.path}
                       onClick={() => navigate(child.path)}
@@ -516,7 +541,7 @@ const FranchiseDashboard = () => {
                         sx={{ opacity: open ? 1 : 0 }}
                       />
                     </ListItemButton>
-                  ))}
+                  ))} */}
                 </Collapse>
               )}
             </Box>

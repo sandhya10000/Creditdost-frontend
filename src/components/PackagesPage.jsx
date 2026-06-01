@@ -164,7 +164,11 @@ const PackagesPage = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [paymentError, setPaymentError] = useState("");
-  const [toast, setToast] = useState({ open: false, message: "", severity: "success" }); // Toast state
+  const [toast, setToast] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  }); // Toast state
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -185,8 +189,9 @@ const PackagesPage = () => {
       setLoading(true);
       const response = await axios.get(
         `${
-          import.meta.env.VITE_REACT_APP_API_URL || "https://reactbackend.creditdost.co.in/api"
-        }/packages`
+          import.meta.env.VITE_REACT_APP_API_URL ||
+          "https://reactbackend.creditdost.co.in/api"
+        }/packages`,
       );
       setPackages(response.data);
       setError("");
@@ -199,10 +204,11 @@ const PackagesPage = () => {
   };
 
   const handleSelectPackage = (pkg) => {
-    const totalPrice = Number(pkg.price) + (Number(pkg.price) * (pkg.gstPercentage || 0) / 100);
+    const totalPrice =
+      Number(pkg.price) + (Number(pkg.price) * (pkg.gstPercentage || 0)) / 100;
     setSelectedPackage({
       ...pkg,
-      totalPrice // Store total price for payment
+      totalPrice, // Store total price for payment
     });
     setPaymentDialogOpen(true);
     setActiveStep(0);
@@ -267,12 +273,12 @@ const PackagesPage = () => {
     try {
       // Show processing message
       setPaymentLoading(true);
-      
+
       // Show toast notification that payment is being processed
       setToast({
         open: true,
         message: "Payment successful! Processing your order...",
-        severity: "info"
+        severity: "info",
       });
 
       // Verify payment on backend
@@ -284,22 +290,23 @@ const PackagesPage = () => {
 
       // Move to success step
       setActiveStep(2);
-      
+
       // Show success toast notification
       setToast({
         open: true,
-        message: "Payment processed successfully! Your credits have been added to your account.",
-        severity: "success"
+        message:
+          "Payment processed successfully! Your credits have been added to your account.",
+        severity: "success",
       });
     } catch (err) {
       setPaymentError("Payment verification failed. Please contact support.");
       console.error("Payment verification error:", err);
-      
+
       // Show error toast notification
       setToast({
         open: true,
         message: "Payment verification failed. Please contact support.",
-        severity: "error"
+        severity: "error",
       });
     } finally {
       setPaymentLoading(false);
@@ -452,14 +459,23 @@ const PackagesPage = () => {
                           <span className="currency">₹</span>
                           <span className="amount">{pkg.price}</span>
                           {pkg.gstPercentage > 0 && (
-                            <span className="period" style={{ fontSize: '1rem', marginLeft: '8px' }}>
+                            <span
+                              className="period"
+                              style={{ fontSize: "1rem", marginLeft: "8px" }}
+                            >
                               + {pkg.gstPercentage}% GST
                             </span>
                           )}
                         </PriceDisplay>
                         {pkg.gstPercentage > 0 && (
-                          <Typography variant="body2" color="text.secondary" align="center">
-                            Total: ₹{Number(pkg.price) + (Number(pkg.price) * pkg.gstPercentage / 100)}
+                          <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            align="center"
+                          >
+                            Total: ₹
+                            {Number(pkg.price) +
+                              (Number(pkg.price) * pkg.gstPercentage) / 100}
                           </Typography>
                         )}
                       </Box>
@@ -649,7 +665,11 @@ const PackagesPage = () => {
                             <Typography variant="body2" color="text.secondary">
                               {selectedPackage.creditsIncluded} credits
                               {selectedPackage.gstPercentage > 0 && (
-                                <span> (₹{selectedPackage.price} + {selectedPackage.gstPercentage}% GST)</span>
+                                <span>
+                                  {" "}
+                                  (₹{selectedPackage.price} +{" "}
+                                  {selectedPackage.gstPercentage}% GST)
+                                </span>
                               )}
                             </Typography>
                           </Box>
@@ -721,12 +741,12 @@ const PackagesPage = () => {
         open={toast.open}
         autoHideDuration={6000}
         onClose={handleToastClose}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
       >
         <ToastAlert
           onClose={handleToastClose}
           severity={toast.severity}
-          sx={{ width: '100%' }}
+          sx={{ width: "100%" }}
         >
           {toast.message}
         </ToastAlert>
