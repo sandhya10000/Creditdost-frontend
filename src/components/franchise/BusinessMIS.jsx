@@ -87,9 +87,10 @@ const BusinessMIS = () => {
     const phone = String(form.customerPhone || "");
 
     return (
-      name.includes(normalizedSearch) ||
-      email.includes(normalizedSearch) ||
-      phone.includes(normalizedSearch)
+      form.paymentStatus === "paid" &&
+      (name.includes(normalizedSearch) ||
+        email.includes(normalizedSearch) ||
+        phone.includes(normalizedSearch))
     );
   });
 
@@ -203,7 +204,10 @@ const BusinessMIS = () => {
                 <TableBody>
                   {filteredBusinessForms.map((form) => (
                     <TableRow key={form._id}>
-                      <TableCell>{form.customerId}</TableCell>
+                      {/* <TableCell>{form.customerId}</TableCell> */}
+                      <TableCell>
+                        {form.paymentStatus === "paid" ? form.customerId : "-"}
+                      </TableCell>
                       <TableCell>{form.customerName}</TableCell>
                       <TableCell>{form.customerEmail}</TableCell>
                       <TableCell>{form.customerPhone}</TableCell>

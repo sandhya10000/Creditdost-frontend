@@ -1,63 +1,80 @@
-import React from "react";
+import React, { Suspense, lazy } from "react";
+
 import { Routes, Route } from "react-router-dom";
-import Dashboard from "./Dashboard";
-import ManageFranchises from "./ManageFranchises";
-import ManagePackages from "./ManagePackages";
-import ManageCustomerPackages from "./ManageCustomerPackages";
-import ManageLeads from "./ManageLeads";
-import ManagePayouts from "./ManagePayouts";
-import ViewReports from "./ViewReports";
-import ManageReferrals from "./ManageReferrals";
-import SurepassSettings from "./SurepassSettings";
-import RechargeCredits from "./RechargeCredits";
-import BusinessForms from "./BusinessForms";
-import ManageBlogs from "./ManageBlogs";
-import ManageRelationshipManagers from "./ManageRelationshipManagers";
-import AdminDashboardHome from "./AdminDashboardHome";
-import GoogleSheetsSettings from "./GoogleSheetsSettings";
-import ManageDigitalAgreements from "./ManageDigitalAgreements";
-import ManageAIAnalysis from "./ManageAIAnalysis";
-import AdminMarketing from "./AdminMarketing";
-import AdminReward from "./AdminReward";
-import AdminCaseStudies from "./AdminCaseStudy";
-import ReportAnalytics from "./ReportAnalytics";
-import CustomerCRM from "../pages/CustomerCRM";
-import AdminCreditBureau from "../admin/AdminCreditcheck";
-import PrefillFailedLog from "../admin/PrefillFailedLog";
-import ManualBusiness from "../admin/ManualBusiness";
+
+const Dashboard = lazy(() => import("./Dashboard"));
+const ManageFranchises = lazy(() => import("./ManageFranchises"));
+const ManagePackages = lazy(() => import("./ManagePackages"));
+const ManageCustomerPackages = lazy(() => import("./ManageCustomerPackages"));
+const ManageLeads = lazy(() => import("./ManageLeads"));
+const ManagePayouts = lazy(() => import("./ManagePayouts"));
+const ViewReports = lazy(() => import("./ViewReports"));
+const ManageReferrals = lazy(() => import("./ManageReferrals"));
+const SurepassSettings = lazy(() => import("./SurepassSettings"));
+const RechargeCredits = lazy(() => import("./RechargeCredits"));
+const BusinessForms = lazy(() => import("./BusinessForms"));
+const ManageBlogs = lazy(() => import("./ManageBlogs"));
+const ManageRelationshipManagers = lazy(
+  () => import("./ManageRelationshipManagers"),
+);
+const AdminDashboardHome = lazy(() => import("./AdminDashboardHome"));
+const GoogleSheetsSettings = lazy(() => import("./GoogleSheetsSettings"));
+const ManageDigitalAgreements = lazy(() => import("./ManageDigitalAgreements"));
+const ManageAIAnalysis = lazy(() => import("./ManageAIAnalysis"));
+const AdminMarketing = lazy(() => import("./AdminMarketing"));
+const AdminReward = lazy(() => import("./AdminReward"));
+const AdminCaseStudies = lazy(() => import("./AdminCaseStudy"));
+const ReportAnalytics = lazy(() => import("./ReportAnalytics"));
+const CustomerCRM = lazy(() => import("../pages/CustomerCRM"));
+const AdminCreditBureau = lazy(() => import("../admin/AdminCreditcheck"));
+const PrefillFailedLog = lazy(() => import("../admin/PrefillFailedLog"));
+const ManualBusiness = lazy(() => import("../admin/ManualBusiness"));
 const AdminRoutes = () => {
   return (
-    <Routes>
-      <Route path="/" element={<Dashboard />}>
-        <Route index element={<AdminDashboardHome />} />
-        <Route path="franchises" element={<ManageFranchises />} />
-        <Route path="packages" element={<ManagePackages />} />
-        <Route path="customer-packages" element={<ManageCustomerPackages />} />
-        <Route path="leads" element={<ManageLeads />} />
-        <Route path="payouts" element={<ManagePayouts />} />
-        <Route path="reports" element={<ViewReports />} />
-        <Route path="referrals" element={<ManageReferrals />} />
-        <Route path="surepass-settings" element={<SurepassSettings />} />
-        <Route path="recharge" element={<RechargeCredits />} />
-        <Route path="business-forms" element={<BusinessForms />} />
-        <Route path="blogs" element={<ManageBlogs />} />
-        <Route path="rms" element={<ManageRelationshipManagers />} />
-        <Route path="google-sheets" element={<GoogleSheetsSettings />} />
-        <Route
-          path="digital-agreements"
-          element={<ManageDigitalAgreements />}
-        />
-        <Route path="ai-analysis" element={<ManageAIAnalysis />} />
-        <Route path="marketing-materials" element={<AdminMarketing />} />
-        <Route path="reward" element={<AdminReward />} />
-        <Route path="case-study" element={<AdminCaseStudies />} />
-        <Route path="report-analytics" element={<ReportAnalytics />} />
-        <Route path="/customer/:customerId" element={<CustomerCRM />} />
-        <Route path="/credit-check" element={<AdminCreditBureau />} />
-        <Route path="/prefill-failed-logs" element={<PrefillFailedLog />} />
-        <Route path="/manual-business" element={<ManualBusiness />} />
-      </Route>
-    </Routes>
+    <Suspense fallback={<div>Loading...</div>}>
+      <Routes>
+        <Route path="/" element={<Dashboard />}>
+          <Route index element={<AdminDashboardHome />} />
+          <Route path="franchises" element={<ManageFranchises />} />
+          <Route path="packages" element={<ManagePackages />} />
+          <Route
+            path="customer-packages"
+            element={<ManageCustomerPackages />}
+          />
+          <Route path="leads" element={<ManageLeads />} />
+          <Route path="payouts" element={<ManagePayouts />} />
+          <Route path="reports" element={<ViewReports />} />
+          <Route path="referrals" element={<ManageReferrals />} />
+          <Route path="surepass-settings" element={<SurepassSettings />} />
+          <Route path="recharge" element={<RechargeCredits />} />
+          <Route
+            path="business-forms"
+            element={<BusinessForms status="paid" />}
+          />
+
+          <Route
+            path="business-forms-pending"
+            element={<BusinessForms status="pending" />}
+          />
+          <Route path="blogs" element={<ManageBlogs />} />
+          <Route path="rms" element={<ManageRelationshipManagers />} />
+          <Route path="google-sheets" element={<GoogleSheetsSettings />} />
+          <Route
+            path="digital-agreements"
+            element={<ManageDigitalAgreements />}
+          />
+          <Route path="ai-analysis" element={<ManageAIAnalysis />} />
+          <Route path="marketing-materials" element={<AdminMarketing />} />
+          <Route path="reward" element={<AdminReward />} />
+          <Route path="case-study" element={<AdminCaseStudies />} />
+          <Route path="report-analytics" element={<ReportAnalytics />} />
+          <Route path="/customer/:customerId" element={<CustomerCRM />} />
+          <Route path="/credit-check" element={<AdminCreditBureau />} />
+          <Route path="/prefill-failed-logs" element={<PrefillFailedLog />} />
+          <Route path="/manual-business" element={<ManualBusiness />} />
+        </Route>
+      </Routes>
+    </Suspense>
   );
 };
 

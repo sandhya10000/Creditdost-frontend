@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { adminAPI } from "../../services/api";
+import React, { useState, useEffect } from "react";
+import { adminAPI, franchiseAPI } from "../../services/api";
 
 import {
   Box,
@@ -23,6 +23,9 @@ const AdminCaseStudies = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [caseStudies, setCaseStudies] = useState([]);
+  const [editingId, setEditingId] = useState(null);
+  const [editMode, setEditMode] = useState(false);
 
   const handleSubmit = async () => {
     console.log("API response...");
@@ -72,9 +75,64 @@ const AdminCaseStudies = () => {
       setLoading(false);
     }
   };
+  const fetchCaseStudies = async () => {
+    try {
+      const res = await franchiseAPI.getCaseStudies();
+      setCaseStudies(res.data.data);
+    } catch (err) {
+      setError("Failed to load case studies");
+      console.log(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCaseStudies();
+  }, []);
+  const handleDelete = async (id) => {
+    try {
+      await adminAPI.deleteCaseStudy(id);
+      fetchCaseStudies(); // refresh list
+    } catch (err) {
+      console.log(err);
+    }
+  };
+  const handleUpdate = async () => {
+    try {
+      const formData = new FormData();
+
+      formData.append("title", title);
+      formData.append("description", description);
+
+      if (beforeWorkingFile) {
+        formData.append("beforeWorking", beforeWorkingFile);
+      }
+
+      if (afterWorkingFile) {
+        formData.append("afterWorking", afterWorkingFile);
+      }
+
+      await adminAPI.updateCaseStudy(editingId, formData);
+
+      setEditMode(false);
+      setEditingId(null);
+
+      fetchCaseStudies();
+    } catch (err) {
+      console.log(err);
+    }
+  };
+  const handleEdit = (item) => {
+    setTitle(item.title);
+    setDescription(item.description);
+    setEditingId(item._id);
+    setEditMode(true);
+  };
 
   return (
     <Box sx={{ p: 3 }}>
+      {/* ==============FORM card========== */}
       <Card sx={{ maxWidth: 700, mx: "auto", boxShadow: 3 }}>
         <CardContent>
           <Typography
@@ -83,7 +141,7 @@ const AdminCaseStudies = () => {
             textAlign="center"
             gutterBottom
           >
-            Upload Case Study
+            {editMode ? "Update Case Study" : "Upload Case Study"}
           </Typography>
 
           {error && (
@@ -157,17 +215,97 @@ const AdminCaseStudies = () => {
           <Button
             fullWidth
             variant="contained"
-            onClick={handleSubmit}
+            onClick={editMode ? handleUpdate : handleSubmit}
             disabled={loading}
           >
             {loading ? (
               <CircularProgress size={24} color="inherit" />
+            ) : editMode ? (
+              "Update Case Study"
             ) : (
               "Submit Case Study"
             )}
           </Button>
+          {/* Cancel Edit */}
+          {editMode && (
+            <Button
+              fullWidth
+              variant="text"
+              color="error"
+              onClick={() => {
+                setEditMode(false);
+                setEditingId(null);
+                setTitle("");
+                setDescription("");
+                setBeforeWorkingFile(null);
+                setAfterWorkingFile(null);
+              }}
+              sx={{ mt: 1 }}
+            >
+              Cancel Edit
+            </Button>
+          )}
         </CardContent>
       </Card>
+      {/* ================= LIST SECTION ================= */}
+      <Box sx={{ mt: 5 }}>
+        <Typography variant="h6" fontWeight="bold" gutterBottom>
+          All Case Studies
+        </Typography>
+
+        {caseStudies.length === 0 ? (
+          <Typography>No case studies found</Typography>
+        ) : (
+          caseStudies.map((item) => (
+            <Card key={item._id} sx={{ mb: 2, p: 2 }}>
+              <Typography fontWeight="bold">{item.title}</Typography>
+
+              <Typography variant="body2" sx={{ mb: 1 }}>
+                {item.description}
+              </Typography>
+
+              <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  href={item.beforeWorking}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Before PDF
+                </Button>
+
+                <Button
+                  size="small"
+                  variant="outlined"
+                  href={item.afterWorking}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  After PDF
+                </Button>
+
+                <Button
+                  size="small"
+                  variant="outlined"
+                  onClick={() => handleEdit(item)}
+                >
+                  Edit
+                </Button>
+
+                <Button
+                  size="small"
+                  variant="contained"
+                  color="error"
+                  onClick={() => handleDelete(item._id)}
+                >
+                  Delete
+                </Button>
+              </Box>
+            </Card>
+          ))
+        )}
+      </Box>
     </Box>
   );
 };

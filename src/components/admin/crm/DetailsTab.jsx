@@ -129,10 +129,6 @@ const DetailsTab = ({ customer, creditReport, ifscDeatails }) => {
           <Typography fontWeight="Medium">Full Address</Typography>
           <Typography>{customer?.fullAddress || "-"}</Typography>
         </Grid>
-        <Grid item xs={12} md={4}>
-          <Typography fontWeight="Medium">City</Typography>
-          <Typography>{customer?.city || "-"}</Typography>
-        </Grid>
 
         <Grid item xs={12} md={4}>
           <Typography fontWeight="Medium">State</Typography>

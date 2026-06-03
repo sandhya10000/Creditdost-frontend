@@ -21,7 +21,7 @@ import {
 import { adminAPI } from "../../services/api";
 //import { useNavigate } from "react-router-dom";
 
-const BusinessForms = () => {
+const BusinessForms = ({ status = "paid" }) => {
   const [businessForms, setBusinessForms] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -39,6 +39,7 @@ const BusinessForms = () => {
       setLoading(true);
       setError("");
       const response = await adminAPI.getAllBusinessForms();
+      console.log("fetch all documents with details----", response);
       setBusinessForms(response.data);
     } catch (err) {
       setError("Failed to fetch business forms. Please try again later.");
@@ -89,15 +90,16 @@ const BusinessForms = () => {
 
   const filteredBusinessForms = businessForms.filter(
     (form) =>
-      form.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      form.customerEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      form.customerPhone.includes(searchTerm) ||
-      (form.franchiseId?.businessName || "")
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase()),
+      form.paymentStatus === status &&
+      (form.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        form.customerEmail?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        form.customerPhone?.includes(searchTerm) ||
+        (form.franchiseId?.businessName || "")
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase())),
   );
-  console.log(filteredBusinessForms, "filteredBusinessForms----------------");
-  //Download bussiness mis users data function
+
+  console.log(filteredBusinessForms, "filteredBusinessForms----------------"); //Download bussiness mis users data function
   const handleDownloadCSV = () => {
     const headers = [
       "Customer ID",
@@ -140,10 +142,20 @@ const BusinessForms = () => {
     document.body.removeChild(link);
   };
 
+  const API_URL = import.meta.env.VITE_REACT_APP_API_URL
+    ? import.meta.env.VITE_REACT_APP_API_URL.replace("/api", "")
+    : "https://reactbackend.creditdost.co.in";
+
+  //Windows backslash problem fix (\\ → /)
+  const getFileUrl = (path) => {
+    if (!path) return "";
+
+    return `${API_URL}/${path.replace(/\\/g, "/")}`;
+  };
   return (
     <Box>
       <Typography variant="h4" gutterBottom>
-        Business MIS
+        {status === "pending" ? "Business MIS Pending" : "Business MIS"}
       </Typography>
 
       {error && (
@@ -191,6 +203,8 @@ const BusinessForms = () => {
                     <TableCell>Amount</TableCell>
                     <TableCell>Payment Status</TableCell>
                     <TableCell>Role</TableCell>
+                    <TableCell>Document</TableCell>
+
                     <TableCell>Date</TableCell>
                     <TableCell>Action</TableCell>
                   </TableRow>
@@ -236,6 +250,75 @@ const BusinessForms = () => {
                         {getPaymentStatusChip(form.paymentStatus)}
                       </TableCell>
                       <TableCell>{form.createdByRole || "franchise"}</TableCell>
+                      <TableCell>
+                        {form.documents?.panCard && (
+                          <a
+                            href={getFileUrl(form.documents.panCard)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            PAN
+                          </a>
+                        )}
+
+                        <br />
+
+                        {form.documents?.aadharFront && (
+                          <a
+                            href={getFileUrl(form.documents.aadharFront)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Aadhaar Front
+                          </a>
+                        )}
+
+                        <br />
+
+                        {form.documents?.aadharBack && (
+                          <a
+                            href={getFileUrl(form.documents.aadharBack)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Aadhaar Back
+                          </a>
+                        )}
+
+                        <br />
+
+                        {form.documents?.cancelCheque && (
+                          <a
+                            href={getFileUrl(form.documents.cancelCheque)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Cancel Cheque
+                          </a>
+                        )}
+
+                        <br />
+
+                        {form.documents?.bankProof && (
+                          <a
+                            href={getFileUrl(form.documents.bankProof)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Bank Proof
+                          </a>
+                        )}
+                        <br />
+                        {form.documents?.extraBankDoc && (
+                          <a
+                            href={getFileUrl(form.documents.extraBankDoc)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Extra Bank Proof
+                          </a>
+                        )}
+                      </TableCell>
                       <TableCell>{formatDate(form.createdAt)}</TableCell>
                       <TableCell>
                         <Button

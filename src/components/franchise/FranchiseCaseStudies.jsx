@@ -23,6 +23,7 @@ const FranchiseCaseStudies = () => {
       setCaseStudies(res.data.data);
     } catch (err) {
       setError("Failed to load case studies");
+      console.log(err);
     } finally {
       setLoading(false);
     }

@@ -137,6 +137,7 @@ export const franchiseAPI = {
   getRewards: () => api.get("/franchise/reward"),
   //get case studies
   getCaseStudies: () => api.get("/franchise/case-studies"),
+
   uploaddocBusiness: (formData) =>
     api.post("/franchise/uploadDocBusiness", formData),
   getfranchiseList: () => api.get("/franchises/admin/allFranchises-Namelist"),
@@ -284,8 +285,16 @@ export const adminAPI = {
     }),
   //admin upload marketing materials post method
   UploadDocument: (formData) => api.post("/admin/marketing/upload", formData),
+  updateMarketingMaterial: (id, formData) =>
+    api.put(`/admin/marketing-material/${id}`, formData),
+
+  deleteMarketingMaterial: (id) =>
+    api.delete(`/admin/marketing-material/${id}`),
   //admin case study post api
   createCaseStudy: (formData) => api.post("/admin/case-studies", formData),
+  updateCaseStudy: (editingId, formData) =>
+    api.put(`/admin/case-studies/${editingId}`, formData),
+  deleteCaseStudy: (id) => api.delete(`/admin/case-studies/${id}`),
 
   //admin upload contest reward post
   createReward: (formData) => api.post("/admin/reward/upload", formData),
