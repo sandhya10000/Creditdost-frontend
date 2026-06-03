@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { adminAPI } from "../../services/api";
+import React, { useState, useEffect } from "react";
+import { adminAPI, franchiseAPI } from "../../services/api";
 import {
   Box,
   Card,
@@ -18,6 +18,7 @@ const AdminMarketing = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [items, setItems] = useState([]);
 
   //this post function to handle upload material from admin
   const handleUpload = async () => {
@@ -49,6 +50,41 @@ const AdminMarketing = () => {
       setLoading(false);
     }
   };
+  useEffect(() => {
+    fetchMarketingMaterials();
+    console.log("Fetching API...");
+  }, []);
+
+  const fetchMarketingMaterials = async () => {
+    try {
+      const response = await franchiseAPI.getMarketingMaterials();
+
+      const data =
+        response.data.data || response.data.items || response.data || [];
+
+      setItems(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error("Failed to fetch marketing materials:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  const handleDelete = async (id) => {
+    if (!window.confirm("Delete this file?")) return;
+
+    try {
+      await adminAPI.deleteMarketingMaterial(id);
+
+      setSuccess("Material deleted successfully");
+
+      fetchMarketingMaterials();
+    } catch (error) {
+      setError("Delete failed");
+    }
+  };
+  const API_URL = import.meta.env.VITE_REACT_APP_API_URL
+    ? import.meta.env.VITE_REACT_APP_API_URL.replace("/api", "")
+    : "https://reactbackend.creditdost.co.in";
 
   return (
     <Box>
@@ -93,6 +129,60 @@ const AdminMarketing = () => {
               "Upload Material"
             )}
           </Button>
+        </CardContent>
+      </Card>
+      <Card sx={{ maxWidth: 700, mx: "auto", mt: 3 }}>
+        <CardContent>
+          <Typography variant="h6" gutterBottom>
+            Uploaded Materials
+          </Typography>
+
+          {items.length === 0 ? (
+            <Typography>No materials found</Typography>
+          ) : (
+            items.map((item) => (
+              <Box
+                key={item._id}
+                sx={{
+                  border: "1px solid #ddd",
+                  borderRadius: 2,
+                  p: 2,
+                  mb: 2,
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <Box>
+                  <Typography>
+                    {item.fileName || "Marketing Material"}
+                  </Typography>
+                </Box>
+
+                <Box sx={{ display: "flex", gap: 1 }}>
+                  {/* Preview */}
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    href={`${API_URL}${item.fileUrl}`}
+                    target="_blank"
+                  >
+                    Preview
+                  </Button>
+
+                  {/* Delete */}
+                  <Button
+                    size="small"
+                    color="error"
+                    variant="contained"
+                    onClick={() => handleDelete(item._id)}
+                  >
+                    Delete
+                  </Button>
+                </Box>
+              </Box>
+            ))
+          )}
         </CardContent>
       </Card>
     </Box>

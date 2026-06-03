@@ -14,6 +14,7 @@ import DetailsTab from "../../components/admin/crm/DetailsTab";
 import ReportsTab from "../../components/admin/crm/ReportsTab";
 import BureauTab from "../../components/admin/crm/BureauTab";
 import RemarksTab from "../../components/admin/crm/RemarksTab";
+import DocumentTab from "../../components/admin/crm/DocumentTab";
 import { useParams } from "react-router-dom";
 import { adminAPI } from "../../services/api";
 
@@ -70,6 +71,7 @@ const CustomerCRM = () => {
                 <Tab label="Bureau" />
 
                 <Tab label="Remarks" />
+                <Tab label="Documents" />
               </Tabs>
 
               <Box mt={3}>
@@ -112,6 +114,11 @@ const CustomerCRM = () => {
 
                 {tab === 3 && (
                   <RemarksTab customerRemark={customerInfo?.customerData} />
+                )}
+                {tab === 4 && (
+                  <DocumentTab
+                    customerDocument={customerInfo?.customerDocument}
+                  />
                 )}
               </Box>
             </CardContent>

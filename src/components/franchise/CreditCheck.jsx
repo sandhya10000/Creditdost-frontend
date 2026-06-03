@@ -528,11 +528,6 @@ const CreditCheck = () => {
                     }}
                     helperText="Enter exactly 10 digits without spaces or dashes"
                   />
-                  {prefillError && (
-                    <Alert severity="error" sx={{ mb: 2 }}>
-                      {prefillError}
-                    </Alert>
-                  )}
                 </Grid>
 
                 <Grid

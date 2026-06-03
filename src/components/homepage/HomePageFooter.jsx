@@ -485,7 +485,7 @@ const HomePageFooter = () => {
           mt={1}
           fontSize="0.75rem"
         >
-          Optimystic Auxiliary Services Private Limited <br />
+          {/* Optimystic Auxiliary Services Private Limited <br />
           (Designed by{" "}
           <a
             href="https://gdscreatives.in/"
@@ -494,7 +494,7 @@ const HomePageFooter = () => {
           >
             GDS Creatives
           </a>
-          )
+          ) */}
         </Typography>
       </Box>
     </Container>

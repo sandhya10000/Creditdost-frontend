@@ -101,13 +101,37 @@ const DrawerStyled = styled(Drawer, {
   flexShrink: 0,
   whiteSpace: "nowrap",
   boxSizing: "border-box",
+
+  "& .MuiDrawer-paper": {
+    scrollbarWidth: "none",
+    "&::-webkit-scrollbar": {
+      width: 0,
+      display: "none",
+    },
+  },
+
   ...(open && {
     ...openedMixin(theme),
-    "& .MuiDrawer-paper": openedMixin(theme),
+    "& .MuiDrawer-paper": {
+      ...openedMixin(theme),
+      scrollbarWidth: "none",
+      "&::-webkit-scrollbar": {
+        width: 0,
+        display: "none",
+      },
+    },
   }),
+
   ...(!open && {
     ...closedMixin(theme),
-    "& .MuiDrawer-paper": closedMixin(theme),
+    "& .MuiDrawer-paper": {
+      ...closedMixin(theme),
+      scrollbarWidth: "none",
+      "&::-webkit-scrollbar": {
+        width: 0,
+        display: "none",
+      },
+    },
   }),
 }));
 
@@ -225,6 +249,11 @@ const AdminDashboard = () => {
       text: "Business MIS",
       icon: <DescriptionIcon />,
       path: "/admin/business-forms",
+    },
+    {
+      text: "Business MIS Pending",
+      icon: <DescriptionIcon />,
+      path: "/admin/business-forms-pending",
     },
     {
       text: "Surepass Settings",
@@ -349,7 +378,9 @@ const AdminDashboard = () => {
                 navigate(item.path);
               }
             }}
-            style={{ cursor: "pointer" }}
+            style={{
+              cursor: "pointer",
+            }}
           >
             <ListItemIcon>{item.icon}</ListItemIcon>
             <ListItemText

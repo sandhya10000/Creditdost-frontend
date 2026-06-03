@@ -70,6 +70,8 @@ const Business = ({ userType }) => {
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("success");
   const [uploadFiles, setUploadFiles] = useState({});
+  const [uploadedDocuments, setUploadedDocuments] = useState({});
+
   const [franchiseData1, setFranchiseData1] = useState({
     franchiseId: "",
   });
@@ -201,7 +203,7 @@ const Business = ({ userType }) => {
     setSelectedPackage(pkg);
   };
 
-  const handleSubmitForm = async () => {
+  const handleSubmitForm = async (documents = uploadedDocuments) => {
     if (userType !== "admin" && !selectedPackage) {
       setError("Please select a package before proceeding.");
       return;
@@ -221,6 +223,7 @@ const Business = ({ userType }) => {
       //   };
       const formDataWithPackage = {
         ...formData,
+        documents,
 
         ...(userType !== "admin" && {
           selectedPackage: selectedPackage?._id,
@@ -243,7 +246,7 @@ const Business = ({ userType }) => {
         err.response?.data?.message ||
           "Failed to submit form. Please try again.",
       );
-      console.error("Error submitting form:", err);
+      console.error("FULL ERROR:", err.response?.data || err);
     } finally {
       setLoading(false);
     }
@@ -345,29 +348,12 @@ const Business = ({ userType }) => {
     },
     {
       label: "Extra Bank Document",
-      key: "extraBankDocument",
+      key: "extraBankDoc",
     },
   ];
 
   const handleUploadDoc = async () => {
     try {
-      // const requiredFields = [
-      //   "panCard",
-      //   "aadharFront",
-      //   "aadharBack",
-      //   "cancelCheque",
-      //   "bankProof",
-      // ];
-
-      // const missingFields = requiredFields.filter(
-      //   (field) => !uploadFiles[field],
-      // );
-
-      // if (missingFields.length > 0) {
-      //   setUploadValidationError("Please upload all required documents");
-      //   return;
-      // }
-
       const formData = new FormData();
 
       Object.keys(uploadFiles).forEach((key) => {
@@ -377,9 +363,12 @@ const Business = ({ userType }) => {
       });
 
       let response = await franchiseAPI.uploaddocBusiness(formData);
+      const docs = response.data.data;
+
+      setUploadedDocuments(docs);
       console.log(response, "upload docs==========");
       if (userType === "admin") {
-        await handleSubmitForm();
+        await handleSubmitForm(docs);
       } else {
         handleNext();
       }
@@ -1237,7 +1226,7 @@ const Business = ({ userType }) => {
                         <Button onClick={handleBack}>Back</Button>
                         <Button
                           variant="contained"
-                          onClick={handleSubmitForm}
+                          onClick={() => handleSubmitForm()}
                           disabled={loading}
                         >
                           {loading ? (

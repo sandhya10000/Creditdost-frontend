@@ -858,12 +858,66 @@ const ManageFranchises = () => {
       severity,
     });
   };
+  const handleDownloadCSV = () => {
+    const headers = [
+      "Business Name",
+      "Owner Name",
+      "Email",
+      "Phone",
+      "KYC Status",
+      "Status",
+      "Credits",
+      "Created Date",
+    ];
+
+    const rows = filteredFranchises.map((f) => [
+      f.businessName || "",
+      f.ownerName || "",
+      f.email || "",
+      f.phone || "",
+      f.kycStatus || "",
+      f.isActive ? "Active" : "Inactive",
+      f.credits || 0,
+      formatDate(f.createdAt),
+    ]);
+
+    const csvContent = [headers, ...rows]
+      .map((row) => row.join(","))
+      .join("\n");
+
+    const encodedUri =
+      "data:text/csv;charset=utf-8," + encodeURIComponent(csvContent);
+
+    const link = document.createElement("a");
+    link.href = encodedUri;
+    link.download = "franchise_list.csv";
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>
-        Manage Franchise Partners
-      </Typography>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 2,
+        }}
+      >
+        <Typography variant="h4">Manage Franchise Partners</Typography>
+
+        <Button
+          variant="contained"
+          color="success"
+          onClick={handleDownloadCSV}
+          sx={{ color: "#fff" }}
+        >
+          Download CSV
+        </Button>
+      </Box>
 
       <AppBar position="static" color="default" sx={{ mb: 3, borderRadius: 1 }}>
         <Tabs
