@@ -37,7 +37,8 @@ import { franchiseAPI } from "../../services/api";
 
 const AdminCreditBureau = ({ defaultBureau = "" }) => {
   const bureauOptions = [
-    { value: "cibil", label: "CIBIL" },
+    { value: "cibil-ongrid", label: "CIBIL(on-grid)" },
+    { value: "cibil-surepass", label: "CIBIL(surepass)" },
     { value: "crif", label: "CRIF" },
     { value: "experian", label: "Experian" },
     { value: "equifax", label: "Equifax" },
