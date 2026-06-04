@@ -51,7 +51,7 @@ const AdminCreditBureau = ({ defaultBureau = "" }) => {
     aadhaar: "",
     dob: "",
     gender: "",
-    bureau: defaultBureau || "cibil", // Default to CIBIL as per Surepass documentation
+    bureau: defaultBureau || "cibil-ongrid", // Default to CIBIL as per Surepass documentation
   });
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
