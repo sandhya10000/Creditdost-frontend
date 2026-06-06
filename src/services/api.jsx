@@ -235,7 +235,7 @@ export const adminAPI = {
   updateSurepassApiKey: (apiKey) =>
     api.put("/credit/settings/api-key", { apiKey }),
   // Credit reports
-  getAllCreditReports: () => api.get("/credit/reports/all"),
+  getAllCreditReports: (params) => api.get("/credit/reports/all", { params }),
   // Referrals
   getAllReferrals: () => api.get("/admin/referrals"),
   getReferralSettings: () => api.get("/admin/referral-settings"),
