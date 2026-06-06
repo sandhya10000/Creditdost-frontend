@@ -401,7 +401,36 @@ const DashboardHome = () => {
       </Box>
     );
   }
+  // 👇 return ke just upar
 
+  if (kycStatus === "pending") {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "70vh",
+          flexDirection: "column",
+        }}
+      >
+        <Typography
+          variant="h4"
+          sx={{
+            color: "#ff9800",
+            fontWeight: "bold",
+            mb: 2,
+          }}
+        >
+          KYC Pending
+        </Typography>
+
+        <Typography variant="body1" color="text.secondary">
+          Please complete your KYC to access dashboard features.
+        </Typography>
+      </Box>
+    );
+  }
   return (
     <Box>
       <Typography variant="h4" gutterBottom sx={{ mb: 3 }}>

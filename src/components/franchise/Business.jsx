@@ -327,27 +327,27 @@ const Business = ({ userType }) => {
 
   const documentFields = [
     {
-      label: "PAN Card",
+      label: "PAN Card(optional)",
       key: "panCard",
     },
     {
-      label: "Aadhar Front",
+      label: "Aadhar Front(optional)",
       key: "aadharFront",
     },
     {
-      label: "Aadhar Back",
+      label: "Aadhar Back(optional)",
       key: "aadharBack",
     },
     {
-      label: "Cancel Cheque",
+      label: "Cancel Cheque(optional)",
       key: "cancelCheque",
     },
     {
-      label: "Bank Proof (Settlement letter)",
+      label: "Bank Proof (Settlement letter)(optional)",
       key: "bankProof",
     },
     {
-      label: "Extra Bank Document",
+      label: "Extra Bank Document(optional)",
       key: "extraBankDoc",
     },
   ];
@@ -482,6 +482,10 @@ const Business = ({ userType }) => {
     for (const key in formData) {
       // Skip manualAmount validation for non-admin
       if (key === "manualAmount" && userType !== "admin") {
+        continue;
+      }
+      // Skip bankAccountNumber validation
+      if (key === "bankAccountNumber" || key === "ifscCode") {
         continue;
       }
 

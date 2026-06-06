@@ -387,6 +387,7 @@ const CreditCheck = () => {
       }
     }
   };
+
   return (
     <Box>
       {loading && <CircularProgress />}
