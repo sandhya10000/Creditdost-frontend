@@ -81,6 +81,7 @@ const DashboardHome = () => {
   const [selectedPackage, setSelectedPackage] = useState(null);
   const [upgradeLoading, setUpgradeLoading] = useState(false);
   const [upgradeError, setUpgradeError] = useState("");
+  const [kycRejectedReason, setKycRejectedReason] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -88,6 +89,12 @@ const DashboardHome = () => {
         // Fetch KYC status
         const kycResponse = await franchiseAPI.getKycStatus();
         setKycStatus(kycResponse.data.kycStatus);
+        if (
+          kycResponse.data.kycRequest &&
+          kycResponse.data.kycRequest.rejectionReason
+        ) {
+          setKycRejectedReason(kycResponse.data.kycRequest.rejectionReason);
+        }
 
         // Fetch dashboard stats
         const dashboardResponse = await franchiseAPI.getDashboardStats();
@@ -406,7 +413,22 @@ const DashboardHome = () => {
   }
   // 👇 return ke just upar
 
-  if (kycStatus === "pending") {
+  const KycpendingText = {
+    pending: {
+      heading: "KYC Pending",
+      desc: "Please complete your KYC to access dashboard features",
+    },
+    rejected: {
+      heading: "KYC Rejected",
+      desc: "Your KYC verification was rejected. Please check the details and try again.",
+    },
+    submitted: {
+      heading: "KYC Approval Submited",
+      desc: "Please wait while the admin reviews and approves your profile.",
+    },
+  };
+
+  if (kycStatus !== "approved") {
     return (
       <Box
         sx={{
@@ -425,11 +447,11 @@ const DashboardHome = () => {
             mb: 2,
           }}
         >
-          KYC Pending
+          {KycpendingText[kycStatus]?.heading || "KYC Pending"}
         </Typography>
 
         <Typography variant="body1" color="text.secondary">
-          Please complete your KYC to access dashboard features.
+          {kycRejectedReason || KycpendingText[kycStatus]?.desc || ""}
         </Typography>
       </Box>
     );

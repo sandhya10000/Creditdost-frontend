@@ -379,7 +379,7 @@ const FranchiseDashboard = () => {
 
     // If KYC is rejected, show only Dashboard and KYC Verification
     if (kycStatus === "rejected") {
-      return allMenuItems.slice(0, 3); // Dashboard, My Profile, KYC Verification
+      return allMenuItems.slice(0, 2); // Dashboard, My Profile, KYC Verification
     }
     if (kycStatus === "pending") {
       return allMenuItems.slice(0, 2);
@@ -393,7 +393,7 @@ const FranchiseDashboard = () => {
       );
 
       // Return Dashboard, My Profile, KYC Verification, and Digital Agreement
-      const baseItems = allMenuItems.slice(0, 3); // Dashboard, My Profile, KYC Verification
+      const baseItems = allMenuItems.slice(0, 2); // Dashboard, My Profile, KYC Verification
 
       if (digitalAgreementIndex !== -1) {
         baseItems.push(allMenuItems[digitalAgreementIndex]); // Add Digital Agreement
@@ -404,7 +404,7 @@ const FranchiseDashboard = () => {
     }
 
     // Default: show only Dashboard and KYC Verification
-    return allMenuItems.slice(0, 3);
+    return allMenuItems.slice(0, 2);
   };
 
   const menuItems = getMenuItems();
