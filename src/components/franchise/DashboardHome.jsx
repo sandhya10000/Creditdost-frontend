@@ -93,8 +93,11 @@ const DashboardHome = () => {
         const dashboardResponse = await franchiseAPI.getDashboardStats();
 
         // Fetch recent credit reports
-        const reportsResponse = await franchiseAPI.getCreditReports();
-        const recentReports = reportsResponse.data.slice(0, 5); // Get last 5 reports
+        const reportsResponse = await franchiseAPI.getCreditReports({
+          page: 1,
+          limit: 5,
+        });
+        const recentReports = reportsResponse.data.reports.slice(0, 5); // Get last 5 reports
 
         // Fetch transactions to get purchased package
         const transactionsResponse = await franchiseAPI.getTransactions();
@@ -401,7 +404,36 @@ const DashboardHome = () => {
       </Box>
     );
   }
+  // 👇 return ke just upar
 
+  if (kycStatus === "pending") {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "70vh",
+          flexDirection: "column",
+        }}
+      >
+        <Typography
+          variant="h4"
+          sx={{
+            color: "#ff9800",
+            fontWeight: "bold",
+            mb: 2,
+          }}
+        >
+          KYC Pending
+        </Typography>
+
+        <Typography variant="body1" color="text.secondary">
+          Please complete your KYC to access dashboard features.
+        </Typography>
+      </Box>
+    );
+  }
   return (
     <Box>
       <Typography variant="h4" gutterBottom sx={{ mb: 3 }}>

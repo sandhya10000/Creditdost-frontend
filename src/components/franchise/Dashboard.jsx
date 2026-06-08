@@ -381,9 +381,12 @@ const FranchiseDashboard = () => {
     if (kycStatus === "rejected") {
       return allMenuItems.slice(0, 3); // Dashboard, My Profile, KYC Verification
     }
+    if (kycStatus === "pending") {
+      return allMenuItems.slice(0, 2);
+    }
 
-    // If KYC is pending or submitted, show Dashboard, My Profile, KYC Verification, and Digital Agreement
-    if (kycStatus === "pending" || kycStatus === "submitted") {
+    // // If KYC is pending or submitted, show Dashboard, My Profile, KYC Verification, and Digital Agreement
+    if (kycStatus === "submitted") {
       // Find the index of Digital Agreement in the menu items
       const digitalAgreementIndex = allMenuItems.findIndex(
         (item) => item.text === "Digital Agreement",

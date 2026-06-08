@@ -25,6 +25,7 @@ import {
   Chip,
   Link,
   Backdrop,
+  Pagination,
 } from "@mui/material";
 import {
   Search,
@@ -60,12 +61,18 @@ const AdminCreditBureau = ({ defaultBureau = "" }) => {
   const [creditReports, setCreditReports] = useState([]);
   const [recentReport, setRecentReport] = useState(null);
   const [availableCredits, setAvailableCredits] = useState(0);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [page, setPage] = useState(1);
+  const rowsPerPage = 25;
 
   // Load recent credit reports and available credits on component mount
   useEffect(() => {
-    loadCreditReports();
     loadDashboardStats();
   }, []);
+
+  useEffect(() => {
+    loadCreditReports();
+  }, [page]);
 
   const loadDashboardStats = async () => {
     try {
@@ -76,12 +83,21 @@ const AdminCreditBureau = ({ defaultBureau = "" }) => {
     }
   };
 
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
   const loadCreditReports = async () => {
     try {
       setLoading(true);
-      const response = await franchiseAPI.getCreditReports();
+      const response = await franchiseAPI.getCreditReports({
+        page: page,
+        limit: rowsPerPage,
+      });
       console.log("Credit reports loaded:", response.data);
-      setCreditReports(response.data);
+
+      setCreditReports(response.data.reports || []);
+      setTotalRecords(response.data.total || 0);
       setLoading(false);
     } catch (err) {
       console.error("Error loading credit reports:", err);
@@ -313,23 +329,6 @@ const AdminCreditBureau = ({ defaultBureau = "" }) => {
   };
   return (
     <Box>
-      {loading && (
-        <Backdrop
-          open={loading}
-          sx={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            zIndex: 10,
-            color: "#fff",
-            backgroundColor: "rgba(255,255,255,0.5)",
-          }}
-        >
-          <CircularProgress color="primary" />
-        </Backdrop>
-      )}
       <Typography variant="h4" gutterBottom>
         Credit Check
       </Typography>
@@ -626,11 +625,28 @@ const AdminCreditBureau = ({ defaultBureau = "" }) => {
       {activeTab === 1 && (
         <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
           <CardContent>
+            {loading && (
+              <Backdrop
+                open={loading}
+                sx={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  height: "100%",
+                  zIndex: 10,
+                  color: "#fff",
+                  backgroundColor: "rgba(255,255,255,0.5)",
+                }}
+              >
+                <CircularProgress color="primary" />
+              </Backdrop>
+            )}
             <Typography variant="h6" gutterBottom>
               Recent Credit Reports
             </Typography>
 
-            {creditReports.length === 0 ? (
+            {creditReports.length === 0 && !loading ? (
               <Typography variant="body1" sx={{ textAlign: "center", py: 4 }}>
                 No credit reports found. Check a customer's credit to see
                 reports here.
@@ -712,6 +728,32 @@ const AdminCreditBureau = ({ defaultBureau = "" }) => {
                     ))}
                   </TableBody>
                 </Table>
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: { xs: "column", sm: "row" }, // Stacks on mobile, side-by-side on desktop
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    gap: 2,
+                    p: 3,
+                  }}
+                >
+                  <Typography variant="body2" color="text.secondary">
+                    Total Records: {totalRecords}
+                  </Typography>
+
+                  <Pagination
+                    count={Math.ceil(totalRecords / rowsPerPage)}
+                    page={page}
+                    onChange={handleChangePage}
+                    color="primary"
+                    variant="outlined"
+                    shape="rounded"
+                    showFirstButton
+                    showLastButton
+                  />
+                  <Typography></Typography>
+                </Box>
               </TableContainer>
             )}
           </CardContent>

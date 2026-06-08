@@ -306,6 +306,11 @@ const AdminDashboard = () => {
       path: "/admin/report-analytics",
     },
     {
+      text: "AI Analysis",
+      icon: <AutoGraphIcon />,
+      path: "/admin/ai-analysis",
+    },
+    {
       text: "Manage Payouts",
       icon: <AccountBalanceIcon />,
       path: "/admin/payouts",

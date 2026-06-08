@@ -21,14 +21,15 @@ import {
   Alert,
   CircularProgress,
   IconButton,
-  Tooltip
+  Tooltip,
+  Pagination,
 } from "@mui/material";
 import {
   UploadFile as UploadIcon,
   Visibility as ViewIcon,
   Download as DownloadIcon,
   CheckCircle as CheckCircleIcon,
-  HourglassEmpty as HourglassIcon
+  HourglassEmpty as HourglassIcon,
 } from "@mui/icons-material";
 import { adminAPI } from "../../services/api";
 
@@ -38,16 +39,23 @@ const ManageAIAnalysis = () => {
   const [selectedDocument, setSelectedDocument] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
   const [responseFile, setResponseFile] = useState(null);
-  const [notes, setNotes] = useState('');
+  const [notes, setNotes] = useState("");
   const [uploading, setUploading] = useState(false);
-  const [uploadError, setUploadError] = useState('');
+  const [uploadError, setUploadError] = useState("");
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [page, setPage] = useState(1);
+  const rowsPerPage = 25;
 
   // Fetch all AI analysis documents
   const fetchDocuments = async () => {
     setLoading(true);
     try {
-      const response = await adminAPI.getAIAnalysisDocuments();
-      setDocuments(response.data);
+      const response = await adminAPI.getAIAnalysisDocuments({
+        page: page,
+        limit: rowsPerPage,
+      });
+      setDocuments(response.data.documents || []);
+      setTotalRecords(response.data.total || 0);
     } catch (error) {
       console.error("Failed to fetch documents:", error);
     } finally {
@@ -58,16 +66,25 @@ const ManageAIAnalysis = () => {
   // Load documents on component mount
   useEffect(() => {
     fetchDocuments();
-  }, []);
+  }, [page]);
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
 
   // Handle response file selection
   const handleFileChange = (event) => {
     const file = event.target.files[0];
-    if (file && (file.type === 'application/pdf' || file.type === 'text/html' || file.name.toLowerCase().endsWith('.html'))) {
+    if (
+      file &&
+      (file.type === "application/pdf" ||
+        file.type === "text/html" ||
+        file.name.toLowerCase().endsWith(".html"))
+    ) {
       setResponseFile(file);
-      setUploadError('');
+      setUploadError("");
     } else {
-      setUploadError('Please select a PDF or HTML file');
+      setUploadError("Please select a PDF or HTML file");
       setResponseFile(null);
     }
   };
@@ -77,8 +94,8 @@ const ManageAIAnalysis = () => {
     setSelectedDocument(document);
     setOpenDialog(true);
     setResponseFile(null);
-    setNotes('');
-    setUploadError('');
+    setNotes("");
+    setUploadError("");
   };
 
   // Close dialog
@@ -86,60 +103,75 @@ const ManageAIAnalysis = () => {
     setOpenDialog(false);
     setSelectedDocument(null);
     setResponseFile(null);
-    setNotes('');
-    setUploadError('');
+    setNotes("");
+    setUploadError("");
   };
 
   // Submit response
   const handleSubmitResponse = async () => {
     if (!responseFile) {
-      setUploadError('Please select a response file');
+      setUploadError("Please select a response file");
       return;
     }
 
     setUploading(true);
-    setUploadError('');
+    setUploadError("");
 
     try {
       const formData = new FormData();
-      formData.append('document', responseFile);
+      formData.append("document", responseFile);
       if (notes) {
-        formData.append('notes', notes);
+        formData.append("notes", notes);
       }
 
-      const response = await adminAPI.respondToAIAnalysisDocument(selectedDocument._id, formData);
-      
+      const response = await adminAPI.respondToAIAnalysisDocument(
+        selectedDocument._id,
+        formData,
+      );
+
       if (response.data) {
         // Refresh documents list
         fetchDocuments();
         handleCloseDialog();
       }
     } catch (error) {
-      setUploadError(error.response?.data?.message || 'Failed to submit response');
+      setUploadError(
+        error.response?.data?.message || "Failed to submit response",
+      );
     } finally {
       setUploading(false);
     }
   };
 
-
-
   // Get status chip color based on Claude analysis status
   const getStatusChip = (doc) => {
     const claudeStatus = doc.claudeAnalysisStatus;
-    const hasAdminResponse = doc.status === 'responded';
-    
-    if (claudeStatus === 'email_sent') {
-      return { label: 'AI Analyzed & Sent', color: 'success', icon: <CheckCircleIcon /> };
-    } else if (claudeStatus === 'completed') {
-      return { label: 'AI Analyzed', color: 'success', icon: <CheckCircleIcon /> };
-    } else if (claudeStatus === 'processing') {
-      return { label: 'Analyzing...', color: 'warning', icon: <HourglassIcon /> };
-    } else if (claudeStatus === 'failed') {
-      return { label: 'Analysis Failed', color: 'error' };
+    const hasAdminResponse = doc.status === "responded";
+
+    if (claudeStatus === "email_sent") {
+      return {
+        label: "AI Analyzed & Sent",
+        color: "success",
+        icon: <CheckCircleIcon />,
+      };
+    } else if (claudeStatus === "completed") {
+      return {
+        label: "AI Analyzed",
+        color: "success",
+        icon: <CheckCircleIcon />,
+      };
+    } else if (claudeStatus === "processing") {
+      return {
+        label: "Analyzing...",
+        color: "warning",
+        icon: <HourglassIcon />,
+      };
+    } else if (claudeStatus === "failed") {
+      return { label: "Analysis Failed", color: "error" };
     } else if (hasAdminResponse) {
-      return { label: 'Admin Responded', color: 'success' };
+      return { label: "Admin Responded", color: "success" };
     } else {
-      return { label: 'Uploaded', color: 'primary' };
+      return { label: "Uploaded", color: "primary" };
     }
   };
 
@@ -147,20 +179,20 @@ const ManageAIAnalysis = () => {
   const handleDownloadAnalysis = async (docId, fileName) => {
     try {
       const response = await adminAPI.downloadClaudeAnalysis(docId);
-      
+
       // Create blob and download
-      const blob = new Blob([response.data], { type: 'text/html' });
+      const blob = new Blob([response.data], { type: "text/html" });
       const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = url;
-      link.setAttribute('download', fileName || `analysis_${docId}.html`);
+      link.setAttribute("download", fileName || `analysis_${docId}.html`);
       document.body.appendChild(link);
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error('Failed to download analysis:', error);
-      alert('Failed to download analysis report. Please try again.');
+      console.error("Failed to download analysis:", error);
+      alert("Failed to download analysis report. Please try again.");
     }
   };
 
@@ -169,15 +201,15 @@ const ManageAIAnalysis = () => {
       <Typography variant="h4" gutterBottom>
         AI Analysis Documents
       </Typography>
-      
+
       <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
         <CardContent>
           <Typography variant="h6" gutterBottom>
             Document Management
           </Typography>
-          
+
           {loading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+            <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
               <CircularProgress />
             </Box>
           ) : (
@@ -195,12 +227,16 @@ const ManageAIAnalysis = () => {
                 <TableBody>
                   {documents.map((doc) => {
                     const statusChip = getStatusChip(doc);
-                    const hasAnalysis = doc.claudeAnalysisStatus === 'completed' || doc.claudeAnalysisStatus === 'email_sent';
-                    
+                    const hasAnalysis =
+                      doc.claudeAnalysisStatus === "completed" ||
+                      doc.claudeAnalysisStatus === "email_sent";
+
                     return (
                       <TableRow key={doc._id}>
                         <TableCell>
-                          <Typography variant="body2">{doc.franchiseName}</Typography>
+                          <Typography variant="body2">
+                            {doc.franchiseName}
+                          </Typography>
                           <Typography variant="caption" color="textSecondary">
                             {doc.franchiseEmail}
                           </Typography>
@@ -210,32 +246,37 @@ const ManageAIAnalysis = () => {
                           {new Date(doc.uploadedAt).toLocaleDateString()}
                         </TableCell>
                         <TableCell>
-                          <Chip 
-                            label={statusChip.label} 
-                            color={statusChip.color} 
+                          <Chip
+                            label={statusChip.label}
+                            color={statusChip.color}
                             icon={statusChip.icon}
-                            size="small" 
+                            size="small"
                             variant="outlined"
                           />
                         </TableCell>
                         <TableCell>
-                          <Box sx={{ display: 'flex', gap: 0.5 }}>
+                          <Box sx={{ display: "flex", gap: 0.5 }}>
                             {/* View Details Button */}
                             <Tooltip title="View Details">
-                              <IconButton 
-                                size="small" 
+                              <IconButton
+                                size="small"
                                 onClick={() => handleOpenDialog(doc)}
                               >
                                 <ViewIcon />
                               </IconButton>
                             </Tooltip>
-                            
+
                             {/* Download AI Analysis Button */}
                             {hasAnalysis && doc.claudeAnalysisFileName && (
                               <Tooltip title="Download AI Analysis Report">
-                                <IconButton 
-                                  size="small" 
-                                  onClick={() => handleDownloadAnalysis(doc._id, doc.claudeAnalysisFileName)}
+                                <IconButton
+                                  size="small"
+                                  onClick={() =>
+                                    handleDownloadAnalysis(
+                                      doc._id,
+                                      doc.claudeAnalysisFileName,
+                                    )
+                                  }
                                   color="success"
                                 >
                                   <DownloadIcon />
@@ -249,27 +290,71 @@ const ManageAIAnalysis = () => {
                   })}
                 </TableBody>
               </Table>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: { xs: "column", sm: "row" }, // Stacks on mobile, side-by-side on desktop
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  gap: 2,
+                  p: 3,
+                }}
+              >
+                <Typography variant="body2" color="text.secondary">
+                  Total Records: {totalRecords}
+                </Typography>
+
+                <Pagination
+                  count={Math.ceil(totalRecords / rowsPerPage)}
+                  page={page}
+                  onChange={handleChangePage}
+                  color="primary"
+                  variant="outlined"
+                  shape="rounded"
+                  showFirstButton
+                  showLastButton
+                />
+                <Typography></Typography>
+              </Box>
             </TableContainer>
           )}
         </CardContent>
       </Card>
 
       {/* Response Dialog */}
-      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
+      <Dialog
+        open={openDialog}
+        onClose={handleCloseDialog}
+        maxWidth="md"
+        fullWidth
+      >
         <DialogTitle>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
             <Typography variant="h6">Document Details</Typography>
-            {selectedDocument && (selectedDocument.claudeAnalysisStatus === 'completed' || selectedDocument.claudeAnalysisStatus === 'email_sent') && (
-              <Button 
-                startIcon={<DownloadIcon />}
-                onClick={() => handleDownloadAnalysis(selectedDocument._id, selectedDocument.claudeAnalysisFileName)}
-                color="success"
-                variant="outlined"
-                size="small"
-              >
-                Download AI Report
-              </Button>
-            )}
+            {selectedDocument &&
+              (selectedDocument.claudeAnalysisStatus === "completed" ||
+                selectedDocument.claudeAnalysisStatus === "email_sent") && (
+                <Button
+                  startIcon={<DownloadIcon />}
+                  onClick={() =>
+                    handleDownloadAnalysis(
+                      selectedDocument._id,
+                      selectedDocument.claudeAnalysisFileName,
+                    )
+                  }
+                  color="success"
+                  variant="outlined"
+                  size="small"
+                >
+                  Download AI Report
+                </Button>
+              )}
           </Box>
         </DialogTitle>
         <DialogContent>
@@ -283,7 +368,7 @@ const ManageAIAnalysis = () => {
                   Email: {selectedDocument.franchiseEmail}
                 </Typography>
               </Box>
-              
+
               <Box sx={{ mb: 2 }}>
                 <Typography variant="subtitle2" color="textSecondary">
                   Document Information
@@ -293,32 +378,49 @@ const ManageAIAnalysis = () => {
                     Original File: {selectedDocument.uploadedDocumentName}
                   </Typography>
                   <Typography variant="body2">
-                    Uploaded: {new Date(selectedDocument.uploadedAt).toLocaleString()}
+                    Uploaded:{" "}
+                    {new Date(selectedDocument.uploadedAt).toLocaleString()}
                   </Typography>
                 </Box>
               </Box>
-              
+
               {/* AI Analysis Status Section */}
-              <Box sx={{ mb: 3, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
-                <Typography variant="subtitle2" color="textSecondary" gutterBottom>
+              <Box sx={{ mb: 3, p: 2, bgcolor: "grey.50", borderRadius: 1 }}>
+                <Typography
+                  variant="subtitle2"
+                  color="textSecondary"
+                  gutterBottom
+                >
                   AI Analysis Status
                 </Typography>
                 <Box sx={{ ml: 2, mt: 1 }}>
                   <Typography variant="body2">
-                    Status: <Chip 
-                      label={selectedDocument.claudeAnalysisStatus || 'pending'} 
+                    Status:{" "}
+                    <Chip
+                      label={selectedDocument.claudeAnalysisStatus || "pending"}
                       size="small"
-                      color={selectedDocument.claudeAnalysisStatus === 'completed' || selectedDocument.claudeAnalysisStatus === 'email_sent' ? 'success' : 'default'}
+                      color={
+                        selectedDocument.claudeAnalysisStatus === "completed" ||
+                        selectedDocument.claudeAnalysisStatus === "email_sent"
+                          ? "success"
+                          : "default"
+                      }
                     />
                   </Typography>
                   {selectedDocument.analyzedAt && (
                     <Typography variant="body2" sx={{ mt: 0.5 }}>
-                      Analyzed At: {new Date(selectedDocument.analyzedAt).toLocaleString()}
+                      Analyzed At:{" "}
+                      {new Date(selectedDocument.analyzedAt).toLocaleString()}
                     </Typography>
                   )}
                   {selectedDocument.emailSentAt && (
-                    <Typography variant="body2" sx={{ mt: 0.5 }} color="success.main">
-                      Email Sent: {new Date(selectedDocument.emailSentAt).toLocaleString()}
+                    <Typography
+                      variant="body2"
+                      sx={{ mt: 0.5 }}
+                      color="success.main"
+                    >
+                      Email Sent:{" "}
+                      {new Date(selectedDocument.emailSentAt).toLocaleString()}
                     </Typography>
                   )}
                   {selectedDocument.claudeAnalysisError && (
@@ -326,59 +428,68 @@ const ManageAIAnalysis = () => {
                       Error: {selectedDocument.claudeAnalysisError}
                     </Typography>
                   )}
-                  {!selectedDocument.claudeAnalysisHtml && selectedDocument.claudeAnalysisStatus !== 'processing' && (
-                    <Typography variant="body2" sx={{ mt: 1 }} color="warning.main">
-                      ⚠️ AI analysis not yet completed. Franchise user can trigger it manually.
-                    </Typography>
-                  )}
+                  {!selectedDocument.claudeAnalysisHtml &&
+                    selectedDocument.claudeAnalysisStatus !== "processing" && (
+                      <Typography
+                        variant="body2"
+                        sx={{ mt: 1 }}
+                        color="warning.main"
+                      >
+                        ⚠️ AI analysis not yet completed. Franchise user can
+                        trigger it manually.
+                      </Typography>
+                    )}
                 </Box>
               </Box>
-              
+
               {/* Admin Response Section */}
               <Box sx={{ mb: 2 }}>
                 <Typography variant="subtitle2" color="textSecondary">
                   Admin Response (Optional)
                 </Typography>
-                
+
                 {selectedDocument.adminResponseDocumentName && (
                   <Alert severity="success" sx={{ mt: 1, mb: 2 }}>
-                    Response already submitted: {selectedDocument.adminResponseDocumentName}
+                    Response already submitted:{" "}
+                    {selectedDocument.adminResponseDocumentName}
                   </Alert>
                 )}
-                
+
                 <input
                   accept="application/pdf,.html,text/html"
-                  style={{ display: 'none' }}
+                  style={{ display: "none" }}
                   id="response-upload"
                   type="file"
                   onChange={handleFileChange}
                   disabled={uploading}
                 />
-                
+
                 <label htmlFor="response-upload">
-                  <Button 
-                    variant="outlined" 
-                    component="span" 
+                  <Button
+                    variant="outlined"
+                    component="span"
                     startIcon={<UploadIcon />}
                     sx={{ mt: 1 }}
-                    disabled={uploading || !!selectedDocument.adminResponseDocumentName}
+                    disabled={
+                      uploading || !!selectedDocument.adminResponseDocumentName
+                    }
                   >
                     Upload Response PDF/HTML
                   </Button>
                 </label>
-                
+
                 {responseFile && (
                   <Typography variant="body2" sx={{ mt: 1 }}>
                     Selected: {responseFile.name}
                   </Typography>
                 )}
-                
+
                 {uploadError && (
                   <Alert severity="error" sx={{ mt: 2 }}>
                     {uploadError}
                   </Alert>
                 )}
-                
+
                 <TextField
                   label="Notes (Optional)"
                   multiline
@@ -395,12 +506,16 @@ const ManageAIAnalysis = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button 
-            onClick={handleSubmitResponse} 
-            variant="contained" 
-            disabled={!responseFile || uploading || !!selectedDocument?.adminResponseDocumentName}
+          <Button
+            onClick={handleSubmitResponse}
+            variant="contained"
+            disabled={
+              !responseFile ||
+              uploading ||
+              !!selectedDocument?.adminResponseDocumentName
+            }
           >
-            {uploading ? <CircularProgress size={24} /> : 'Submit Response'}
+            {uploading ? <CircularProgress size={24} /> : "Submit Response"}
           </Button>
         </DialogActions>
       </Dialog>

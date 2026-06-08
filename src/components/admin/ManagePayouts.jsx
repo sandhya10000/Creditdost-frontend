@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -26,25 +26,29 @@ import {
   DialogContent,
   DialogActions,
   Chip,
-} from '@mui/material';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { adminAPI } from '../../services/api';  
+} from "@mui/material";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { adminAPI } from "../../services/api";
 
 const ManagePayouts = () => {
   const [franchises, setFranchises] = useState([]);
   const [payouts, setPayouts] = useState([]);
-  const [selectedFranchise, setSelectedFranchise] = useState('');
+  const [selectedFranchise, setSelectedFranchise] = useState("");
   const [periodStart, setPeriodStart] = useState(null);
   const [periodEnd, setPeriodEnd] = useState(null);
   const [loading, setLoading] = useState(false);
   const [calculating, setCalculating] = useState(false);
-  const [alert, setAlert] = useState({ open: false, message: '', severity: 'success' });
+  const [alert, setAlert] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedPayout, setSelectedPayout] = useState(null);
-  const [status, setStatus] = useState('');
-  const [remarks, setRemarks] = useState('');
+  const [status, setStatus] = useState("");
+  const [remarks, setRemarks] = useState("");
   const [calculatedPayout, setCalculatedPayout] = useState(null);
 
   // Fetch franchises and payouts on component mount
@@ -56,11 +60,11 @@ const ManagePayouts = () => {
   const fetchFranchises = async () => {
     try {
       setLoading(true);
-      const response = await adminAPI.getAllFranchises();
-      setFranchises(response.data);
+      const response = await adminAPI.getFranchiseList();
+      setFranchises(response.data || []);
     } catch (error) {
-      showNotification('Error fetching franchises', 'error');
-      console.error('Error fetching franchises:', error);
+      showNotification("Error fetching franchises", "error");
+      console.error("Error fetching franchises:", error);
     } finally {
       setLoading(false);
     }
@@ -72,14 +76,14 @@ const ManagePayouts = () => {
       const response = await adminAPI.getAllPayouts();
       setPayouts(response.data);
     } catch (error) {
-      showNotification('Error fetching payouts', 'error');
-      console.error('Error fetching payouts:', error);
+      showNotification("Error fetching payouts", "error");
+      console.error("Error fetching payouts:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  const showNotification = (message, severity = 'success') => {
+  const showNotification = (message, severity = "success") => {
     setAlert({ open: true, message, severity });
   };
 
@@ -89,7 +93,7 @@ const ManagePayouts = () => {
 
   const handleCalculatePayout = async () => {
     if (!selectedFranchise || !periodStart || !periodEnd) {
-      showNotification('Please fill all fields', 'error');
+      showNotification("Please fill all fields", "error");
       return;
     }
 
@@ -107,15 +111,15 @@ const ManagePayouts = () => {
       // Set calculated payout data for display
       setCalculatedPayout(response.data);
       // Reset form
-      setSelectedFranchise('');
+      setSelectedFranchise("");
       setPeriodStart(null);
       setPeriodEnd(null);
     } catch (error) {
       showNotification(
-        error.response?.data?.message || 'Error calculating payout',
-        'error'
+        error.response?.data?.message || "Error calculating payout",
+        "error",
       );
-      console.error('Error calculating payout:', error);
+      console.error("Error calculating payout:", error);
     } finally {
       setCalculating(false);
     }
@@ -123,7 +127,7 @@ const ManagePayouts = () => {
 
   const handleUpdatePayout = async () => {
     if (!status) {
-      showNotification('Please select a status', 'error');
+      showNotification("Please select a status", "error");
       return;
     }
 
@@ -141,14 +145,14 @@ const ManagePayouts = () => {
       setOpenDialog(false);
       // Reset form
       setSelectedPayout(null);
-      setStatus('');
-      setRemarks('');
+      setStatus("");
+      setRemarks("");
     } catch (error) {
       showNotification(
-        error.response?.data?.message || 'Error updating payout',
-        'error'
+        error.response?.data?.message || "Error updating payout",
+        "error",
       );
-      console.error('Error updating payout:', error);
+      console.error("Error updating payout:", error);
     } finally {
       setLoading(false);
     }
@@ -157,39 +161,47 @@ const ManagePayouts = () => {
   const handleOpenUpdateDialog = (payout) => {
     setSelectedPayout(payout);
     setStatus(payout.status);
-    setRemarks(payout.remarks || '');
+    setRemarks(payout.remarks || "");
     setOpenDialog(true);
   };
 
   const handleCloseDialog = () => {
     setOpenDialog(false);
     setSelectedPayout(null);
-    setStatus('');
-    setRemarks('');
+    setStatus("");
+    setRemarks("");
   };
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'completed': return 'success';
-      case 'processing': return 'warning';
-      case 'failed': return 'error';
-      default: return 'default';
+      case "completed":
+        return "success";
+      case "processing":
+        return "warning";
+      case "failed":
+        return "error";
+      default:
+        return "default";
     }
   };
 
   const getFranchiseName = (franchiseId) => {
     // Case 1: franchiseId is an object (populated franchise data)
-    if (franchiseId && typeof franchiseId === 'object' && franchiseId.businessName) {
+    if (
+      franchiseId &&
+      typeof franchiseId === "object" &&
+      franchiseId.businessName
+    ) {
       return franchiseId.businessName;
     }
-    
+
     // Case 2: franchiseId is a string ID, try to find in franchises list
-    const franchise = franchises.find(f => f._id === franchiseId);
+    const franchise = franchises.find((f) => f._id === franchiseId);
     if (franchise) {
       return franchise.businessName;
     }
-    
-    return 'Unknown Franchise';
+
+    return "Unknown Franchise";
   };
 
   return (
@@ -202,29 +214,28 @@ const ManagePayouts = () => {
         open={alert.open}
         autoHideDuration={6000}
         onClose={handleCloseAlert}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
       >
-        <Alert 
-          onClose={handleCloseAlert} 
-          severity={alert.severity} 
-          sx={{ width: '100%' }}
+        <Alert
+          onClose={handleCloseAlert}
+          severity={alert.severity}
+          sx={{ width: "100%" }}
         >
           {alert.message}
         </Alert>
       </Snackbar>
 
-      <Grid container spacing={3} style={{ flexDirection: 'column' }}>
-    
+      <Grid container spacing={3} style={{ flexDirection: "column" }}>
         {/* Payout Calculation Form */}
         <Grid item xs={12}>
           <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
             <CardContent>
-              <Typography variant="h6" gutterBottom>   
+              <Typography variant="h6" gutterBottom>
                 Calculate Payout
               </Typography>
-              
+
               <Grid container spacing={2}>
-                <Grid item xs={12} md={4} style={{flex:"1"}}>
+                <Grid item xs={12} md={4} style={{ flex: "1" }}>
                   <FormControl fullWidth margin="normal">
                     <InputLabel>Franchise</InputLabel>
                     <Select
@@ -243,30 +254,34 @@ const ManagePayouts = () => {
                     </Select>
                   </FormControl>
                 </Grid>
-                
-                <Grid item xs={12} md={4} style={{flex:"1"}}>
+
+                <Grid item xs={12} md={4} style={{ flex: "1" }}>
                   <LocalizationProvider dateAdapter={AdapterDateFns}>
                     <DatePicker
                       label="Period Start"
                       value={periodStart}
                       onChange={(newValue) => setPeriodStart(newValue)}
-                      renderInput={(params) => <TextField {...params} fullWidth margin="normal" />}
+                      renderInput={(params) => (
+                        <TextField {...params} fullWidth margin="normal" />
+                      )}
                     />
                   </LocalizationProvider>
                 </Grid>
-                
-                <Grid item xs={12} md={4} style={{flex:"1"}}>
+
+                <Grid item xs={12} md={4} style={{ flex: "1" }}>
                   <LocalizationProvider dateAdapter={AdapterDateFns}>
                     <DatePicker
                       label="Period End"
                       value={periodEnd}
                       onChange={(newValue) => setPeriodEnd(newValue)}
-                      renderInput={(params) => <TextField {...params} fullWidth margin="normal" />}
+                      renderInput={(params) => (
+                        <TextField {...params} fullWidth margin="normal" />
+                      )}
                     />
                   </LocalizationProvider>
                 </Grid>
               </Grid>
-              
+
               <Button
                 variant="contained"
                 color="primary"
@@ -275,12 +290,19 @@ const ManagePayouts = () => {
                 sx={{ mt: 2 }}
                 startIcon={calculating ? <CircularProgress size={20} /> : null}
               >
-                {calculating ? 'Calculating...' : 'Calculate Payout'}
+                {calculating ? "Calculating..." : "Calculate Payout"}
               </Button>
-              
+
               {/* TDS Information Panel */}
               {calculatedPayout && (
-                <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2, bgcolor: '#f5f5f5' }}>
+                <Card
+                  sx={{
+                    mt: 3,
+                    boxShadow: 3,
+                    borderRadius: 2,
+                    bgcolor: "#f5f5f5",
+                  }}
+                >
                   <CardContent>
                     <Typography variant="h6" gutterBottom>
                       Payout Calculation Summary
@@ -288,22 +310,26 @@ const ManagePayouts = () => {
                     <Grid container spacing={2}>
                       <Grid item xs={12} md={3}>
                         <Typography variant="body1">
-                          <strong>Gross Amount:</strong> ₹{calculatedPayout.grossAmount?.toFixed(2) || '0.00'}
+                          <strong>Gross Amount:</strong> ₹
+                          {calculatedPayout.grossAmount?.toFixed(2) || "0.00"}
                         </Typography>
                       </Grid>
                       <Grid item xs={12} md={3}>
                         <Typography variant="body1" color="error">
-                          <strong>TDS (2%):</strong> -₹{calculatedPayout.tdsDeducted?.toFixed(2) || '0.00'}
+                          <strong>TDS (2%):</strong> -₹
+                          {calculatedPayout.tdsDeducted?.toFixed(2) || "0.00"}
                         </Typography>
                       </Grid>
                       <Grid item xs={12} md={3}>
                         <Typography variant="body1" color="error">
-                          <strong>GST (18%):</strong> -₹{calculatedPayout.gstDeducted?.toFixed(2) || '0.00'}
+                          <strong>GST (18%):</strong> -₹
+                          {calculatedPayout.gstDeducted?.toFixed(2) || "0.00"}
                         </Typography>
                       </Grid>
                       <Grid item xs={12} md={3}>
                         <Typography variant="body1" color="success.main">
-                          <strong>Net Payout:</strong> ₹{calculatedPayout.netAmount?.toFixed(2) || '0.00'}
+                          <strong>Net Payout:</strong> ₹
+                          {calculatedPayout.netAmount?.toFixed(2) || "0.00"}
                         </Typography>
                       </Grid>
                     </Grid>
@@ -321,7 +347,7 @@ const ManagePayouts = () => {
               <Typography variant="h6" gutterBottom>
                 Payout History
               </Typography>
-              
+
               {loading ? (
                 <Box display="flex" justifyContent="center" my={3}>
                   <CircularProgress />
@@ -347,32 +373,56 @@ const ManagePayouts = () => {
                       {payouts.length > 0 ? (
                         payouts.map((payout) => (
                           <TableRow key={payout._id}>
-                            <TableCell>{getFranchiseName(payout.franchiseId)}</TableCell>
                             <TableCell>
-                              {new Date(payout.periodStart).toLocaleDateString()} - {new Date(payout.periodEnd).toLocaleDateString()}
+                              {getFranchiseName(payout.franchiseId)}
                             </TableCell>
-                            <TableCell align="right">₹{payout.grossAmount?.toFixed(2) || (payout.amount + payout.referralBonus).toFixed(2)}</TableCell>
-                            <TableCell align="right">₹{payout.tdsAmount?.toFixed(2) || ((payout.amount + payout.referralBonus) * 0.02).toFixed(2)}</TableCell>
+                            <TableCell>
+                              {new Date(
+                                payout.periodStart,
+                              ).toLocaleDateString()}{" "}
+                              -{" "}
+                              {new Date(payout.periodEnd).toLocaleDateString()}
+                            </TableCell>
                             <TableCell align="right">
-                              {payout.gstAmount !== undefined ? 
-                                `₹${payout.gstAmount.toFixed(2)}` : 
-                                `₹${((payout.amount + payout.referralBonus) * 0.18).toFixed(2)}*`
-                              }
+                              ₹
+                              {payout.grossAmount?.toFixed(2) ||
+                                (payout.amount + payout.referralBonus).toFixed(
+                                  2,
+                                )}
                             </TableCell>
-                            <TableCell align="right">₹{payout.totalAmount.toFixed(2)}</TableCell>
-                            <TableCell align="right">{payout.creditsGenerated}</TableCell>
-                            <TableCell align="right">₹{payout.referralBonus.toFixed(2)}</TableCell>
+                            <TableCell align="right">
+                              ₹
+                              {payout.tdsAmount?.toFixed(2) ||
+                                (
+                                  (payout.amount + payout.referralBonus) *
+                                  0.02
+                                ).toFixed(2)}
+                            </TableCell>
+                            <TableCell align="right">
+                              {payout.gstAmount !== undefined
+                                ? `₹${payout.gstAmount.toFixed(2)}`
+                                : `₹${((payout.amount + payout.referralBonus) * 0.18).toFixed(2)}*`}
+                            </TableCell>
+                            <TableCell align="right">
+                              ₹{payout.totalAmount.toFixed(2)}
+                            </TableCell>
+                            <TableCell align="right">
+                              {payout.creditsGenerated}
+                            </TableCell>
+                            <TableCell align="right">
+                              ₹{payout.referralBonus.toFixed(2)}
+                            </TableCell>
                             <TableCell>
-                              <Chip 
-                                label={payout.status} 
-                                color={getStatusColor(payout.status)} 
-                                size="small" 
+                              <Chip
+                                label={payout.status}
+                                color={getStatusColor(payout.status)}
+                                size="small"
                               />
                             </TableCell>
                             <TableCell>
-                              <Button 
-                                size="small" 
-                                variant="outlined" 
+                              <Button
+                                size="small"
+                                variant="outlined"
                                 onClick={() => handleOpenUpdateDialog(payout)}
                               >
                                 Update
@@ -390,9 +440,16 @@ const ManagePayouts = () => {
                     </TableBody>
                   </Table>
                   {/* Legend for historical records */}
-                  <Box sx={{ p: 2, bgcolor: '#f5f5f5', borderTop: '1px solid #e0e0e0' }}>
+                  <Box
+                    sx={{
+                      p: 2,
+                      bgcolor: "#f5f5f5",
+                      borderTop: "1px solid #e0e0e0",
+                    }}
+                  >
                     <Typography variant="caption" color="text.secondary">
-                      * Historical records calculated under previous rules (GST not deducted)
+                      * Historical records calculated under previous rules (GST
+                      not deducted)
                     </Typography>
                   </Box>
                 </TableContainer>
@@ -403,7 +460,12 @@ const ManagePayouts = () => {
       </Grid>
 
       {/* Update Payout Dialog */}
-      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
+      <Dialog
+        open={openDialog}
+        onClose={handleCloseDialog}
+        maxWidth="sm"
+        fullWidth
+      >
         <DialogTitle>Update Payout Status</DialogTitle>
         <DialogContent>
           {selectedPayout && (
@@ -413,19 +475,29 @@ const ManagePayouts = () => {
                   Franchise: {getFranchiseName(selectedPayout.franchiseId)}
                 </Typography>
                 <Typography variant="subtitle1">
-                  Period: {new Date(selectedPayout.periodStart).toLocaleDateString()} - {new Date(selectedPayout.periodEnd).toLocaleDateString()}
+                  Period:{" "}
+                  {new Date(selectedPayout.periodStart).toLocaleDateString()} -{" "}
+                  {new Date(selectedPayout.periodEnd).toLocaleDateString()}
                 </Typography>
                 <Typography variant="subtitle1">
-                  Gross Amount: ₹{selectedPayout.grossAmount?.toFixed(2) || (selectedPayout.amount + selectedPayout.referralBonus).toFixed(2)}
+                  Gross Amount: ₹
+                  {selectedPayout.grossAmount?.toFixed(2) ||
+                    (
+                      selectedPayout.amount + selectedPayout.referralBonus
+                    ).toFixed(2)}
                 </Typography>
                 <Typography variant="subtitle1" color="error">
-                  TDS ({selectedPayout.tdsPercentage || 2}%): -₹{selectedPayout.tdsAmount?.toFixed(2) || ((selectedPayout.amount + selectedPayout.referralBonus) * 0.02).toFixed(2)}
+                  TDS ({selectedPayout.tdsPercentage || 2}%): -₹
+                  {selectedPayout.tdsAmount?.toFixed(2) ||
+                    (
+                      (selectedPayout.amount + selectedPayout.referralBonus) *
+                      0.02
+                    ).toFixed(2)}
                 </Typography>
                 <Typography variant="subtitle1" color="error">
-                  {selectedPayout.gstAmount !== undefined ? 
-                    `GST (${selectedPayout.gstPercentage || 18}%): -₹${selectedPayout.gstAmount.toFixed(2)}` :
-                    `GST (18%): -₹${((selectedPayout.amount + selectedPayout.referralBonus) * 0.18).toFixed(2)}*`
-                  }
+                  {selectedPayout.gstAmount !== undefined
+                    ? `GST (${selectedPayout.gstPercentage || 18}%): -₹${selectedPayout.gstAmount.toFixed(2)}`
+                    : `GST (18%): -₹${((selectedPayout.amount + selectedPayout.referralBonus) * 0.18).toFixed(2)}*`}
                 </Typography>
                 <Typography variant="subtitle1" color="success.main">
                   Net Payout: ₹{selectedPayout.totalAmount.toFixed(2)}
@@ -436,7 +508,7 @@ const ManagePayouts = () => {
                   </Typography>
                 )}
               </Grid>
-              
+
               <Grid item xs={12}>
                 <FormControl fullWidth margin="normal">
                   <InputLabel>Status</InputLabel>
@@ -452,7 +524,7 @@ const ManagePayouts = () => {
                   </Select>
                 </FormControl>
               </Grid>
-              
+
               <Grid item xs={12}>
                 <TextField
                   fullWidth
@@ -469,13 +541,13 @@ const ManagePayouts = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button 
-            onClick={handleUpdatePayout} 
-            variant="contained" 
+          <Button
+            onClick={handleUpdatePayout}
+            variant="contained"
             color="primary"
             disabled={loading}
           >
-            {loading ? 'Updating...' : 'Update'}
+            {loading ? "Updating..." : "Update"}
           </Button>
         </DialogActions>
       </Dialog>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -28,103 +28,120 @@ import {
   Chip,
   TextareaAutosize,
   Divider,
-} from '@mui/material';
-import { 
-  Search, 
-  Visibility, 
-  Check, 
-  Close, 
-  CheckCircle, 
-  Cancel, 
-  Pending, 
+  Pagination,
+} from "@mui/material";
+import {
+  Search,
+  Visibility,
+  Check,
+  Close,
+  CheckCircle,
+  Cancel,
+  Pending,
   AssignmentInd,
   Add as AddIcon,
   Upload as UploadIcon,
-  Delete as DeleteIcon
-} from '@mui/icons-material';
-import { adminAPI } from '../../services/api';
+  Delete as DeleteIcon,
+} from "@mui/icons-material";
+import { adminAPI } from "../../services/api";
 
 const ManageLeads = () => {
   const [leads, setLeads] = useState([]);
   const [franchises, setFranchises] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [bulkUploadDialogOpen, setBulkUploadDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedLead, setSelectedLead] = useState(null);
-  const [selectedFranchise, setSelectedFranchise] = useState('');
+  const [selectedFranchise, setSelectedFranchise] = useState("");
   const [filteredLeads, setFilteredLeads] = useState([]);
   const [csvFile, setCsvFile] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [newLead, setNewLead] = useState({
-    name: '',
-    email: '',
-    phone: '',
+    name: "",
+    email: "",
+    phone: "",
     address: {
-      street: '',
-      city: '',
-      state: '',
-      pincode: ''
+      street: "",
+      city: "",
+      state: "",
+      pincode: "",
     },
-    creditScore: '',
-    notes: ''
+    creditScore: "",
+    notes: "",
   });
   const [leadToDelete, setLeadToDelete] = useState(null);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [page, setPage] = useState(1);
+  const rowsPerPage = 25;
 
   // Fetch all leads and franchises on component mount
   useEffect(() => {
-    fetchLeads();
     fetchFranchises();
   }, []);
 
   // Filter leads based on search term
+  // useEffect(() => {
+  //   if (!searchTerm.trim()) {
+  //     setFilteredLeads(leads);
+  //     return;
+  //   }
+
+  //   const filtered = leads.filter(
+  //     (lead) =>
+  //       lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //       lead.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //       lead.phone.includes(searchTerm),
+  //   );
+
+  //   setFilteredLeads(filtered);
+  // }, [searchTerm, leads]);
+
   useEffect(() => {
-    if (!searchTerm.trim()) {
-      setFilteredLeads(leads);
-      return;
-    }
-    
-    const filtered = leads.filter(lead => 
-      lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      lead.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      lead.phone.includes(searchTerm)
-    );
-    
-    setFilteredLeads(filtered);
-  }, [searchTerm, leads]);
+    fetchLeads();
+  }, [page]);
 
   const fetchLeads = async () => {
     try {
       setLoading(true);
-      setError('');
-      const response = await adminAPI.getAllLeads();
-      console.log('Fetched leads:', response.data); // Add this for debugging
-      setLeads(response.data);
-      setFilteredLeads(response.data);
+      setError("");
+      const response = await adminAPI.getAllLeads({
+        page: page,
+        limit: rowsPerPage,
+        search: searchTerm,
+      });
+      setLeads(response.data.leads || []);
+      setTotalRecords(response.data.total || 0);
+      setFilteredLeads(response.data.leads || []);
     } catch (err) {
-      setError('Failed to fetch leads. Please try again later.');
-      console.error('Error fetching leads:', err);
+      setError("Failed to fetch leads. Please try again later.");
+      console.error("Error fetching leads:", err);
     } finally {
       setLoading(false);
     }
   };
 
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
   const fetchFranchises = async () => {
     try {
-      const response = await adminAPI.getAllFranchises();
-      console.log('Fetched franchises:', response.data); // Add this for debugging
-      setFranchises(response.data);
+      const response = await adminAPI.getFranchiseList();
+      setFranchises(response.data || []);
     } catch (err) {
-      console.error('Error fetching franchises:', err);
+      console.error("Error fetching franchises:", err);
     }
   };
 
   const handleSearch = (e) => {
     e.preventDefault();
+    setPage(1);
+    fetchLeads();
     // Filtering is handled by useEffect
   };
 
@@ -135,43 +152,45 @@ const ManageLeads = () => {
   const handleCloseCreateDialog = () => {
     setCreateDialogOpen(false);
     setNewLead({
-      name: '',
-      email: '',
-      phone: '',
+      name: "",
+      email: "",
+      phone: "",
       address: {
-        street: '',
-        city: '',
-        state: '',
-        pincode: ''
+        street: "",
+        city: "",
+        state: "",
+        pincode: "",
       },
-      creditScore: '',
-      notes: ''
+      creditScore: "",
+      notes: "",
     });
   };
 
   const handleCreateLeadSubmit = async () => {
     if (!newLead.name || !newLead.phone) {
-      setError('Name and phone are required.');
+      setError("Name and phone are required.");
       return;
     }
-    
+
     setLoading(true);
-    setError('');
-    setSuccess('');
-    
+    setError("");
+    setSuccess("");
+
     try {
       const leadData = {
         ...newLead,
-        creditScore: newLead.creditScore ? parseInt(newLead.creditScore) : undefined
+        creditScore: newLead.creditScore
+          ? parseInt(newLead.creditScore)
+          : undefined,
       };
-      
+
       await adminAPI.createLead(leadData);
-      setSuccess('Lead created successfully!');
+      setSuccess("Lead created successfully!");
       handleCloseCreateDialog();
       fetchLeads();
     } catch (err) {
-      setError('Failed to create lead. Please try again.');
-      console.error('Error creating lead:', err);
+      setError("Failed to create lead. Please try again.");
+      console.error("Error creating lead:", err);
     } finally {
       setLoading(false);
     }
@@ -185,30 +204,30 @@ const ManageLeads = () => {
   const handleCloseAssignDialog = () => {
     setAssignDialogOpen(false);
     setSelectedLead(null);
-    setSelectedFranchise('');
+    setSelectedFranchise("");
   };
 
   const handleAssignSubmit = async () => {
     if (!selectedFranchise) {
-      setError('Please select a franchise to assign the lead to.');
+      setError("Please select a franchise to assign the lead to.");
       return;
     }
-    
+
     setLoading(true);
-    setError('');
-    setSuccess('');
-    
+    setError("");
+    setSuccess("");
+
     try {
-      await adminAPI.updateLead(selectedLead._id, { 
+      await adminAPI.updateLead(selectedLead._id, {
         franchiseId: selectedFranchise,
-        status: 'assigned'
+        status: "assigned",
       });
-      setSuccess('Lead assigned successfully!');
+      setSuccess("Lead assigned successfully!");
       handleCloseAssignDialog();
       fetchLeads();
     } catch (err) {
-      setError('Failed to assign lead. Please try again.');
-      console.error('Error assigning lead:', err);
+      setError("Failed to assign lead. Please try again.");
+      console.error("Error assigning lead:", err);
     } finally {
       setLoading(false);
     }
@@ -216,16 +235,16 @@ const ManageLeads = () => {
 
   const handleUpdateLeadStatus = async (leadId, status) => {
     setLoading(true);
-    setError('');
-    setSuccess('');
-    
+    setError("");
+    setSuccess("");
+
     try {
       await adminAPI.updateLead(leadId, { status });
       setSuccess(`Lead status updated to ${status} successfully!`);
       fetchLeads();
     } catch (err) {
-      setError('Failed to update lead status. Please try again.');
-      console.error('Error updating lead status:', err);
+      setError("Failed to update lead status. Please try again.");
+      console.error("Error updating lead status:", err);
     } finally {
       setLoading(false);
     }
@@ -238,20 +257,20 @@ const ManageLeads = () => {
 
   const confirmDeleteLead = async () => {
     if (!leadToDelete) return;
-    
+
     setLoading(true);
-    setError('');
-    setSuccess('');
-    
+    setError("");
+    setSuccess("");
+
     try {
       await adminAPI.deleteLead(leadToDelete._id);
-      setSuccess('Lead deleted successfully!');
+      setSuccess("Lead deleted successfully!");
       setDeleteDialogOpen(false);
       setLeadToDelete(null);
       fetchLeads();
     } catch (err) {
-      setError('Failed to delete lead. Please try again.');
-      console.error('Error deleting lead:', err);
+      setError("Failed to delete lead. Please try again.");
+      console.error("Error deleting lead:", err);
     } finally {
       setLoading(false);
     }
@@ -264,16 +283,28 @@ const ManageLeads = () => {
 
   const getStatusChip = (status) => {
     const statusConfig = {
-      'new': { label: 'New', color: 'info', icon: <Pending /> },
-      'contacted': { label: 'Contacted', color: 'warning', icon: <Pending /> },
-      'qualified': { label: 'Qualified', color: 'success', icon: <CheckCircle /> },
-      'lost': { label: 'Lost', color: 'error', icon: <Cancel /> },
-      'converted': { label: 'Converted', color: 'success', icon: <CheckCircle /> },
-      'assigned': { label: 'Assigned', color: 'primary', icon: <AssignmentInd /> },
+      new: { label: "New", color: "info", icon: <Pending /> },
+      contacted: { label: "Contacted", color: "warning", icon: <Pending /> },
+      qualified: {
+        label: "Qualified",
+        color: "success",
+        icon: <CheckCircle />,
+      },
+      lost: { label: "Lost", color: "error", icon: <Cancel /> },
+      converted: {
+        label: "Converted",
+        color: "success",
+        icon: <CheckCircle />,
+      },
+      assigned: {
+        label: "Assigned",
+        color: "primary",
+        icon: <AssignmentInd />,
+      },
     };
-    
-    const config = statusConfig[status] || { label: status, color: 'default' };
-    
+
+    const config = statusConfig[status] || { label: status, color: "default" };
+
     return (
       <Chip
         icon={config.icon}
@@ -286,27 +317,27 @@ const ManageLeads = () => {
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
+    if (!dateString) return "N/A";
     return new Date(dateString).toLocaleDateString();
   };
 
   const handleNewLeadChange = (e) => {
     const { name, value } = e.target;
-    
-    if (name.includes('.')) {
+
+    if (name.includes(".")) {
       // Handle nested properties like address.street
-      const [parent, child] = name.split('.');
-      setNewLead(prev => ({
+      const [parent, child] = name.split(".");
+      setNewLead((prev) => ({
         ...prev,
         [parent]: {
           ...prev[parent],
-          [child]: value
-        }
+          [child]: value,
+        },
       }));
     } else {
-      setNewLead(prev => ({
+      setNewLead((prev) => ({
         ...prev,
-        [name]: value
+        [name]: value,
       }));
     }
   };
@@ -326,45 +357,49 @@ const ManageLeads = () => {
     const file = e.target.files[0];
     if (file) {
       // Check if file is CSV
-      if (file.type !== 'text/csv' && !file.name.endsWith('.csv')) {
-        setError('Please upload a valid CSV file.');
+      if (file.type !== "text/csv" && !file.name.endsWith(".csv")) {
+        setError("Please upload a valid CSV file.");
         return;
       }
       setCsvFile(file);
-      setError('');
+      setError("");
     }
   };
 
   const handleBulkUploadSubmit = async () => {
     if (!csvFile) {
-      setError('Please select a CSV file to upload.');
+      setError("Please select a CSV file to upload.");
       return;
     }
 
     setLoading(true);
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
     setUploadProgress(0);
 
     try {
       const formData = new FormData();
-      formData.append('csvFile', csvFile);
+      formData.append("csvFile", csvFile);
 
       const response = await adminAPI.bulkUploadLeads(formData);
-      
+
       if (response.data.errors && response.data.errors.length > 0) {
-        setError(`Upload completed with ${response.data.errors.length} errors. Check console for details.`);
-        console.error('Upload errors:', response.data.errors);
+        setError(
+          `Upload completed with ${response.data.errors.length} errors. Check console for details.`,
+        );
+        console.error("Upload errors:", response.data.errors);
       } else {
-        setSuccess(`Successfully uploaded ${response.data.successCount} leads!`);
+        setSuccess(
+          `Successfully uploaded ${response.data.successCount} leads!`,
+        );
       }
-      
+
       // Refresh leads list
       fetchLeads();
       handleCloseBulkUploadDialog();
     } catch (err) {
-      setError('Failed to upload leads. Please try again.');
-      console.error('Error uploading leads:', err);
+      setError("Failed to upload leads. Please try again.");
+      console.error("Error uploading leads:", err);
     } finally {
       setLoading(false);
     }
@@ -375,23 +410,23 @@ const ManageLeads = () => {
       <Typography variant="h4" gutterBottom>
         Manage Leads
       </Typography>
-      
+
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
         </Alert>
       )}
-      
+
       {success && (
         <Alert severity="success" sx={{ mb: 2 }}>
           {success}
         </Alert>
       )}
-      
+
       <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
         <CardContent>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-            <Box component="form" onSubmit={handleSearch} sx={{ width: '70%' }}>
+          <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
+            <Box component="form" onSubmit={handleSearch} sx={{ width: "70%" }}>
               <Grid container spacing={2} alignItems="center">
                 <Grid item xs={12} sm={8}>
                   <TextField
@@ -400,7 +435,9 @@ const ManageLeads = () => {
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     InputProps={{
-                      startAdornment: <Search sx={{ mr: 1, color: 'text.secondary' }} />,
+                      startAdornment: (
+                        <Search sx={{ mr: 1, color: "text.secondary" }} />
+                      ),
                     }}
                   />
                 </Grid>
@@ -411,7 +448,7 @@ const ManageLeads = () => {
                     fullWidth
                     disabled={loading}
                   >
-                    {loading ? <CircularProgress size={24} /> : 'Search'}
+                    {loading ? <CircularProgress size={24} /> : "Search"}
                   </Button>
                 </Grid>
               </Grid>
@@ -434,7 +471,7 @@ const ManageLeads = () => {
               </Button>
             </Box>
           </Box>
-          
+
           {loading && filteredLeads.length === 0 ? (
             <Box display="flex" justifyContent="center" my={4}>
               <CircularProgress />
@@ -457,50 +494,52 @@ const ManageLeads = () => {
                   {filteredLeads.map((lead) => (
                     <TableRow
                       key={lead._id}
-                      sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                      sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
                     >
                       <TableCell component="th" scope="row">
                         {lead.name}
                       </TableCell>
                       <TableCell>{lead.email}</TableCell>
                       <TableCell>{lead.phone}</TableCell>
+                      <TableCell>{getStatusChip(lead.status)}</TableCell>
                       <TableCell>
-                        {getStatusChip(lead.status)}
-                      </TableCell>
-                      <TableCell>
-                        {lead.franchiseId ? 
-                          (typeof lead.franchiseId === 'object' ? 
-                            lead.franchiseId.businessName : 
-                            franchises.find(f => f._id === lead.franchiseId)?.businessName || 'Unknown Franchise') : 
-                          'Not Assigned'
-                        }
+                        {lead.franchiseId
+                          ? typeof lead.franchiseId === "object"
+                            ? lead.franchiseId.businessName
+                            : franchises.find((f) => f._id === lead.franchiseId)
+                                ?.businessName || "Unknown Franchise"
+                          : "Not Assigned"}
                       </TableCell>
                       <TableCell>{formatDate(lead.createdAt)}</TableCell>
                       <TableCell>
-                        <IconButton 
-                          size="small" 
+                        <IconButton
+                          size="small"
                           onClick={() => handleAssignLead(lead)}
                         >
                           <AssignmentInd />
                         </IconButton>
-                        <IconButton 
-                          size="small" 
-                          onClick={() => handleUpdateLeadStatus(lead._id, 'qualified')}
-                          sx={{ color: 'success.main' }}
+                        <IconButton
+                          size="small"
+                          onClick={() =>
+                            handleUpdateLeadStatus(lead._id, "qualified")
+                          }
+                          sx={{ color: "success.main" }}
                         >
                           <Check />
                         </IconButton>
-                        <IconButton 
-                          size="small" 
-                          onClick={() => handleUpdateLeadStatus(lead._id, 'lost')}
-                          sx={{ color: 'error.main' }}
+                        <IconButton
+                          size="small"
+                          onClick={() =>
+                            handleUpdateLeadStatus(lead._id, "lost")
+                          }
+                          sx={{ color: "error.main" }}
                         >
                           <Close />
                         </IconButton>
-                        <IconButton 
-                          size="small" 
+                        <IconButton
+                          size="small"
                           onClick={() => handleDeleteLead(lead)}
-                          sx={{ color: 'error.main' }}
+                          sx={{ color: "error.main" }}
                         >
                           <DeleteIcon />
                         </IconButton>
@@ -509,13 +548,44 @@ const ManageLeads = () => {
                   ))}
                 </TableBody>
               </Table>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: { xs: "column", sm: "row" }, // Stacks on mobile, side-by-side on desktop
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  gap: 2,
+                  p: 3,
+                }}
+              >
+                <Typography variant="body2" color="text.secondary">
+                  Total Records: {totalRecords}
+                </Typography>
+
+                <Pagination
+                  count={Math.ceil(totalRecords / rowsPerPage)}
+                  page={page}
+                  onChange={handleChangePage}
+                  color="primary"
+                  variant="outlined"
+                  shape="rounded"
+                  showFirstButton
+                  showLastButton
+                />
+                <Typography></Typography>
+              </Box>
             </TableContainer>
           )}
         </CardContent>
       </Card>
-      
+
       {/* Create Lead Dialog */}
-      <Dialog open={createDialogOpen} onClose={handleCloseCreateDialog} maxWidth="sm" fullWidth>
+      <Dialog
+        open={createDialogOpen}
+        onClose={handleCloseCreateDialog}
+        maxWidth="sm"
+        fullWidth
+      >
         <DialogTitle>Create New Lead</DialogTitle>
         <DialogContent>
           <Grid container spacing={2} sx={{ mt: 1 }}>
@@ -610,18 +680,23 @@ const ManageLeads = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseCreateDialog}>Cancel</Button>
-          <Button 
-            onClick={handleCreateLeadSubmit} 
+          <Button
+            onClick={handleCreateLeadSubmit}
             variant="contained"
             disabled={loading}
           >
-            {loading ? <CircularProgress size={24} /> : 'Create Lead'}
+            {loading ? <CircularProgress size={24} /> : "Create Lead"}
           </Button>
         </DialogActions>
       </Dialog>
-      
+
       {/* Assign Lead Dialog */}
-      <Dialog open={assignDialogOpen} onClose={handleCloseAssignDialog} maxWidth="sm" fullWidth>
+      <Dialog
+        open={assignDialogOpen}
+        onClose={handleCloseAssignDialog}
+        maxWidth="sm"
+        fullWidth
+      >
         <DialogTitle>Assign Lead to Franchise</DialogTitle>
         <DialogContent>
           <Typography sx={{ mb: 2 }}>
@@ -635,38 +710,45 @@ const ManageLeads = () => {
               label="Select Franchise"
             >
               {franchises
-                .filter(franchise => franchise.isActive && franchise.kycStatus === 'approved')
+                .filter(
+                  (franchise) =>
+                    franchise.isActive && franchise.kycStatus === "approved",
+                )
                 .map((franchise) => (
                   <MenuItem key={franchise._id} value={franchise._id}>
                     {franchise.businessName} ({franchise.ownerName})
                   </MenuItem>
-                ))
-              }
+                ))}
             </Select>
           </FormControl>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseAssignDialog}>Cancel</Button>
-          <Button 
-            onClick={handleAssignSubmit} 
+          <Button
+            onClick={handleAssignSubmit}
             variant="contained"
             disabled={!selectedFranchise || loading}
           >
-            {loading ? <CircularProgress size={24} /> : 'Assign Lead'}
+            {loading ? <CircularProgress size={24} /> : "Assign Lead"}
           </Button>
         </DialogActions>
       </Dialog>
-      
+
       {/* Bulk Upload Dialog */}
-      <Dialog open={bulkUploadDialogOpen} onClose={handleCloseBulkUploadDialog} maxWidth="sm" fullWidth>
+      <Dialog
+        open={bulkUploadDialogOpen}
+        onClose={handleCloseBulkUploadDialog}
+        maxWidth="sm"
+        fullWidth
+      >
         <DialogTitle>Bulk Upload Leads</DialogTitle>
         <DialogContent>
           <Typography sx={{ mb: 2 }}>
             Upload a CSV file containing lead information.
           </Typography>
-          
+
           <Divider sx={{ my: 2 }} />
-          
+
           <Typography variant="h6" gutterBottom>
             CSV Format Requirements:
           </Typography>
@@ -674,42 +756,60 @@ const ManageLeads = () => {
             The CSV file should contain the following columns:
           </Typography>
           <ul>
-            <li><strong>name</strong> (required)</li>
-            <li><strong>phone</strong> (required)</li>
-            <li><strong>email</strong> (optional)</li>
-            <li><strong>address</strong> (optional)</li>
-            <li><strong>city</strong> (optional)</li>
-            <li><strong>state</strong> (optional)</li>
-            <li><strong>pincode</strong> (optional)</li>
-            <li><strong>creditScore</strong> (optional)</li>
-            <li><strong>creditReportUrl</strong> (optional)</li>
+            <li>
+              <strong>name</strong> (required)
+            </li>
+            <li>
+              <strong>phone</strong> (required)
+            </li>
+            <li>
+              <strong>email</strong> (optional)
+            </li>
+            <li>
+              <strong>address</strong> (optional)
+            </li>
+            <li>
+              <strong>city</strong> (optional)
+            </li>
+            <li>
+              <strong>state</strong> (optional)
+            </li>
+            <li>
+              <strong>pincode</strong> (optional)
+            </li>
+            <li>
+              <strong>creditScore</strong> (optional)
+            </li>
+            <li>
+              <strong>creditReportUrl</strong> (optional)
+            </li>
           </ul>
-          
+
           <Typography variant="body2" sx={{ mt: 2, mb: 1 }}>
-            <a 
-              href="/templates/leads-template.csv" 
+            <a
+              href="/templates/leads-template.csv"
               download="leads-template.csv"
-              style={{ color: '#1976d2', textDecoration: 'none' }}
+              style={{ color: "#1976d2", textDecoration: "none" }}
             >
               Download CSV Template
             </a>
           </Typography>
-          
+
           <Divider sx={{ my: 2 }} />
-          
+
           <input
             type="file"
             accept=".csv"
             onChange={handleFileChange}
-            style={{ marginBottom: '16px' }}
+            style={{ marginBottom: "16px" }}
           />
-          
+
           {csvFile && (
             <Typography variant="body2" sx={{ mb: 2 }}>
               Selected file: {csvFile.name}
             </Typography>
           )}
-          
+
           {uploadProgress > 0 && (
             <Typography variant="body2" sx={{ mb: 2 }}>
               Upload progress: {uploadProgress}%
@@ -718,56 +818,58 @@ const ManageLeads = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseBulkUploadDialog}>Cancel</Button>
-          <Button 
-            onClick={handleBulkUploadSubmit} 
+          <Button
+            onClick={handleBulkUploadSubmit}
             variant="contained"
             disabled={loading || !csvFile}
           >
-            {loading ? <CircularProgress size={24} /> : 'Upload Leads'}
+            {loading ? <CircularProgress size={24} /> : "Upload Leads"}
           </Button>
         </DialogActions>
       </Dialog>
-      
+
       {/* Delete Lead Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onClose={cancelDeleteLead}>
         <DialogTitle>Confirm Delete</DialogTitle>
         <DialogContent>
           <Typography>
-            Are you sure you want to delete the lead '<strong>{leadToDelete?.name}</strong>'?
-            This action cannot be undone.
+            Are you sure you want to delete the lead '
+            <strong>{leadToDelete?.name}</strong>'? This action cannot be
+            undone.
           </Typography>
         </DialogContent>
         <DialogActions>
           <Button onClick={cancelDeleteLead}>Cancel</Button>
-          <Button 
-            onClick={confirmDeleteLead} 
-            variant="contained" 
+          <Button
+            onClick={confirmDeleteLead}
+            variant="contained"
             color="error"
             disabled={loading}
           >
-            {loading ? <CircularProgress size={24} /> : 'Delete'}
+            {loading ? <CircularProgress size={24} /> : "Delete"}
           </Button>
         </DialogActions>
       </Dialog>
-      
+
       {/* Delete Lead Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onClose={cancelDeleteLead}>
         <DialogTitle>Confirm Delete</DialogTitle>
         <DialogContent>
           <Typography>
-            Are you sure you want to delete the lead '<strong>{leadToDelete?.name}</strong>'?
-            This action cannot be undone.
+            Are you sure you want to delete the lead '
+            <strong>{leadToDelete?.name}</strong>'? This action cannot be
+            undone.
           </Typography>
         </DialogContent>
         <DialogActions>
           <Button onClick={cancelDeleteLead}>Cancel</Button>
-          <Button 
-            onClick={confirmDeleteLead} 
-            variant="contained" 
+          <Button
+            onClick={confirmDeleteLead}
+            variant="contained"
             color="error"
             disabled={loading}
           >
-            {loading ? <CircularProgress size={24} /> : 'Delete'}
+            {loading ? <CircularProgress size={24} /> : "Delete"}
           </Button>
         </DialogActions>
       </Dialog>
