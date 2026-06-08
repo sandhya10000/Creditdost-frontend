@@ -35,12 +35,7 @@ const ViewReports = () => {
   const [bureauFilter, setBureauFilter] = useState("");
   const [totalRecords, setTotalRecords] = useState(0);
   const [page, setPage] = useState(1);
-  const rowsPerPage = 25;
-
-  // Load credit reports on component mount
-  // useEffect(() => {
-  //   loadCreditReports();
-  // }, []);
+  const rowsPerPage = 20;
 
   useEffect(() => {
     loadCreditReports();

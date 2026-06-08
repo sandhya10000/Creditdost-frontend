@@ -44,7 +44,7 @@ const ManageAIAnalysis = () => {
   const [uploadError, setUploadError] = useState("");
   const [totalRecords, setTotalRecords] = useState(0);
   const [page, setPage] = useState(1);
-  const rowsPerPage = 25;
+  const rowsPerPage = 20;
 
   // Fetch all AI analysis documents
   const fetchDocuments = async () => {

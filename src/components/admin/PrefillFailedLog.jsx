@@ -20,7 +20,7 @@ const PrefillFailedLog = () => {
   const [loading, setLoading] = useState(false);
   const [totalRecords, setTotalRecords] = useState(0);
   const [page, setPage] = useState(1);
-  const rowsPerPage = 25;
+  const rowsPerPage = 20;
 
   const fetchPrefillLogs = async () => {
     try {

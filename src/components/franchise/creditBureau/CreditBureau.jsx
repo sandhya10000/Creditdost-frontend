@@ -55,7 +55,7 @@ const CreditBureau = ({ bureauOptions = [], defaultBureau }) => {
   const [availableCredits, setAvailableCredits] = useState(0);
   const [totalRecords, setTotalRecords] = useState(0);
   const [page, setPage] = useState(1);
-  const rowsPerPage = 25;
+  const rowsPerPage = 10;
 
   // const [showCreditButton, setShowCreditButton] = useState(true);
 
@@ -323,7 +323,6 @@ const CreditBureau = ({ bureauOptions = [], defaultBureau }) => {
   };
   return (
     <Box>
-      {loading && <CircularProgress />}
       <Typography variant="h4" gutterBottom>
         Credit Check
       </Typography>
@@ -624,7 +623,7 @@ const CreditBureau = ({ bureauOptions = [], defaultBureau }) => {
               Recent Credit Reports
             </Typography>
 
-            {creditReports.length === 0 ? (
+            {creditReports.length === 0 && !loading ? (
               <Typography variant="body1" sx={{ textAlign: "center", py: 4 }}>
                 No credit reports found. Check a customer's credit to see
                 reports here.
@@ -643,69 +642,86 @@ const CreditBureau = ({ bureauOptions = [], defaultBureau }) => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {creditReports.map((report) => (
-                      <TableRow
-                        key={report.id}
-                        sx={{
-                          "&:last-child td, &:last-child th": { border: 0 },
-                        }}
-                      >
-                        <TableCell component="th" scope="row">
-                          {report.name}
-                        </TableCell>
-                        <TableCell>{report.mobile}</TableCell>
-                        <TableCell>
-                          <Chip
-                            label={
-                              report.bureau
-                                ? report.bureau.toUpperCase()
-                                : "N/A"
-                            }
-                            size="small"
-                            variant="outlined"
-                          />
-                        </TableCell>
-                        <TableCell>
-                          {report.score !== null &&
-                          report.score !== undefined ? (
+                    {!loading &&
+                      creditReports.map((report) => (
+                        <TableRow
+                          key={report.id}
+                          sx={{
+                            "&:last-child td, &:last-child th": { border: 0 },
+                          }}
+                        >
+                          <TableCell component="th" scope="row">
+                            {report.name}
+                          </TableCell>
+                          <TableCell>{report.mobile}</TableCell>
+                          <TableCell>
                             <Chip
-                              label={`${report.score} (${getScoreLabel(report.score)})`}
-                              color={getScoreColor(report.score)}
-                              size="small"
-                            />
-                          ) : (
-                            <Chip
-                              label={getScoreLabel(report.score)}
-                              color={getScoreColor(report.score)}
+                              label={
+                                report.bureau
+                                  ? report.bureau.toUpperCase()
+                                  : "N/A"
+                              }
                               size="small"
                               variant="outlined"
                             />
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {new Date(report.createdAt).toLocaleDateString()}
-                        </TableCell>
-                        <TableCell>
-                          {getReportUrl(report) ? (
-                            <Button
-                              size="small"
-                              startIcon={<PictureAsPdf />}
-                              component={Link}
-                              href={getReportUrl(report)}
-                              target="_blank"
-                            >
-                              PDF
-                            </Button>
-                          ) : (
-                            <Typography variant="caption" color="textSecondary">
-                              No PDF
-                            </Typography>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                          </TableCell>
+                          <TableCell>
+                            {report.score !== null &&
+                            report.score !== undefined ? (
+                              <Chip
+                                label={`${report.score} (${getScoreLabel(report.score)})`}
+                                color={getScoreColor(report.score)}
+                                size="small"
+                              />
+                            ) : (
+                              <Chip
+                                label={getScoreLabel(report.score)}
+                                color={getScoreColor(report.score)}
+                                size="small"
+                                variant="outlined"
+                              />
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {new Date(report.createdAt).toLocaleDateString()}
+                          </TableCell>
+                          <TableCell>
+                            {getReportUrl(report) ? (
+                              <Button
+                                size="small"
+                                startIcon={<PictureAsPdf />}
+                                component={Link}
+                                href={getReportUrl(report)}
+                                target="_blank"
+                              >
+                                PDF
+                              </Button>
+                            ) : (
+                              <Typography
+                                variant="caption"
+                                color="textSecondary"
+                              >
+                                No PDF
+                              </Typography>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))}
                   </TableBody>
                 </Table>
+                {loading && (
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: { xs: "column", sm: "row" },
+                      justifyContent: "center",
+                      alignItems: "center",
+                      p: 3,
+                    }}
+                  >
+                    <CircularProgress />
+                  </Box>
+                )}
                 <Box
                   sx={{
                     display: "flex",

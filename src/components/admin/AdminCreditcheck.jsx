@@ -63,7 +63,7 @@ const AdminCreditBureau = ({ defaultBureau = "" }) => {
   const [availableCredits, setAvailableCredits] = useState(0);
   const [totalRecords, setTotalRecords] = useState(0);
   const [page, setPage] = useState(1);
-  const rowsPerPage = 25;
+  const rowsPerPage = 10;
 
   // Load recent credit reports and available credits on component mount
   useEffect(() => {

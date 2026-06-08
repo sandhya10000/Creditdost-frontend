@@ -77,7 +77,7 @@ const ManageLeads = () => {
   const [leadToDelete, setLeadToDelete] = useState(null);
   const [totalRecords, setTotalRecords] = useState(0);
   const [page, setPage] = useState(1);
-  const rowsPerPage = 25;
+  const rowsPerPage = 20;
 
   // Fetch all leads and franchises on component mount
   useEffect(() => {

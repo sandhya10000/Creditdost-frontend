@@ -116,7 +116,7 @@ const ManageFranchises = () => {
 
   const [totalRecords, setTotalRecords] = useState(0);
   const [page, setPage] = useState(1);
-  const rowsPerPage = 25;
+  const rowsPerPage = 20;
 
   // Reload data when page, search or bureau filter changes
   useEffect(() => {
