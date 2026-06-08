@@ -24,6 +24,7 @@ import {
   Tab,
   Chip,
   Link,
+  Pagination,
 } from "@mui/material";
 import {
   Search,
@@ -52,14 +53,25 @@ const CreditBureau = ({ bureauOptions = [], defaultBureau }) => {
   const [creditReports, setCreditReports] = useState([]);
   const [recentReport, setRecentReport] = useState(null);
   const [availableCredits, setAvailableCredits] = useState(0);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [page, setPage] = useState(1);
+  const rowsPerPage = 25;
 
   // const [showCreditButton, setShowCreditButton] = useState(true);
 
   // Load recent credit reports and available credits on component mount
   useEffect(() => {
-    loadCreditReports();
+    // loadCreditReports();
     loadDashboardStats();
   }, []);
+
+  useEffect(() => {
+    loadCreditReports();
+  }, [page]);
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
 
   const loadDashboardStats = async () => {
     try {
@@ -73,9 +85,13 @@ const CreditBureau = ({ bureauOptions = [], defaultBureau }) => {
   const loadCreditReports = async () => {
     try {
       setLoading(true);
-      const response = await franchiseAPI.getCreditReports();
+      const response = await franchiseAPI.getCreditReports({
+        page: page,
+        limit: rowsPerPage,
+      });
       console.log("Credit reports loaded:", response.data);
-      setCreditReports(response.data);
+      setCreditReports(response.data.reports || []);
+      setTotalRecords(response.data.total || 0);
       setLoading(false);
     } catch (err) {
       console.error("Error loading credit reports:", err);
@@ -690,6 +706,32 @@ const CreditBureau = ({ bureauOptions = [], defaultBureau }) => {
                     ))}
                   </TableBody>
                 </Table>
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: { xs: "column", sm: "row" }, // Stacks on mobile, side-by-side on desktop
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    gap: 2,
+                    p: 3,
+                  }}
+                >
+                  <Typography variant="body2" color="text.secondary">
+                    Total Records: {totalRecords}
+                  </Typography>
+
+                  <Pagination
+                    count={Math.ceil(totalRecords / rowsPerPage)}
+                    page={page}
+                    onChange={handleChangePage}
+                    color="primary"
+                    variant="outlined"
+                    shape="rounded"
+                    showFirstButton
+                    showLastButton
+                  />
+                  <Typography></Typography>
+                </Box>
               </TableContainer>
             )}
           </CardContent>

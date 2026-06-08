@@ -76,7 +76,7 @@ export const franchiseAPI = {
     api.post("/payments/create-order", { packageId }),
   verifyPayment: (data) => api.post("/payments/verify-payment", data),
   getCreditReport: (data) => api.post("/credit/check", data),
-  getCreditReports: () => api.get("/credit/reports"),
+  getCreditReports: (params) => api.get("/credit/reports", { params }),
   getDashboardStats: () => api.get("/dashboard"),
 
   getFranchiseLeads: () => api.get("/leads/franchise"),
@@ -130,7 +130,7 @@ export const franchiseAPI = {
   //api for mobiled prefilled data
   getfetchPrefillData: (mobile) => api.post("/prefill", { mobile }),
   savePrefillFailure: (data) => api.post("/save-prefill-failure", data),
-  getPrefillFailedLog: () => api.get("/prefill-failed-logs"),
+  getPrefillFailedLog: (params) => api.get("/prefill-failed-logs", { params }),
   //get marketing material
   getMarketingMaterials: () => api.get("/marketing"),
   //get reward from admin
@@ -164,7 +164,8 @@ export const adminAPI = {
   getVisitorTrends: (params) =>
     api.get("/analytics/visitors/trends", { params }),
   // Franchise management
-  getAllFranchises: () => api.get("/franchises"),
+  getAllFranchises: (params) => api.get("/franchises", { params }),
+  getFranchiseList: () => api.get("/franchises/list"),
   getFranchiseById: (id) => api.get(`/franchises/${id}`),
   updateFranchise: (id, data) => api.put(`/franchises/${id}`, data),
   activateFranchise: (id) => api.put(`/franchises/${id}/activate`),
@@ -209,7 +210,7 @@ export const adminAPI = {
     api.put(`/customer-packages/${id}`, packageData),
   deleteCustomerPackage: (id) => api.delete(`/customer-packages/${id}`),
   // Lead management
-  getAllLeads: () => api.get("/admin/leads"),
+  getAllLeads: (params) => api.get("/admin/leads", { params }),
   getLeadById: (id) => api.get(`/admin/leads/${id}`),
   createLead: (leadData) => api.post("/admin/leads", leadData),
   updateLead: (id, data) => api.put(`/admin/leads/${id}`, data),
@@ -268,7 +269,8 @@ export const adminAPI = {
       responseType: "blob",
     }),
   // AI Analysis endpoints (Admin)
-  getAIAnalysisDocuments: () => api.get("/ai-analysis/admin/documents"),
+  getAIAnalysisDocuments: (params) =>
+    api.get("/ai-analysis/admin/documents", { params }),
   getAIAnalysisDocumentById: (id) =>
     api.get(`/ai-analysis/admin/documents/${id}`),
   respondToAIAnalysisDocument: (id, formData) => {

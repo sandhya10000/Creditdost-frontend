@@ -93,8 +93,11 @@ const DashboardHome = () => {
         const dashboardResponse = await franchiseAPI.getDashboardStats();
 
         // Fetch recent credit reports
-        const reportsResponse = await franchiseAPI.getCreditReports();
-        const recentReports = reportsResponse.data.slice(0, 5); // Get last 5 reports
+        const reportsResponse = await franchiseAPI.getCreditReports({
+          page: 1,
+          limit: 5,
+        });
+        const recentReports = reportsResponse.data.reports.slice(0, 5); // Get last 5 reports
 
         // Fetch transactions to get purchased package
         const transactionsResponse = await franchiseAPI.getTransactions();

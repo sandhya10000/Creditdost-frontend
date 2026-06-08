@@ -36,21 +36,30 @@ const ViewReports = () => {
   const [bureauFilter, setBureauFilter] = useState("");
 
   // Pagination States
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [totalRecords, setTotalRecords] = useState(0);
-  const [page, setPage] = useState(0); // MUI uses 0-indexed pages
+  const [page, setPage] = useState(1);
   const rowsPerPage = 25;
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   // Reload data when page, search or bureau filter changes
   useEffect(() => {
     loadCreditReports();
-  }, [page, searchTerm, bureauFilter]);
+  }, [page, debouncedSearch, bureauFilter]);
 
   const loadCreditReports = async () => {
     try {
       setLoading(true);
       // API expects 1-indexed pages, so we pass page + 1
       const response = await adminAPI.getAllCreditReports({
-        page: page + 1,
+        page: page,
         limit: rowsPerPage,
         search: searchTerm,
         bureau: bureauFilter,
@@ -124,7 +133,7 @@ const ViewReports = () => {
                 value={searchTerm}
                 onChange={(e) => {
                   setSearchTerm(e.target.value);
-                  setPage(0); // Reset page on input change
+                  setPage(1);
                 }}
                 InputProps={{
                   endAdornment: <Search />,
@@ -139,7 +148,7 @@ const ViewReports = () => {
                   label="Credit Bureau"
                   onChange={(e) => {
                     setBureauFilter(e.target.value);
-                    setPage(0); // Reset page on selection change
+                    setPage(1);
                   }}
                 >
                   <MenuItem value="">All Bureaus</MenuItem>
@@ -238,29 +247,33 @@ const ViewReports = () => {
                     ))}
                   </TableBody>
                 </Table>
-              </TableContainer>
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: { xs: "column", sm: "row" }, // Stacks on mobile, side-by-side on desktop
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    gap: 2,
+                    p: 3,
+                  }}
+                >
+                  <Typography variant="body2" color="text.secondary">
+                    Total Records: {totalRecords}
+                  </Typography>
 
-              {/* <TablePagination
-                rowsPerPageOptions={[10, 25, 50, 100]}
-                component="div"
-                count={totalRecords}
-                rowsPerPage={rowsPerPage}
-                page={page}
-                onPageChange={handleChangePage}
-                onRowsPerPageChange={handleChangeRowsPerPage}
-              /> */}
-              <Box sx={{ display: "flex", justifyContent: "center", py: 3 }}>
-                <Pagination
-                  count={Math.ceil(totalRecords / rowsPerPage)}
-                  page={page || 1}
-                  onChange={handleChangePage}
-                  color="primary"
-                  variant="outlined"
-                  shape="rounded"
-                  showFirstButton
-                  showLastButton
-                />
-              </Box>
+                  <Pagination
+                    count={Math.ceil(totalRecords / rowsPerPage)}
+                    page={page}
+                    onChange={handleChangePage}
+                    color="primary"
+                    variant="outlined"
+                    shape="rounded"
+                    showFirstButton
+                    showLastButton
+                  />
+                  <Typography></Typography>
+                </Box>
+              </TableContainer>
             </>
           )}
         </CardContent>

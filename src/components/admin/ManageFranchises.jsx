@@ -36,6 +36,7 @@ import {
   ListItemText,
   Snackbar,
   Menu,
+  Pagination,
 } from "@mui/material";
 import {
   Search,
@@ -112,9 +113,18 @@ const ManageFranchises = () => {
     message: "",
     severity: "success",
   });
-  // Fetch all franchises and packages on component mount
+
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [page, setPage] = useState(1);
+  const rowsPerPage = 25;
+
+  // Reload data when page, search or bureau filter changes
   useEffect(() => {
     fetchFranchises();
+  }, [page]);
+
+  // Fetch all franchises and packages on component mount
+  useEffect(() => {
     fetchPackages();
   }, []);
 
@@ -157,9 +167,14 @@ const ManageFranchises = () => {
     try {
       setLoading(true);
       setError("");
-      const response = await adminAPI.getAllFranchises();
+      const response = await adminAPI.getAllFranchises({
+        page: page,
+        limit: rowsPerPage,
+        search: searchTerm,
+      });
       setFranchises(response.data);
-      setFilteredFranchises(response.data);
+      setFilteredFranchises(response.data.franchises || []);
+      setTotalRecords(response.data.total || 0);
     } catch (err) {
       setError("Failed to fetch franchises. Please try again later.");
       console.error("Error fetching franchises:", err);
@@ -168,25 +183,35 @@ const ManageFranchises = () => {
     }
   };
 
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
   const handleSearch = (e) => {
     e.preventDefault();
-    if (!searchTerm.trim()) {
-      setFilteredFranchises(franchises);
-      return;
-    }
-
-    const filtered = franchises.filter(
-      (franchise) =>
-        franchise.businessName
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase()) ||
-        franchise.ownerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        franchise.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        franchise.phone.includes(searchTerm),
-    );
-
-    setFilteredFranchises(filtered);
+    setPage(1);
+    fetchFranchises();
   };
+
+  // const handleSearch = (e) => {
+  //   e.preventDefault();
+  //   if (!searchTerm.trim()) {
+  //     setFilteredFranchises(franchises);
+  //     return;
+  //   }
+
+  //   const filtered = franchises.filter(
+  //     (franchise) =>
+  //       franchise.businessName
+  //         .toLowerCase()
+  //         .includes(searchTerm.toLowerCase()) ||
+  //       franchise.ownerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //       franchise.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //       franchise.phone.includes(searchTerm),
+  //   );
+
+  //   setFilteredFranchises(filtered);
+  // };
 
   const handleApproveKyc = async (franchiseId) => {
     try {
@@ -1215,6 +1240,32 @@ const ManageFranchises = () => {
                       ))}
                     </TableBody>
                   </Table>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: { xs: "column", sm: "row" }, // Stacks on mobile, side-by-side on desktop
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      gap: 2,
+                      p: 3,
+                    }}
+                  >
+                    <Typography variant="body2" color="text.secondary">
+                      Total Records: {totalRecords}
+                    </Typography>
+
+                    <Pagination
+                      count={Math.ceil(totalRecords / rowsPerPage)}
+                      page={page}
+                      onChange={handleChangePage}
+                      color="primary"
+                      variant="outlined"
+                      shape="rounded"
+                      showFirstButton
+                      showLastButton
+                    />
+                    <Typography></Typography>
+                  </Box>
                 </TableContainer>
               )}
             </CardContent>

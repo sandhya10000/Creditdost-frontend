@@ -10,6 +10,7 @@ import {
   TableHead,
   TableRow,
   CircularProgress,
+  Pagination,
 } from "@mui/material";
 
 import { franchiseAPI } from "../../services/api";
@@ -17,14 +18,21 @@ import { franchiseAPI } from "../../services/api";
 const PrefillFailedLog = () => {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [page, setPage] = useState(1);
+  const rowsPerPage = 25;
 
   const fetchPrefillLogs = async () => {
     try {
       setLoading(true);
 
-      const response = await franchiseAPI.getPrefillFailedLog();
+      const response = await franchiseAPI.getPrefillFailedLog({
+        page: page,
+        limit: rowsPerPage,
+      });
 
-      setLogs(response.data.data || []);
+      setLogs(response.data.reports || []);
+      setTotalRecords(response.data.total || 0);
       console.log(response, "prefill failed logs----");
     } catch (error) {
       console.log(error);
@@ -35,7 +43,11 @@ const PrefillFailedLog = () => {
 
   useEffect(() => {
     fetchPrefillLogs();
-  }, []);
+  }, [page]);
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
 
   return (
     <Box p={3}>
@@ -106,6 +118,32 @@ const PrefillFailedLog = () => {
                 )}
               </TableBody>
             </Table>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: { xs: "column", sm: "row" }, // Stacks on mobile, side-by-side on desktop
+                justifyContent: "space-between",
+                alignItems: "center",
+                gap: 2,
+                p: 3,
+              }}
+            >
+              <Typography variant="body2" color="text.secondary">
+                Total Records: {totalRecords}
+              </Typography>
+
+              <Pagination
+                count={Math.ceil(totalRecords / rowsPerPage)}
+                page={page}
+                onChange={handleChangePage}
+                color="primary"
+                variant="outlined"
+                shape="rounded"
+                showFirstButton
+                showLastButton
+              />
+              <Typography></Typography>
+            </Box>
           </TableContainer>
         )}
       </Paper>
