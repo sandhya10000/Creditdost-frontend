@@ -17,6 +17,15 @@ import {
 
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 const ReportsTab = ({ customerReport }) => {
+  const getReportUrl = (report) => {
+    if (report.localPath) {
+      const baseUrl = import.meta.env.VITE_REACT_APP_API_URL
+        ? import.meta.env.VITE_REACT_APP_API_URL.replace("/api", "")
+        : "https://reactbackend.creditdost.co.in";
+      return `${baseUrl}${report.localPath}`;
+    }
+    return report.reportUrl;
+  };
   return (
     <Paper
       elevation={3}
@@ -107,8 +116,8 @@ const ReportsTab = ({ customerReport }) => {
                     variant="contained"
                     size="small"
                     startIcon={<PictureAsPdfIcon />}
-                    disabled={!report?.reportUrl}
-                    onClick={() => window.open(report?.reportUrl, "_blank")}
+                    disabled={!report?.localPath}
+                    onClick={() => window.open(getReportUrl(report), "_blank")}
                   >
                     View Report
                   </Button>
