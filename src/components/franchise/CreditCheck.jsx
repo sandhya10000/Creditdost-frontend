@@ -357,25 +357,38 @@ const CreditCheck = () => {
       }));
     } catch (err) {
       console.error("API Error:", err);
-      if (err?.response?.status === 500 || err?.response?.status === 404) {
-        await franchiseAPI.savePrefillFailure({
-          mobile,
 
-          message: "No Pan record found",
-          statusCode: err?.response?.status,
-        });
+      const status =
+        err?.response?.data?.error?.status_code || err?.response?.status;
+
+      const message =
+        err?.response?.data?.error?.message ||
+        err?.response?.data?.message ||
+        "Something went wrong";
+
+      await franchiseAPI.savePrefillFailure({
+        mobile,
+        message,
+        statusCode: status,
+      });
+
+      if (status === 422) {
         alert(
-          "No PAN record found for this mobile number. Still you want to check credit bureau then you can proceed with Experian",
+          "No PAN record found for this mobile number. You can proceed with Experian.",
         );
-
-        setShowCreditButton(false); //  hide only in this case
+        setShowCreditButton(false);
+      } else if (status === 429) {
+        alert("Too many requests. Please try again after some time.");
+        setShowCreditButton(true);
+      } else if (status === 500) {
+        alert("Server error occurred while fetching prefill data.");
+        setShowCreditButton(true);
       } else {
-        // optional: dusre errors me button show rehne do ya hide?
+        alert(message);
         setShowCreditButton(true);
       }
-      //  PAN disable karo
-      //setDisablePan(true);
-      setPrefillError("API failed");
+
+      setPrefillError(message);
     } finally {
       setLoadingPrefill(false);
     }

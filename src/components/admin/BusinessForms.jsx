@@ -147,11 +147,11 @@ const BusinessForms = ({ status = "paid" }) => {
     : "https://reactbackend.creditdost.co.in";
 
   //Windows backslash problem fix (\\ → /)
-  const getFileUrl = (path) => {
-    if (!path) return "";
+  // const getFileUrl = (path) => {
+  //   if (!path) return "";
 
-    return `${API_URL}/${path.replace(/\\/g, "/")}`;
-  };
+  //   return `${API_URL}/${path.replace(/\\/g, "/")}`;
+  // };
   return (
     <Box>
       <Typography variant="h4" gutterBottom>
@@ -250,7 +250,7 @@ const BusinessForms = ({ status = "paid" }) => {
                         {getPaymentStatusChip(form.paymentStatus)}
                       </TableCell>
                       <TableCell>{form.createdByRole || "franchise"}</TableCell>
-                      <TableCell>
+                      {/* <TableCell>
                         {form.documents?.panCard && (
                           <a
                             href={getFileUrl(form.documents.panCard)}
@@ -318,6 +318,11 @@ const BusinessForms = ({ status = "paid" }) => {
                             Extra Bank Proof
                           </a>
                         )}
+                      </TableCell> */}
+                      <TableCell>
+                        {Object.values(form.documents || {}).some(Boolean)
+                          ? "Yes"
+                          : "No"}
                       </TableCell>
                       <TableCell>{formatDate(form.createdAt)}</TableCell>
                       <TableCell>

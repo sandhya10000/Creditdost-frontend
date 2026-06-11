@@ -34,25 +34,25 @@ const Profile = () => {
     panNumber: "",
   });
 
-  const [bankData, setBankData] = useState({
-    bankAccountNumber: "",
-    bankIfscCode: "",
-  });
+  // const [bankData, setBankData] = useState({
+  //   bankAccountNumber: "",
+  //   bankIfscCode: "",
+  // });
 
   const [panDetails, setPanDetails] = useState(null);
 
-  const [bankDetails, setBankDetails] = useState(null);
+  // const [bankDetails, setBankDetails] = useState(null);
 
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [panLoading, setPanLoading] = useState(false);
-  const [bankLoading, setBankLoading] = useState(false);
+  // const [bankLoading, setBankLoading] = useState(false);
   const [panError, setPanError] = useState("");
-  const [bankError, setBankError] = useState("");
+  //const [bankError, setBankError] = useState("");
   const [panSuccess, setPanSuccess] = useState("");
-  const [bankSuccess, setBankSuccess] = useState("");
+  // const [bankSuccess, setBankSuccess] = useState("");
   const [resetPasswordLoading, setResetPasswordLoading] = useState(false);
   const [resetPasswordSuccess, setResetPasswordSuccess] = useState("");
   const [resetPasswordError, setResetPasswordError] = useState("");
@@ -72,16 +72,16 @@ const Profile = () => {
       formData.address.pincode.trim().length === 6 &&
       // PAN
       panData.panNumber.trim().length === 10 &&
-      panDetails !== null && // fetch Succesfully
+      panDetails !== null // fetch Succesfully
       // Bank
-      bankData.bankAccountNumber.trim() !== "" &&
-      bankData.bankIfscCode.trim().length === 11 &&
-      bankDetails !== null //  verified successfully
+      // bankData.bankAccountNumber.trim() !== "" &&
+      // bankData.bankIfscCode.trim().length === 11 &&
+      // bankDetails !== null //  verified successfully
     );
   };
   // Refs for debouncing API calls
   const panTimeoutRef = useRef(null);
-  const bankTimeoutRef = useRef(null);
+  // const bankTimeoutRef = useRef(null);
 
   // Fetch profile data on component mount
   useEffect(() => {
@@ -118,16 +118,17 @@ const Profile = () => {
         }
 
         // Fetch bank details
-        try {
-          const bankResponse = await franchiseAPI.getBankDetails();
-          setBankData({
-            bankAccountNumber: bankResponse.data.bankAccountNumber || "",
-            bankIfscCode: bankResponse.data.bankIfscCode || "",
-          });
-          setBankDetails(bankResponse.data.bankDetails);
-        } catch (err) {
-          console.error("Error fetching bank details:", err);
-        }
+        // try {
+        //   const bankResponse = await franchiseAPI.getBankDetails();
+        //   setBankData({
+        //     bankAccountNumber: bankResponse.data.bankAccountNumber || "",
+        //     bankIfscCode: bankResponse.data.bankIfscCode || "",
+        //   });
+        //   setBankDetails(bankResponse.data.bankDetails);
+        // }
+        // catch (err) {
+        //   console.error("Error fetching bank details:", err);
+        // }
       } catch (err) {
         setError("Failed to load profile data");
         console.error("Error fetching profile:", err);
@@ -143,9 +144,9 @@ const Profile = () => {
       if (panTimeoutRef.current) {
         clearTimeout(panTimeoutRef.current);
       }
-      if (bankTimeoutRef.current) {
-        clearTimeout(bankTimeoutRef.current);
-      }
+      // if (bankTimeoutRef.current) {
+      //   clearTimeout(bankTimeoutRef.current);
+      // }
     };
   }, []);
 
@@ -181,31 +182,31 @@ const Profile = () => {
     }
   };
 
-  const handleBankChange = (e) => {
-    const { name, value } = e.target;
-    if (name === "bankAccountNumber") {
-      // Allow only numeric characters for bank account number
-      if (/^\d*$/.test(value)) {
-        setBankData({
-          ...bankData,
-          [name]: value,
-        });
-      }
-    } else if (name === "bankIfscCode") {
-      // Allow alphanumeric characters and limit to 11 characters
-      if (value.length <= 11 && /^[A-Z0-9]*$/.test(value)) {
-        setBankData({
-          ...bankData,
-          [name]: value.toUpperCase(),
-        });
-      }
-    } else {
-      setBankData({
-        ...bankData,
-        [name]: value,
-      });
-    }
-  };
+  // const handleBankChange = (e) => {
+  //   const { name, value } = e.target;
+  //   if (name === "bankAccountNumber") {
+  //     // Allow only numeric characters for bank account number
+  //     if (/^\d*$/.test(value)) {
+  //       setBankData({
+  //         ...bankData,
+  //         [name]: value,
+  //       });
+  //     }
+  //   } else if (name === "bankIfscCode") {
+  //     // Allow alphanumeric characters and limit to 11 characters
+  //     if (value.length <= 11 && /^[A-Z0-9]*$/.test(value)) {
+  //       setBankData({
+  //         ...bankData,
+  //         [name]: value.toUpperCase(),
+  //       });
+  //     }
+  //   } else {
+  //     setBankData({
+  //       ...bankData,
+  //       [name]: value,
+  //     });
+  //   }
+  // };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -257,7 +258,7 @@ const Profile = () => {
       const panResponse = await franchiseAPI.updatePanDetails(panData);
 
       // Save bank information
-      const bankResponse = await franchiseAPI.updateBankDetails(bankData);
+      //const bankResponse = await franchiseAPI.updateBankDetails(bankData);
 
       setSuccess("All profile information saved successfully!");
 
@@ -374,93 +375,93 @@ const Profile = () => {
       }
     }, 500); // 500ms delay to prevent rapid clicks
   };
-  const handleBankSubmit = async (e) => {
-    e.preventDefault();
-    setBankLoading(true);
-    setBankError("");
-    setBankSuccess("");
+  // const handleBankSubmit = async (e) => {
+  //   e.preventDefault();
+  //   setBankLoading(true);
+  //   setBankError("");
+  //   setBankSuccess("");
 
-    try {
-      const response = await franchiseAPI.updateBankDetails(bankData);
-      setBankSuccess(
-        response.data.message || "Bank details updated successfully!",
-      );
-    } catch (err) {
-      setBankError(
-        err.response?.data?.message || "Failed to update bank details",
-      );
-      console.error("Error updating bank details:", err);
-    } finally {
-      setBankLoading(false);
-    }
-  };
+  //   try {
+  //     const response = await franchiseAPI.updateBankDetails(bankData);
+  //     setBankSuccess(
+  //       response.data.message || "Bank details updated successfully!",
+  //     );
+  //   } catch (err) {
+  //     setBankError(
+  //       err.response?.data?.message || "Failed to update bank details",
+  //     );
+  //     console.error("Error updating bank details:", err);
+  //   } finally {
+  //     setBankLoading(false);
+  //   }
+  // };
 
-  const handleVerifyBankDetails = async () => {
-    // Clear any existing timeout
-    if (bankTimeoutRef.current) {
-      clearTimeout(bankTimeoutRef.current);
-    }
+  // const handleVerifyBankDetails = async () => {
+  //   // Clear any existing timeout
+  //   if (bankTimeoutRef.current) {
+  //     clearTimeout(bankTimeoutRef.current);
+  //   }
 
-    // Check if already loading to prevent multiple clicks
-    if (bankLoading) {
-      return;
-    }
+  //   // Check if already loading to prevent multiple clicks
+  //   if (bankLoading) {
+  //     return;
+  //   }
 
-    if (!bankData.bankAccountNumber || !bankData.bankIfscCode) {
-      setBankError("Please enter both bank account number and IFSC code");
-      return;
-    }
+  //   if (!bankData.bankAccountNumber || !bankData.bankIfscCode) {
+  //     setBankError("Please enter both bank account number and IFSC code");
+  //     return;
+  //   }
 
-    // Validate bank account number (should be numeric)
-    if (!/^\d+$/.test(bankData.bankAccountNumber)) {
-      setBankError("Invalid bank account number. Please enter only digits.");
-      return;
-    }
+  //   // Validate bank account number (should be numeric)
+  //   if (!/^\d+$/.test(bankData.bankAccountNumber)) {
+  //     setBankError("Invalid bank account number. Please enter only digits.");
+  //     return;
+  //   }
 
-    // Validate IFSC code format
-    const ifscRegex = /^[A-Z]{4}0[A-Z0-9]{6}$/;
-    if (!ifscRegex.test(bankData.bankIfscCode)) {
-      setBankError(
-        "Invalid IFSC code format. Please enter a valid IFSC code (e.g., SBIN0002499)",
-      );
-      return;
-    }
+  //   // Validate IFSC code format
+  //   const ifscRegex = /^[A-Z]{4}0[A-Z0-9]{6}$/;
+  //   if (!ifscRegex.test(bankData.bankIfscCode)) {
+  //     setBankError(
+  //       "Invalid IFSC code format. Please enter a valid IFSC code (e.g., SBIN0002499)",
+  //     );
+  //     return;
+  //   }
 
-    // Set a small delay to prevent multiple rapid clicks
-    bankTimeoutRef.current = setTimeout(async () => {
-      setBankLoading(true);
-      setBankError("");
-      setBankSuccess("");
+  //   // Set a small delay to prevent multiple rapid clicks
+  //   bankTimeoutRef.current = setTimeout(async () => {
+  //     setBankLoading(true);
+  //     setBankError("");
+  //     setBankSuccess("");
 
-      try {
-        const response = await franchiseAPI.verifyBankDetails(bankData);
-        setBankSuccess(
-          response.data.message || "Bank details verified successfully!",
-        );
-        setBankDetails(response.data.bankDetails);
+  //     try {
+  //       const response = await franchiseAPI.verifyBankDetails(bankData);
+  //       setBankSuccess(
+  //         response.data.message || "Bank details verified successfully!",
+  //       );
+  //       setBankDetails(response.data.bankDetails);
 
-        // Auto-fill form fields with bank data
-        if (response.data.bankDetails && response.data.bankDetails.data) {
-          const bankData = response.data.bankDetails.data;
+  //       // Auto-fill form fields with bank data
+  //       if (response.data.bankDetails && response.data.bankDetails.data) {
+  //         const bankData = response.data.bankDetails.data;
 
-          // Update form data with bank account holder name
-          if (bankData.full_name) {
-            setFormData((prevFormData) => ({
-              ...prevFormData,
-              ownerName: bankData.full_name,
-            }));
-          }
-        }
-      } catch (err) {
-        setBankError(
-          err.response?.data?.message || "Failed to verify bank details",
-        );
-        console.error("Error verifying bank details:", err);
-      } finally {
-        setBankLoading(false);
-      }
-    }, 500); // 500ms delay to prevent rapid clicks
-  };
+  //         // Update form data with bank account holder name
+  //         if (bankData.full_name) {
+  //           setFormData((prevFormData) => ({
+  //             ...prevFormData,
+  //             ownerName: bankData.full_name,
+  //           }));
+  //         }
+  //       }
+  //     } catch (err) {
+  //       setBankError(
+  //         err.response?.data?.message || "Failed to verify bank details",
+  //       );
+  //       console.error("Error verifying bank details:", err);
+  //     } finally {
+  //       setBankLoading(false);
+  //     }
+  //   }, 500); // 500ms delay to prevent rapid clicks
+  // };
 
   // Reset password function
   const handleResetPassword = async () => {
@@ -740,7 +741,7 @@ const Profile = () => {
         </Card>
 
         {/* Bank Details Section */}
-        <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
+        {/* <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
           <CardContent>
             <Accordion defaultExpanded>
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -871,7 +872,7 @@ const Profile = () => {
               </AccordionDetails>
             </Accordion>
           </CardContent>
-        </Card>
+        </Card> */}
 
         {/* Reset Password Section */}
         <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>

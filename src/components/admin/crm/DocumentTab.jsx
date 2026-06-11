@@ -11,6 +11,17 @@ const documentFields = [
 ];
 
 const DocumentTab = ({ documents = {} }) => {
+  const getDocumentUrl = (path) => {
+    if (!path) return "";
+
+    const normalizedPath = path.replace(/\\/g, "/");
+
+    const baseUrl = import.meta.env.VITE_REACT_APP_API_URL
+      ? import.meta.env.VITE_REACT_APP_API_URL.replace("/api", "")
+      : "https://reactbackend.creditdost.co.in";
+
+    return `${baseUrl}/${normalizedPath}`;
+  };
   return (
     <Box>
       <Typography variant="h6" fontWeight="bold" mb={2}>
@@ -29,7 +40,11 @@ const DocumentTab = ({ documents = {} }) => {
               <Typography variant="body2">{doc.label}</Typography>
 
               {documents?.[doc.key] ? (
-                <Link href={documents[doc.key]} target="_blank">
+                <Link
+                  href={getDocumentUrl(documents[doc.key])}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   View
                 </Link>
               ) : (

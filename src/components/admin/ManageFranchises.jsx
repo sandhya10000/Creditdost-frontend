@@ -117,11 +117,12 @@ const ManageFranchises = () => {
   const [totalRecords, setTotalRecords] = useState(0);
   const [page, setPage] = useState(1);
   const rowsPerPage = 20;
+  const [kycStatus, setKycStatus] = useState("all");
 
   // Reload data when page, search or bureau filter changes
   useEffect(() => {
     fetchFranchises();
-  }, [page]);
+  }, [page, kycStatus]);
 
   // Fetch all franchises and packages on component mount
   useEffect(() => {
@@ -171,6 +172,7 @@ const ManageFranchises = () => {
         page: page,
         limit: rowsPerPage,
         search: searchTerm,
+        kycStatus: kycStatus !== "all" ? kycStatus : "",
       });
       setFranchises(response.data);
       setFilteredFranchises(response.data.franchises || []);
@@ -1036,19 +1038,48 @@ const ManageFranchises = () => {
               >
                 Create New Franchise
               </Button> */}
-
-              <Button
-                id={buttonId}
-                aria-controls={open ? menuId : undefined}
-                aria-haspopup="true"
-                aria-expanded={open}
-                onClick={handleClick}
-                variant="contained"
-                startIcon={<AddIcon />}
-                sx={{ mb: 2 }}
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  mb: 2,
+                }}
               >
-                Create User
-              </Button>
+                <Button
+                  id={buttonId}
+                  aria-controls={open ? menuId : undefined}
+                  aria-haspopup="true"
+                  aria-expanded={open}
+                  onClick={handleClick}
+                  variant="contained"
+                  startIcon={<AddIcon />}
+                >
+                  Create User
+                </Button>
+
+                <TextField
+                  select
+                  label="Filter"
+                  value={kycStatus}
+                  onChange={(e) => {
+                    setKycStatus(e.target.value);
+                    setPage(1);
+                  }}
+                  size="small"
+                  sx={{
+                    minWidth: 180,
+                    backgroundColor: "#fff",
+                  }}
+                >
+                  <MenuItem value="all">All</MenuItem>
+                  <MenuItem value="submitted">Submitted</MenuItem>
+                  <MenuItem value="pending">Pending</MenuItem>
+                  <MenuItem value="approved">Approved</MenuItem>
+                  <MenuItem value="rejected">Rejected</MenuItem>
+                </TextField>
+              </Box>
+
               <Menu
                 id={menuId}
                 anchorEl={anchorEl}
