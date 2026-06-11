@@ -196,7 +196,8 @@ const ViewReports = () => {
                         }}
                       >
                         <TableCell>
-                          {report?.franchiseId?.businessName || ""}
+                          {report?.franchiseId?.businessName ||
+                            report?.userId?.name}
                         </TableCell>
                         <TableCell component="th" scope="row">
                           {report.name}
