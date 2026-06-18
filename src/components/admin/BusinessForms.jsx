@@ -152,9 +152,16 @@ const BusinessForms = ({ status = "paid" }) => {
 
   //   return `${API_URL}/${path.replace(/\\/g, "/")}`;
   // };
+
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>
+      <Typography
+        variant="h4"
+        sx={{
+          mb: 2,
+          fontSize: { xs: "1.5rem", md: "2rem" },
+        }}
+      >
         {status === "pending" ? "Business MIS Pending" : "Business MIS"}
       </Typography>
 
@@ -164,21 +171,37 @@ const BusinessForms = ({ status = "paid" }) => {
         </Alert>
       )}
 
-      <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
+      <Card
+        sx={{
+          mt: 2,
+          borderRadius: 2,
+          overflow: "visible",
+        }}
+      >
         <CardContent>
-          <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: { xs: "column", sm: "row" },
+              gap: 2,
+              justifyContent: "space-between",
+              mb: 3,
+            }}
+          >
             <TextField
               fullWidth
               placeholder="Search by customer name, email, phone, or franchise"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              sx={{ maxWidth: 400 }}
+              sx={{
+                maxWidth: { xs: "100%", sm: 400 },
+              }}
             />
             <Button
               variant="contained"
               color="success"
               onClick={handleDownloadCSV}
-              sx={{ color: "#fff" }}
+              sx={{ color: "#fff", width: { xs: "100%", sm: "auto" } }}
             >
               Download CSV
             </Button>
@@ -189,10 +212,43 @@ const BusinessForms = ({ status = "paid" }) => {
               <CircularProgress />
             </Box>
           ) : (
-            <TableContainer component={Paper}>
-              <Table sx={{ minWidth: 650 }} aria-label="business forms table">
-                <TableHead>
-                  <TableRow>
+            <TableContainer
+              component={Paper}
+              sx={{
+                width: "100%",
+                overflowX: "auto",
+                "&::-webkit-scrollbar": {
+                  height: 8,
+                },
+              }}
+            >
+              <Table
+                size="small"
+                sx={{
+                  minWidth: 1400,
+                  tableLayout: "auto",
+                }}
+                aria-label="business forms table"
+              >
+                <TableHead
+                  sx={{
+                    "& .MuiTableCell-root": {
+                      fontWeight: 700,
+                      whiteSpace: "nowrap",
+                      backgroundColor: "#f8f9fa",
+                    },
+                  }}
+                >
+                  <TableRow
+                    sx={{
+                      "& td, & th": {
+                        py: 0.8,
+                      },
+                      "&:last-child td, &:last-child th": {
+                        border: 0,
+                      },
+                    }}
+                  >
                     <TableCell>Customer ID</TableCell>
 
                     <TableCell>Customer Name</TableCell>
@@ -209,7 +265,13 @@ const BusinessForms = ({ status = "paid" }) => {
                     <TableCell>Action</TableCell>
                   </TableRow>
                 </TableHead>
-                <TableBody>
+                <TableBody
+                  sx={{
+                    "& td": {
+                      padding: "6px 8px",
+                    },
+                  }}
+                >
                   {filteredBusinessForms.map((form) => (
                     <TableRow
                       key={form._id}
@@ -229,12 +291,21 @@ const BusinessForms = ({ status = "paid" }) => {
                       <TableCell component="th" scope="row">
                         {form.customerName}
                       </TableCell>
-                      <TableCell>{form.customerEmail}</TableCell>
+                      <TableCell
+                        sx={{
+                          maxWidth: 180,
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                      >
+                        {form.customerEmail}
+                      </TableCell>
                       <TableCell>{form.customerPhone}</TableCell>
-                      <TableCell>
+                      <TableCell sx={{ minWidth: 120 }}>
                         {form.franchiseId?.businessName || "N/A"}
                       </TableCell>
-                      <TableCell>
+                      <TableCell sx={{ minWidth: 100 }}>
                         {form.selectedPackage?.name || "N/A"}
                       </TableCell>
                       {/* <TableCell>
@@ -250,87 +321,37 @@ const BusinessForms = ({ status = "paid" }) => {
                         {getPaymentStatusChip(form.paymentStatus)}
                       </TableCell>
                       <TableCell>{form.createdByRole || "franchise"}</TableCell>
-                      {/* <TableCell>
-                        {form.documents?.panCard && (
-                          <a
-                            href={getFileUrl(form.documents.panCard)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            PAN
-                          </a>
-                        )}
-
-                        <br />
-
-                        {form.documents?.aadharFront && (
-                          <a
-                            href={getFileUrl(form.documents.aadharFront)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            Aadhaar Front
-                          </a>
-                        )}
-
-                        <br />
-
-                        {form.documents?.aadharBack && (
-                          <a
-                            href={getFileUrl(form.documents.aadharBack)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            Aadhaar Back
-                          </a>
-                        )}
-
-                        <br />
-
-                        {form.documents?.cancelCheque && (
-                          <a
-                            href={getFileUrl(form.documents.cancelCheque)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            Cancel Cheque
-                          </a>
-                        )}
-
-                        <br />
-
-                        {form.documents?.bankProof && (
-                          <a
-                            href={getFileUrl(form.documents.bankProof)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            Bank Proof
-                          </a>
-                        )}
-                        <br />
-                        {form.documents?.extraBankDoc && (
-                          <a
-                            href={getFileUrl(form.documents.extraBankDoc)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            Extra Bank Proof
-                          </a>
-                        )}
-                      </TableCell> */}
-                      <TableCell>
+                      <TableCell
+                        sx={{
+                          width: 60,
+                          textAlign: "center",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
                         {Object.values(form.documents || {}).some(Boolean)
                           ? "Yes"
                           : "No"}
                       </TableCell>
-                      <TableCell>{formatDate(form.createdAt)}</TableCell>
-                      <TableCell>
+                      <TableCell sx={{ whiteSpace: "nowrap" }}>
+                        {new Date(form.createdAt).toLocaleString("en-IN", {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          hour12: true,
+                        })}
+                      </TableCell>
+                      <TableCell align="center" sx={{ whiteSpace: "nowrap" }}>
                         <Button
                           variant="contained"
                           color="success"
                           size="small"
-                          onClick={() => closeCase(form._id)}
+                          sx={{
+                            minWidth: 110,
+                            whiteSpace: "nowrap",
+                            color: "#fff",
+                          }}
                         >
                           Close Case
                         </Button>

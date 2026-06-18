@@ -10,11 +10,13 @@ import {
   Button,
   Alert,
   CircularProgress,
+  MenuItem,
 } from "@mui/material";
 
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 
 const AdminCaseStudies = () => {
+  // const { category } = useParams();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [beforeWorkingFile, setBeforeWorkingFile] = useState(null);
@@ -26,6 +28,8 @@ const AdminCaseStudies = () => {
   const [caseStudies, setCaseStudies] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [editMode, setEditMode] = useState(false);
+  const [category, setCategory] = useState("");
+  // const [category, setCategory] = useState("");
 
   const handleSubmit = async () => {
     console.log("API response...");
@@ -36,6 +40,10 @@ const AdminCaseStudies = () => {
 
     if (!description.trim()) {
       setError("Please enter description");
+      return;
+    }
+    if (!category.trim()) {
+      setError("Please enter category");
       return;
     }
 
@@ -53,6 +61,7 @@ const AdminCaseStudies = () => {
 
     formData.append("title", title);
     formData.append("description", description);
+    formData.append("category", category);
     formData.append("beforeWorking", beforeWorkingFile);
     formData.append("afterWorking", afterWorkingFile);
 
@@ -90,6 +99,7 @@ const AdminCaseStudies = () => {
   useEffect(() => {
     fetchCaseStudies();
   }, []);
+
   const handleDelete = async (id) => {
     try {
       await adminAPI.deleteCaseStudy(id);
@@ -104,6 +114,7 @@ const AdminCaseStudies = () => {
 
       formData.append("title", title);
       formData.append("description", description);
+      formData.append("category", category);
 
       if (beforeWorkingFile) {
         formData.append("beforeWorking", beforeWorkingFile);
@@ -127,8 +138,20 @@ const AdminCaseStudies = () => {
     setTitle(item.title);
     setDescription(item.description);
     setEditingId(item._id);
+    setCategory(item.category);
     setEditMode(true);
   };
+
+  const groupedCases = caseStudies.reduce((acc, item) => {
+    const category = item.category || "uncategorized";
+
+    if (!acc[category]) {
+      acc[category] = [];
+    }
+
+    acc[category].push(item);
+    return acc;
+  }, {});
 
   return (
     <Box sx={{ p: 3 }}>
@@ -173,6 +196,26 @@ const AdminCaseStudies = () => {
             onChange={(e) => setDescription(e.target.value)}
             sx={{ mb: 2 }}
           />
+          <TextField
+            select
+            fullWidth
+            label="Case Type"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            sx={{ mb: 2 }}
+          >
+            <MenuItem value="dpd">DPD</MenuItem>
+            <MenuItem value="inquiries">Inquiries</MenuItem>
+            <MenuItem value="score_increase">Score Increase</MenuItem>
+            <MenuItem value="settlement">Settlement</MenuItem>
+            <MenuItem value="write_off">Write Off</MenuItem>
+            <MenuItem value="suit_filed">Suit Filed</MenuItem>
+            <MenuItem value="post_write_off_closed">
+              Post Write Off Closed
+            </MenuItem>
+            <MenuItem value="fake_loans">Fake Loans</MenuItem>
+            <MenuItem value="sma_removed">SMA Removed</MenuItem>
+          </TextField>
 
           {/* Before Working PDF */}
           <Button
@@ -256,53 +299,68 @@ const AdminCaseStudies = () => {
         {caseStudies.length === 0 ? (
           <Typography>No case studies found</Typography>
         ) : (
-          caseStudies.map((item) => (
-            <Card key={item._id} sx={{ mb: 2, p: 2 }}>
-              <Typography fontWeight="bold">{item.title}</Typography>
-
-              <Typography variant="body2" sx={{ mb: 1 }}>
-                {item.description}
+          Object.entries(groupedCases).map(([category, cases]) => (
+            <Box key={category} sx={{ mb: 4 }}>
+              <Typography
+                variant="h6"
+                fontWeight="bold"
+                sx={{
+                  bgcolor: "#f5f5f5",
+                  p: 1,
+                  borderRadius: 1,
+                  mb: 2,
+                }}
+              >
+                {category.replace(/_/g, " ").toUpperCase()}
               </Typography>
 
-              <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-                <Button
-                  size="small"
-                  variant="outlined"
-                  href={item.beforeWorking}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Before PDF
-                </Button>
+              {cases.map((item) => (
+                <Card key={item._id} sx={{ mb: 2, p: 2 }}>
+                  <Typography fontWeight="bold">{item.title}</Typography>
 
-                <Button
-                  size="small"
-                  variant="outlined"
-                  href={item.afterWorking}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  After PDF
-                </Button>
+                  <Typography variant="body2" sx={{ mb: 1 }}>
+                    {item.description}
+                  </Typography>
 
-                <Button
-                  size="small"
-                  variant="outlined"
-                  onClick={() => handleEdit(item)}
-                >
-                  Edit
-                </Button>
+                  <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      href={item.beforeWorking}
+                      target="_blank"
+                    >
+                      Before PDF
+                    </Button>
 
-                <Button
-                  size="small"
-                  variant="contained"
-                  color="error"
-                  onClick={() => handleDelete(item._id)}
-                >
-                  Delete
-                </Button>
-              </Box>
-            </Card>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      href={item.afterWorking}
+                      target="_blank"
+                    >
+                      After PDF
+                    </Button>
+
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      onClick={() => handleEdit(item)}
+                    >
+                      Edit
+                    </Button>
+
+                    <Button
+                      size="small"
+                      variant="contained"
+                      color="error"
+                      onClick={() => handleDelete(item._id)}
+                    >
+                      Delete
+                    </Button>
+                  </Box>
+                </Card>
+              ))}
+            </Box>
           ))
         )}
       </Box>

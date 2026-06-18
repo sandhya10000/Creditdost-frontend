@@ -209,8 +209,8 @@ const DetailsTab = ({ customer, creditReport, ifscDeatails }) => {
 
       <Grid container spacing={3}>
         <Grid item xs={12} md={6}>
-          <Typography fontWeight="Medium">Selected Package</Typography>
-          <Typography>{customer?.selectedPackage?.name || "-"}</Typography>
+          <Typography fontWeight="Medium">Selected Package Price</Typography>
+          <Typography>{customer?.selectedPackage?.price || "-"}</Typography>
         </Grid>
       </Grid>
 
@@ -226,6 +226,10 @@ const DetailsTab = ({ customer, creditReport, ifscDeatails }) => {
           <Typography fontWeight="Medium">Business Name</Typography>
 
           <Typography>{customer?.franchiseId?.businessName || "-"}</Typography>
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <Typography fontWeight="medium">Phone No.</Typography>
+          <Typography>{customer?.franchiseId?.phone || "-"}</Typography>
         </Grid>
       </Grid>
     </Paper>

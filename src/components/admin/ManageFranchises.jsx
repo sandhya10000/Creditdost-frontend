@@ -887,6 +887,7 @@ const ManageFranchises = () => {
   };
   const handleDownloadCSV = () => {
     const headers = [
+      "Franchise ID",
       "Business Name",
       "Owner Name",
       "Email",
@@ -894,10 +895,21 @@ const ManageFranchises = () => {
       "KYC Status",
       "Status",
       "Credits",
+      "Total Credits Purchased",
+      "PAN Number",
+      "Bank Account Number",
+      "IFSC Code",
+      "Certificate Name",
+      "Street",
+      "City",
+      "State",
+      "Pincode",
+      "Country",
       "Created Date",
     ];
 
     const rows = filteredFranchises.map((f) => [
+      f.franchiseCode || "",
       f.businessName || "",
       f.ownerName || "",
       f.email || "",
@@ -905,23 +917,33 @@ const ManageFranchises = () => {
       f.kycStatus || "",
       f.isActive ? "Active" : "Inactive",
       f.credits || 0,
+      f.totalCreditsPurchased || 0,
+      f.panNumber || "",
+      f.bankAccountNumber || "",
+      f.bankIfscCode || "",
+      f.certificateName || "",
+      f.address?.street || "",
+      f.address?.city || "",
+      f.address?.state || "",
+      f.address?.pincode || "",
+      f.address?.country || "",
       formatDate(f.createdAt),
     ]);
 
     const csvContent = [headers, ...rows]
-      .map((row) => row.join(","))
+      .map((row) =>
+        row.map((field) => `"${String(field).replace(/"/g, '""')}"`).join(","),
+      )
       .join("\n");
 
-    const encodedUri =
-      "data:text/csv;charset=utf-8," + encodeURIComponent(csvContent);
+    const blob = new Blob([csvContent], {
+      type: "text/csv;charset=utf-8;",
+    });
 
     const link = document.createElement("a");
-    link.href = encodedUri;
+    link.href = URL.createObjectURL(blob);
     link.download = "franchise_list.csv";
-
-    document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
   };
 
   return (
@@ -1126,6 +1148,7 @@ const ManageFranchises = () => {
                   <Table sx={{ minWidth: 650 }} aria-label="franchises table">
                     <TableHead>
                       <TableRow>
+                        <TableCell>Franchise ID</TableCell>
                         <TableCell>Business Name</TableCell>
                         <TableCell>Owner</TableCell>
                         <TableCell>Email</TableCell>
@@ -1145,6 +1168,11 @@ const ManageFranchises = () => {
                             "&:last-child td, &:last-child th": { border: 0 },
                           }}
                         >
+                          <TableCell component="th" scope="row">
+                            <a href={`franchise/${franchise.franchiseCode}`}>
+                              {franchise.franchiseCode}
+                            </a>
+                          </TableCell>
                           <TableCell component="th" scope="row">
                             {franchise.businessName}
                           </TableCell>

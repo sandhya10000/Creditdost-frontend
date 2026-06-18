@@ -9,13 +9,15 @@ import {
   Grid,
   CircularProgress,
 } from "@mui/material";
-
+import { useParams, useNavigate } from "react-router-dom";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import { Button } from "@mui/material";
 import DetailsTab from "../../components/admin/crm/DetailsTab";
 import ReportsTab from "../../components/admin/crm/ReportsTab";
 import BureauTab from "../../components/admin/crm/BureauTab";
 import RemarksTab from "../../components/admin/crm/RemarksTab";
 import DocumentTab from "../../components/admin/crm/DocumentTab";
-import { useParams } from "react-router-dom";
+
 import { adminAPI } from "../../services/api";
 
 const CustomerCRM = () => {
@@ -27,6 +29,7 @@ const CustomerCRM = () => {
   const [creditReports, setCreditReports] = useState([]);
   console.log(creditReports, "creditReports");
 
+  const navigate = useNavigate();
   useEffect(() => {
     fetchCustomer();
   }, []);
@@ -53,6 +56,15 @@ const CustomerCRM = () => {
 
   return (
     <Box p={3}>
+      <Box mb={2}>
+        <Button
+          startIcon={<ArrowBackIcon />}
+          variant="outlined"
+          onClick={() => navigate(-1)}
+        >
+          Back
+        </Button>
+      </Box>
       <Grid container spacing={3}>
         <Grid item xs={12} md={12}>
           <Card

@@ -260,7 +260,9 @@ const Profile = () => {
       // Save bank information
       //const bankResponse = await franchiseAPI.updateBankDetails(bankData);
 
-      setSuccess("All profile information saved successfully!");
+      setSuccess(
+        "Your profile has been submitted successfully. Please wait for admin approval to access all dashboard features and data.",
+      );
 
       // Update form data with response data
       const updatedProfile = profileResponse.data.franchise;
