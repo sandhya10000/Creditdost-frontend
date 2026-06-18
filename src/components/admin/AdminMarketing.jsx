@@ -9,6 +9,7 @@ import {
   Button,
   Alert,
   CircularProgress,
+  MenuItem,
 } from "@mui/material";
 import CloudUpload from "@mui/icons-material/CloudUpload";
 
@@ -19,16 +20,21 @@ const AdminMarketing = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [items, setItems] = useState([]);
-
+  const [language, setLanguage] = useState("");
   //this post function to handle upload material from admin
   const handleUpload = async () => {
     if (!file) {
       setError("Please select file");
       return;
     }
+    if (!language) {
+      setError("Please select language");
+      return;
+    }
     const formData = new FormData();
 
     formData.append("file", file);
+    formData.append("language", language);
     setLoading(true);
     setError("");
     setSuccess("");
@@ -115,7 +121,24 @@ const AdminMarketing = () => {
               onChange={(e) => setFile(e.target.files[0])}
             />
           </Button>
-
+          <TextField
+            select
+            fullWidth
+            label="Select Language"
+            value={language}
+            onChange={(e) => setLanguage(e.target.value)}
+            sx={{ mb: 2 }}
+          >
+            <MenuItem value="Hindi">Hindi</MenuItem>
+            <MenuItem value="English">English</MenuItem>
+            <MenuItem value="Tamil">Tamil</MenuItem>
+            <MenuItem value="Telugu">Telugu</MenuItem>
+            <MenuItem value="Bengali">Bengali</MenuItem>
+            <MenuItem value="Malayalam">Malayalam</MenuItem>
+            <MenuItem value="Marathi">Marathi</MenuItem>
+            <MenuItem value="Gujarati">Gujarati</MenuItem>
+            <MenuItem value="Kannada">Kannada</MenuItem>
+          </TextField>
           <Button
             fullWidth
             variant="contained"
@@ -154,8 +177,22 @@ const AdminMarketing = () => {
                 }}
               >
                 <Box>
-                  <Typography>
+                  <Typography fontWeight="bold">
                     {item.fileName || "Marketing Material"}
+                  </Typography>
+
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      bgcolor: "#f5f5f5",
+                      px: 1,
+                      py: 0.5,
+                      borderRadius: 1,
+                      display: "inline-block",
+                      mt: 1,
+                    }}
+                  >
+                    {item.language}
                   </Typography>
                 </Box>
 

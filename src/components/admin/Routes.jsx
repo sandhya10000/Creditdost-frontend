@@ -26,6 +26,7 @@ const AdminReward = lazy(() => import("./AdminReward"));
 const AdminCaseStudies = lazy(() => import("./AdminCaseStudy"));
 const ReportAnalytics = lazy(() => import("./ReportAnalytics"));
 const CustomerCRM = lazy(() => import("../pages/CustomerCRM"));
+const FranchiseCRM = lazy(() => import("../pages/FranchiseCRM"));
 const AdminCreditBureau = lazy(() => import("../admin/AdminCreditcheck"));
 const PrefillFailedLog = lazy(() => import("../admin/PrefillFailedLog"));
 const ManualBusiness = lazy(() => import("../admin/ManualBusiness"));
@@ -69,6 +70,7 @@ const AdminRoutes = () => {
           <Route path="case-study" element={<AdminCaseStudies />} />
           <Route path="report-analytics" element={<ReportAnalytics />} />
           <Route path="/customer/:customerId" element={<CustomerCRM />} />
+          <Route path="/franchise/:franchiseCode" element={<FranchiseCRM />} />
           <Route path="/credit-check" element={<AdminCreditBureau />} />
           <Route path="/prefill-failed-logs" element={<PrefillFailedLog />} />
           <Route path="/manual-business" element={<ManualBusiness />} />

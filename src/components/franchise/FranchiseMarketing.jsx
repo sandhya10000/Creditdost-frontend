@@ -29,7 +29,8 @@ const FranchiseMarketing = () => {
 
   const fetchMarketingMaterials = async () => {
     try {
-      const response = await franchiseAPI.getMarketingMaterials();
+      const language = localStorage.getItem("language");
+      const response = await franchiseAPI.getMarketingMaterials(language);
 
       const data =
         response.data.data || response.data.items || response.data || [];
@@ -96,6 +97,17 @@ const FranchiseMarketing = () => {
       console.error("Download failed:", error);
     }
   };
+  const groupedItems = items.reduce((acc, item) => {
+    const lang = item.language || "Unknown";
+
+    if (!acc[lang]) {
+      acc[lang] = [];
+    }
+
+    acc[lang].push(item);
+
+    return acc;
+  }, {});
 
   return (
     <Box sx={{ p: 3 }}>
@@ -123,83 +135,84 @@ const FranchiseMarketing = () => {
           No marketing material found.
         </Typography>
       ) : (
-        <Grid container spacing={3}>
-          {items.map((item) => {
-            console.log("Items:", items);
-            const fileUrl = `${API_URL}${item.fileUrl}`;
-            console.log(`${fileUrl}`, fileUrl);
+        <>
+          {Object.entries(groupedItems).map(([language, materials]) => (
+            <Box key={language} sx={{ mb: 4 }}>
+              <Typography variant="h5" fontWeight="bold" sx={{ mb: 2, mt: 2 }}>
+                {language.toUpperCase()}
+              </Typography>
 
-            return (
-              <Grid item xs={12} sm={6} md={4} key={item._id}>
-                <Card
-                  sx={{
-                    borderRadius: 3,
-                    boxShadow: 3,
-                    height: "100%",
-                  }}
-                >
-                  {item.fileType?.includes("image") && (
-                    <CardMedia
-                      component="img"
-                      height="220"
-                      image={fileUrl}
-                      loading="lazy"
-                      alt={item.title}
-                    />
-                  )}
+              <Grid container spacing={3}>
+                {materials.map((item) => {
+                  const fileUrl = `${API_URL}${item.fileUrl}`;
 
-                  {item.fileType?.includes("video") && (
-                    <Box sx={{ p: 1 }}>
-                      <video
-                        controls
-                        width="100%"
-                        style={{ borderRadius: "8px" }}
+                  return (
+                    <Grid item xs={12} sm={6} md={4} key={item._id}>
+                      <Card
+                        sx={{
+                          borderRadius: 3,
+                          boxShadow: 3,
+                          height: "100%",
+                        }}
                       >
-                        <source src={fileUrl} />
-                      </video>
-                    </Box>
-                  )}
+                        {item.fileType?.includes("image") && (
+                          <CardMedia
+                            component="img"
+                            height="220"
+                            image={fileUrl}
+                            loading="lazy"
+                            alt="marketing-material"
+                          />
+                        )}
 
-                  {item.fileType?.includes("audio") && (
-                    <Box sx={{ p: 2 }}>
-                      <audio controls style={{ width: "100%" }}>
-                        <source src={fileUrl} />
-                      </audio>
-                    </Box>
-                  )}
+                        {item.fileType?.includes("video") && (
+                          <Box sx={{ p: 1 }}>
+                            <video
+                              controls
+                              width="100%"
+                              style={{ borderRadius: "8px" }}
+                            >
+                              <source src={fileUrl} />
+                            </video>
+                          </Box>
+                        )}
 
-                  <CardContent>
-                    <Stack
-                      direction="row"
-                      spacing={1}
-                      flexWrap="wrap"
-                      useFlexGap
-                    >
-                      <Button
-                        variant="contained"
-                        size="small"
-                        onClick={() => downloadImage(fileUrl)}
-                      >
-                        Download
-                      </Button>
+                        {item.fileType?.includes("audio") && (
+                          <Box sx={{ p: 2 }}>
+                            <audio controls style={{ width: "100%" }}>
+                              <source src={fileUrl} />
+                            </audio>
+                          </Box>
+                        )}
 
-                      <Button
-                        variant="contained"
-                        color="success"
-                        target="_blank"
-                        rel="noreferrer"
-                        onClick={() => handleShare(fileUrl, item)}
-                        size="small"
-                      >
-                        WhatsApp
-                      </Button>
-                    </Stack>
-                  </CardContent>
-                </Card>
+                        <CardContent>
+                          <Stack direction="row" spacing={1}>
+                            <Button
+                              variant="contained"
+                              size="small"
+                              onClick={() => downloadImage(fileUrl)}
+                            >
+                              Download
+                            </Button>
+
+                            <Button
+                              variant="contained"
+                              color="success"
+                              size="small"
+                              onClick={() => handleShare(fileUrl, item)}
+                            >
+                              WhatsApp
+                            </Button>
+                          </Stack>
+                        </CardContent>
+                      </Card>
+                    </Grid>
+                  );
+                })}
               </Grid>
-            );
-          })}
-        </Grid>
+            </Box>
+          ))}
+        </>
       )}
     </Box>
   );

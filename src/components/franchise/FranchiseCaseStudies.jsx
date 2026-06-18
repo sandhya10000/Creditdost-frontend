@@ -33,6 +33,13 @@ const FranchiseCaseStudies = () => {
     fetchCaseStudies();
   }, []);
 
+  const groupedCases = caseStudies.reduce((acc, item) => {
+    if (!acc[item.category]) {
+      acc[item.category] = [];
+    }
+    acc[item.category].push(item);
+    return acc;
+  }, {});
   if (loading) {
     return (
       <Box textAlign="center" mt={5}>
@@ -49,38 +56,50 @@ const FranchiseCaseStudies = () => {
 
       {error && <Alert severity="error">{error}</Alert>}
 
-      <Grid container spacing={3}>
-        {caseStudies.map((item) => (
-          <Grid item xs={12} md={6} key={item._id}>
-            <Card sx={{ boxShadow: 3 }}>
-              <CardContent>
-                <Typography variant="h6" fontWeight="bold">
-                  {item.title}
-                </Typography>
+      {Object.entries(groupedCases).map(([category, cases]) => (
+        <Box key={category} sx={{ mb: 4 }}>
+          <Typography
+            variant="h6"
+            fontWeight="bold"
+            sx={{ mb: 2, textTransform: "capitalize" }}
+          >
+            {category.replace(/_/g, " ")}
+          </Typography>
 
-                <Typography sx={{ my: 1 }}>{item.description}</Typography>
+          <Grid container spacing={3}>
+            {cases.map((item) => (
+              <Grid item xs={12} md={6} key={item._id}>
+                <Card sx={{ boxShadow: 3 }}>
+                  <CardContent>
+                    <Typography variant="h6" fontWeight="bold">
+                      {item.title}
+                    </Typography>
 
-                <Button
-                  variant="outlined"
-                  href={item.beforeWorking}
-                  target="_blank"
-                  sx={{ mr: 1 }}
-                >
-                  Before PDF
-                </Button>
+                    <Typography sx={{ my: 1 }}>{item.description}</Typography>
 
-                <Button
-                  variant="contained"
-                  href={item.afterWorking}
-                  target="_blank"
-                >
-                  After PDF
-                </Button>
-              </CardContent>
-            </Card>
+                    <Button
+                      variant="outlined"
+                      href={item.beforeWorking}
+                      target="_blank"
+                      sx={{ mr: 1 }}
+                    >
+                      Before PDF
+                    </Button>
+
+                    <Button
+                      variant="contained"
+                      href={item.afterWorking}
+                      target="_blank"
+                    >
+                      After PDF
+                    </Button>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
           </Grid>
-        ))}
-      </Grid>
+        </Box>
+      ))}
     </Box>
   );
 };

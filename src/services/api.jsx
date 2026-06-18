@@ -85,6 +85,7 @@ export const franchiseAPI = {
   submitBusinessForm: (data) => api.post("/business/submit", data),
   verifyBusinessPayment: (data) => api.post("/business/verify-payment", data),
   getBusinessForms: () => api.get("/business/franchise"),
+
   // Transactions
   getTransactions: () => api.get("/dashboard/transactions"),
   // Referrals
@@ -132,7 +133,10 @@ export const franchiseAPI = {
   savePrefillFailure: (data) => api.post("/save-prefill-failure", data),
   getPrefillFailedLog: (params) => api.get("/prefill-failed-logs", { params }),
   //get marketing material
-  getMarketingMaterials: () => api.get("/marketing"),
+  getMarketingMaterials: (language) =>
+    api.get("/marketing", {
+      params: { language },
+    }),
   //get reward from admin
   getRewards: () => api.get("/franchise/reward"),
   //get case studies
@@ -141,6 +145,7 @@ export const franchiseAPI = {
   uploaddocBusiness: (formData) =>
     api.post("/franchise/uploadDocBusiness", formData),
   getfranchiseList: () => api.get("/franchises/admin/allFranchises-Namelist"),
+  getBusinessFormsByFranchise: (_id) => api.get(`/business/franchise/${_id}`),
 };
 
 // Blog API functions
@@ -304,6 +309,15 @@ export const adminAPI = {
   //Bureau save for mini crm
   getSinglebusinessform: (customerId) =>
     api.get(`/business/customer/${customerId}`),
+  getSingleFranchise: (franchiseCode) =>
+    api.get(`/franchises/${franchiseCode}`),
+  //get franhcise report data
+  getFranchiseReport: (franchiseId) =>
+    api.get(`/credit/reports/${franchiseId}`),
+  //get franchise ai report data
+  getFranchiseAIDocuments: (franchiseId) =>
+    api.get(`/ai-analysis/documents/${franchiseId}`),
+
   //get single report data using userId
   getSingleCreditReport: (pan) => api.get(`/report/${pan}`),
   saveBureauData: (customerId, bureauData) =>
