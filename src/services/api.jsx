@@ -140,7 +140,7 @@ export const franchiseAPI = {
   //get reward from admin
   getRewards: () => api.get("/franchise/reward"),
   //get case studies
-  getCaseStudies: () => api.get("/franchise/case-studies"),
+  getCaseStudies: () => api.get("/franchise-new/case-studies"),
 
   uploaddocBusiness: (formData) =>
     api.post("/franchise/uploadDocBusiness", formData),
