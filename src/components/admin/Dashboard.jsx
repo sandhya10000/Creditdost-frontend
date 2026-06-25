@@ -212,6 +212,22 @@ const AdminDashboard = () => {
   const menuItems = [
     { text: "Dashboard", icon: <DashboardIcon />, path: "/admin" },
     {
+      text: "Website Enquiry",
+      icon: <CreditScoreIcon />,
+      children: [
+        {
+          text: "Franchise Pending Case",
+          path: "/admin/franchise-pending",
+          icon: <BusinessIcon />,
+        },
+        {
+          text: "Credit Score Repair",
+          path: "/admin/credit-repair",
+          icon: <AssessmentIcon />,
+        },
+      ],
+    },
+    {
       text: "Manage Franchises",
       icon: <PeopleIcon />,
       path: "/admin/franchises",
@@ -255,11 +271,11 @@ const AdminDashboard = () => {
       icon: <DescriptionIcon />,
       path: "/admin/business-forms-pending",
     },
-    {
-      text: "Surepass Settings",
-      icon: <SettingsIcon />,
-      path: "/admin/surepass-settings",
-    },
+    // {
+    //   text: "Surepass Settings",
+    //   icon: <SettingsIcon />,
+    //   path: "/admin/surepass-settings",
+    // },
     {
       text: "Recharge Credits",
       icon: <CreditScoreIcon />,

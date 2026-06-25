@@ -30,6 +30,12 @@ const FranchiseCRM = lazy(() => import("../pages/FranchiseCRM"));
 const AdminCreditBureau = lazy(() => import("../admin/AdminCreditcheck"));
 const PrefillFailedLog = lazy(() => import("../admin/PrefillFailedLog"));
 const ManualBusiness = lazy(() => import("../admin/ManualBusiness"));
+const FranchisePending = lazy(
+  () => import("../admin/Website-enquiry/FranchisePending"),
+);
+const CreditScoreRepair = lazy(
+  () => import("../admin/Website-enquiry/CreditScoreRepair"),
+);
 const AdminRoutes = () => {
   return (
     <Suspense fallback={<div>Loading...</div>}>
@@ -74,6 +80,12 @@ const AdminRoutes = () => {
           <Route path="/credit-check" element={<AdminCreditBureau />} />
           <Route path="/prefill-failed-logs" element={<PrefillFailedLog />} />
           <Route path="/manual-business" element={<ManualBusiness />} />
+          <Route
+            path="/admin/franchise-pending"
+            element={<FranchisePending />}
+          />
+
+          <Route path="/admin/credit-repair" element={<CreditScoreRepair />} />
         </Route>
       </Routes>
     </Suspense>

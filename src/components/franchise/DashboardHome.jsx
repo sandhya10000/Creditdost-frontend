@@ -480,8 +480,16 @@ const DashboardHome = () => {
             <Box
               sx={{
                 display: "flex",
+                flexDirection: {
+                  xs: "column",
+                  md: "row",
+                },
                 justifyContent: "space-between",
-                alignItems: "center",
+                alignItems: {
+                  xs: "flex-start",
+                  md: "center",
+                },
+                gap: 2,
               }}
             >
               <Box>
@@ -660,7 +668,8 @@ const DashboardHome = () => {
         sx={{ flexDirection: { xs: "column", md: "row" } }}
       >
         {statCards.map((card, index) => (
-          <Grid item xs={12} sm={6} md={3} key={index} style={{ flex: "1" }}>
+          <Grid item xs={12} sm={6} md={3} key={index}>
+            {" "}
             <Card
               sx={{
                 height: "100%",
@@ -705,7 +714,12 @@ const DashboardHome = () => {
                   </Typography>
                 </Box>
               ) : (
-                <TableContainer component={Paper}>
+                <TableContainer
+                  component={Paper}
+                  sx={{
+                    overflowX: "auto",
+                  }}
+                >
                   <Table
                     sx={{ minWidth: 400 }}
                     aria-label="recent reports table"
@@ -773,7 +787,10 @@ const DashboardHome = () => {
                 <Box
                   sx={{
                     display: "grid",
-                    gridTemplateColumns: "repeat(2, 1fr)",
+                    gridTemplateColumns: {
+                      xs: "1fr",
+                      sm: "repeat(2, 1fr)",
+                    },
                     gap: 2,
                     mt: 2,
                   }}

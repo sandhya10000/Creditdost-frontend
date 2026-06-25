@@ -185,8 +185,21 @@ const BusinessMIS = () => {
               <CircularProgress />
             </Box>
           ) : (
-            <TableContainer component={Paper}>
-              <Table sx={{ minWidth: 650 }}>
+            <TableContainer
+              component={Paper}
+              sx={{
+                overflowX: "auto",
+                width: "100%",
+              }}
+            >
+              <Table
+                sx={{
+                  minWidth: {
+                    xs: 1000,
+                    md: 650,
+                  },
+                }}
+              >
                 <TableHead>
                   <TableRow>
                     <TableCell>Customer ID</TableCell>

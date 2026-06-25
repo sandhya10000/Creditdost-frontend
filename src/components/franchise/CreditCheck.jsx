@@ -330,6 +330,22 @@ const CreditCheck = () => {
 
   const fetchPrefillData = async (mobile) => {
     try {
+      // Check if mobile is blocked for 24 hours
+      const blockedData = localStorage.getItem(`mobile_blocked_${mobile}`);
+
+      if (blockedData) {
+        const { timestamp } = JSON.parse(blockedData);
+
+        const diff = Date.now() - timestamp;
+
+        if (diff < 24 * 60 * 60 * 1000) {
+          alert("This mobile number is blocked for 24 hours.");
+          return;
+        } else {
+          localStorage.removeItem(`mobile_blocked_${mobile}`);
+        }
+      }
+
       setLoadingPrefill(true);
       setPrefillError("");
 
@@ -365,6 +381,15 @@ const CreditCheck = () => {
         err?.response?.data?.error?.message ||
         err?.response?.data?.message ||
         "Something went wrong";
+      // Block mobile for 24 hours on any error
+      localStorage.setItem(
+        `mobile_blocked_${mobile}`,
+        JSON.stringify({
+          timestamp: Date.now(),
+          status,
+          message,
+        }),
+      );
 
       await franchiseAPI.savePrefillFailure({
         mobile,
@@ -381,7 +406,7 @@ const CreditCheck = () => {
         alert("Too many requests. Please try again after some time.");
         setShowCreditButton(true);
       } else if (status === 500) {
-        alert("Server error occurred while fetching prefill data.");
+        alert("Server error occurred. Please try again after 15 minutes.");
         setShowCreditButton(true);
       } else {
         alert(message);
@@ -415,6 +440,25 @@ const CreditCheck = () => {
       }
     }
   };
+
+  const isMobileBlocked = formData.mobile
+    ? (() => {
+        const data = localStorage.getItem(`mobile_blocked_${formData.mobile}`);
+
+        if (!data) return false;
+
+        const { timestamp } = JSON.parse(data);
+
+        const diff = Date.now() - timestamp;
+
+        if (diff < 24 * 60 * 60 * 1000) {
+          return true;
+        }
+
+        localStorage.removeItem(`mobile_blocked_${formData.mobile}`);
+        return false;
+      })()
+    : false;
 
   return (
     <Box>
@@ -545,16 +589,23 @@ const CreditCheck = () => {
                     fullWidth
                     value={formData.mobile}
                     onChange={handleMobileChange}
+                    disabled={isMobileBlocked || loadingPrefill}
                     inputProps={{
                       maxLength: 10,
                       pattern: "[0-9]{10}",
                     }}
+                    error={!!prefillError}
                     InputProps={{
                       endAdornment: loadingPrefill ? (
                         <CircularProgress size={20} />
                       ) : null,
                     }}
-                    helperText="Enter exactly 10 digits without spaces or dashes"
+                    helperText={
+                      isMobileBlocked
+                        ? "This mobile number is blocked for 24 hours."
+                        : prefillError ||
+                          "Enter exactly 10 digits without spaces or dashes"
+                    }
                   />
                 </Grid>
 

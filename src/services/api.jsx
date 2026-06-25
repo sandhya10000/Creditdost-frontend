@@ -146,6 +146,8 @@ export const franchiseAPI = {
     api.post("/franchise/uploadDocBusiness", formData),
   getfranchiseList: () => api.get("/franchises/admin/allFranchises-Namelist"),
   getBusinessFormsByFranchise: (_id) => api.get(`/business/franchise/${_id}`),
+  updateCustomer: (customerId, formData) =>
+    api.put(`/admin/business/update-form/${customerId}`, formData),
 };
 
 // Blog API functions
