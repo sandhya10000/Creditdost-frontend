@@ -43,6 +43,9 @@ import AnalyticsIcon from "@mui/icons-material/Analytics";
 import { useAuth } from "../../hooks/useAuth.jsx";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useEffect } from "react";
+import Collapse from "@mui/material/Collapse";
+import ExpandLess from "@mui/icons-material/ExpandLess";
+import ExpandMore from "@mui/icons-material/ExpandMore";
 
 // Styled components for enhanced UI
 const drawerWidth = 260;
@@ -179,6 +182,7 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
+  const [openMenu, setOpenMenu] = useState({});
 
   // Redirect non-admin users to appropriate dashboard
   useEffect(() => {
@@ -388,28 +392,63 @@ const AdminDashboard = () => {
       <Divider />
       <List sx={{ flexGrow: 1, pt: 2 }}>
         {menuItems.map((item) => (
-          <NavItem
-            key={item.text}
-            active={isActive(item.path) ? "true" : undefined}
-            onClick={() => {
-              if (item.path === "/admin") {
-                // For the Dashboard tab, navigate to the base route without redirect
-                navigate("/admin", { state: { redirect: false } });
-              } else {
-                navigate(item.path);
-              }
-            }}
-            style={{
-              cursor: "pointer",
-            }}
-          >
-            <ListItemIcon>{item.icon}</ListItemIcon>
-            <ListItemText
-              primary={item.text}
-              sx={{ opacity: open ? 1 : 0 }}
-              style={{ maxWidth: "160px", whiteSpace: "wrap" }}
-            />
-          </NavItem>
+          <React.Fragment key={item.text}>
+            <NavItem
+              active={isActive(item.path) ? "true" : undefined}
+              onClick={() => {
+                if (item.children) {
+                  setOpenMenu((prev) => ({
+                    ...prev,
+                    [item.text]: !prev[item.text],
+                  }));
+                } else if (item.path === "/admin") {
+                  // Existing Dashboard logic
+                  navigate("/admin", { state: { redirect: false } });
+                } else {
+                  navigate(item.path);
+                }
+              }}
+              style={{
+                cursor: "pointer",
+              }}
+            >
+              <ListItemIcon>{item.icon}</ListItemIcon>
+
+              <ListItemText
+                primary={item.text}
+                sx={{ opacity: open ? 1 : 0 }}
+                style={{ maxWidth: "160px", whiteSpace: "wrap" }}
+              />
+
+              {item.children &&
+                (openMenu[item.text] ? <ExpandLess /> : <ExpandMore />)}
+            </NavItem>
+
+            {item.children && (
+              <Collapse in={openMenu[item.text]} timeout="auto" unmountOnExit>
+                <List component="div" disablePadding>
+                  {item.children.map((child) => (
+                    <NavItem
+                      key={child.text}
+                      active={isActive(child.path) ? "true" : undefined}
+                      onClick={() => navigate(child.path)}
+                      style={{
+                        cursor: "pointer",
+                        paddingLeft: "45px",
+                      }}
+                    >
+                      <ListItemIcon>{child.icon}</ListItemIcon>
+
+                      <ListItemText
+                        primary={child.text}
+                        sx={{ opacity: open ? 1 : 0 }}
+                      />
+                    </NavItem>
+                  ))}
+                </List>
+              </Collapse>
+            )}
+          </React.Fragment>
         ))}
       </List>
       <Divider />

@@ -56,7 +56,7 @@ import {
 } from "@mui/icons-material";
 import { adminAPI } from "../../services/api";
 
-const ManageFranchises = () => {
+const ManageFranchises = ({ kycStatus }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -117,7 +117,7 @@ const ManageFranchises = () => {
   const [totalRecords, setTotalRecords] = useState(0);
   const [page, setPage] = useState(1);
   const rowsPerPage = 20;
-  const [kycStatus, setKycStatus] = useState("all");
+  // const [kycStatus, setKycStatus] = useState("all");
 
   // Reload data when page, search or bureau filter changes
   useEffect(() => {

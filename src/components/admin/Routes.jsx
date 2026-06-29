@@ -42,7 +42,10 @@ const AdminRoutes = () => {
       <Routes>
         <Route path="/" element={<Dashboard />}>
           <Route index element={<AdminDashboardHome />} />
-          <Route path="franchises" element={<ManageFranchises />} />
+          <Route
+            path="franchises"
+            element={<ManageFranchises kycStatus="approved" />}
+          />
           <Route path="packages" element={<ManagePackages />} />
           <Route
             path="customer-packages"
@@ -82,7 +85,7 @@ const AdminRoutes = () => {
           <Route path="/manual-business" element={<ManualBusiness />} />
           <Route
             path="/admin/franchise-pending"
-            element={<FranchisePending />}
+            element={<FranchisePending kycStatus="pending" />}
           />
 
           <Route path="/admin/credit-repair" element={<CreditScoreRepair />} />
