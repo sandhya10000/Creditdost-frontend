@@ -257,13 +257,37 @@ const GoogleSheetsSettings = () => {
 
   return (
     <Box>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Typography variant="h4" fontWeight={700}>
+      {/* MOBILE FIX: header now stacks vertically on mobile (title -> instructions -> buttons), 
+          each taking full width. On desktop (md+) it keeps the original side-by-side layout. */}
+      <Box
+        display="flex"
+        flexDirection={{ xs: 'column', md: 'row' }}
+        justifyContent="space-between"
+        alignItems={{ xs: 'flex-start', md: 'center' }}
+        gap={{ xs: 2, md: 0 }}
+        mb={3}
+      >
+        {/* MOBILE FIX: title takes full width on mobile, slightly smaller font so it doesn't dominate */}
+        <Typography
+          variant="h4"
+          fontWeight={700}
+          sx={{
+            width: { xs: '100%', md: 'auto' },
+            fontSize: { xs: '1.5rem', md: '2.125rem' }
+          }}
+        >
           Google Sheets Integration
         </Typography>
-        <Typography variant="body2" color="textSecondary">
+
+        {/* MOBILE FIX: instructional text block forced to full width on mobile so the
+            numbered list reads naturally instead of wrapping in a squeezed column */}
+        <Typography
+          variant="body2"
+          color="textSecondary"
+          sx={{ width: { xs: '100%', md: 'auto' } }}
+        >
           To use this feature, you need to:
-          <ol>
+          <ol style={{ paddingLeft: '1.25rem', margin: '8px 0' }}>
             <li>Create a Google Cloud Project and enable the Google Sheets API</li>
             <li>Create a Service Account and download the credentials JSON file</li>
             <li>Share your Google Sheet with the service account email from your credentials (grant Editor access)</li>
@@ -271,13 +295,24 @@ const GoogleSheetsSettings = () => {
           </ol>
           <strong>Important:</strong> The service account must have Editor access to your Google Sheet, not just Viewer access.
         </Typography>
-        <Box>
+
+        {/* MOBILE FIX: action buttons stack full-width vertically on mobile, 
+            sit side-by-side on desktop (original behavior preserved) */}
+        <Box
+          display="flex"
+          flexDirection={{ xs: 'column', md: 'row' }}
+          width={{ xs: '100%', md: 'auto' }}
+          gap={{ xs: 1, md: 0 }}
+        >
           <Button
             variant="outlined"
             startIcon={testing ? <CircularProgress size={20} /> : <CloudDone />}
             onClick={handleTestConnection}
             disabled={testing}
-            sx={{ mr: 2 }}
+            sx={{
+              mr: { xs: 0, md: 2 },
+              width: { xs: '100%', md: 'auto' }
+            }}
           >
             Test Connection
           </Button>
@@ -286,6 +321,7 @@ const GoogleSheetsSettings = () => {
             startIcon={saving ? <CircularProgress size={20} /> : <Save />}
             onClick={handleSaveSettings}
             disabled={saving}
+            sx={{ width: { xs: '100%', md: 'auto' } }}
           >
             Save Settings
           </Button>
@@ -304,10 +340,12 @@ const GoogleSheetsSettings = () => {
         </Alert>
       )}
 
-      <Grid container spacing={3}>
+      {/* MOBILE FIX: extra vertical gap between stacked Grid items on mobile for breathing room */}
+      <Grid container spacing={3} sx={{ rowGap: { xs: 1, md: 0 } }}>
         <Grid item xs={12} md={8}>
           <Card>
-            <CardContent>
+            {/* MOBILE FIX: reduced CardContent padding on mobile for more usable width */}
+            <CardContent sx={{ p: { xs: 2, md: 3 } }}>
               <Typography variant="h6" fontWeight={600} mb={2}>
                 Spreadsheet Configuration
               </Typography>
@@ -322,7 +360,8 @@ const GoogleSheetsSettings = () => {
                     placeholder="Enter your Google Spreadsheet ID"
                     helperText="The ID can be found in the URL of your Google Spreadsheet. Example: 1oaDQRksxjuHgCPquSGQwCFUT20v8rOP3YGqRoJkiKxM"
                   />
-                  <Typography variant="caption" color="textSecondary" mt={1} display="block">
+                  {/* MOBILE FIX: increased top margin so this note doesn't crowd the helper text above it */}
+                  <Typography variant="caption" color="textSecondary" mt={2} display="block">
                     After saving your settings, make sure to share your Google Sheet with the service account email from your credentials file.
                     The service account needs <strong>Editor</strong> access to your Google Sheet.
                   </Typography>
@@ -368,7 +407,8 @@ const GoogleSheetsSettings = () => {
           </Card>
 
           <Card sx={{ mt: 3 }}>
-            <CardContent>
+            {/* MOBILE FIX: reduced CardContent padding on mobile */}
+            <CardContent sx={{ p: { xs: 2, md: 3 } }}>
               <Typography variant="h6" fontWeight={600} mb={2}>
                 Sync Settings
               </Typography>
@@ -415,7 +455,8 @@ const GoogleSheetsSettings = () => {
 
         <Grid item xs={12} md={4}>
           <Card>
-            <CardContent>
+            {/* MOBILE FIX: reduced CardContent padding on mobile */}
+            <CardContent sx={{ p: { xs: 2, md: 3 } }}>
               <Typography variant="h6" fontWeight={600} mb={2}>
                 Data Sync
               </Typography>
@@ -433,11 +474,23 @@ const GoogleSheetsSettings = () => {
               
               <Divider sx={{ my: 2 }} />
               
+              {/* MOBILE FIX: smaller tab font-size + minWidth on mobile so labels like 
+                  "Credit Score Repair" don't get clipped/truncated; scroll behavior unchanged */}
               <Tabs
                 value={tabValue}
                 onChange={handleTabChange}
                 variant="scrollable"
                 scrollButtons="auto"
+                allowScrollButtonsMobile
+                sx={{
+                  minHeight: { xs: 36, md: 48 },
+                  '& .MuiTab-root': {
+                    fontSize: { xs: '0.7rem', md: '0.875rem' },
+                    minWidth: { xs: 90, md: 120 },
+                    minHeight: { xs: 36, md: 48 },
+                    padding: { xs: '6px 10px', md: '12px 16px' }
+                  }
+                }}
               >
                 {Object.entries(tabLabels).map(([key, label]) => (
                   <Tab key={key} label={label} />
@@ -447,7 +500,15 @@ const GoogleSheetsSettings = () => {
               <Box sx={{ mt: 2 }}>
                 {Object.entries(tabLabels).map(([key, label], index) => (
                   <div key={key} hidden={tabValue !== index}>
-                    <Box display="flex" alignItems="center" mb={2}>
+                    {/* MOBILE FIX: this row wraps on mobile so the "last sync" chip 
+                        doesn't get squeezed/cut off next to the switch label */}
+                    <Box
+                      display="flex"
+                      flexWrap="wrap"
+                      alignItems="center"
+                      gap={1}
+                      mb={2}
+                    >
                       <FormControlLabel
                         control={
                           <Switch
@@ -463,7 +524,7 @@ const GoogleSheetsSettings = () => {
                           label={formatLastSync(settings.tabs[key]?.lastSync)}
                           size="small"
                           variant="outlined"
-                          sx={{ ml: 2 }}
+                          sx={{ ml: { xs: 0, md: 2 } }}
                         />
                       </Tooltip>
                     </Box>
