@@ -283,21 +283,32 @@ const AIAnalysis = () => {
             type="file"
             onChange={handleFileChange}
           />
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: 2,
+              mt: 2,
+            }}
+          >
+            <label htmlFor="pdf-upload">
+              <Button
+                variant="outlined"
+                component="span"
+                startIcon={<UploadIcon />}
+                disabled={uploading}
+              >
+                Select PDF/HTML File
+              </Button>
+            </label>
 
-          <label htmlFor="pdf-upload">
-            <Button
-              variant="outlined"
-              component="span"
-              startIcon={<UploadIcon />}
-              disabled={uploading}
-            >
-              Select PDF/HTML File
-            </Button>
-          </label>
-
-          {selectedFile && (
-            <Box sx={{ mt: 2, mb: 2 }}>
-              <Alert severity="info" icon={<CloudUploadIcon />}>
+            {selectedFile && (
+              <Alert
+                severity="info"
+                icon={<CloudUploadIcon />}
+                sx={{ flexBasis: "100%" }}
+              >
                 <Typography variant="body2">
                   Selected: <strong>{selectedFile.name}</strong>
                 </Typography>
@@ -305,25 +316,24 @@ const AIAnalysis = () => {
                   Size: {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
                 </Typography>
               </Alert>
-            </Box>
-          )}
-
-          <Button
-            variant="contained"
-            onClick={handleUpload}
-            disabled={!selectedFile || uploading}
-            sx={{ mt: 2 }}
-            startIcon={uploading ? null : <UploadIcon />}
-          >
-            {uploading ? (
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <CircularProgress size={20} color="inherit" />
-                Uploading...
-              </Box>
-            ) : (
-              "Upload & Analyze Document"
             )}
-          </Button>
+
+            <Button
+              variant="contained"
+              onClick={handleUpload}
+              disabled={!selectedFile || uploading}
+              startIcon={uploading ? null : <UploadIcon />}
+            >
+              {uploading ? (
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <CircularProgress size={20} color="inherit" />
+                  Uploading...
+                </Box>
+              ) : (
+                "Upload & Analyze Document"
+              )}
+            </Button>
+          </Box>
         </CardContent>
       </Card>
 
@@ -505,17 +515,31 @@ const AIAnalysis = () => {
 
                 return (
                   <React.Fragment key={doc._id}>
-                    <ListItem alignItems="flex-start">
+                    <ListItem
+                      alignItems="flex-start"
+                      sx={{
+                        flexDirection: { xs: "column", sm: "row" },
+                        alignItems: { xs: "stretch", sm: "flex-start" },
+                        gap: { xs: 1, sm: 0 },
+                      }}
+                    >
                       <ListItemText
+                        sx={{ pr: { sm: 2 } }}
                         primary={
                           <Box
                             sx={{
                               display: "flex",
                               alignItems: "center",
+                              flexWrap: "wrap",
                               gap: 1,
                             }}
                           >
-                            {doc.uploadedDocumentName}
+                            <Box
+                              component="span"
+                              sx={{ wordBreak: "break-word" }}
+                            >
+                              {doc.uploadedDocumentName}
+                            </Box>
                             {hasAnalysis && (
                               <Chip
                                 icon={<CheckCircleIcon />}
@@ -589,7 +613,15 @@ const AIAnalysis = () => {
                           </Box>
                         }
                       />
-                      <Box sx={{ display: "flex", gap: 1, ml: 2 }}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          gap: 1,
+                          ml: { xs: 0, sm: 2 },
+                          alignSelf: { xs: "flex-end", sm: "center" },
+                          flexShrink: 0,
+                        }}
+                      >
                         {/* Download Analysis Button */}
                         {hasAnalysis && doc.claudeAnalysisFileName && (
                           <Tooltip title="Download AI Analysis Report">
