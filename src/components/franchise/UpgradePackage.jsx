@@ -282,6 +282,9 @@ const UpgradePackage = () => {
           ) : (
             <Grid container spacing={3}>
               {availablePackages.map((pkg) => {
+                // Gold card is temporarily disabled in UI (see commented-out block above)
+                if (pkg.name === "Gold") return null;
+
                 const basePrice = pkg.price;
                 const gst = pkg.gstPercentage || 0;
                 const gstAmount = (basePrice * gst) / 100;
