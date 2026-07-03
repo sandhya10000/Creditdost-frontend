@@ -348,7 +348,7 @@ const Header = () => {
     { text: "Home", path: "/" },
     { text: "About Us", path: "/about" },
     { text: "Credit Score Repair", path: "/credit-score-repair" },
-    { text: "Credit Report", path: "/credit-check" },
+    { text: "Download Free Credit Report", path: "/credit-check" },
     // { text: "Apply for loan", path: "/apply-for-loan" },
    
     // { text: "Suvidha Centre", path: "/suvidha-centre" },
