@@ -629,12 +629,25 @@ const Profile = () => {
           <CardContent>
             <Accordion defaultExpanded>
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant="h6">PAN Details</Typography>
-
-                <small>
-                  Note: Retry entering PAN details if there are any errors or
-                  doesn't work in the first attempt
-                </small>
+                
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 0.5,
+                    width: "100%",
+                  }}
+                >
+                  <Typography variant="h6">PAN Details</Typography>
+                  <Typography
+                    component="small"
+                    variant="caption"
+                    color="text.secondary"
+                  >
+                    Note: Retry entering PAN details if there are any errors or
+                    doesn't work in the first attempt
+                  </Typography>
+                </Box>
               </AccordionSummary>
               <AccordionDetails>
                 {panError && (

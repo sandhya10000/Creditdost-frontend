@@ -150,7 +150,7 @@ const HomePageFooter = () => {
             style={{ width: "200px", marginBottom: "20px" }}
           />
           <Typography variant="body2" color="grey.300" mb={3} lineHeight={1.6}>
-            Credit Dost Suvidha Centre is a dedicated financial service point
+            Credit Dost is a dedicated financial service point
             offering credit score repair, loan assistance, and financial support
             services.
           </Typography>
@@ -236,9 +236,9 @@ const HomePageFooter = () => {
           <FooterLink href="/franchise-opportunity">
             Franchise Opportunity
           </FooterLink>
-          <FooterLink href="/apply-for-loan">Apply for Loan</FooterLink>
+          {/* <FooterLink href="/apply-for-loan">Apply for Loan</FooterLink> */}{/* temporarily removed [2026-07-03] */}
           <FooterLink href="/credit-check">Free Credit Report</FooterLink>
-          <FooterLink href="/suvidha-centre">Suvidha Centre</FooterLink>
+          {/* <FooterLink href="/suvidha-centre">Suvidha Centre</FooterLink> */}{/* temporarily removed [2026-07-03] */}
         </Grid>
 
         <Grid item xs={6} md={2} style={{ flex: "1" }}>
@@ -257,7 +257,7 @@ const HomePageFooter = () => {
           <FooterLink href="/about">About Us</FooterLink>
           <FooterLink href="/contact">Contact Us</FooterLink>
           <FooterLink href="/careers">Careers</FooterLink>
-          <FooterLink href="/suvidha-centre">Suvidha Centre</FooterLink>
+          {/* <FooterLink href="/suvidha-centre">Suvidha Centre</FooterLink> */}{/* temporarily removed [2026-07-03] */}
           <FooterLink href="/blogs">Blog</FooterLink>
         </Grid>
 
@@ -392,9 +392,9 @@ const HomePageFooter = () => {
               <FooterLink href="/franchise-opportunity">
                 Franchise Opportunity
               </FooterLink>
-              <FooterLink href="/apply-for-loan">Apply for Loan</FooterLink>
+              {/* <FooterLink href="/apply-for-loan">Apply for Loan</FooterLink> */}{/* temporarily removed [2026-07-03] */}
               <FooterLink href="/credit-check">Free Credit Report</FooterLink>
-              <FooterLink href="/suvidha-centre">Suvidha Centre</FooterLink>
+              {/* <FooterLink href="/suvidha-centre">Suvidha Centre</FooterLink> */}{/* temporarily removed [2026-07-03] */}
             </MobileAccordionContent>
           </MobileAccordion>
 
@@ -438,7 +438,7 @@ const HomePageFooter = () => {
               <FooterLink href="/about">About Us</FooterLink>
               <FooterLink href="/contact">Contact Us</FooterLink>
               <FooterLink href="/careers">Careers</FooterLink>
-              <FooterLink href="/suvidha-centre">Suvidha Centre</FooterLink>
+              {/* <FooterLink href="/suvidha-centre">Suvidha Centre</FooterLink> */}{/* temporarily removed [2026-07-03] */}
               <FooterLink href="/blogs">Blog</FooterLink>
             </MobileAccordionContent>
           </MobileAccordion>
