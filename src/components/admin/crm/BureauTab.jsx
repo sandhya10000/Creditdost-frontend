@@ -156,7 +156,7 @@ const BureauTab = ({
             <TextField
               fullWidth
               label="Password"
-              type="password"
+              type="text"
               value={bureauData[keyName].password}
               onChange={(e) =>
                 handleChange(keyName, "password", e.target.value)

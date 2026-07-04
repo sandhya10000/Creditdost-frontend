@@ -84,8 +84,8 @@ const AdminRoutes = () => {
           <Route path="/prefill-failed-logs" element={<PrefillFailedLog />} />
           <Route path="/manual-business" element={<ManualBusiness />} />
           <Route
-            path="/admin/franchise-pending"
-            element={<FranchisePending kycStatus="pending" />}
+            path="/admin/website-enquiry/franchise-pending"
+            element={<ManageFranchises kycStatus="pending" />}
           />
 
           <Route path="/admin/credit-repair" element={<CreditScoreRepair />} />

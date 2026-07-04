@@ -221,7 +221,7 @@ const AdminDashboard = () => {
       children: [
         {
           text: "Franchise Pending Case",
-          path: "/admin/franchise-pending",
+          path: "/admin/website-enquiry/franchise-pending",
           icon: <BusinessIcon />,
         },
         {

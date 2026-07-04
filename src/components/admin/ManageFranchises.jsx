@@ -56,7 +56,7 @@ import {
 } from "@mui/icons-material";
 import { adminAPI } from "../../services/api";
 
-const ManageFranchises = ({ kycStatus }) => {
+const ManageFranchises = ({ kycStatus = "pending" }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -956,7 +956,11 @@ const ManageFranchises = ({ kycStatus }) => {
           mb: 2,
         }}
       >
-        <Typography variant="h4">Manage Franchise Partners</Typography>
+        <Typography variant="h4">
+          {kycStatus === "pending"
+            ? "Franchise Pending Case"
+            : "Manage Franchises"}
+        </Typography>
 
         <Button
           variant="contained"
