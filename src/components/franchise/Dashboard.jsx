@@ -48,6 +48,7 @@ import {
   Logout as LogoutIcon,
   LibraryBooks as CaseStudiesIcon,
   Summarize as SummarizeIcon,
+  ArrowUpward as ArrowUpwardIcon,
 } from "@mui/icons-material";
 import { ExpandLess, ExpandMore } from "@mui/icons-material";
 
@@ -90,6 +91,9 @@ const AppBarStyled = styled(AppBar, {
   shouldForwardProp: (prop) => prop !== "open",
 })(({ theme, open }) => ({
   zIndex: theme.zIndex.drawer + 1,
+  "@media (max-width: 768px)": {
+    zIndex: theme.zIndex.drawer - 1,
+  },
   transition: theme.transitions.create(["width", "margin"], {
     easing: theme.transitions.easing.sharp,
     duration: theme.transitions.duration.leavingScreen,
@@ -161,7 +165,7 @@ const NavItem = styled(ListItem)(({ theme, active }) => ({
 
 const FranchiseDashboard = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const isMobile = useMediaQuery("(max-width:768px)"); /* MOBILE FIX */
   const [open, setOpen] = useState(!isMobile);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
@@ -269,6 +273,11 @@ const FranchiseDashboard = () => {
     //   icon: <VerifiedUserIcon />,
     //   path: "/franchise/kyc",
     // },
+    {
+      text: "Upgrade Package",
+      icon: <ArrowUpwardIcon />,
+      path: "/franchise/upgrade-package",
+    },
 
     {
       text: "Credit Check",
@@ -429,7 +438,7 @@ const FranchiseDashboard = () => {
     <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
       <DrawerHeader>
         <SidebarLogo>
-          {open ? (
+          {(open || isMobile) ? (
             <>
               <img
                 src="/images/cred.png"
@@ -446,7 +455,7 @@ const FranchiseDashboard = () => {
             />
           )}
         </SidebarLogo>
-        {open && (
+        {(open || isMobile) && ( /* MOBILE FIX */
           <IconButton onClick={handleDrawerClose}>
             <ChevronLeftIcon />
           </IconButton>
@@ -492,13 +501,14 @@ const FranchiseDashboard = () => {
                     } else {
                       navigate(item.path);
                     }
+                    if (isMobile) handleDrawerClose(); /* MOBILE FIX */
                   }
                 }}
               >
                 <ListItemIcon>{item.icon}</ListItemIcon>
                 <ListItemText
                   primary={item.text}
-                  sx={{ opacity: open ? 1 : 0 }}
+                  sx={{ opacity: (open || isMobile) ? 1 : 0 }}
                 />
 
                 {/* 🔹 Expand Icon */}
@@ -517,7 +527,10 @@ const FranchiseDashboard = () => {
                     <ListItemButton
                       key={child.text}
                       selected={location.pathname === child.path}
-                      onClick={() => navigate(child.path)}
+                      onClick={() => {
+                        navigate(child.path);
+                        if (isMobile) handleDrawerClose(); /* MOBILE FIX */
+                      }}
                       sx={{
                         pl: { xs: 2, sm: 5 },
                         minHeight: 44,
@@ -559,12 +572,12 @@ const FranchiseDashboard = () => {
   return (
     <Box sx={{ display: "flex" }}>
       <CssBaseline />
-      <AppBarStyled position="fixed" open={open}>
+      <AppBarStyled position="fixed" open={isMobile ? false : open}> {/* MOBILE FIX */}
         <Toolbar>
           <IconButton
             color="inherit"
             aria-label="open drawer"
-            onClick={handleDrawerOpen}
+            onClick={isMobile ? () => setMobileOpen(true) : handleDrawerOpen} /* MOBILE FIX */
             edge="start"
             sx={{
               marginRight: 5,
@@ -657,7 +670,7 @@ const FranchiseDashboard = () => {
             keepMounted: true, // Better open performance on mobile.
           }}
           sx={{
-            display: { xs: "block", sm: "none" },
+            display: isMobile ? "block" : "none", /* MOBILE FIX */
             "& .MuiDrawer-paper": {
               boxSizing: "border-box",
               width: drawerWidth,
@@ -666,7 +679,11 @@ const FranchiseDashboard = () => {
         >
           {drawer}
         </Drawer>
-        <DrawerStyled variant="permanent" open={open}>
+        <DrawerStyled
+          variant="permanent"
+          open={open}
+          sx={{ display: isMobile ? "none" : "block" }} /* MOBILE FIX */
+        >
           {drawer}
         </DrawerStyled>
       </Box>
@@ -674,21 +691,17 @@ const FranchiseDashboard = () => {
         component="main"
         sx={{
           flexGrow: 1,
-          p: 3,
+          p: isMobile ? 2 : 3, /* MOBILE FIX */
           minHeight: "100vh",
           backgroundColor: "#f8f9fa",
           mt: "64px",
+          overflowX: "hidden", /* MOBILE FIX */
 
-          width: {
-            xs: "100%",
-            sm: open
+          width: isMobile
+            ? "100%"
+            : open
               ? `calc(100% - ${drawerWidth}px)`
-              : `calc(100% - ${theme.spacing(8)}px - 1px)`,
-          },
-          // marginLeft: {
-          //   xs: 0,
-          //   sm: open ? `${drawerWidth}px` : `${theme.spacing(8) + 1}px`
-          // },
+              : `calc(100% - ${theme.spacing(8)}px - 1px)`, /* MOBILE FIX */
           transition: theme.transitions.create(["width", "margin"], {
             easing: theme.transitions.easing.sharp,
             duration: open

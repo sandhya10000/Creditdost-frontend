@@ -425,8 +425,21 @@ const ManageLeads = () => {
 
       <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
         <CardContent>
-          <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
-            <Box component="form" onSubmit={handleSearch} sx={{ width: "70%" }}>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: { xs: "column", md: "row" }, /* MOBILE FIX */
+              justifyContent: "space-between",
+              alignItems: { xs: "stretch", md: "center" }, /* MOBILE FIX */
+              gap: 2, /* MOBILE FIX */
+              mb: 3,
+            }}
+          >
+            <Box
+              component="form"
+              onSubmit={handleSearch}
+              sx={{ width: { xs: "100%", md: "70%" } }} /* MOBILE FIX */
+            >
               <Grid container spacing={2} alignItems="center">
                 <Grid item xs={12} sm={8}>
                   <TextField
@@ -453,12 +466,19 @@ const ManageLeads = () => {
                 </Grid>
               </Grid>
             </Box>
-            <Box>
+            <Box
+              sx={{
+                display: "flex",
+                gap: 1.5, /* MOBILE FIX */
+                width: { xs: "100%", md: "auto" }, /* MOBILE FIX */
+                justifyContent: { xs: "stretch", md: "flex-end" }, /* MOBILE FIX */
+              }}
+            >
               <Button
                 variant="contained"
                 startIcon={<UploadIcon />}
                 onClick={handleOpenBulkUploadDialog}
-                sx={{ mr: 1 }}
+                sx={{ flex: { xs: 1, md: "none" } }} /* MOBILE FIX */
               >
                 Bulk Upload
               </Button>
@@ -466,6 +486,7 @@ const ManageLeads = () => {
                 variant="contained"
                 startIcon={<AddIcon />}
                 onClick={handleCreateLead}
+                sx={{ flex: { xs: 1, md: "none" } }} /* MOBILE FIX */
               >
                 Create Lead
               </Button>
@@ -477,7 +498,7 @@ const ManageLeads = () => {
               <CircularProgress />
             </Box>
           ) : (
-            <TableContainer component={Paper}>
+            <TableContainer component={Paper} sx={{ overflowX: "auto", width: "100%" }}> {/* MOBILE FIX */}
               <Table sx={{ minWidth: 650 }} aria-label="leads table">
                 <TableHead>
                   <TableRow>

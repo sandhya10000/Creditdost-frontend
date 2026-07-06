@@ -25,11 +25,13 @@ import FranchiseReward from "./Reward";
 import CRIF from "./creditBureau/CRIF";
 import Experian from "./creditBureau/Experian";
 import Equifax from "./creditBureau/Equifax";
+import UpgradePackage from "./UpgradePackage";
 
 const FranchiseRoutes = () => {
   return (
     <Routes>
       <Route path="/" element={<Dashboard />}>
+        <Route path="upgrade-package" element={<UpgradePackage />} />
         <Route index element={<DashboardHome />} />
         <Route path="profile" element={<Profile />} />
         <Route path="kyc" element={<KycVerification />} />

@@ -40,7 +40,7 @@ import {
   AccountCircle,
 } from "@mui/icons-material";
 import { useAuth } from "../../hooks/useAuth";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const HeaderAppBar = styled(AppBar)(({ theme, scrolled }) => ({
   backgroundColor: scrolled ? "rgba(255, 255, 255, 0.98)" : "#ffffff",
@@ -93,19 +93,23 @@ const LogoText = styled(Typography)(({ theme }) => ({
   letterSpacing: "-0.5px",
 }));
 
-const NavButton = styled(Button)(({ theme }) => ({
-  color: "#1a2744",
-  fontWeight: 600,
+const NavButton = styled(Button)(({ theme, active }) => ({
+  color: active ? "#0891b2" : "#1a2744",
+  fontWeight: active ? 700 : 600,
   textTransform: "none",
   margin: theme.spacing(0, 0.5),
   padding: theme.spacing(1, 2),
   borderRadius: "8px",
   fontSize: "0.95rem",
   position: "relative",
+  transition: "color 0.2s ease, background-color 0.2s ease",
+  backgroundColor: active ? "rgba(8, 145, 178, 0.08)" : "transparent",
   "&:hover": {
+    color: "#0891b2",
     backgroundColor: "rgba(8, 145, 178, 0.08)",
     "&::after": {
       width: "100%",
+      height: "2px",
     },
   },
   "&::after": {
@@ -114,10 +118,11 @@ const NavButton = styled(Button)(({ theme }) => ({
     bottom: 0,
     left: "50%",
     transform: "translateX(-50%)",
-    width: 0,
-    height: "2px",
+    width: active ? "100%" : 0,
+    height: active ? "3px" : "2px",
     background: "linear-gradient(90deg, #0891b2, #06b6d4)",
-    transition: "width 0.3s ease",
+    borderRadius: "2px",
+    transition: "width 0.25s ease",
   },
 }));
 
@@ -281,6 +286,7 @@ const UserProfileButton = styled(IconButton)(({ theme }) => ({
 const Header = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [anchorEl, setAnchorEl] = useState({});
@@ -342,8 +348,9 @@ const Header = () => {
     { text: "Home", path: "/" },
     { text: "About Us", path: "/about" },
     { text: "Credit Score Repair", path: "/credit-score-repair" },
-    { text: "Apply for loan", path: "/apply-for-loan" },
-
+    { text: "Download Free Credit Report", path: "/credit-check" },
+    // { text: "Apply for loan", path: "/apply-for-loan" },
+   
     // { text: "Suvidha Centre", path: "/suvidha-centre" },
   ];
 
@@ -489,16 +496,21 @@ const Header = () => {
                     flexGrow: 1,
                   }}
                 >
-                  {navItems.map((item) => (
-                    <Box key={item.text}>
-                      {item.hasDropdown ? (
-                        <ServicesDropdown
-                          onMouseEnter={(e) => handleMenuClick(e, "services")}
-                          onMouseLeave={() => handleMenuClose("services")}
-                        >
-                          <ServicesButton endIcon={<KeyboardArrowDown />}>
-                            {item.text}
-                          </ServicesButton>
+                  {navItems.map((item) => {
+                  const isActive =
+                    item.path === "/"
+                      ? location.pathname === "/"
+                      : location.pathname.startsWith(item.path);
+                  return (
+                  <Box key={item.text}>
+                    {item.hasDropdown ? (
+                      <ServicesDropdown
+                        onMouseEnter={(e) => handleMenuClick(e, "services")}
+                        onMouseLeave={() => handleMenuClose("services")}
+                      >
+                        <ServicesButton endIcon={<KeyboardArrowDown />}>
+                          {item.text}
+                        </ServicesButton>
                           <DropdownMenu open={Boolean(anchorEl["services"])}>
                             <DropdownItem
                               onClick={() => {
@@ -518,7 +530,8 @@ const Header = () => {
                             >
                               Credit Score Repair
                             </DropdownItem>
-                            <DropdownItem
+                            {/* Apply for Loan dropdown item - temporarily removed from Services menu [2026-07-03] */}
+                            {/* <DropdownItem
                               onClick={() => {
                                 navigate("/apply-for-loan");
                                 handleMenuClose("services");
@@ -535,7 +548,7 @@ const Header = () => {
                               }
                             >
                               Apply for Loan
-                            </DropdownItem>
+                            </DropdownItem> */}
                             <DropdownItem
                               onClick={() => {
                                 navigate("/franchise-opportunity");
@@ -593,12 +606,13 @@ const Header = () => {
                           </DropdownMenu>
                         </ServicesDropdown>
                       ) : (
-                        <NavButton onClick={() => navigate(item.path)}>
+                        <NavButton active={isActive} onClick={() => navigate(item.path)}>
                           {item.text}
                         </NavButton>
                       )}
                     </Box>
-                  ))}
+                  );
+                })}
                 </Box>
 
                 <Box sx={{ display: "flex", alignItems: "center" }}>

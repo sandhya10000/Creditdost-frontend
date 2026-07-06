@@ -17,6 +17,8 @@ import {
   MenuItem,
   Tooltip,
   styled,
+  useTheme /* MOBILE FIX */,
+  useMediaQuery /* MOBILE FIX */,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import { Outlet } from "react-router-dom";
@@ -83,6 +85,9 @@ const AppBarStyled = styled(AppBar, {
   shouldForwardProp: (prop) => prop !== "open",
 })(({ theme, open }) => ({
   zIndex: theme.zIndex.drawer + 1,
+  "@media (max-width: 768px)": {
+    zIndex: theme.zIndex.drawer - 1,
+  },
   transition: theme.transitions.create(["width", "margin"], {
     easing: theme.transitions.easing.sharp,
     duration: theme.transitions.duration.leavingScreen,
@@ -177,8 +182,16 @@ const NavItem = styled(ListItem)(({ theme, active }) => ({
 }));
 
 const AdminDashboard = () => {
-  const [open, setOpen] = useState(true);
+  const theme = useTheme(); /* MOBILE FIX */
+  const isMobile = useMediaQuery("(max-width:768px)"); /* MOBILE FIX */
+  const [open, setOpen] = useState(!isMobile); /* MOBILE FIX */
+  const [mobileOpen, setMobileOpen] = useState(false); /* MOBILE FIX */
   const [anchorEl, setAnchorEl] = useState(null);
+
+  // Handle responsive drawer
+  useEffect(() => {
+    setOpen(!isMobile);
+  }, [isMobile]); /* MOBILE FIX */
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
@@ -366,7 +379,7 @@ const AdminDashboard = () => {
     <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
       <DrawerHeader>
         <SidebarLogo>
-          {open ? (
+          {open || isMobile /* MOBILE FIX */ ? (
             <>
               <img
                 src="/images/cred.png"
@@ -383,8 +396,12 @@ const AdminDashboard = () => {
             />
           )}
         </SidebarLogo>
-        {open && (
-          <IconButton onClick={handleDrawerClose}>
+        {(open || isMobile) /* MOBILE FIX */ && (
+          <IconButton
+            onClick={isMobile ? () => setMobileOpen(false) : handleDrawerClose}
+          >
+            {" "}
+            {/* MOBILE FIX */}
             <ChevronLeftIcon />
           </IconButton>
         )}
@@ -453,11 +470,20 @@ const AdminDashboard = () => {
       </List>
       <Divider />
       <List>
-        <NavItem onClick={handleLogout}>
+        <NavItem
+          onClick={() => {
+            handleLogout();
+            if (isMobile) setMobileOpen(false); /* MOBILE FIX */
+          }} /* MOBILE FIX */
+        >
           <ListItemIcon>
             <LogoutIcon />
           </ListItemIcon>
-          <ListItemText primary="Logout" sx={{ opacity: open ? 1 : 0 }} />
+          <ListItemText
+            primary="Logout"
+            sx={{ opacity: open || isMobile ? 1 : 0 }}
+          />{" "}
+          {/* MOBILE FIX */}
         </NavItem>
       </List>
     </Box>
@@ -466,12 +492,16 @@ const AdminDashboard = () => {
   return (
     <Box sx={{ display: "flex" }}>
       <CssBaseline />
-      <AppBarStyled position="fixed" open={open}>
+      <AppBarStyled position="fixed" open={isMobile ? false : open}>
+        {" "}
+        {/* MOBILE FIX */}
         <Toolbar>
           <IconButton
             color="inherit"
             aria-label="open drawer"
-            onClick={handleDrawerOpen}
+            onClick={
+              isMobile ? () => setMobileOpen(true) : handleDrawerOpen
+            } /* MOBILE FIX */
             edge="start"
             sx={{
               marginRight: 5,
@@ -544,18 +574,47 @@ const AdminDashboard = () => {
           </Box>
         </Toolbar>
       </AppBarStyled>
-      <DrawerStyled variant="permanent" open={open}>
+      {/* Mobile Drawer */}
+      <Drawer
+        variant="temporary"
+        open={mobileOpen}
+        onClose={() => setMobileOpen(false)}
+        ModalProps={{
+          keepMounted: true, // Better open performance on mobile.
+        }}
+        sx={{
+          display: isMobile ? "block" : "none" /* MOBILE FIX */,
+          "& .MuiDrawer-paper": {
+            boxSizing: "border-box",
+            width: drawerWidth,
+          },
+        }}
+      >
+        {drawer}
+      </Drawer>
+
+      {/* Desktop Drawer */}
+      <DrawerStyled
+        variant="permanent"
+        open={open}
+        sx={{ display: isMobile ? "none" : "block" }} /* MOBILE FIX */
+      >
         {drawer}
       </DrawerStyled>
       <Box
         component="main"
         sx={{
           flexGrow: 1,
-          p: 3,
-          width: { sm: `calc(100% - ${drawerWidth}px)` },
+          p: isMobile ? 2 : 3 /* MOBILE FIX */,
+          width: isMobile
+            ? "100%"
+            : open
+              ? `calc(100% - ${drawerWidth}px)`
+              : `calc(100% - 64px)` /* MOBILE FIX */,
           minHeight: "100vh",
           bgcolor: "background.default",
           mt: "64px",
+          overflowX: "hidden" /* MOBILE FIX */,
         }}
       >
         <Outlet />
