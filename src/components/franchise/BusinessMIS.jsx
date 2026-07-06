@@ -17,6 +17,7 @@ import {
   TableRow,
   Paper,
   Chip,
+  Pagination,
 } from "@mui/material";
 import { franchiseAPI } from "../../services/api";
 
@@ -26,24 +27,41 @@ const BusinessMIS = () => {
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
 
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [page, setPage] = useState(1);
+  const rowsPerPage = 20;
+
   // Fetch business forms on component mount
   useEffect(() => {
     fetchBusinessForms();
-  }, []);
+  }, [page, searchTerm]);
 
   const fetchBusinessForms = async () => {
     try {
       setLoading(true);
       setError("");
-      const response = await franchiseAPI.getBusinessForms();
-      console.log(response, "business mis data");
-      setBusinessForms(response.data);
+      const response = await franchiseAPI.getBusinessForms({
+        page: page,
+        limit: rowsPerPage,
+        search: searchTerm,
+      });
+
+      setBusinessForms(response.data.businessData || []);
+      setTotalRecords(response.data.total || 0);
     } catch (err) {
       setError("Failed to fetch business forms. Please try again later.");
       console.error("Error fetching business forms:", err);
     } finally {
       setLoading(false);
     }
+  };
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+  const handleSearch = (e) => {
+    e.preventDefault();
+    setPage(1);
+    fetchBusinessForms();
   };
 
   const formatDate = (dateString) => {
@@ -81,16 +99,15 @@ const BusinessMIS = () => {
 
   const normalizedSearch = searchTerm.trim().toLowerCase();
 
-  const filteredBusinessForms = businessForms.filter((form) => {
+  const filteredBusinessForms = (businessForms || []).filter((form) => {
     const name = form.customerName?.toLowerCase() || "";
     const email = form.customerEmail?.toLowerCase() || "";
     const phone = String(form.customerPhone || "");
 
     return (
-      form.paymentStatus === "paid" &&
-      (name.includes(normalizedSearch) ||
-        email.includes(normalizedSearch) ||
-        phone.includes(normalizedSearch))
+      name.includes(normalizedSearch) ||
+      email.includes(normalizedSearch) ||
+      phone.includes(normalizedSearch)
     );
   });
 
@@ -160,6 +177,7 @@ const BusinessMIS = () => {
               mb: 3,
               flexWrap: "wrap",
             }}
+            onSubmit={handleSearch}
           >
             <TextField
               fullWidth
@@ -185,8 +203,21 @@ const BusinessMIS = () => {
               <CircularProgress />
             </Box>
           ) : (
-            <TableContainer component={Paper}>
-              <Table sx={{ minWidth: 650 }}>
+            <TableContainer
+              component={Paper}
+              sx={{
+                overflowX: "auto",
+                width: "100%",
+              }}
+            >
+              <Table
+                sx={{
+                  minWidth: {
+                    xs: 1000,
+                    md: 650,
+                  },
+                }}
+              >
                 <TableHead>
                   <TableRow>
                     <TableCell>Customer ID</TableCell>
@@ -228,6 +259,32 @@ const BusinessMIS = () => {
                   ))}
                 </TableBody>
               </Table>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: { xs: "column", sm: "row" }, // Stacks on mobile, side-by-side on desktop
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  gap: 2,
+                  p: 3,
+                }}
+              >
+                <Typography variant="body2" color="text.secondary">
+                  Total Records: {totalRecords}
+                </Typography>
+
+                <Pagination
+                  count={Math.ceil(totalRecords / rowsPerPage)}
+                  page={page}
+                  onChange={handleChangePage}
+                  color="primary"
+                  variant="outlined"
+                  shape="rounded"
+                  showFirstButton
+                  showLastButton
+                />
+                <Typography></Typography>
+              </Box>
             </TableContainer>
           )}
         </CardContent>

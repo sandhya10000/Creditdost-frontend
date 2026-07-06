@@ -468,14 +468,18 @@ const DashboardHome = () => {
             color: "white",
           }}
         >
-          <CardContent sx={{ p: { xs: 2, sm: 3 } }}> {/* MOBILE FIX */}
+          <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+            {" "}
+            {/* MOBILE FIX */}
             <Box
               sx={{
                 display: "flex",
+
                 justifyContent: "space-between",
-                alignItems: { xs: "start", md: "center" }, /* MOBILE FIX */
-                flexDirection: { xs: "column", md: "row" }, /* MOBILE FIX */
-                gap: { xs: 2, md: 0 }, /* MOBILE FIX */
+
+                alignItems: { xs: "start", md: "center" } /* MOBILE FIX */,
+                flexDirection: { xs: "column", md: "row" } /* MOBILE FIX */,
+                gap: { xs: 2, md: 0 } /* MOBILE FIX */,
               }}
             >
               <Box>
@@ -507,9 +511,9 @@ const DashboardHome = () => {
                 sx={{
                   display: "flex",
                   flexDirection: "column",
-                  alignItems: { xs: "start", md: "flex-end" }, /* MOBILE FIX */
+                  alignItems: { xs: "start", md: "flex-end" } /* MOBILE FIX */,
                   gap: 1,
-                  width: { xs: "100%", md: "auto" }, /* MOBILE FIX */
+                  width: { xs: "100%", md: "auto" } /* MOBILE FIX */,
                 }}
               >
                 <Chip
@@ -558,7 +562,9 @@ const DashboardHome = () => {
             color: "white",
           }}
         >
-          <CardContent sx={{ p: { xs: 2, sm: 3 } }}> {/* MOBILE FIX */}
+          <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+            {" "}
+            {/* MOBILE FIX */}
             <Box
               sx={{
                 display: "flex",
@@ -610,7 +616,7 @@ const DashboardHome = () => {
                   flexDirection: "column",
                   alignItems: { xs: "start", md: "flex-end" },
                   gap: 1,
-                  width: { xs: "100%", md: "auto" }, /* MOBILE FIX */
+                  width: { xs: "100%", md: "auto" } /* MOBILE FIX */,
                 }}
               >
                 <Chip
@@ -619,7 +625,7 @@ const DashboardHome = () => {
                   color="success"
                   sx={{
                     fontWeight: "bold",
-                    marginTop: { xs: "0px", md: "0" }, /* MOBILE FIX */
+                    marginTop: { xs: "0px", md: "0" } /* MOBILE FIX */,
                     height: 32,
                     "& .MuiChip-icon": {
                       color: "white !important",
@@ -656,7 +662,8 @@ const DashboardHome = () => {
         sx={{ flexDirection: { xs: "column", md: "row" } }}
       >
         {statCards.map((card, index) => (
-          <Grid item xs={12} sm={6} md={3} key={index} style={{ flex: "1" }}>
+          <Grid item xs={12} sm={6} md={3} key={index}>
+            {" "}
             <Card
               sx={{
                 height: "100%",
@@ -666,7 +673,11 @@ const DashboardHome = () => {
                 borderRadius: 2,
               }}
             >
-              <CardContent sx={{ flexGrow: 1, textAlign: "center", p: { xs: 2, sm: 3 } }}> {/* MOBILE FIX */}
+              <CardContent
+                sx={{ flexGrow: 1, textAlign: "center", p: { xs: 2, sm: 3 } }}
+              >
+                {" "}
+                {/* MOBILE FIX */}
                 <Box sx={{ color: card.color, mb: 2 }}>{card.icon}</Box>
                 <Typography variant="h5" component="div" gutterBottom>
                   {card.value}
@@ -686,7 +697,9 @@ const DashboardHome = () => {
       >
         <Grid item xs={12} md={8} style={{ flex: "1" }}>
           <Card sx={{ height: "100%", boxShadow: 3, borderRadius: 2 }}>
-            <CardContent sx={{ p: { xs: 2, sm: 3 } }}> {/* MOBILE FIX */}
+            <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+              {" "}
+              {/* MOBILE FIX */}
               <Typography variant="h6" gutterBottom>
                 Recent Credit Reports
               </Typography>
@@ -701,7 +714,12 @@ const DashboardHome = () => {
                   </Typography>
                 </Box>
               ) : (
-                <TableContainer component={Paper} sx={{ overflowX: "auto", width: "100%" }}> {/* MOBILE FIX */}
+                <TableContainer
+                  component={Paper}
+                  sx={{ overflowX: "auto", width: "100%" }}
+                >
+                  {" "}
+                  {/* MOBILE FIX */}
                   <Table
                     sx={{ minWidth: 400 }}
                     aria-label="recent reports table"
@@ -762,14 +780,20 @@ const DashboardHome = () => {
         {kycStatus === "approved" && (
           <Grid item xs={12} md={4} style={{ flex: "1" }}>
             <Card sx={{ height: "100%", boxShadow: 3, borderRadius: 2 }}>
-              <CardContent sx={{ p: { xs: 2, sm: 3 } }}> {/* MOBILE FIX */}
+              <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+                {" "}
+                {/* MOBILE FIX */}
                 <Typography variant="h6" gutterBottom>
                   Quick Actions
                 </Typography>
                 <Box
                   sx={{
                     display: "grid",
-                    gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)" }, /* MOBILE FIX */
+
+                    gridTemplateColumns: {
+                      xs: "1fr",
+                      sm: "repeat(2, 1fr)",
+                    } /* MOBILE FIX */,
                     gap: 2,
                     mt: 2,
                   }}
@@ -832,8 +856,6 @@ const DashboardHome = () => {
           </Grid>
         )}
       </Grid>
-
-
     </Box>
   );
 };

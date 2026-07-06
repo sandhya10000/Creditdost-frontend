@@ -12,6 +12,7 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  Paper,
 } from "@mui/material";
 import { ExpandMore as ExpandMoreIcon } from "@mui/icons-material";
 import { franchiseAPI, authAPI } from "../../services/api";
@@ -512,9 +513,18 @@ const Profile = () => {
         {/* Basic Business Information Section */}
         <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
           <CardContent>
-            <Typography variant="h6" gutterBottom>
-              Business Information
-            </Typography>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                mb: 3,
+                gap: 1,
+              }}
+            >
+              <Typography variant="h6" fontWeight={600}>
+                Business Information
+              </Typography>
+            </Box>
             <Box>
               <Grid container spacing={3}>
                 <Grid item xs={12} sm={6}>
@@ -586,7 +596,7 @@ const Profile = () => {
                     onChange={handleInputChange}
                   />
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid item xs={12} md={6}>
                   <TextField
                     required
                     id="address.city"
@@ -890,9 +900,15 @@ const Profile = () => {
         </Card> */}
 
         {/* Reset Password Section */}
-        <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
+        <Card
+          sx={{
+            mt: 3,
+            borderRadius: 3,
+            boxShadow: "0px 4px 20px rgba(0,0,0,0.08)",
+          }}
+        >
           <CardContent>
-            <Typography variant="h6" gutterBottom>
+            <Typography variant="h6" fontWeight={600} gutterBottom>
               Reset Password
             </Typography>
 
@@ -908,65 +924,100 @@ const Profile = () => {
               </Alert>
             )}
 
-            <Typography variant="body1" paragraph>
-              Click the button below to receive a secure password reset link via
-              email. You will receive an email with instructions to set a new
-              password. The link will expire in 1 hour for security purposes.
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              A secure password reset link will be sent to your registered email
+              address. The link will expire in 1 hour.
             </Typography>
 
-            <Box sx={{ display: "flex", justifyContent: "flex-start", mt: 2 }}>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleResetPassword}
-                disabled={resetPasswordLoading}
-                sx={{ py: 1.5, px: 4 }}
-              >
-                {resetPasswordLoading ? (
-                  <CircularProgress size={24} />
-                ) : (
-                  "Send Password Reset Link"
-                )}
-              </Button>
-            </Box>
+            <Button
+              variant="contained"
+              onClick={handleResetPassword}
+              disabled={resetPasswordLoading}
+              fullWidth
+              sx={{
+                py: 1.5,
+                borderRadius: 2,
+                maxWidth: {
+                  xs: "100%",
+                  sm: "300px",
+                },
+              }}
+            >
+              {resetPasswordLoading ? (
+                <CircularProgress size={22} color="inherit" />
+              ) : (
+                "Send Password Reset Link"
+              )}
+            </Button>
           </CardContent>
         </Card>
         {/* Sticky Save Button Container */}
         <Box
           sx={{
-            position: "sticky",
-            top: 0,
-            zIndex: 1000,
-            backgroundColor: "white",
-            p: 2,
-            boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            mb: 2,
+            mt: 3,
+            pb: 2,
           }}
         >
-          &nbsp;&nbsp;
-          <small>
-            Click "Save Profile" to save your profile information after entering
-            all details.
-          </small>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleSaveAll}
-            disabled={loading || !isFormValid()} //  main logic
-            sx={{ py: 1.5, px: 4 }}
+          <Paper
+            elevation={8}
+            sx={{
+              p: 2,
+              borderRadius: 3,
+              display: "flex",
+              flexDirection: {
+                xs: "column",
+                md: "row",
+              },
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 2,
+              bgcolor: "#fff",
+            }}
           >
-            {loading ? <CircularProgress size={24} /> : "Save Profile"}
-          </Button>
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{
+                textAlign: {
+                  xs: "center",
+                  md: "left",
+                },
+              }}
+            >
+              Save your profile after completing all required information.
+            </Typography>
+
+            <Button
+              variant="contained"
+              size="large"
+              onClick={handleSaveAll}
+              disabled={loading || !isFormValid()}
+              sx={{
+                minWidth: {
+                  xs: "100%",
+                  md: 220,
+                },
+                py: 1.5,
+                borderRadius: 2,
+                fontWeight: 600,
+              }}
+            >
+              {loading ? (
+                <CircularProgress size={22} color="inherit" />
+              ) : (
+                "Save Profile"
+              )}
+            </Button>
+          </Paper>
+
           {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
+            <Alert severity="error" sx={{ mt: 2 }}>
               {error}
             </Alert>
           )}
+
           {success && (
-            <Alert severity="success" sx={{ mb: 2 }}>
+            <Alert severity="success" sx={{ mt: 2 }}>
               {success}
             </Alert>
           )}

@@ -17,6 +17,7 @@ import {
   TableRow,
   Paper,
   Chip,
+  Pagination,
 } from "@mui/material";
 import { adminAPI } from "../../services/api";
 //import { useNavigate } from "react-router-dom";
@@ -27,26 +28,42 @@ const BusinessForms = ({ status = "paid" }) => {
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
 
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [page, setPage] = useState(1);
+  const rowsPerPage = 20;
   //const navigate = useNavigate();
 
   // Fetch all business forms on component mount
   useEffect(() => {
     fetchBusinessForms();
-  }, []);
+  }, [page, searchTerm]);
 
   const fetchBusinessForms = async () => {
     try {
       setLoading(true);
       setError("");
-      const response = await adminAPI.getAllBusinessForms();
+      const response = await adminAPI.getAllBusinessForms({
+        page: page,
+        limit: rowsPerPage,
+        search: searchTerm,
+      });
       console.log("fetch all documents with details----", response);
-      setBusinessForms(response.data);
+      setBusinessForms(response.data.businessData || []);
+      setTotalRecords(response.data.total || 0);
     } catch (err) {
       setError("Failed to fetch business forms. Please try again later.");
       console.error("Error fetching business forms:", err);
     } finally {
       setLoading(false);
     }
+  };
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+  const handleSearch = (e) => {
+    e.preventDefault();
+    setPage(1);
+    fetchBusinessForms();
   };
   //function for case close update from admin api
   const closeCase = async (id) => {
@@ -153,6 +170,24 @@ const BusinessForms = ({ status = "paid" }) => {
   //   return `${API_URL}/${path.replace(/\\/g, "/")}`;
   // };
 
+  const handleCloseCase = async (id) => {
+    const confirmClose = window.confirm(
+      "Are you sure you want to close this case?",
+    );
+
+    if (!confirmClose) return;
+
+    try {
+      const response = await adminAPI.closeBusinessCaseadmin(id);
+      alert(response.message || "Case Closed Successfully");
+      fetchBusinessForms();
+    } catch (error) {
+      console.error("Failed to close case:", error);
+
+      alert(error?.response?.data?.message || "Failed to close the case.");
+    }
+  };
+
   return (
     <Box>
       <Typography
@@ -187,6 +222,7 @@ const BusinessForms = ({ status = "paid" }) => {
               justifyContent: "space-between",
               mb: 3,
             }}
+            onSubmit={handleSearch}
           >
             <TextField
               fullWidth
@@ -352,6 +388,7 @@ const BusinessForms = ({ status = "paid" }) => {
                             whiteSpace: "nowrap",
                             color: "#fff",
                           }}
+                          onClick={() => handleCloseCase()}
                         >
                           Close Case
                         </Button>
@@ -360,6 +397,32 @@ const BusinessForms = ({ status = "paid" }) => {
                   ))}
                 </TableBody>
               </Table>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: { xs: "column", sm: "row" }, // Stacks on mobile, side-by-side on desktop
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  gap: 2,
+                  p: 3,
+                }}
+              >
+                <Typography>Total Records: {totalRecords}</Typography>
+
+                <Pagination
+                  count={Math.ceil(totalRecords / rowsPerPage)}
+                  page={page}
+                  onChange={handleChangePage}
+                  color="primary"
+                  shape="rounded"
+                  showFirstButton
+                  showLastButton
+                />
+
+                <Typography>
+                  Page {page} of {Math.ceil(totalRecords / rowsPerPage)}
+                </Typography>
+              </Box>
             </TableContainer>
           )}
         </CardContent>

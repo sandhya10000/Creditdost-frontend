@@ -1,5 +1,15 @@
-import React from "react";
-import { Grid, Typography, Paper, Divider, Chip, Box } from "@mui/material";
+import React, { useState, useEffect } from "react";
+import { franchiseAPI } from "../../../services/api";
+import {
+  Grid,
+  Typography,
+  Paper,
+  Divider,
+  Chip,
+  Box,
+  Button,
+  TextField,
+} from "@mui/material";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import HomeIcon from "@mui/icons-material/Home";
 import LocalAtmIcon from "@mui/icons-material/LocalAtm";
@@ -7,6 +17,40 @@ import DomainAddIcon from "@mui/icons-material/DomainAdd";
 import StyleIcon from "@mui/icons-material/Style";
 
 const DetailsTab = ({ customer, creditReport, ifscDeatails }) => {
+  const [editMode, setEditMode] = useState(false);
+  const [formData, setFormData] = useState({
+    customerEmail: customer?.customerEmail || "",
+    customerPhone: customer?.customerPhone || "",
+    panNumber: customer?.panNumber || "",
+    aadharNumber: customer?.aadharNumber || "",
+    dob: customer?.dob || "",
+    gender: customer?.gender || "",
+  });
+  useEffect(() => {
+    if (customer) {
+      setFormData({
+        customerEmail: customer.customerEmail || "",
+        customerPhone: customer.customerPhone || "",
+        panNumber: customer.panNumber || "",
+        aadharNumber: customer.aadharNumber || "",
+        dob: customer.dob || "",
+        gender: customer.gender || "",
+      });
+    }
+  }, [customer]);
+  const handleUpdate = async () => {
+    try {
+      const res = await franchiseAPI.updateCustomer(
+        customer.customerId,
+        formData,
+      );
+
+      console.log(res);
+      setEditMode(false);
+    } catch (error) {
+      console.log(error);
+    }
+  };
   const renderSectionTitle = (title, icon) => (
     <Box mt={4} mb={2}>
       <Box
@@ -46,10 +90,22 @@ const DetailsTab = ({ customer, creditReport, ifscDeatails }) => {
           Customer Details
         </Typography>
 
-        <Chip
-          label={customer?.workStatus || "Working"}
-          color={customer?.workStatus === "Closed" ? "success" : "warning"}
-        />
+        <Box display="flex" gap={2}>
+          <Chip
+            label={customer?.workStatus || "Working"}
+            color={customer?.workStatus === "Closed" ? "success" : "warning"}
+          />
+
+          {!editMode ? (
+            <Button variant="contained" onClick={() => setEditMode(true)}>
+              Edit
+            </Button>
+          ) : (
+            <Button variant="contained" color="success" onClick={handleUpdate}>
+              Update
+            </Button>
+          )}
+        </Box>
       </Box>
 
       {/* ================= PERSONAL DETAILS ================= */}
@@ -72,22 +128,74 @@ const DetailsTab = ({ customer, creditReport, ifscDeatails }) => {
 
         <Grid item xs={12} md={6}>
           <Typography fontWeight="Medium">Email</Typography>
-          <Typography>{customer?.customerEmail || "-"}</Typography>
+          {editMode ? (
+            <TextField
+              fullWidth
+              value={formData.customerEmail}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  customerEmail: e.target.value,
+                })
+              }
+            />
+          ) : (
+            <Typography>{customer?.customerEmail || "-"}</Typography>
+          )}
         </Grid>
 
         <Grid item xs={12} md={6}>
           <Typography fontWeight="Medium">Phone</Typography>
-          <Typography>{customer?.customerPhone || "-"}</Typography>
+          {editMode ? (
+            <TextField
+              fullWidth
+              value={formData.customerPhone}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  customerPhone: e.target.value,
+                })
+              }
+            />
+          ) : (
+            <Typography>{customer?.customerPhone || "-"}</Typography>
+          )}
         </Grid>
 
         <Grid item xs={12} md={6}>
           <Typography fontWeight="Medium">PAN Number</Typography>
-          <Typography>{customer?.panNumber || "-"}</Typography>
+          {editMode ? (
+            <TextField
+              fullWidth
+              value={formData.panNumber}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  panNumber: e.target.value,
+                })
+              }
+            />
+          ) : (
+            <Typography>{customer?.panNumber || "-"}</Typography>
+          )}
         </Grid>
 
         <Grid item xs={12} md={6}>
           <Typography fontWeight="Medium">Aadhaar Number</Typography>
-          <Typography>{customer?.aadharNumber || "-"}</Typography>
+          {editMode ? (
+            <TextField
+              fullWidth
+              value={formData.aadharNumber}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  aadharNumber: e.target.value,
+                })
+              }
+            />
+          ) : (
+            <Typography>{customer?.aadharNumber || "-"}</Typography>
+          )}
         </Grid>
 
         <Grid item xs={12} md={6}>
@@ -210,7 +318,9 @@ const DetailsTab = ({ customer, creditReport, ifscDeatails }) => {
       <Grid container spacing={3}>
         <Grid item xs={12} md={6}>
           <Typography fontWeight="Medium">Selected Package Price</Typography>
-          <Typography>{customer?.selectedPackage?.price || "-"}</Typography>
+          <Typography>
+            {customer?.selectedPackage?.totalPrice || "-"}
+          </Typography>
         </Grid>
       </Grid>
 

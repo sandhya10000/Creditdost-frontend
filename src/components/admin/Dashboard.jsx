@@ -17,8 +17,8 @@ import {
   MenuItem,
   Tooltip,
   styled,
-  useTheme, /* MOBILE FIX */
-  useMediaQuery, /* MOBILE FIX */
+  useTheme /* MOBILE FIX */,
+  useMediaQuery /* MOBILE FIX */,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import { Outlet } from "react-router-dom";
@@ -45,6 +45,9 @@ import AnalyticsIcon from "@mui/icons-material/Analytics";
 import { useAuth } from "../../hooks/useAuth.jsx";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useEffect } from "react";
+import Collapse from "@mui/material/Collapse";
+import ExpandLess from "@mui/icons-material/ExpandLess";
+import ExpandMore from "@mui/icons-material/ExpandMore";
 
 // Styled components for enhanced UI
 const drawerWidth = 260;
@@ -192,6 +195,7 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
+  const [openMenu, setOpenMenu] = useState({});
 
   // Redirect non-admin users to appropriate dashboard
   useEffect(() => {
@@ -224,6 +228,22 @@ const AdminDashboard = () => {
 
   const menuItems = [
     { text: "Dashboard", icon: <DashboardIcon />, path: "/admin" },
+    {
+      text: "Website Enquiry",
+      icon: <CreditScoreIcon />,
+      children: [
+        {
+          text: "Franchise Pending Case",
+          path: "/admin/website-enquiry/franchise-pending",
+          icon: <BusinessIcon />,
+        },
+        {
+          text: "Credit Score Repair",
+          path: "/admin/credit-repair",
+          icon: <AssessmentIcon />,
+        },
+      ],
+    },
     {
       text: "Manage Franchises",
       icon: <PeopleIcon />,
@@ -268,11 +288,11 @@ const AdminDashboard = () => {
       icon: <DescriptionIcon />,
       path: "/admin/business-forms-pending",
     },
-    {
-      text: "Surepass Settings",
-      icon: <SettingsIcon />,
-      path: "/admin/surepass-settings",
-    },
+    // {
+    //   text: "Surepass Settings",
+    //   icon: <SettingsIcon />,
+    //   path: "/admin/surepass-settings",
+    // },
     {
       text: "Recharge Credits",
       icon: <CreditScoreIcon />,
@@ -359,7 +379,7 @@ const AdminDashboard = () => {
     <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
       <DrawerHeader>
         <SidebarLogo>
-          {(open || isMobile) ? ( /* MOBILE FIX */
+          {open || isMobile /* MOBILE FIX */ ? (
             <>
               <img
                 src="/images/cred.png"
@@ -376,8 +396,12 @@ const AdminDashboard = () => {
             />
           )}
         </SidebarLogo>
-        {(open || isMobile) && ( /* MOBILE FIX */
-          <IconButton onClick={isMobile ? () => setMobileOpen(false) : handleDrawerClose}> {/* MOBILE FIX */}
+        {(open || isMobile) /* MOBILE FIX */ && (
+          <IconButton
+            onClick={isMobile ? () => setMobileOpen(false) : handleDrawerClose}
+          >
+            {" "}
+            {/* MOBILE FIX */}
             <ChevronLeftIcon />
           </IconButton>
         )}
@@ -385,29 +409,63 @@ const AdminDashboard = () => {
       <Divider />
       <List sx={{ flexGrow: 1, pt: 2 }}>
         {menuItems.map((item) => (
-          <NavItem
-            key={item.text}
-            active={isActive(item.path) ? "true" : undefined}
-            onClick={() => {
-              if (item.path === "/admin") {
-                // For the Dashboard tab, navigate to the base route without redirect
-                navigate("/admin", { state: { redirect: false } });
-              } else {
-                navigate(item.path);
-              }
-              if (isMobile) setMobileOpen(false); /* MOBILE FIX */
-            }}
-            style={{
-              cursor: "pointer",
-            }}
-          >
-            <ListItemIcon>{item.icon}</ListItemIcon>
-            <ListItemText
-              primary={item.text}
-              sx={{ opacity: (open || isMobile) ? 1 : 0 }} /* MOBILE FIX */
-              style={{ maxWidth: "160px", whiteSpace: "wrap" }}
-            />
-          </NavItem>
+          <React.Fragment key={item.text}>
+            <NavItem
+              active={isActive(item.path) ? "true" : undefined}
+              onClick={() => {
+                if (item.children) {
+                  setOpenMenu((prev) => ({
+                    ...prev,
+                    [item.text]: !prev[item.text],
+                  }));
+                } else if (item.path === "/admin") {
+                  // Existing Dashboard logic
+                  navigate("/admin", { state: { redirect: false } });
+                } else {
+                  navigate(item.path);
+                }
+              }}
+              style={{
+                cursor: "pointer",
+              }}
+            >
+              <ListItemIcon>{item.icon}</ListItemIcon>
+
+              <ListItemText
+                primary={item.text}
+                sx={{ opacity: open ? 1 : 0 }}
+                style={{ maxWidth: "160px", whiteSpace: "wrap" }}
+              />
+
+              {item.children &&
+                (openMenu[item.text] ? <ExpandLess /> : <ExpandMore />)}
+            </NavItem>
+
+            {item.children && (
+              <Collapse in={openMenu[item.text]} timeout="auto" unmountOnExit>
+                <List component="div" disablePadding>
+                  {item.children.map((child) => (
+                    <NavItem
+                      key={child.text}
+                      active={isActive(child.path) ? "true" : undefined}
+                      onClick={() => navigate(child.path)}
+                      style={{
+                        cursor: "pointer",
+                        paddingLeft: "45px",
+                      }}
+                    >
+                      <ListItemIcon>{child.icon}</ListItemIcon>
+
+                      <ListItemText
+                        primary={child.text}
+                        sx={{ opacity: open ? 1 : 0 }}
+                      />
+                    </NavItem>
+                  ))}
+                </List>
+              </Collapse>
+            )}
+          </React.Fragment>
         ))}
       </List>
       <Divider />
@@ -421,7 +479,11 @@ const AdminDashboard = () => {
           <ListItemIcon>
             <LogoutIcon />
           </ListItemIcon>
-          <ListItemText primary="Logout" sx={{ opacity: (open || isMobile) ? 1 : 0 }} /> {/* MOBILE FIX */}
+          <ListItemText
+            primary="Logout"
+            sx={{ opacity: open || isMobile ? 1 : 0 }}
+          />{" "}
+          {/* MOBILE FIX */}
         </NavItem>
       </List>
     </Box>
@@ -430,12 +492,16 @@ const AdminDashboard = () => {
   return (
     <Box sx={{ display: "flex" }}>
       <CssBaseline />
-      <AppBarStyled position="fixed" open={isMobile ? false : open}> {/* MOBILE FIX */}
+      <AppBarStyled position="fixed" open={isMobile ? false : open}>
+        {" "}
+        {/* MOBILE FIX */}
         <Toolbar>
           <IconButton
             color="inherit"
             aria-label="open drawer"
-            onClick={isMobile ? () => setMobileOpen(true) : handleDrawerOpen} /* MOBILE FIX */
+            onClick={
+              isMobile ? () => setMobileOpen(true) : handleDrawerOpen
+            } /* MOBILE FIX */
             edge="start"
             sx={{
               marginRight: 5,
@@ -517,7 +583,7 @@ const AdminDashboard = () => {
           keepMounted: true, // Better open performance on mobile.
         }}
         sx={{
-          display: isMobile ? "block" : "none", /* MOBILE FIX */
+          display: isMobile ? "block" : "none" /* MOBILE FIX */,
           "& .MuiDrawer-paper": {
             boxSizing: "border-box",
             width: drawerWidth,
@@ -539,16 +605,16 @@ const AdminDashboard = () => {
         component="main"
         sx={{
           flexGrow: 1,
-          p: isMobile ? 2 : 3, /* MOBILE FIX */
+          p: isMobile ? 2 : 3 /* MOBILE FIX */,
           width: isMobile
             ? "100%"
             : open
               ? `calc(100% - ${drawerWidth}px)`
-              : `calc(100% - 64px)`, /* MOBILE FIX */
+              : `calc(100% - 64px)` /* MOBILE FIX */,
           minHeight: "100vh",
           bgcolor: "background.default",
           mt: "64px",
-          overflowX: "hidden", /* MOBILE FIX */
+          overflowX: "hidden" /* MOBILE FIX */,
         }}
       >
         <Outlet />
