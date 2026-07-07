@@ -76,7 +76,7 @@ const AdminRoutes = () => {
           <Route path="ai-analysis" element={<ManageAIAnalysis />} />
           <Route path="marketing-materials" element={<AdminMarketing />} />
           <Route path="reward" element={<AdminReward />} />
-          <Route path="case-study" element={<AdminCaseStudies />} />
+          <Route path="case-study/:category?" element={<AdminCaseStudies />} />
           <Route path="report-analytics" element={<ReportAnalytics />} />
           <Route path="/customer/:customerId" element={<CustomerCRM />} />
           <Route path="/franchise/:franchiseCode" element={<FranchiseCRM />} />

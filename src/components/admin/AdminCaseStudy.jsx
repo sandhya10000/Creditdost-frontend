@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { adminAPI, franchiseAPI } from "../../services/api";
+import { useParams, Navigate } from "react-router-dom";
 
 import {
   Box,
@@ -15,8 +16,19 @@ import {
 
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 
+const mapCategory = (title) => {
+  const t = (title || "").toLowerCase();
+  if (t.includes("dpd")) return "dpd-removal";
+  if (t.includes("write off")) return "write-off";
+  if (t.includes("settlement")) return "settlement";
+  if (t.includes("suit filled")) return "suit-filled";
+  if (t.includes("score")) return "score-increase";
+  if (t.includes("inquires")) return "credit-inquires";
+  return "multiple-issues";
+};
+
 const AdminCaseStudies = () => {
-  // const { category } = useParams();
+  const { category: routeCategory } = useParams();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [beforeWorkingFile, setBeforeWorkingFile] = useState(null);
@@ -28,8 +40,7 @@ const AdminCaseStudies = () => {
   const [caseStudies, setCaseStudies] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [editMode, setEditMode] = useState(false);
-  const [category, setCategory] = useState("");
-  // const [category, setCategory] = useState("");
+  const [formCategory, setFormCategory] = useState("");
 
   const handleSubmit = async () => {
     console.log("API response...");
@@ -42,7 +53,7 @@ const AdminCaseStudies = () => {
       setError("Please enter description");
       return;
     }
-    if (!category.trim()) {
+    if (!formCategory.trim()) {
       setError("Please enter category");
       return;
     }
@@ -61,7 +72,7 @@ const AdminCaseStudies = () => {
 
     formData.append("title", title);
     formData.append("description", description);
-    formData.append("category", category);
+    formData.append("category", formCategory);
     formData.append("beforeWorking", beforeWorkingFile);
     formData.append("afterWorking", afterWorkingFile);
 
@@ -114,7 +125,7 @@ const AdminCaseStudies = () => {
 
       formData.append("title", title);
       formData.append("description", description);
-      formData.append("category", category);
+      formData.append("category", formCategory);
 
       if (beforeWorkingFile) {
         formData.append("beforeWorking", beforeWorkingFile);
@@ -138,20 +149,19 @@ const AdminCaseStudies = () => {
     setTitle(item.title);
     setDescription(item.description);
     setEditingId(item._id);
-    setCategory(item.category);
+    setFormCategory(item.category);
     setEditMode(true);
   };
 
-  const groupedCases = caseStudies.reduce((acc, item) => {
-    const category = item.category || "uncategorized";
+  if (!routeCategory) {
+    return <Navigate to="dpd-removal" replace />;
+  }
 
-    if (!acc[category]) {
-      acc[category] = [];
-    }
+  const displayCategory = routeCategory.replace(/-/g, " ");
 
-    acc[category].push(item);
-    return acc;
-  }, {});
+  const filteredCases = caseStudies.filter((item) => {
+    return mapCategory(item.title) === routeCategory;
+  });
 
   return (
     <Box sx={{ p: 3 }}>
@@ -200,8 +210,8 @@ const AdminCaseStudies = () => {
             select
             fullWidth
             label="Case Type"
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
+            value={formCategory}
+            onChange={(e) => setFormCategory(e.target.value)}
             sx={{ mb: 2 }}
           >
             <MenuItem value="dpd">DPD</MenuItem>
@@ -292,76 +302,61 @@ const AdminCaseStudies = () => {
       </Card>
       {/* ================= LIST SECTION ================= */}
       <Box sx={{ mt: 5 }}>
-        <Typography variant="h6" fontWeight="bold" gutterBottom>
-          All Case Studies
+        <Typography variant="h6" fontWeight="bold" gutterBottom sx={{ textTransform: "capitalize" }}>
+          Case Studies — {displayCategory}
         </Typography>
 
-        {caseStudies.length === 0 ? (
-          <Typography>No case studies found</Typography>
+        {filteredCases.length === 0 ? (
+          <Typography>No case studies found for this category</Typography>
         ) : (
-          Object.entries(groupedCases).map(([category, cases]) => (
-            <Box key={category} sx={{ mb: 4 }}>
-              <Typography
-                variant="h6"
-                fontWeight="bold"
-                sx={{
-                  bgcolor: "#f5f5f5",
-                  p: 1,
-                  borderRadius: 1,
-                  mb: 2,
-                }}
-              >
-                {category.replace(/_/g, " ").toUpperCase()}
-              </Typography>
+          <Box sx={{ mb: 4 }}>
+            {filteredCases.map((item) => (
+              <Card key={item._id} sx={{ mb: 2, p: 2 }}>
+                <Typography fontWeight="bold">{item.title}</Typography>
 
-              {cases.map((item) => (
-                <Card key={item._id} sx={{ mb: 2, p: 2 }}>
-                  <Typography fontWeight="bold">{item.title}</Typography>
+                <Typography variant="body2" sx={{ mb: 1 }}>
+                  {item.description}
+                </Typography>
 
-                  <Typography variant="body2" sx={{ mb: 1 }}>
-                    {item.description}
-                  </Typography>
+                <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    href={item.beforeWorking}
+                    target="_blank"
+                  >
+                    Before PDF
+                  </Button>
 
-                  <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      href={item.beforeWorking}
-                      target="_blank"
-                    >
-                      Before PDF
-                    </Button>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    href={item.afterWorking}
+                    target="_blank"
+                  >
+                    After PDF
+                  </Button>
 
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      href={item.afterWorking}
-                      target="_blank"
-                    >
-                      After PDF
-                    </Button>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={() => handleEdit(item)}
+                  >
+                    Edit
+                  </Button>
 
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      onClick={() => handleEdit(item)}
-                    >
-                      Edit
-                    </Button>
-
-                    <Button
-                      size="small"
-                      variant="contained"
-                      color="error"
-                      onClick={() => handleDelete(item._id)}
-                    >
-                      Delete
-                    </Button>
-                  </Box>
-                </Card>
-              ))}
-            </Box>
-          ))
+                  <Button
+                    size="small"
+                    variant="contained"
+                    color="error"
+                    onClick={() => handleDelete(item._id)}
+                  >
+                    Delete
+                  </Button>
+                </Box>
+              </Card>
+            ))}
+          </Box>
         )}
       </Box>
     </Box>

@@ -355,7 +355,15 @@ const FranchiseDashboard = () => {
     {
       text: "Case Studies",
       icon: <CaseStudiesIcon />,
-      path: "/franchise/case-studies",
+      children: [
+        { text: "DPD Removal", path: "/franchise/case-studies/dpd-removal", icon: <CaseStudiesIcon /> },
+        { text: "Write Off", path: "/franchise/case-studies/write-off", icon: <CaseStudiesIcon /> },
+        { text: "Settlement", path: "/franchise/case-studies/settlement", icon: <CaseStudiesIcon /> },
+        { text: "Score Increase", path: "/franchise/case-studies/score-increase", icon: <CaseStudiesIcon /> },
+        { text: "Multiple Issues", path: "/franchise/case-studies/multiple-issues", icon: <CaseStudiesIcon /> },
+        { text: "Suit Filled", path: "/franchise/case-studies/suit-filled", icon: <CaseStudiesIcon /> },
+        { text: "Credit Inquires", path: "/franchise/case-studies/credit-inquires", icon: <CaseStudiesIcon /> },
+      ],
     },
     {
       text: "Reward",
@@ -417,6 +425,19 @@ const FranchiseDashboard = () => {
   };
 
   const menuItems = getMenuItems();
+
+  useEffect(() => {
+    const activeParent = menuItems.find(item => 
+      item.children?.some(child => location.pathname === child.path)
+    );
+    
+    if (activeParent) {
+      setOpenMenu(activeParent.text);
+    } else {
+      setOpenMenu(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
 
   const isActive = (path) => {
     // Special handling for the Dashboard item (first tab)
