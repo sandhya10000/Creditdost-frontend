@@ -322,13 +322,13 @@ const DashboardHome = () => {
     {
       title: "Credits",
 
-      value: `${stats.credits?.used ?? 0} / ${stats.credits?.available ?? 0}`,
+      value: `${stats.credits?.used ?? 0}`,
       icon: <CreditScore sx={{ fontSize: 40 }} />,
       color: "#6200ea",
     },
     {
       title: "AI Usage",
-      value: `${stats.ai?.used ?? 0} / ${stats.ai?.available ?? 0}`,
+      value: `${stats.ai?.used ?? 0}`,
       icon: <People sx={{ fontSize: 40 }} />,
       color: "#03dac6",
     },

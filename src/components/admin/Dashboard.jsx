@@ -234,7 +234,7 @@ const AdminDashboard = () => {
       children: [
         {
           text: "Franchise Pending Case",
-          path: "/admin/website-enquiry/franchise-pending",
+          path: "/admin/franchise-pending",
           icon: <BusinessIcon />,
         },
         {
@@ -288,6 +288,12 @@ const AdminDashboard = () => {
       icon: <DescriptionIcon />,
       path: "/admin/business-forms-pending",
     },
+    {
+      text: "Support Tickets",
+      icon: <DescriptionIcon />,
+      path: "/admin/admin-tickets",
+    },
+
     // {
     //   text: "Surepass Settings",
     //   icon: <SettingsIcon />,

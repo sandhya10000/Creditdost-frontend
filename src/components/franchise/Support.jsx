@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Grid,
@@ -9,9 +9,11 @@ import {
   Button,
   Divider,
 } from "@mui/material";
+
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import SendIcon from "@mui/icons-material/Send";
+import { franchiseAPI } from "../../services/api";
 
 export default function Support() {
   const [formData, setFormData] = useState({
@@ -20,15 +22,53 @@ export default function Support() {
     message: "",
   });
 
+  const getTickets = async () => {
+    try {
+      const res = await franchiseAPI.getTickets();
+      console.log(res, "res get ticket");
+      setTickets(res.data.data); //
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  useEffect(() => {
+    getTickets();
+  }, []);
+  const [tickets, setTickets] = useState([]);
+  const [loading, setLoading] = useState(false);
+
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
   };
+  const handleSubmit = async () => {
+    try {
+      if (!formData.subject || !formData.message) {
+        return alert("Please fill all required fields");
+      }
 
-  const handleSubmit = () => {
-    console.log(formData);
+      setLoading(true);
+
+      const res = await franchiseAPI.customerSupport(formData);
+      console.log(res, "res create ticket");
+
+      alert(res.message || "Ticket submitted successfully");
+
+      setFormData({
+        subject: "",
+        category: "CIBIL Report Issue",
+        message: "",
+      });
+
+      getTickets();
+    } catch (error) {
+      console.log(error);
+      alert(error.response?.data?.message || "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -152,7 +192,7 @@ export default function Support() {
               </Typography>
 
               <Typography variant="body2" color="text.secondary">
-                0 tickets
+                {tickets.length} tickets
               </Typography>
             </Box>
 
@@ -169,13 +209,59 @@ export default function Support() {
                 sx={{ fontSize: 60, color: "#d1d5db", mb: 2 }}
               />
 
-              <Typography variant="h6" color="text.secondary">
-                No support tickets found.
-              </Typography>
+              {tickets.length === 0 ? (
+                <Box
+                  display="flex"
+                  flexDirection="column"
+                  justifyContent="center"
+                  alignItems="center"
+                  mt={8}
+                >
+                  <ErrorOutlineIcon
+                    sx={{ fontSize: 60, color: "#d1d5db", mb: 2 }}
+                  />
 
-              <Typography variant="body2" color="text.disabled">
-                Create your first ticket above.
-              </Typography>
+                  <Typography variant="h6" color="text.secondary">
+                    No support tickets found.
+                  </Typography>
+
+                  <Typography variant="body2" color="text.disabled">
+                    Create your first ticket above.
+                  </Typography>
+                </Box>
+              ) : (
+                tickets.map((ticket) => (
+                  <Paper
+                    key={ticket._id}
+                    sx={{
+                      p: 2,
+                      mb: 2,
+                      borderRadius: 2,
+                    }}
+                  >
+                    <Typography fontWeight="bold">{ticket.subject}</Typography>
+
+                    <Typography variant="body2" color="text.secondary">
+                      {ticket.category}
+                    </Typography>
+
+                    <Typography sx={{ mt: 1 }}>{ticket.message}</Typography>
+
+                    <Typography
+                      variant="caption"
+                      color={
+                        ticket.status === "Pending"
+                          ? "warning.main"
+                          : ticket.status === "Resolved"
+                            ? "success.main"
+                            : "error.main"
+                      }
+                    >
+                      {ticket.status}
+                    </Typography>
+                  </Paper>
+                ))
+              )}
             </Box>
           </Paper>
         </Grid>

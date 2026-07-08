@@ -48,7 +48,7 @@ const FranchiseRoutes = () => {
         <Route path="certificate" element={<Certificate />} />
         <Route path="agreement" element={<DigitalAgreement />} />
         <Route path="payouts" element={<Payouts />} />
-        <Route path="support" element={<Support />} />
+        <Route path="/support" element={<Support />} />
         <Route
           path="/franchise-marketing"
           element={<FranchiseMarketing />}

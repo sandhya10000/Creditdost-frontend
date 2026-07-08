@@ -148,6 +148,8 @@ export const franchiseAPI = {
   getBusinessFormsByFranchise: (_id) => api.get(`/business/franchise/${_id}`),
   updateCustomer: (customerId, formData) =>
     api.put(`/admin/business/update-form/${customerId}`, formData),
+  customerSupport: (formData) => api.post("/support/create-ticket", formData),
+  getTickets: () => api.get("/support/my-tickets"),
 };
 
 // Blog API functions
@@ -330,6 +332,7 @@ export const adminAPI = {
     api.post("/admin/addremark/customer", payload),
   getCustomerRemarks: (customerId) => api.get(`/addRemark/${customerId}`),
   closeBusinessCaseadmin: (id) => api.post(`/business/close-case/${id}`),
+  getAllTickets: () => api.get("/admin/support/all-tickets"),
 };
 
 // Credit API functions
