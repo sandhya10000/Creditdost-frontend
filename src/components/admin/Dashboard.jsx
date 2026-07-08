@@ -19,6 +19,7 @@ import {
   styled,
   useTheme /* MOBILE FIX */,
   useMediaQuery /* MOBILE FIX */,
+  ListItemButton,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import { Outlet } from "react-router-dom";
@@ -188,6 +189,11 @@ const AdminDashboard = () => {
   const [mobileOpen, setMobileOpen] = useState(false); /* MOBILE FIX */
   const [anchorEl, setAnchorEl] = useState(null);
 
+
+  const handleToggle = (menu) => {
+    setOpenMenu(openMenu === menu ? null : menu);
+  };
+
   // Handle responsive drawer
   useEffect(() => {
     setOpen(!isMobile);
@@ -331,7 +337,15 @@ const AdminDashboard = () => {
     {
       text: "Case Studies",
       icon: <MenuBookIcon />,
-      path: "/admin/case-study",
+      children: [
+        { text: "DPD Removal", path: "/admin/case-study/dpd-removal", icon: <MenuBookIcon /> },
+        { text: "Write Off", path: "/admin/case-study/write-off", icon: <MenuBookIcon /> },
+        { text: "Settlement", path: "/admin/case-study/settlement", icon: <MenuBookIcon /> },
+        { text: "Score Increase", path: "/admin/case-study/score-increase", icon: <MenuBookIcon /> },
+        { text: "Multiple Issues", path: "/admin/case-study/multiple-issues", icon: <MenuBookIcon /> },
+        { text: "Suit Filled", path: "/admin/case-study/suit-filled", icon: <MenuBookIcon /> },
+        { text: "Credit Inquires", path: "/admin/case-study/credit-inquires", icon: <MenuBookIcon /> },
+      ],
     },
     {
       text: "Report Analytics",
@@ -354,6 +368,19 @@ const AdminDashboard = () => {
       path: "/admin/manual-business",
     },
   ];
+
+  useEffect(() => {
+    const activeParent = menuItems.find(item => 
+      item.children?.some(child => location.pathname === child.path)
+    );
+    
+    if (activeParent) {
+      setOpenMenu(activeParent.text);
+    } else {
+      setOpenMenu(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
 
   const isActive = (path) => {
     // Special handling for the Dashboard item (first tab)
@@ -408,65 +435,74 @@ const AdminDashboard = () => {
       </DrawerHeader>
       <Divider />
       <List sx={{ flexGrow: 1, pt: 2 }}>
-        {menuItems.map((item) => (
-          <React.Fragment key={item.text}>
-            <NavItem
-              active={isActive(item.path) ? "true" : undefined}
-              onClick={() => {
-                if (item.children) {
-                  setOpenMenu((prev) => ({
-                    ...prev,
-                    [item.text]: !prev[item.text],
-                  }));
-                } else if (item.path === "/admin") {
-                  // Existing Dashboard logic
-                  navigate("/admin", { state: { redirect: false } });
-                } else {
-                  navigate(item.path);
+        {menuItems.map((item) => {
+          const hasChildren = item.children && item.children.length > 0;
+
+          return (
+            <Box key={item.text}>
+              <NavItem
+                active={
+                  isActive(item.path) ||
+                  item.children?.some((child) => location.pathname === child.path)
+                    ? "true"
+                    : undefined
                 }
-              }}
-              style={{
-                cursor: "pointer",
-              }}
-            >
-              <ListItemIcon>{item.icon}</ListItemIcon>
+                onClick={() => {
+                  if (hasChildren) {
+                    handleToggle(item.text);
+                  } else {
+                    if (item.path === "/admin") {
+                      // For the Dashboard tab, navigate to the base route without redirect
+                      navigate("/admin", { state: { redirect: false } });
+                    } else {
+                      navigate(item.path);
+                    }
+                    if (isMobile) setMobileOpen(false); /* MOBILE FIX */
+                  }
+                }}
+                style={{
+                  cursor: "pointer",
+                }}
+              >
+                <ListItemIcon>{item.icon}</ListItemIcon>
+                <ListItemText
+                  primary={item.text}
+                  sx={{ opacity: (open || isMobile) ? 1 : 0 }} /* MOBILE FIX */
+                  style={{ maxWidth: "160px", whiteSpace: "wrap" }}
+                />
+                {hasChildren &&
+                  (openMenu === item.text ? <ExpandLess /> : <ExpandMore />)}
+              </NavItem>
 
-              <ListItemText
-                primary={item.text}
-                sx={{ opacity: open ? 1 : 0 }}
-                style={{ maxWidth: "160px", whiteSpace: "wrap" }}
-              />
-
-              {item.children &&
-                (openMenu[item.text] ? <ExpandLess /> : <ExpandMore />)}
-            </NavItem>
-
-            {item.children && (
-              <Collapse in={openMenu[item.text]} timeout="auto" unmountOnExit>
-                <List component="div" disablePadding>
+              {hasChildren && (
+                <Collapse in={openMenu === item.text} timeout="auto" unmountOnExit>
                   {item.children.map((child) => (
-                    <NavItem
+                    <ListItemButton
                       key={child.text}
-                      active={isActive(child.path) ? "true" : undefined}
-                      onClick={() => navigate(child.path)}
-                      style={{
-                        cursor: "pointer",
-                        paddingLeft: "45px",
+                      selected={location.pathname === child.path}
+                      onClick={() => {
+                        navigate(child.path);
+                        if (isMobile) setMobileOpen(false); /* MOBILE FIX */
+                      }}
+                      sx={{
+                        pl: { xs: 2, sm: 5 },
+                        minHeight: 44,
                       }}
                     >
-                      <ListItemIcon>{child.icon}</ListItemIcon>
-
+                      {child.icon && <ListItemIcon>{child.icon}</ListItemIcon>}
                       <ListItemText
                         primary={child.text}
-                        sx={{ opacity: open ? 1 : 0 }}
+                        primaryTypographyProps={{
+                          fontSize: { xs: "0.875rem", sm: "1rem" },
+                        }}
                       />
-                    </NavItem>
+                    </ListItemButton>
                   ))}
-                </List>
-              </Collapse>
-            )}
-          </React.Fragment>
-        ))}
+                </Collapse>
+              )}
+            </Box>
+          );
+        })}
       </List>
       <Divider />
       <List>
