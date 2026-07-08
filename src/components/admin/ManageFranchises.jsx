@@ -56,7 +56,7 @@ import {
 } from "@mui/icons-material";
 import { adminAPI } from "../../services/api";
 
-const ManageFranchises = ({ kycStatus = "pending" }) => {
+const ManageFranchises = ({ kycStatus = "all" }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -1086,12 +1086,12 @@ const ManageFranchises = ({ kycStatus = "pending" }) => {
 
                 <TextField
                   select
-                  label="Filter"
+                  label="Filter sandhyaaaaaa"
                   value={kycStatus}
-                  onChange={(e) => {
-                    setKycStatus(e.target.value);
-                    setPage(1);
-                  }}
+                  // onChange={(e) => {
+                  //   setKycStatus(e.target.value);
+                  //   setPage(1);
+                  // }}
                   size="small"
                   sx={{
                     minWidth: 180,

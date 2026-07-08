@@ -36,6 +36,7 @@ const FranchisePending = lazy(
 const CreditScoreRepair = lazy(
   () => import("../admin/Website-enquiry/CreditScoreRepair"),
 );
+const AdminTickets = lazy(() => import("../admin/supportTicket"));
 const AdminRoutes = () => {
   return (
     <Suspense fallback={<div>Loading...</div>}>
@@ -83,9 +84,25 @@ const AdminRoutes = () => {
           <Route path="/credit-check" element={<AdminCreditBureau />} />
           <Route path="/prefill-failed-logs" element={<PrefillFailedLog />} />
           <Route path="/manual-business" element={<ManualBusiness />} />
+          <Route path="/admin-tickets" element={<AdminTickets />} />
           <Route
-            path="/admin/website-enquiry/franchise-pending"
+            path="/admin/manage-franchise"
+            element={<ManageFranchises kycStatus="all" />}
+          />
+
+          <Route
+            path="/admin/franchise-pending"
             element={<ManageFranchises kycStatus="pending" />}
+          />
+
+          <Route
+            path="/admin/franchise-approved"
+            element={<ManageFranchises kycStatus="approved" />}
+          />
+
+          <Route
+            path="/admin/franchise-rejected"
+            element={<ManageFranchises kycStatus="rejected" />}
           />
 
           <Route path="/admin/credit-repair" element={<CreditScoreRepair />} />
