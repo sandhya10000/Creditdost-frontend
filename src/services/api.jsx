@@ -331,7 +331,9 @@ export const adminAPI = {
   addRemarksforCustomer: (payload) =>
     api.post("/admin/addremark/customer", payload),
   getCustomerRemarks: (customerId) => api.get(`/addRemark/${customerId}`),
-  closeBusinessCaseadmin: (id) => api.post(`/business/close-case/${id}`),
+  // closeBusinessCaseadmin: (id) => api.post(`/business/close-case/${id}`),
+  updateBusinessWorkStatus: (id, data) =>
+    api.put(`/admin/business-forms/${id}/work-status`, data),
   getAllTickets: () => api.get("/admin/support/all-tickets"),
 };
 

@@ -90,10 +90,12 @@ const BusinessMIS = () => {
 
   const getWorkStatusChip = (status) => {
     switch (status) {
-      case "Closed":
+      case "closed":
         return <Chip label="Closed" color="success" />;
+      case "on_hold":
+        return <Chip label="On Hold" color="warning" />;
       default:
-        return <Chip label="In Progress" color="warning" />;
+        return <Chip label="In Progress" color="info" />;
     }
   };
 

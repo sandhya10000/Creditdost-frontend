@@ -18,6 +18,9 @@ import {
   Paper,
   Chip,
   Pagination,
+  Tabs,
+  Tab,
+  Stack,
 } from "@mui/material";
 import { adminAPI } from "../../services/api";
 //import { useNavigate } from "react-router-dom";
@@ -26,6 +29,7 @@ const BusinessForms = ({ status = "paid" }) => {
   const [businessForms, setBusinessForms] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [workStatusFilter, setWorkStatusFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
 
   const [totalRecords, setTotalRecords] = useState(0);
@@ -108,6 +112,7 @@ const BusinessForms = ({ status = "paid" }) => {
   const filteredBusinessForms = businessForms.filter(
     (form) =>
       form.paymentStatus === status &&
+      (workStatusFilter === "all" || form.workStatus === workStatusFilter) &&
       (form.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         form.customerEmail?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         form.customerPhone?.includes(searchTerm) ||
@@ -116,6 +121,16 @@ const BusinessForms = ({ status = "paid" }) => {
           .includes(searchTerm.toLowerCase())),
   );
 
+  const updateWorkStatus = async (id, newStatus) => {
+    try {
+      await adminAPI.updateBusinessWorkStatus(id, {
+        workStatus: newStatus,
+      });
+      fetchBusinessForms();
+    } catch (err) {
+      console.error(err);
+    }
+  };
   console.log(filteredBusinessForms, "filteredBusinessForms----------------"); //Download bussiness mis users data function
   const handleDownloadCSV = () => {
     const headers = [
@@ -242,7 +257,15 @@ const BusinessForms = ({ status = "paid" }) => {
               Download CSV
             </Button>
           </Box>
-
+          <Tabs
+            value={workStatusFilter}
+            onChange={(_, value) => setWorkStatusFilter(value)}
+          >
+            <Tab label="All" value="all" />
+            <Tab label="In Progress" value="in_progress" />
+            <Tab label="Closed" value="closed" />
+            <Tab label="On Hold" value="on_hold" />
+          </Tabs>
           {loading && businessForms.length === 0 ? (
             <Box display="flex" justifyContent="center" my={4}>
               <CircularProgress />
@@ -298,7 +321,7 @@ const BusinessForms = ({ status = "paid" }) => {
                     <TableCell>Document</TableCell>
 
                     <TableCell>Date</TableCell>
-                    <TableCell>Action</TableCell>
+                    <TableCell align="center">Action</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody
@@ -379,19 +402,63 @@ const BusinessForms = ({ status = "paid" }) => {
                         })}
                       </TableCell>
                       <TableCell align="center" sx={{ whiteSpace: "nowrap" }}>
-                        <Button
-                          variant="contained"
-                          color="success"
-                          size="small"
-                          sx={{
-                            minWidth: 110,
-                            whiteSpace: "nowrap",
-                            color: "#fff",
-                          }}
-                          onClick={() => handleCloseCase()}
-                        >
-                          Close Case
-                        </Button>
+                        {status !== "pending" && (
+                          <Stack
+                            size="small"
+                            variant="contained"
+                            direction="row"
+                            spacing={1}
+                          >
+                            <Button
+                              variant="contained"
+                              sx={{ color: "#fff" }}
+                              color="info"
+                              onClick={() =>
+                                updateWorkStatus(form._id, "in_progress")
+                              }
+                            >
+                              In Progress
+                            </Button>
+                            <Button
+                              sx={{ color: "#fff" }}
+                              variant="contained"
+                              color="success"
+                              onClick={() =>
+                                updateWorkStatus(form._id, "closed")
+                              }
+                            >
+                              Closed
+                            </Button>
+                            <Button
+                              sx={{ color: "#fff" }}
+                              variant="contained"
+                              color="warning"
+                              onClick={() =>
+                                updateWorkStatus(form._id, "on_hold")
+                              }
+                            >
+                              On Hold
+                            </Button>
+                          </Stack>
+                        )}
+                        {status !== "paid" && (
+                          <Stack
+                            size="small"
+                            variant="contained"
+                            direction="row"
+                            spacing={1}
+                          >
+                            <Button
+                              variant="contained"
+                              color="error"
+                              onClick={() =>
+                                updateWorkStatus(form._id, "in_progress")
+                              }
+                            >
+                              Delete
+                            </Button>
+                          </Stack>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))}
