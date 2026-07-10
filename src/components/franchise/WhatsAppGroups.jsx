@@ -32,7 +32,7 @@ const WhatsAppGroups = () => {
     },
     {
       name: "Sales & Marketing Group",
-      url: "https://whatsapp.com/channel/0029Vb7HZQDDeON9KJ50Yo2L",
+      url: "https://whatsapp.com/channel/0029VbCIhwEKmCPLvpOePP2u",
       icon: <WhatsApp sx={{ color: "#25D366", fontSize: 32 }} />,
       description:
         "Connect with other franchise partners for sales and marketing tips",
@@ -146,7 +146,8 @@ const WhatsAppGroups = () => {
                     border: "1px solid rgba(37, 211, 102, 0.2)",
                     background:
                       "linear-gradient(145deg, #ffffff 0%, #f9fbf9 100%)",
-                    transition: "transform 0.3s, box-shadow 0.3s, border-color 0.3s",
+                    transition:
+                      "transform 0.3s, box-shadow 0.3s, border-color 0.3s",
                     "&:hover": {
                       transform: "translateY(-4px)",
                       boxShadow: "0 10px 20px rgba(37, 211, 102, 0.1)",
