@@ -185,21 +185,14 @@ const BusinessForms = ({ status = "paid" }) => {
   //   return `${API_URL}/${path.replace(/\\/g, "/")}`;
   // };
 
-  const handleCloseCase = async (id) => {
-    const confirmClose = window.confirm(
-      "Are you sure you want to close this case?",
-    );
-
-    if (!confirmClose) return;
+  const deleteBusinessForm = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this record?")) return;
 
     try {
-      const response = await adminAPI.closeBusinessCaseadmin(id);
-      alert(response.message || "Case Closed Successfully");
+      await adminAPI.deleteBusinessForm(id);
       fetchBusinessForms();
-    } catch (error) {
-      console.error("Failed to close case:", error);
-
-      alert(error?.response?.data?.message || "Failed to close the case.");
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -452,7 +445,7 @@ const BusinessForms = ({ status = "paid" }) => {
                               variant="contained"
                               color="error"
                               onClick={() =>
-                                updateWorkStatus(form._id, "in_progress")
+                                deleteBusinessForm(form._id, "in_progress")
                               }
                             >
                               Delete
