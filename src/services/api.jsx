@@ -335,6 +335,7 @@ export const adminAPI = {
   updateBusinessWorkStatus: (id, data) =>
     api.put(`/admin/business-forms/${id}/work-status`, data),
   getAllTickets: () => api.get("/admin/support/all-tickets"),
+  deleteBusinessForm: (id) => api.delete(`/admin/business-forms/${id}`),
 };
 
 // Credit API functions
