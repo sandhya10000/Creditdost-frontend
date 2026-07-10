@@ -174,6 +174,13 @@ export const adminAPI = {
     api.get("/analytics/visitors/trends", { params }),
   // Franchise management
   getAllFranchises: (params) => api.get("/franchises", { params }),
+  /**
+   * Export ALL matching franchise records as a streamed CSV.
+   * Pass the same `search` / `kycStatus` params that are active in the list view
+   * so the exported data matches what the admin sees on screen.
+   */
+  exportFranchisesCSV: (params) =>
+    api.get("/franchises/export-csv", { params, responseType: "blob" }),
   getFranchiseList: () => api.get("/franchises/list"),
   getFranchiseById: (id) => api.get(`/franchises/${id}`),
   updateFranchise: (id, data) => api.put(`/franchises/${id}`, data),

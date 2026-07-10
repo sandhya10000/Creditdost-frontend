@@ -56,7 +56,7 @@ import {
 } from "@mui/icons-material";
 import { adminAPI } from "../../services/api";
 
-const ManageFranchises = ({ kycStatus = "all" }) => {
+const ManageFranchises = ({ kycStatus: initialKycStatus = "pending" }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -117,7 +117,13 @@ const ManageFranchises = ({ kycStatus = "all" }) => {
   const [totalRecords, setTotalRecords] = useState(0);
   const [page, setPage] = useState(1);
   const rowsPerPage = 20;
-  // const [kycStatus, setKycStatus] = useState("all");
+  const [csvExporting, setCsvExporting] = useState(false);
+  const [kycStatus, setKycStatus] = useState(initialKycStatus);
+
+  // Sync local state if the route/prop changes
+  useEffect(() => {
+    setKycStatus(initialKycStatus);
+  }, [initialKycStatus]);
 
   // Reload data when page, search or bureau filter changes
   useEffect(() => {
@@ -885,65 +891,42 @@ const ManageFranchises = ({ kycStatus = "all" }) => {
       severity,
     });
   };
-  const handleDownloadCSV = () => {
-    const headers = [
-      "Franchise ID",
-      "Business Name",
-      "Owner Name",
-      "Email",
-      "Phone",
-      "KYC Status",
-      "Status",
-      "Credits",
-      "Total Credits Purchased",
-      "PAN Number",
-      "Bank Account Number",
-      "IFSC Code",
-      "Certificate Name",
-      "Street",
-      "City",
-      "State",
-      "Pincode",
-      "Country",
-      "Created Date",
-    ];
+  const handleDownloadCSV = async () => {
+    try {
+      setCsvExporting(true);
 
-    const rows = filteredFranchises.map((f) => [
-      f.franchiseCode || "",
-      f.businessName || "",
-      f.ownerName || "",
-      f.email || "",
-      f.phone || "",
-      f.kycStatus || "",
-      f.isActive ? "Active" : "Inactive",
-      f.credits || 0,
-      f.totalCreditsPurchased || 0,
-      f.panNumber || "",
-      f.bankAccountNumber || "",
-      f.bankIfscCode || "",
-      f.certificateName || "",
-      f.address?.street || "",
-      f.address?.city || "",
-      f.address?.state || "",
-      f.address?.pincode || "",
-      f.address?.country || "",
-      formatDate(f.createdAt),
-    ]);
+      // Pass the same search/kycStatus filters that are active in the list view
+      const params = {
+        search: searchTerm,
+        kycStatus: kycStatus !== "all" ? kycStatus : "",
+      };
 
-    const csvContent = [headers, ...rows]
-      .map((row) =>
-        row.map((field) => `"${String(field).replace(/"/g, '""')}"`).join(","),
-      )
-      .join("\n");
+      const response = await adminAPI.exportFranchisesCSV(params);
 
-    const blob = new Blob([csvContent], {
-      type: "text/csv;charset=utf-8;",
-    });
+      // response.data is a Blob (because we requested responseType: "blob")
+      const blob = new Blob([response.data], {
+        type: "text/csv;charset=utf-8;",
+      });
 
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = "franchise_list.csv";
-    link.click();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      const timestamp = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+      link.href = url;
+      link.download = `franchise_export_${timestamp}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      // Release the object URL after a short delay
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
+
+      showSnackbar("CSV exported successfully!", "success");
+    } catch (err) {
+      console.error("CSV export failed:", err);
+      showSnackbar("Failed to export CSV. Please try again.", "error");
+    } finally {
+      setCsvExporting(false);
+    }
   };
 
   return (
@@ -966,9 +949,10 @@ const ManageFranchises = ({ kycStatus = "all" }) => {
           variant="contained"
           color="success"
           onClick={handleDownloadCSV}
-          sx={{ color: "#fff" }}
+          disabled={csvExporting}
+          sx={{ color: "#fff", minWidth: 140 }}
         >
-          Download CSV
+          {csvExporting ? "Exporting..." : "Download CSV"}
         </Button>
       </Box>
 
@@ -1088,10 +1072,10 @@ const ManageFranchises = ({ kycStatus = "all" }) => {
                   select
                   label="Filter sandhyaaaaaa"
                   value={kycStatus}
-                  // onChange={(e) => {
-                  //   setKycStatus(e.target.value);
-                  //   setPage(1);
-                  // }}
+                  onChange={(e) => {
+                    setKycStatus(e.target.value);
+                    setPage(1);
+                  }}
                   size="small"
                   sx={{
                     minWidth: 180,
