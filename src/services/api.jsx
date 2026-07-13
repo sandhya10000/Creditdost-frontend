@@ -321,7 +321,7 @@ export const adminAPI = {
   getSinglebusinessform: (customerId) =>
     api.get(`/business/customer/${customerId}`),
   getSingleFranchise: (franchiseCode) =>
-    api.get(`/franchises/${franchiseCode}`),
+    api.get(`/franchises/single-data/${franchiseCode}`),
   //get franhcise report data
   getFranchiseReport: (franchiseId) =>
     api.get(`/credit/reports/${franchiseId}`),
