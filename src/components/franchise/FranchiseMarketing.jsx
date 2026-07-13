@@ -68,6 +68,23 @@ const FranchiseMarketing = () => {
       }
     } catch (error) {
       console.log("Share failed", error);
+      // Fallback to sharing the URL directly if fetch fails (e.g. CORS)
+      try {
+        if (navigator.share) {
+          await navigator.share({
+            title: item.title,
+            text: item.description || "",
+            url: fileUrl,
+          });
+        } else {
+          window.open(
+            `https://wa.me/?text=${encodeURIComponent(fileUrl)}`,
+            "_blank",
+          );
+        }
+      } catch (innerError) {
+        console.log("Fallback share failed", innerError);
+      }
     }
   };
 
@@ -95,6 +112,8 @@ const FranchiseMarketing = () => {
       window.URL.revokeObjectURL(blobUrl);
     } catch (error) {
       console.error("Download failed:", error);
+      // Fallback: open the image in a new tab if fetch fails
+      window.open(imageUrl, "_blank");
     }
   };
   const groupedItems = items.reduce((acc, item) => {
