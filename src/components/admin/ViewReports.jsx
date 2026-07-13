@@ -226,8 +226,8 @@ const ViewReports = () => {
                             <Chip label="N/A" size="small" />
                           )}
                         </TableCell>
-                        <TableCell>
-                          {new Date(report.createdAt).toLocaleDateString()}
+                        <TableCell sx={{ whiteSpace: "nowrap" }}>
+                          {new Date(report.createdAt).toLocaleString()}
                         </TableCell>
                         <TableCell>
                           {getReportUrl(report) && (

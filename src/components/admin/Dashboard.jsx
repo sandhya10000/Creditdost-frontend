@@ -474,7 +474,14 @@ const AdminDashboard = () => {
                 <ListItemText
                   primary={item.text}
                   sx={{ opacity: (open || isMobile) ? 1 : 0 }} /* MOBILE FIX */
-                  style={{ maxWidth: "160px", whiteSpace: "wrap" }}
+                  primaryTypographyProps={{
+                    noWrap: true,
+                    sx: {
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    },
+                  }}
                 />
                 {hasChildren &&
                   (openMenu === item.text ? <ExpandLess /> : <ExpandMore />)}
@@ -483,26 +490,40 @@ const AdminDashboard = () => {
               {hasChildren && (
                 <Collapse in={openMenu === item.text} timeout="auto" unmountOnExit>
                   {item.children.map((child) => (
-                    <ListItemButton
+                    <Tooltip
                       key={child.text}
-                      selected={location.pathname === child.path}
-                      onClick={() => {
-                        navigate(child.path);
-                        if (isMobile) setMobileOpen(false); /* MOBILE FIX */
-                      }}
-                      sx={{
-                        pl: { xs: 2, sm: 5 },
-                        minHeight: 44,
-                      }}
+                      title={child.text}
+                      placement="right"
+                      arrow
+                      enterDelay={600}
                     >
-                      {child.icon && <ListItemIcon>{child.icon}</ListItemIcon>}
-                      <ListItemText
-                        primary={child.text}
-                        primaryTypographyProps={{
-                          fontSize: { xs: "0.875rem", sm: "1rem" },
+                      <ListItemButton
+                        selected={location.pathname === child.path}
+                        onClick={() => {
+                          navigate(child.path);
+                          if (isMobile) setMobileOpen(false); /* MOBILE FIX */
                         }}
-                      />
-                    </ListItemButton>
+                        sx={{
+                          pl: { xs: 2, sm: 3 },
+                          minHeight: 44,
+                          overflow: "hidden",
+                        }}
+                      >
+                        {child.icon && <ListItemIcon sx={{ minWidth: 36 }}>{child.icon}</ListItemIcon>}
+                        <ListItemText
+                          primary={child.text}
+                          primaryTypographyProps={{
+                            fontSize: { xs: "0.8rem", sm: "0.875rem" },
+                            noWrap: true,
+                            sx: {
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                            },
+                          }}
+                        />
+                      </ListItemButton>
+                    </Tooltip>
                   ))}
                 </Collapse>
               )}
