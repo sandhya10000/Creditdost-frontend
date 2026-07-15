@@ -545,12 +545,20 @@ const AdminDashboardHome = () => {
         />
       </Box>
 
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 4 }}>
+      <Box 
+        sx={{ 
+          display: 'grid', 
+          gridTemplateColumns: {
+            xs: '1fr',
+            sm: 'repeat(2, 1fr)',
+            md: 'repeat(3, 1fr)'
+          }, 
+          gap: 3, 
+          mb: 4 
+        }}
+      >
         {statCards.map((card, index) => (
-          <Box
-            key={index}
-            sx={{ flex: '0 1 auto', minWidth: '220px' }}
-          >
+          <Box key={index}>
             <StatCard>
               <CardContent sx={{ flexGrow: 1, p: 3, display: "flex", flexDirection: "column" }}>
                 <Box
