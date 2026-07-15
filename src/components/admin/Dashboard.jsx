@@ -49,6 +49,7 @@ import { useEffect } from "react";
 import Collapse from "@mui/material/Collapse";
 import ExpandLess from "@mui/icons-material/ExpandLess";
 import ExpandMore from "@mui/icons-material/ExpandMore";
+import CASE_STUDY_CATEGORIES from "../../config/caseStudyCategories";
 
 // Styled components for enhanced UI
 const drawerWidth = 260;
@@ -343,15 +344,11 @@ const AdminDashboard = () => {
     {
       text: "Case Studies",
       icon: <MenuBookIcon />,
-      children: [
-        { text: "DPD Removal", path: "/admin/case-study/dpd-removal", icon: <MenuBookIcon /> },
-        { text: "Write Off", path: "/admin/case-study/write-off", icon: <MenuBookIcon /> },
-        { text: "Settlement", path: "/admin/case-study/settlement", icon: <MenuBookIcon /> },
-        { text: "Score Increase", path: "/admin/case-study/score-increase", icon: <MenuBookIcon /> },
-        { text: "Multiple Issues", path: "/admin/case-study/multiple-issues", icon: <MenuBookIcon /> },
-        { text: "Suit Filled", path: "/admin/case-study/suit-filled", icon: <MenuBookIcon /> },
-        { text: "Credit Inquires", path: "/admin/case-study/credit-inquires", icon: <MenuBookIcon /> },
-      ],
+      children: CASE_STUDY_CATEGORIES.map(category => ({
+        text: category.label,
+        path: `/admin/case-study/${category.value}`,
+        icon: <MenuBookIcon />
+      })),
     },
     {
       text: "Report Analytics",
