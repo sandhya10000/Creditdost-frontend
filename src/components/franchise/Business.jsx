@@ -252,7 +252,11 @@ const Business = ({ userType }) => {
         await franchiseAPI.submitBusinessForm(formDataWithPackage);
       setRazorpayOrderId(response.data.orderId);
       setBusinessFormId(response.data.businessFormId);
-      setSuccess("Form submitted successfully. Please proceed with payment.");
+      if (userType === "admin") {
+        setSuccess("Form submitted successfully.");
+      } else {
+        setSuccess("Form submitted successfully. Please proceed with payment.");
+      }
       handleNext(); // Move to payment step
     } catch (err) {
       setError(
