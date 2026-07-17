@@ -332,16 +332,43 @@ const UpgradePackage = () => {
                         >
                           {pkg.name}
                         </Typography>
-                        <Typography
-                          variant="body2"
-                          color="text.secondary"
-                          sx={{
-                            mb: 2,
+                        <Box 
+                          sx={{ 
+                            mb: 2, 
                             minHeight: 45,
+                            pl: 1.5,
+                            borderLeft: "3px solid",
+                            display: "flex",
+                            alignItems: "center",
+                            "@keyframes darkPulse": {
+                              "0%, 100%": { 
+                                borderColor: "#6200ea",
+                                color: "#6200ea"
+                              },
+                              "50%": { 
+                                borderColor: "#1a0033",
+                                color: "#1a0033"
+                              }
+                            },
+                            animation: "darkPulse 1.5s ease-in-out infinite",
+                            "@media (prefers-reduced-motion: reduce)": {
+                              animation: "none",
+                              borderColor: "primary.main",
+                              color: "primary.main"
+                            }
                           }}
                         >
-                          {pkg.description}
-                        </Typography>
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              color: "inherit",
+                              fontWeight: "600",
+                              lineHeight: 1.4
+                            }}
+                          >
+                            {pkg.description ? pkg.description.replace(new RegExp(`^${pkg.name}\\s+Package\\s*[-–—]\\s*`, 'i'), '') : ""}
+                          </Typography>
+                        </Box>
                         <Box
                           sx={{
                             textAlign: "center",
