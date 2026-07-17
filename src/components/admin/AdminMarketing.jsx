@@ -10,6 +10,7 @@ import {
   Alert,
   CircularProgress,
   MenuItem,
+  Grid,
 } from "@mui/material";
 import CloudUpload from "@mui/icons-material/CloudUpload";
 
@@ -46,6 +47,7 @@ const AdminMarketing = () => {
       );
 
       setFile(null);
+      fetchMarketingMaterials();
     } catch (error) {
       console.error("Upload failed:", error);
 
@@ -138,6 +140,7 @@ const AdminMarketing = () => {
             <MenuItem value="Marathi">Marathi</MenuItem>
             <MenuItem value="Gujarati">Gujarati</MenuItem>
             <MenuItem value="Kannada">Kannada</MenuItem>
+            <MenuItem value="Punjabi">Punjabi</MenuItem>
           </TextField>
           <Button
             fullWidth
@@ -163,62 +166,96 @@ const AdminMarketing = () => {
           {items.length === 0 ? (
             <Typography>No materials found</Typography>
           ) : (
-            items.map((item) => (
-              <Box
-                key={item._id}
-                sx={{
-                  border: "1px solid #ddd",
-                  borderRadius: 2,
-                  p: 2,
-                  mb: 2,
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <Box>
-                  <Typography fontWeight="bold">
-                    {item.fileName || "Marketing Material"}
-                  </Typography>
-
-                  <Typography
-                    variant="caption"
+            <Grid container spacing={3}>
+              {items.map((item) => (
+                <Grid item xs={12} sm={6} md={4} key={item._id}>
+                  <Card
                     sx={{
-                      bgcolor: "#f5f5f5",
-                      px: 1,
-                      py: 0.5,
-                      borderRadius: 1,
-                      display: "inline-block",
-                      mt: 1,
+                      borderRadius: "12px",
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+                      border: "1px solid #eaeaea",
+                      height: "100%",
+                      display: "flex",
+                      flexDirection: "column",
+                      overflow: "hidden",
                     }}
                   >
-                    {item.language}
-                  </Typography>
-                </Box>
+                    <Box
+                      sx={{
+                        width: "100%",
+                        height: 200,
+                        bgcolor: "#f9f9f9",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        borderBottom: "1px solid #eaeaea",
+                      }}
+                    >
+                      {item.fileType?.includes("image") ? (
+                        <Box
+                          component="img"
+                          src={`${API_URL}${item.fileUrl}`}
+                          alt="marketing-material"
+                          sx={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "contain",
+                          }}
+                        />
+                      ) : item.fileType?.includes("video") ? (
+                        <Box
+                          component="video"
+                          src={`${API_URL}${item.fileUrl}`}
+                          controls
+                          sx={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "contain",
+                          }}
+                        />
+                      ) : (
+                        <Typography variant="body1" color="text.secondary">
+                          {item.fileType?.split("/")[0] || "Media File"}
+                        </Typography>
+                      )}
+                    </Box>
 
-                <Box sx={{ display: "flex", gap: 1 }}>
-                  {/* Preview */}
-                  <Button
-                    size="small"
-                    variant="outlined"
-                    href={`${API_URL}${item.fileUrl}`}
-                    target="_blank"
-                  >
-                    Preview
-                  </Button>
+                    <CardContent sx={{ flexGrow: 1, p: 2 }}>
+                      <Typography fontWeight="bold" noWrap title={item.fileName || "Marketing Material"}>
+                        {item.fileName || "Marketing Material"}
+                      </Typography>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          bgcolor: "#e0f7fa",
+                          color: "#006064",
+                          px: 1.5,
+                          py: 0.5,
+                          borderRadius: "16px",
+                          display: "inline-block",
+                          mt: 1,
+                          fontWeight: "medium",
+                        }}
+                      >
+                        {item.language}
+                      </Typography>
+                    </CardContent>
 
-                  {/* Delete */}
-                  <Button
-                    size="small"
-                    color="error"
-                    variant="contained"
-                    onClick={() => handleDelete(item._id)}
-                  >
-                    Delete
-                  </Button>
-                </Box>
-              </Box>
-            ))
+                    <Box sx={{ p: 2, pt: 0, mt: "auto" }}>
+                      <Button
+                        fullWidth
+                        size="small"
+                        color="error"
+                        variant="contained"
+                        onClick={() => handleDelete(item._id)}
+                      >
+                        Delete
+                      </Button>
+                    </Box>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
           )}
         </CardContent>
       </Card>
