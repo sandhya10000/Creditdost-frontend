@@ -241,7 +241,7 @@ export const adminAPI = {
     return api.post("/admin/leads/bulk-upload", formData, config);
   },
   // Business forms
-  getAllBusinessForms: () => api.get("/business/all"),
+  getAllBusinessForms: (params) => api.get("/business/all", { params }),
   //business form close case
   closeBusinessCase: (id) =>
     api.put(`/admin/business/${id}/close`, {
