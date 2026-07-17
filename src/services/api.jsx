@@ -241,7 +241,7 @@ export const adminAPI = {
     return api.post("/admin/leads/bulk-upload", formData, config);
   },
   // Business forms
-  getAllBusinessForms: () => api.get("/business/all"),
+  getAllBusinessForms: (params) => api.get("/business/all", { params }),
   //business form close case
   closeBusinessCase: (id) =>
     api.put(`/admin/business/${id}/close`, {
@@ -307,7 +307,7 @@ export const adminAPI = {
     api.put(`/admin/marketing-material/${id}`, formData),
 
   deleteMarketingMaterial: (id) =>
-    api.delete(`/admin/marketing-material/${id}`),
+    api.delete(`/admin/marketing/${id}`),
   //admin case study post api
   createCaseStudy: (formData) => api.post("/admin/case-studies", formData),
   updateCaseStudy: (editingId, formData) =>

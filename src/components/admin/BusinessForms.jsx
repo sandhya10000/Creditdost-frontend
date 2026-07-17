@@ -18,9 +18,11 @@ import {
   Paper,
   Chip,
   Pagination,
-  Tabs,
-  Tab,
   Stack,
+  Snackbar,
+  Select,
+  MenuItem,
+  FormControl,
 } from "@mui/material";
 import { adminAPI } from "../../services/api";
 //import { useNavigate } from "react-router-dom";
@@ -29,12 +31,17 @@ const BusinessForms = ({ status = "paid" }) => {
   const [businessForms, setBusinessForms] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [workStatusFilter, setWorkStatusFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
 
   const [totalRecords, setTotalRecords] = useState(0);
   const [page, setPage] = useState(1);
   const rowsPerPage = 20;
+  const [toast, setToast] = useState({ open: false, message: "", severity: "success" });
+
+  const handleCloseToast = (event, reason) => {
+    if (reason === "clickaway") return;
+    setToast({ ...toast, open: false });
+  };
   //const navigate = useNavigate();
 
   // Fetch all business forms on component mount
@@ -51,7 +58,7 @@ const BusinessForms = ({ status = "paid" }) => {
         limit: rowsPerPage,
         search: searchTerm,
       });
-      console.log("fetch all documents with details----", response);
+      // console.log("fetch all documents with details----", response);
       setBusinessForms(response.data.businessData || []);
       setTotalRecords(response.data.total || 0);
     } catch (err) {
@@ -112,10 +119,10 @@ const BusinessForms = ({ status = "paid" }) => {
   const filteredBusinessForms = businessForms.filter(
     (form) =>
       form.paymentStatus === status &&
-      (workStatusFilter === "all" || form.workStatus === workStatusFilter) &&
       (form.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         form.customerEmail?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         form.customerPhone?.includes(searchTerm) ||
+        form.customerId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (form.franchiseId?.businessName || "")
           .toLowerCase()
           .includes(searchTerm.toLowerCase())),
@@ -126,52 +133,90 @@ const BusinessForms = ({ status = "paid" }) => {
       await adminAPI.updateBusinessWorkStatus(id, {
         workStatus: newStatus,
       });
+      setToast({ open: true, message: "User status has been updated.", severity: "success" });
       fetchBusinessForms();
     } catch (err) {
       console.error(err);
+      setToast({ open: true, message: "Failed to update status. Please try again.", severity: "error" });
     }
   };
   console.log(filteredBusinessForms, "filteredBusinessForms----------------"); //Download bussiness mis users data function
-  const handleDownloadCSV = () => {
-    const headers = [
-      "Customer ID",
-      "Customer Name",
-      "Email",
-      "Phone",
-      "Package",
-      "Amount",
-      "Payment Status",
-      "Date",
-      "Work Status",
-    ];
+  const handleDownloadCSV = async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch all matching records ignoring pagination limits
+      const response = await adminAPI.getAllBusinessForms({
+        page: 1,
+        limit: 1000000, // Large number to fetch all records
+        search: searchTerm,
+      });
+      
+      const allBusinessForms = response.data.businessData || [];
+      
+      // Apply the frontend search filter to the full dataset (ignoring paymentStatus so it matches the Total Records count)
+      const exportData = allBusinessForms.filter(
+        (form) =>
+          form.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          form.customerEmail?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          form.customerPhone?.includes(searchTerm) ||
+          form.customerId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (form.franchiseId?.businessName || "")
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase())
+      );
 
-    const rows = filteredBusinessForms.map((form) => [
-      form.customerId,
-      form.customerName || "",
-      form.customerEmail || "",
-      form.customerPhone || "",
-      form.selectedPackage?.name || "N/A",
-      form.manualAmount || form.selectedPackage?.price || "N/A",
-      form.manualAmount || "N/A",
-      form.paymentStatus || "",
-      formatDate(form.createdAt),
-      form.workStatus || "",
-    ]);
+      const headers = [
+        "Customer ID",
+        "Customer Name",
+        "Email",
+        "Phone",
+        "Franchise",
+        "Package",
+        "Amount",
+        "Payment Status",
+        "Role",
+        "Document",
+        "Date",
+        "Work Status",
+      ];
 
-    const csvContent = [headers, ...rows]
-      .map((row) => row.join(","))
-      .join("\n");
+      const rows = exportData.map((form) => [
+        form.customerId || "",
+        form.customerName || "",
+        form.customerEmail || "",
+        form.customerPhone || "",
+        form.franchiseId?.businessName || "N/A",
+        form.selectedPackage?.name || "N/A",
+        form.manualAmount ? form.manualAmount : form.selectedPackage?.price || "N/A",
+        form.paymentStatus || "",
+        form.createdByRole || "franchise",
+        Object.values(form.documents || {}).some(Boolean) ? "Yes" : "No",
+        formatDate(form.createdAt),
+        form.workStatus || "",
+      ]);
 
-    const encodedUri =
-      "data:text/csv;charset=utf-8," + encodeURIComponent(csvContent);
+      // Enclose fields in double quotes to handle commas in data
+      const csvContent = [headers, ...rows]
+        .map((row) => row.map(value => `"${String(value).replace(/"/g, '""')}"`).join(","))
+        .join("\n");
 
-    const link = document.createElement("a");
-    link.href = encodedUri;
-    link.download = "business_mis.csv";
+      const encodedUri =
+        "data:text/csv;charset=utf-8," + encodeURIComponent(csvContent);
 
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+      const link = document.createElement("a");
+      link.href = encodedUri;
+      link.download = "business_mis.csv";
+
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error("Error downloading CSV:", err);
+      setToast({ open: true, message: "Failed to download CSV", severity: "error" });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const API_URL = import.meta.env.VITE_REACT_APP_API_URL
@@ -250,15 +295,6 @@ const BusinessForms = ({ status = "paid" }) => {
               Download CSV
             </Button>
           </Box>
-          <Tabs
-            value={workStatusFilter}
-            onChange={(_, value) => setWorkStatusFilter(value)}
-          >
-            <Tab label="All" value="all" />
-            <Tab label="In Progress" value="in_progress" />
-            <Tab label="Closed" value="closed" />
-            <Tab label="On Hold" value="on_hold" />
-          </Tabs>
           {loading && businessForms.length === 0 ? (
             <Box display="flex" justifyContent="center" my={4}>
               <CircularProgress />
@@ -395,63 +431,50 @@ const BusinessForms = ({ status = "paid" }) => {
                         })}
                       </TableCell>
                       <TableCell align="center" sx={{ whiteSpace: "nowrap" }}>
-                        {status !== "pending" && (
-                          <Stack
-                            size="small"
-                            variant="contained"
-                            direction="row"
-                            spacing={1}
-                          >
-                            <Button
-                              variant="contained"
-                              sx={{ color: "#fff" }}
-                              color="info"
-                              onClick={() =>
-                                updateWorkStatus(form._id, "in_progress")
-                              }
-                            >
-                              In Progress
-                            </Button>
-                            <Button
-                              sx={{ color: "#fff" }}
-                              variant="contained"
-                              color="success"
-                              onClick={() =>
-                                updateWorkStatus(form._id, "closed")
-                              }
-                            >
-                              Closed
-                            </Button>
-                            <Button
-                              sx={{ color: "#fff" }}
-                              variant="contained"
-                              color="warning"
-                              onClick={() =>
-                                updateWorkStatus(form._id, "on_hold")
-                              }
-                            >
-                              On Hold
-                            </Button>
-                          </Stack>
-                        )}
-                        {status !== "paid" && (
-                          <Stack
-                            size="small"
-                            variant="contained"
-                            direction="row"
-                            spacing={1}
-                          >
+                        <Stack direction="row" spacing={1} justifyContent="center" alignItems="center">
+                          {status !== "pending" && (() => {
+                            const workStatusColorMap = {
+                              in_progress: { bg: "#0288d1", color: "#fff" },
+                              closed:      { bg: "#2e7d32", color: "#fff" },
+                              on_hold:     { bg: "#ed6c02", color: "#fff" },
+                            };
+                            const current = form.workStatus || "in_progress";
+                            const { bg, color } = workStatusColorMap[current] || { bg: "#757575", color: "#fff" };
+                            return (
+                              <FormControl size="small" sx={{ minWidth: 130 }}>
+                                <Select
+                                  value={current}
+                                  onChange={(e) => updateWorkStatus(form._id, e.target.value)}
+                                  sx={{
+                                    backgroundColor: bg,
+                                    color: color,
+                                    fontWeight: 600,
+                                    fontSize: "0.78rem",
+                                    borderRadius: "6px",
+                                    "& .MuiSelect-icon": { color: color },
+                                    "& .MuiOutlinedInput-notchedOutline": { border: "none" },
+                                    "&:hover .MuiOutlinedInput-notchedOutline": { border: "none" },
+                                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": { border: "1px solid rgba(255,255,255,0.5)" },
+                                  }}
+                                >
+                                  <MenuItem value="in_progress">In Progress</MenuItem>
+                                  <MenuItem value="closed">Closed</MenuItem>
+                                  <MenuItem value="on_hold">On Hold</MenuItem>
+                                </Select>
+                              </FormControl>
+                            );
+                          })()}
+                          {status !== "paid" && (
                             <Button
                               variant="contained"
                               color="error"
-                              onClick={() =>
-                                deleteBusinessForm(form._id, "in_progress")
-                              }
+                              size="small"
+                              onClick={() => deleteBusinessForm(form._id)}
                             >
                               Delete
                             </Button>
-                          </Stack>
-                        )}
+                          )}
+                        </Stack>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -487,6 +510,17 @@ const BusinessForms = ({ status = "paid" }) => {
           )}
         </CardContent>
       </Card>
+
+      <Snackbar
+        open={toast.open}
+        autoHideDuration={3000}
+        onClose={handleCloseToast}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+      >
+        <Alert onClose={handleCloseToast} severity={toast.severity} sx={{ width: "100%" }}>
+          {toast.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

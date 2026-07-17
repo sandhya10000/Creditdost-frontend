@@ -169,9 +169,18 @@ const FranchiseMarketing = () => {
                     <Grid item xs={12} sm={6} md={4} key={item._id}>
                       <Card
                         sx={{
-                          borderRadius: 3,
-                          boxShadow: 3,
+                          borderRadius: "16px",
+                          boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+                          border: "none",
                           height: "100%",
+                          p: "16px",
+                          display: "flex",
+                          flexDirection: "column",
+                          transition: "all 0.3s ease",
+                          "&:hover": {
+                            transform: "translateY(-4px)",
+                            boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+                          }
                         }}
                       >
                         {item.fileType?.includes("image") && (
@@ -181,6 +190,11 @@ const FranchiseMarketing = () => {
                             image={fileUrl}
                             loading="lazy"
                             alt="marketing-material"
+                            sx={{ 
+                              objectFit: "contain", 
+                              bgcolor: "background.default",
+                              borderRadius: "10px"
+                            }}
                           />
                         )}
 
@@ -204,12 +218,12 @@ const FranchiseMarketing = () => {
                           </Box>
                         )}
 
-                        <CardContent>
-                          <Stack direction="row" spacing={1}>
+                        <Box sx={{ mt: "auto", pt: "16px" }}>
+                          <Stack direction="row" spacing={1.5} sx={{ justifyContent: "center" }}>
                             <Button
                               variant="contained"
-                              size="small"
                               onClick={() => downloadImage(fileUrl)}
+                              sx={{ flex: 1, borderRadius: "8px", textTransform: "none", fontWeight: 600 }}
                             >
                               Download
                             </Button>
@@ -217,13 +231,13 @@ const FranchiseMarketing = () => {
                             <Button
                               variant="contained"
                               color="success"
-                              size="small"
                               onClick={() => handleShare(fileUrl, item)}
+                              sx={{ flex: 1, borderRadius: "8px", textTransform: "none", fontWeight: 600 }}
                             >
                               WhatsApp
                             </Button>
                           </Stack>
-                        </CardContent>
+                        </Box>
                       </Card>
                     </Grid>
                   );

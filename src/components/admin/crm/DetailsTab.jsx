@@ -19,6 +19,7 @@ import StyleIcon from "@mui/icons-material/Style";
 const DetailsTab = ({ customer, creditReport, ifscDeatails }) => {
   const [editMode, setEditMode] = useState(false);
   const [formData, setFormData] = useState({
+    customerName: customer?.customerName || "",
     customerEmail: customer?.customerEmail || "",
     customerPhone: customer?.customerPhone || "",
     panNumber: customer?.panNumber || "",
@@ -29,6 +30,7 @@ const DetailsTab = ({ customer, creditReport, ifscDeatails }) => {
   useEffect(() => {
     if (customer) {
       setFormData({
+        customerName: customer.customerName || "",
         customerEmail: customer.customerEmail || "",
         customerPhone: customer.customerPhone || "",
         panNumber: customer.panNumber || "",
@@ -123,7 +125,20 @@ const DetailsTab = ({ customer, creditReport, ifscDeatails }) => {
 
         <Grid item xs={12} md={6}>
           <Typography fontWeight="Medium">Name</Typography>
-          <Typography>{customer?.customerName || "-"}</Typography>
+          {editMode ? (
+            <TextField
+              fullWidth
+              value={formData.customerName}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  customerName: e.target.value,
+                })
+              }
+            />
+          ) : (
+            <Typography>{customer?.customerName || "-"}</Typography>
+          )}
         </Grid>
 
         <Grid item xs={12} md={6}>

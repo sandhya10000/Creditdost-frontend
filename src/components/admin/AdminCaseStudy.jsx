@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { adminAPI, franchiseAPI } from "../../services/api";
 import { useParams, Navigate } from "react-router-dom";
 
@@ -16,14 +16,23 @@ import {
 
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 
-const mapCategory = (title) => {
-  const t = (title || "").toLowerCase();
+import CASE_STUDY_CATEGORIES from "../../config/caseStudyCategories";
+
+const mapCategory = (item) => {
+  const validCategories = CASE_STUDY_CATEGORIES.map(c => c.value);
+  // If item already has a valid category from the new system, use it
+  if (item.category && validCategories.includes(item.category)) {
+    return item.category;
+  }
+  
+  // Legacy fallback based on title parsing
+  const t = (item.title || "").toLowerCase();
   if (t.includes("dpd")) return "dpd-removal";
   if (t.includes("write off")) return "write-off";
   if (t.includes("settlement")) return "settlement";
-  if (t.includes("suit filled")) return "suit-filled";
+  if (t.includes("suit filed") || t.includes("suit")) return "suit-filed";
   if (t.includes("score")) return "score-increase";
-  if (t.includes("inquires")) return "credit-inquires";
+  if (t.includes("inquires") || t.includes("inquiries")) return "credit-inquiries";
   return "multiple-issues";
 };
 
@@ -41,6 +50,21 @@ const AdminCaseStudies = () => {
   const [editingId, setEditingId] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [formCategory, setFormCategory] = useState("");
+  const successTimerRef = useRef(null);
+
+  // Clear the auto-dismiss timer when the component unmounts
+  useEffect(() => {
+    return () => {
+      if (successTimerRef.current) clearTimeout(successTimerRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    // Auto-select the category based on the current route tab if we are not editing
+    if (!editMode && routeCategory) {
+      setFormCategory(routeCategory);
+    }
+  }, [routeCategory, editMode]);
 
   const handleSubmit = async () => {
     console.log("API response...");
@@ -83,12 +107,20 @@ const AdminCaseStudies = () => {
 
       const response = await adminAPI.createCaseStudy(formData);
       console.log(response, "response.....");
-      setSuccess(response?.data?.message || "Case Study uploaded successfully");
+      const successMsg = response?.data?.message || "Case Study uploaded successfully";
+      setSuccess(successMsg);
+      // Auto-dismiss the success banner after 5 seconds
+      if (successTimerRef.current) clearTimeout(successTimerRef.current);
+      successTimerRef.current = setTimeout(() => setSuccess(""), 5000);
 
       setTitle("");
       setDescription("");
       setBeforeWorkingFile(null);
       setAfterWorkingFile(null);
+      // Keep formCategory as is (auto-filled by route)
+      
+      // Refresh the list immediately
+      fetchCaseStudies();
     } catch (error) {
       setError(error?.response?.data?.message || "Failed to upload case study");
     } finally {
@@ -97,6 +129,7 @@ const AdminCaseStudies = () => {
   };
   const fetchCaseStudies = async () => {
     try {
+      setLoading(true);
       const res = await franchiseAPI.getCaseStudies();
       setCaseStudies(res.data.data);
     } catch (err) {
@@ -139,6 +172,14 @@ const AdminCaseStudies = () => {
 
       setEditMode(false);
       setEditingId(null);
+      setTitle("");
+      setDescription("");
+      setBeforeWorkingFile(null);
+      setAfterWorkingFile(null);
+      
+      if (routeCategory) {
+        setFormCategory(routeCategory);
+      }
 
       fetchCaseStudies();
     } catch (err) {
@@ -149,7 +190,8 @@ const AdminCaseStudies = () => {
     setTitle(item.title);
     setDescription(item.description);
     setEditingId(item._id);
-    setFormCategory(item.category);
+    // Use the normalized category to ensure it matches the dropdown options
+    setFormCategory(mapCategory(item));
     setEditMode(true);
   };
 
@@ -157,10 +199,10 @@ const AdminCaseStudies = () => {
     return <Navigate to="dpd-removal" replace />;
   }
 
-  const displayCategory = routeCategory.replace(/-/g, " ");
+  const displayCategory = CASE_STUDY_CATEGORIES.find(c => c.value === routeCategory)?.label || routeCategory.replace(/-/g, " ");
 
   const filteredCases = caseStudies.filter((item) => {
-    return mapCategory(item.title) === routeCategory;
+    return mapCategory(item) === routeCategory;
   });
 
   return (
@@ -214,17 +256,11 @@ const AdminCaseStudies = () => {
             onChange={(e) => setFormCategory(e.target.value)}
             sx={{ mb: 2 }}
           >
-            <MenuItem value="dpd">DPD</MenuItem>
-            <MenuItem value="inquiries">Inquiries</MenuItem>
-            <MenuItem value="score_increase">Score Increase</MenuItem>
-            <MenuItem value="settlement">Settlement</MenuItem>
-            <MenuItem value="write_off">Write Off</MenuItem>
-            <MenuItem value="suit_filed">Suit Filed</MenuItem>
-            <MenuItem value="post_write_off_closed">
-              Post Write Off Closed
-            </MenuItem>
-            <MenuItem value="fake_loans">Fake Loans</MenuItem>
-            <MenuItem value="sma_removed">SMA Removed</MenuItem>
+            {CASE_STUDY_CATEGORIES.map((cat) => (
+              <MenuItem key={cat.value} value={cat.value}>
+                {cat.label}
+              </MenuItem>
+            ))}
           </TextField>
 
           {/* Before Working PDF */}
@@ -292,6 +328,7 @@ const AdminCaseStudies = () => {
                 setDescription("");
                 setBeforeWorkingFile(null);
                 setAfterWorkingFile(null);
+                setFormCategory(routeCategory || "");
               }}
               sx={{ mt: 1 }}
             >
