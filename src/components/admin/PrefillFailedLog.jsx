@@ -76,6 +76,9 @@ const PrefillFailedLog = () => {
                   <TableCell>
                     <strong>Franchise</strong>
                   </TableCell>
+                  <TableCell>
+                    <strong>CutomerName</strong>
+                  </TableCell>
 
                   <TableCell>
                     <strong>Date</strong>
@@ -92,6 +95,7 @@ const PrefillFailedLog = () => {
                       <TableCell>{log.message}</TableCell>
 
                       <TableCell>{log.userId?.name}</TableCell>
+                      <TableCell>{log.customerName}</TableCell>
 
                       <TableCell>
                         {new Date(log.createdAt).toLocaleDateString("en-IN", {
