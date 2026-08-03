@@ -19,7 +19,8 @@ import Payouts from "./Payouts";
 import RelationshipManagerInfo from "./RelationshipManagerInfo";
 import WhatsAppGroups from "./WhatsAppGroups";
 import Support from "./Support";
-import FranchiseMarketing from "./FranchiseMarketing"; // new page
+import FranchiseMarketing from "./FranchiseMarketing"; // legacy page (all languages)
+import FranchiseMarketingByLanguage from "./FranchiseMarketingByLanguage"; // per-language page
 import FranchiseCaseStudies from "./FranchiseCaseStudies";
 import FranchiseReward from "./Reward";
 import CRIF from "./creditBureau/CRIF";
@@ -49,14 +50,14 @@ const FranchiseRoutes = () => {
         <Route path="agreement" element={<DigitalAgreement />} />
         <Route path="payouts" element={<Payouts />} />
         <Route path="/support" element={<Support />} />
-        <Route
-          path="/franchise-marketing"
-          element={<FranchiseMarketing />}
-        />{" "}
         <Route path="/credit-check/crif" element={<CRIF />} />
         <Route path="/credit-check/experian" element={<Experian />} />
         <Route path="/credit-check/equifax" element={<Equifax />} />
         <Route path="/case-studies/:category?" element={<FranchiseCaseStudies />} />{" "}
+        {/* Per-language marketing material view — driven by sidebar */}
+        <Route path="/marketing/:language" element={<FranchiseMarketingByLanguage />} />
+        {/* Legacy all-in-one view kept for backward compat */}
+        <Route path="/franchise-marketing" element={<FranchiseMarketing />} />
         <Route path="/reward" element={<FranchiseReward />} />{" "}
         <Route
           path="relationship-manager"

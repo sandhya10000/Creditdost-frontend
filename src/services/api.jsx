@@ -137,6 +137,8 @@ export const franchiseAPI = {
     api.get("/marketing", {
       params: { language },
     }),
+  // fetch the language master list (drives sidebar sub-items dynamically)
+  getMarketingLanguages: () => api.get("/marketing/languages"),
   //get reward from admin
   getRewards: () => api.get("/franchise/reward"),
   //get case studies

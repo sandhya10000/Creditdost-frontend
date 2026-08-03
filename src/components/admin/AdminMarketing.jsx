@@ -241,7 +241,16 @@ const AdminMarketing = () => {
                       </Typography>
                     </CardContent>
 
-                    <Box sx={{ p: 2, pt: 0, mt: "auto" }}>
+                    <Box sx={{ p: 2, pt: 0, mt: "auto", display: "flex", gap: 1 }}>
+                      <Button
+                        fullWidth
+                        size="small"
+                        color="primary"
+                        variant="contained"
+                        onClick={() => window.open(`${API_URL}${item.fileUrl}`, "_blank", "noopener,noreferrer")}
+                      >
+                        Preview
+                      </Button>
                       <Button
                         fullWidth
                         size="small"

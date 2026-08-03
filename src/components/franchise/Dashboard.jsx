@@ -173,6 +173,8 @@ const FranchiseDashboard = () => {
   const [kycRejectedReason, setKycRejectedReason] = useState(null);
   const [loading, setLoading] = useState(true);
   const [openMenu, setOpenMenu] = useState(null);
+  // Dynamic language list for Marketing Materials sidebar sub-items
+  const [marketingLanguages, setMarketingLanguages] = useState([]);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -208,6 +210,19 @@ const FranchiseDashboard = () => {
       fetchKycStatus();
     }
   }, [user]);
+
+  // Fetch marketing language list so the sidebar can build sub-items
+  useEffect(() => {
+    franchiseAPI
+      .getMarketingLanguages()
+      .then((res) => {
+        const langs = res.data.languages || [];
+        setMarketingLanguages(langs);
+      })
+      .catch((err) =>
+        console.error("Failed to fetch marketing languages:", err)
+      );
+  }, []);
 
   // Redirect from base route to default child route only on initial load
   useEffect(() => {
@@ -373,7 +388,14 @@ const FranchiseDashboard = () => {
     {
       text: "Marketing Materials",
       icon: <DescriptionIcon />,
-      path: "/franchise/franchise-marketing",
+      // Children are built dynamically from the language master list fetched
+      // from the API. When admin adds a new language to the model enum, it
+      // automatically appears here without any frontend code change.
+      children: marketingLanguages.map((lang) => ({
+        text: lang,
+        path: `/franchise/marketing/${lang.toLowerCase()}`,
+        icon: <DescriptionIcon />,
+      })),
     },
     {
       text: "Payouts",
