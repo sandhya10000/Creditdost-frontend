@@ -90,11 +90,11 @@ const Business = ({ userType }) => {
   };
   // Fetch customer packages
   useEffect(() => {
-    const savedFormData = localStorage.getItem("businessFormData", activeStep);
+    // const savedFormData = localStorage.getItem("businessFormData", activeStep);
 
-    if (savedFormData) {
-      setFormData(JSON.parse(savedFormData));
-    }
+    // if (savedFormData) {
+    //   setFormData(JSON.parse(savedFormData));
+    // }
     fetchCustomerPackages();
 
     if (userType === "admin") {
@@ -200,7 +200,7 @@ const Business = ({ userType }) => {
 
     setFormData(updatedFormData);
 
-    localStorage.setItem("businessFormData", JSON.stringify(updatedFormData));
+    // localStorage.setItem("businessFormData", JSON.stringify(updatedFormData));
   };
 
   const handleNext = () => {
@@ -226,7 +226,7 @@ const Business = ({ userType }) => {
     setSuccess("");
 
     try {
-      localStorage.setItem("businessFormData", JSON.stringify(formData));
+      // localStorage.setItem("businessFormData", JSON.stringify(formData));
       // Include selected package in the form data
       //   const formDataWithPackage = {
       //     ...formData,
@@ -298,8 +298,8 @@ const Business = ({ userType }) => {
             razorpay_signature: response.razorpay_signature,
             businessFormId: businessFormId,
           });
-          localStorage.removeItem("businessFormData");
-          localStorage.removeItem("businessFormStep");
+          // localStorage.removeItem("businessFormData");
+          // localStorage.removeItem("businessFormStep");
           setSuccess("Payment successful! Business form has been submitted.");
           resetForm();
           setActiveStep(0); // Reset to first step

@@ -161,6 +161,7 @@ const AdminDashboardHome = () => {
         // Fetch dashboard stats
         const statsResponse = await adminAPI.getDashboardStats();
         setStats(statsResponse.data);
+        console.log(statsResponse, "statsResponse================");
 
         // Fetch recent activities (now limited to 5 entries by backend)
         const activitiesResponse = await adminAPI.getRecentActivities();
@@ -285,8 +286,8 @@ const AdminDashboardHome = () => {
   const statCards = [
     {
       type: "merged",
-      pendingKyc: 12,
-      totalFranchises: 265,
+      pendingKyc: stats.pendingKycFranchises,
+      totalFranchises: stats.totalFranchises,
       icon: <PendingIcon sx={{ fontSize: 30 }} />,
       color: "#ff9800",
       trend: "-2%",
@@ -545,22 +546,29 @@ const AdminDashboardHome = () => {
         />
       </Box>
 
-      <Box 
-        sx={{ 
-          display: 'grid', 
+      <Box
+        sx={{
+          display: "grid",
           gridTemplateColumns: {
-            xs: '1fr',
-            sm: 'repeat(2, 1fr)',
-            md: 'repeat(3, 1fr)'
-          }, 
-          gap: 3, 
-          mb: 4 
+            xs: "1fr",
+            sm: "repeat(2, 1fr)",
+            md: "repeat(3, 1fr)",
+          },
+          gap: 3,
+          mb: 4,
         }}
       >
         {statCards.map((card, index) => (
           <Box key={index}>
             <StatCard>
-              <CardContent sx={{ flexGrow: 1, p: 3, display: "flex", flexDirection: "column" }}>
+              <CardContent
+                sx={{
+                  flexGrow: 1,
+                  p: 3,
+                  display: "flex",
+                  flexDirection: "column",
+                }}
+              >
                 <Box
                   sx={{
                     display: "flex",
@@ -600,34 +608,101 @@ const AdminDashboardHome = () => {
                   )}
                 </Box>
                 {card.type === "merged" ? (
-                  <Box sx={{ mt: 2, flexGrow: 1, display: "flex", flexDirection: "column" }}>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', mb: 2 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.5 }}>
-                        <Typography variant="h4" sx={{ fontWeight: 700, color: '#212121', lineHeight: 1 }}>
+                  <Box
+                    sx={{
+                      mt: 2,
+                      flexGrow: 1,
+                      display: "flex",
+                      flexDirection: "column",
+                    }}
+                  >
+                    <Box
+                      sx={{ display: "flex", flexDirection: "column", mb: 2 }}
+                    >
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "baseline",
+                          gap: 0.5,
+                        }}
+                      >
+                        <Typography
+                          variant="h4"
+                          sx={{
+                            fontWeight: 700,
+                            color: "#212121",
+                            lineHeight: 1,
+                          }}
+                        >
                           {card.pendingKyc}
                         </Typography>
-                        <Typography variant="h5" sx={{ fontWeight: 400, color: 'text.secondary', lineHeight: 1, mx: 0.5 }}>
+                        <Typography
+                          variant="h5"
+                          sx={{
+                            fontWeight: 400,
+                            color: "text.secondary",
+                            lineHeight: 1,
+                            mx: 0.5,
+                          }}
+                        >
                           /
                         </Typography>
-                        <Typography variant="h4" sx={{ fontWeight: 700, color: '#212121', lineHeight: 1 }}>
+                        <Typography
+                          variant="h4"
+                          sx={{
+                            fontWeight: 700,
+                            color: "#212121",
+                            lineHeight: 1,
+                          }}
+                        >
                           {card.totalFranchises}
                         </Typography>
                       </Box>
-                      <Typography variant="body2" color="text.secondary" sx={{ mt: 1, fontSize: '0.85rem' }}>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ mt: 1, fontSize: "0.85rem" }}
+                      >
                         Pending KYC / Total Franchises
                       </Typography>
                     </Box>
-                    <Box sx={{ mt: 'auto' }}>
-                      <Box sx={{ width: '100%', height: 8, backgroundColor: '#f0f0f0', borderRadius: 4, mb: 1, overflow: 'hidden' }}>
-                        <Box sx={{ width: '4.53%', height: '100%', backgroundColor: '#ff9800', borderRadius: 4 }} />
+                    <Box sx={{ mt: "auto" }}>
+                      <Box
+                        sx={{
+                          width: "100%",
+                          height: 8,
+                          backgroundColor: "#f0f0f0",
+                          borderRadius: 4,
+                          mb: 1,
+                          overflow: "hidden",
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            width: "4.53%",
+                            height: "100%",
+                            backgroundColor: "#ff9800",
+                            borderRadius: 4,
+                          }}
+                        />
                       </Box>
-                      <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500 }}>
+                      <Typography
+                        variant="caption"
+                        sx={{ color: "text.secondary", fontWeight: 500 }}
+                      >
                         4.53% of total franchises pending KYC
                       </Typography>
                     </Box>
                   </Box>
                 ) : (
-                  <Box sx={{ mt: 2, flexGrow: 1, display: "flex", flexDirection: "column" }}>
+                  <Box
+                    sx={{
+                      mt: 2,
+                      flexGrow: 1,
+                      display: "flex",
+                      flexDirection: "column",
+                    }}
+                  >
                     <Typography
                       variant="h4"
                       component="div"
@@ -639,7 +714,11 @@ const AdminDashboardHome = () => {
                       {card.title}
                     </Typography>
                     {card.type === "static" && (
-                      <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block', fontWeight: 500 }}>
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{ mt: 0.5, display: "block", fontWeight: 500 }}
+                      >
                         {card.subtext}
                       </Typography>
                     )}
