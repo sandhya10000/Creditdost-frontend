@@ -56,7 +56,7 @@ import {
 } from "@mui/icons-material";
 import { adminAPI } from "../../services/api";
 
-const ManageFranchises = ({ kycStatus: initialKycStatus = "pending" }) => {
+const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPage = false }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -174,14 +174,27 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending" }) => {
     try {
       setLoading(true);
       setError("");
-      const response = await adminAPI.getAllFranchises({
+      
+      const queryParams = {
         page: page,
         limit: rowsPerPage,
         search: searchTerm,
         kycStatus: kycStatus !== "all" ? kycStatus : "",
-      });
+      };
+      
+      if (!isPendingPage && kycStatus === "all") {
+        queryParams.excludeStatus = "pending";
+      }
+      
+      const response = await adminAPI.getAllFranchises(queryParams);
+      
+      let fetchedFranchises = response.data.franchises || [];
+      if (!isPendingPage && kycStatus === "all") {
+        fetchedFranchises = fetchedFranchises.filter(f => f.kycStatus !== 'pending');
+      }
+      
       setFranchises(response.data);
-      setFilteredFranchises(response.data.franchises || []);
+      setFilteredFranchises(fetchedFranchises);
       setTotalRecords(response.data.total || 0);
     } catch (err) {
       setError("Failed to fetch franchises. Please try again later.");
@@ -900,6 +913,10 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending" }) => {
         search: searchTerm,
         kycStatus: kycStatus !== "all" ? kycStatus : "",
       };
+      
+      if (!isPendingPage && kycStatus === "all") {
+        params.excludeStatus = "pending";
+      }
 
       const response = await adminAPI.exportFranchisesCSV(params);
 
@@ -1068,26 +1085,27 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending" }) => {
                   Create User
                 </Button>
 
-                <TextField
-                  select
-                  label="Filter sandhyaaaaaa"
-                  value={kycStatus}
-                  onChange={(e) => {
-                    setKycStatus(e.target.value);
-                    setPage(1);
-                  }}
-                  size="small"
-                  sx={{
-                    minWidth: 180,
-                    backgroundColor: "#fff",
-                  }}
-                >
-                  <MenuItem value="all">All</MenuItem>
-                  <MenuItem value="submitted">Submitted</MenuItem>
-                  <MenuItem value="pending">Pending</MenuItem>
-                  <MenuItem value="approved">Approved</MenuItem>
-                  <MenuItem value="rejected">Rejected</MenuItem>
-                </TextField>
+                {!isPendingPage && (
+                  <TextField
+                    select
+                    label="Filter Status"
+                    value={kycStatus}
+                    onChange={(e) => {
+                      setKycStatus(e.target.value);
+                      setPage(1);
+                    }}
+                    size="small"
+                    sx={{
+                      minWidth: 180,
+                      backgroundColor: "#fff",
+                    }}
+                  >
+                    <MenuItem value="all">All</MenuItem>
+                    <MenuItem value="submitted">Submitted</MenuItem>
+                    <MenuItem value="approved">Approved</MenuItem>
+                    <MenuItem value="rejected">Rejected</MenuItem>
+                  </TextField>
+                )}
               </Box>
 
               <Menu
