@@ -60,12 +60,12 @@ const AdminRoutes = () => {
           <Route path="recharge" element={<RechargeCredits />} />
           <Route
             path="business-forms"
-            element={<BusinessForms status="paid" />}
+            element={<BusinessForms key="paid" status="paid" />}
           />
 
           <Route
             path="business-forms-pending"
-            element={<BusinessForms status="pending" />}
+            element={<BusinessForms key="pending" status="pending" />}
           />
           <Route path="blogs" element={<ManageBlogs />} />
           <Route path="rms" element={<ManageRelationshipManagers />} />
