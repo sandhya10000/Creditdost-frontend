@@ -60,12 +60,12 @@ const AdminRoutes = () => {
           <Route path="recharge" element={<RechargeCredits />} />
           <Route
             path="business-forms"
-            element={<BusinessForms status="paid" />}
+            element={<BusinessForms key="paid" status="paid" />}
           />
 
           <Route
             path="business-forms-pending"
-            element={<BusinessForms status="pending" />}
+            element={<BusinessForms key="pending" status="pending" />}
           />
           <Route path="blogs" element={<ManageBlogs />} />
           <Route path="rms" element={<ManageRelationshipManagers />} />
@@ -86,26 +86,26 @@ const AdminRoutes = () => {
           <Route path="/manual-business" element={<ManualBusiness />} />
           <Route path="/admin-tickets" element={<AdminTickets />} />
           <Route
-            path="/admin/manage-franchise"
+            path="manage-franchise"
             element={<ManageFranchises kycStatus="all" />}
           />
 
           <Route
-            path="/admin/franchise-pending"
-            element={<ManageFranchises kycStatus="pending" />}
+            path="franchise-pending"
+            element={<FranchisePending />}
           />
 
           <Route
-            path="/admin/franchise-approved"
+            path="franchise-approved"
             element={<ManageFranchises kycStatus="approved" />}
           />
 
           <Route
-            path="/admin/franchise-rejected"
+            path="franchise-rejected"
             element={<ManageFranchises kycStatus="rejected" />}
           />
 
-          <Route path="/admin/credit-repair" element={<CreditScoreRepair />} />
+          <Route path="credit-repair" element={<CreditScoreRepair />} />
         </Route>
       </Routes>
     </Suspense>

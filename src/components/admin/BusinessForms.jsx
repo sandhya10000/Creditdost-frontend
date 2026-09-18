@@ -44,10 +44,14 @@ const BusinessForms = ({ status = "paid" }) => {
   };
   //const navigate = useNavigate();
 
-  // Fetch all business forms on component mount
+  useEffect(() => {
+    setPage(1);
+  }, [status]);
+
+  // Fetch all business forms on component mount or dependency change
   useEffect(() => {
     fetchBusinessForms();
-  }, [page, searchTerm]);
+  }, [status, page, searchTerm]);
 
   const fetchBusinessForms = async () => {
     try {
@@ -57,6 +61,7 @@ const BusinessForms = ({ status = "paid" }) => {
         page: page,
         limit: rowsPerPage,
         search: searchTerm,
+        paymentStatus: status,
       });
       // console.log("fetch all documents with details----", response);
       setBusinessForms(response.data.businessData || []);
@@ -116,18 +121,6 @@ const BusinessForms = ({ status = "paid" }) => {
     );
   };
 
-  const filteredBusinessForms = businessForms.filter(
-    (form) =>
-      form.paymentStatus === status &&
-      (form.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        form.customerEmail?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        form.customerPhone?.includes(searchTerm) ||
-        form.customerId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (form.franchiseId?.businessName || "")
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase())),
-  );
-
   const updateWorkStatus = async (id, newStatus) => {
     try {
       await adminAPI.updateBusinessWorkStatus(id, {
@@ -140,7 +133,9 @@ const BusinessForms = ({ status = "paid" }) => {
       setToast({ open: true, message: "Failed to update status. Please try again.", severity: "error" });
     }
   };
-  console.log(filteredBusinessForms, "filteredBusinessForms----------------"); //Download bussiness mis users data function
+
+  // Removed client-side filter
+  console.log(businessForms, "businessForms----------------"); //Download bussiness mis users data function
   const handleDownloadCSV = async () => {
     try {
       setLoading(true);
@@ -150,21 +145,13 @@ const BusinessForms = ({ status = "paid" }) => {
         page: 1,
         limit: 1000000, // Large number to fetch all records
         search: searchTerm,
+        paymentStatus: status,
       });
       
       const allBusinessForms = response.data.businessData || [];
       
-      // Apply the frontend search filter to the full dataset (ignoring paymentStatus so it matches the Total Records count)
-      const exportData = allBusinessForms.filter(
-        (form) =>
-          form.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          form.customerEmail?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          form.customerPhone?.includes(searchTerm) ||
-          form.customerId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (form.franchiseId?.businessName || "")
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase())
-      );
+      // Removed frontend search filter since backend already filters by search and paymentStatus
+      const exportData = allBusinessForms;
 
       const headers = [
         "Customer ID",
@@ -360,7 +347,7 @@ const BusinessForms = ({ status = "paid" }) => {
                     },
                   }}
                 >
-                  {filteredBusinessForms.map((form) => (
+                  {businessForms.map((form) => (
                     <TableRow
                       key={form._id}
                       sx={{ "&:last-child td, &:last-child th": { border: 0 } }}

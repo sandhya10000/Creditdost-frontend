@@ -262,6 +262,11 @@ export const adminAPI = {
   // Certificate name update
   updateFranchiseCertificateName: (data) =>
     api.put("/admin/franchises/certificate-name", data),
+  // Credit Repair Enquiries
+  getCreditRepairEnquiries: (params) => api.get("/admin/credit-repair", { params }),
+  updateCreditRepairEnquiryStatus: (id, status) => 
+    api.put(`/admin/credit-repair/${id}/status`, { status }),
+  deleteCreditRepairEnquiry: (id) => api.delete(`/admin/credit-repair/${id}`),
   // Blogs
   getAllBlogs: (params) => api.get("/blogs/admin", { params }),
   createBlog: (blogData) => api.post("/blogs/admin", blogData),
