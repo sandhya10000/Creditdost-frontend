@@ -299,13 +299,20 @@ const PackagesPage = () => {
         severity: "success",
       });
     } catch (err) {
-      setPaymentError("Payment verification failed. Please contact support.");
       console.error("Payment verification error:", err);
+      console.error("Status:", err.response?.status);
+      console.error("Response:", err.response?.data);
 
-      // Show error toast notification
+      setPaymentError(
+        err.response?.data?.message ||
+          "Payment verification failed. Please contact support.",
+      );
+
       setToast({
         open: true,
-        message: "Payment verification failed. Please contact support.",
+        message:
+          err.response?.data?.message ||
+          "Payment verification failed. Please contact support.",
         severity: "error",
       });
     } finally {
