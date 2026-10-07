@@ -37,6 +37,8 @@ import {
 import { franchiseAPI } from "../../services/api";
 
 const CreditCheck = () => {
+  // TEMP: prefill unplugged for CIBIL checks. Set true to restore.
+  const PREFILL_ENABLED = false;
   const [activeTab, setActiveTab] = useState(0);
   const [formData, setFormData] = useState({
     name: "",
@@ -489,6 +491,8 @@ const CreditCheck = () => {
 
     setFormData((prev) => ({ ...prev, mobile: value }));
 
+    if (!PREFILL_ENABLED) return;
+
     if (value.length === 10) {
       try {
         setLoadingPrefill(true);
@@ -504,7 +508,7 @@ const CreditCheck = () => {
     }
   };
 
-  const isMobileBlocked = formData.mobile
+  const isMobileBlocked = PREFILL_ENABLED && formData.mobile
     ? (() => {
         const data = localStorage.getItem(`mobile_blocked_${formData.mobile}`);
 

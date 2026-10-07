@@ -78,6 +78,8 @@ export const franchiseAPI = {
   getCreditReport: (data) => api.post("/credit/check", data),
   getCreditReports: (params) => api.get("/credit/reports", { params }),
   getCreditReportById: (id) => api.get(`/credit/reports/${id}`),
+  generateExperianReport: (data) =>
+    api.post("/credit/generate-experian-report", data),
   getDashboardStats: () => api.get("/dashboard"),
 
   getFranchiseLeads: () => api.get("/leads/franchise"),

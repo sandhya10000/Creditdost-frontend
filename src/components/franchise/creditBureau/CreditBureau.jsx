@@ -44,6 +44,7 @@ const CreditBureau = ({ bureauOptions = [], defaultBureau }) => {
     aadhaar: "",
     dob: "",
     gender: "",
+    pincode: "",
     bureau: defaultBureau || "cibil", // Default to CIBIL as per Surepass documentation
   });
   const [loading, setLoading] = useState(false);
@@ -202,12 +203,68 @@ const CreditBureau = ({ bureauOptions = [], defaultBureau }) => {
       return;
     }
 
+    // Experian Soft-Pull requires pincode, DOB and a two-word name
+    if (formData.bureau === "experian") {
+      if (!formData.pan || !/^[A-Za-z0-9]{10}$/.test(formData.pan)) {
+        setError("PAN number is required for Experian (10 characters)");
+        setSaving(false);
+        return;
+      }
+      if (!formData.pincode || !/^[0-9]{6}$/.test(formData.pincode)) {
+        setError("Pincode is required for Experian (6 digits)");
+        setSaving(false);
+        return;
+      }
+      if (!formData.dob) {
+        setError("Date of birth is required for Experian");
+        setSaving(false);
+        return;
+      }
+      if (formData.name.trim().split(/\s+/).length < 2) {
+        setError("Full name must contain first and last name for Experian");
+        setSaving(false);
+        return;
+      }
+    }
+
     // Retry mechanism
     const maxRetries = 2;
     let retries = 0;
 
     const attemptRequest = async () => {
       try {
+        // Experian Soft-Pull uses the dedicated endpoint + styled PDF flow
+        if (formData.bureau === "experian") {
+          const expResponse =
+            await franchiseAPI.generateExperianReport({
+              panNumber: formData.pan.trim().toUpperCase(),
+              fullName: formData.name.trim(),
+              mobileNumber: formData.mobile.trim(),
+              dob: formData.dob,
+              pincode: formData.pincode.trim(),
+              customerConsent: "Y",
+            });
+          const ed = expResponse.data;
+          setSuccess(
+            `Credit check completed successfully from EXPERIAN! Score: ${ed.score}.`,
+          );
+          setRecentReport({
+            id: ed.creditReportId,
+            name: formData.name.trim(),
+            mobile: formData.mobile.trim(),
+            pan: formData.pan.trim().toUpperCase(),
+            bureau: "experian",
+            score: ed.score,
+            reportUrl: null,
+            localPath: ed.pdfUrl,
+            txnId: null,
+            createdAt: new Date().toISOString(),
+          });
+          await loadDashboardStats();
+          await loadCreditReports();
+          return;
+        }
+
         // Prepare data for API call
         const requestData = {
           name: formData.name.trim(),
@@ -535,6 +592,29 @@ const CreditBureau = ({ bureauOptions = [], defaultBureau }) => {
                     }}
                   />
                 </Grid>
+                {formData.bureau === "experian" && (
+                  <Grid
+                    item
+                    xs={12}
+                    sm={6}
+                    sx={{ minWidth: { xs: "0px", md: "500px" } }}
+                  >
+                    <TextField
+                      required
+                      id="pincode"
+                      name="pincode"
+                      label="Pincode"
+                      fullWidth
+                      value={formData.pincode}
+                      onChange={handleInputChange}
+                      inputProps={{
+                        maxLength: 6,
+                        pattern: "[0-9]{6}",
+                      }}
+                      helperText="6-digit pincode (required for Experian)"
+                    />
+                  </Grid>
+                )}
                 <Grid
                   item
                   xs={12}

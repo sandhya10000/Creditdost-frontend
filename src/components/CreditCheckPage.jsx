@@ -102,6 +102,8 @@ const CreditCheckPage = () => {
     mobile: "",
     pan: "",
     email: "", // Add email field
+    dob: "",
+    pincode: "",
     occupation: "",
     city: "",
     state: "",
@@ -143,6 +145,14 @@ const CreditCheckPage = () => {
     }
     if (!formData.pan || formData.pan.length !== 10) {
       setError("Please enter a valid PAN number");
+      return false;
+    }
+    if (!formData.dob) {
+      setError("Please enter your date of birth (required for Experian)");
+      return false;
+    }
+    if (!formData.pincode || !/^[0-9]{6}$/.test(formData.pincode)) {
+      setError("Please enter a valid 6-digit pincode (required for Experian)");
       return false;
     }
     if (!formData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
@@ -449,6 +459,91 @@ const CreditCheckPage = () => {
                         maxLength: 10,
                         style: { textTransform: "uppercase" },
                       }}
+                      InputProps={{
+                        sx: {
+                          borderRadius: "8px",
+                          "& .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "rgba(255, 255, 255, 0.2)",
+                          },
+                          "&:hover .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "rgba(14, 165, 233, 0.5)",
+                          },
+                          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "#0ea5e9",
+                          },
+                        },
+                      }}
+                      InputLabelProps={{
+                        sx: {
+                          color: "rgba(255, 255, 255, 0.7)",
+                          "&.Mui-focused": {
+                            color: "#0ea5e9",
+                          },
+                        },
+                      }}
+                      sx={{
+                        "& .MuiInputBase-input": {
+                          color: "white",
+                        },
+                        "& .MuiFormLabel-root": {
+                          color: "rgba(255, 255, 255, 0.7)",
+                        },
+                      }}
+                    />
+
+                    <TextField
+                      fullWidth
+                      label="Date of Birth"
+                      name="dob"
+                      type="date"
+                      value={formData.dob}
+                      onChange={handleChange}
+                      required
+                      variant="outlined"
+                      InputLabelProps={{
+                        shrink: true,
+                        sx: {
+                          color: "rgba(255, 255, 255, 0.7)",
+                          "&.Mui-focused": {
+                            color: "#0ea5e9",
+                          },
+                        },
+                      }}
+                      InputProps={{
+                        sx: {
+                          borderRadius: "8px",
+                          color: "white",
+                          "& .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "rgba(255, 255, 255, 0.2)",
+                          },
+                          "&:hover .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "rgba(14, 165, 233, 0.5)",
+                          },
+                          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "#0ea5e9",
+                          },
+                        },
+                      }}
+                      sx={{
+                        "& .MuiInputBase-input": {
+                          color: "white",
+                          colorScheme: "dark",
+                        },
+                        "& .MuiFormLabel-root": {
+                          color: "rgba(255, 255, 255, 0.7)",
+                        },
+                      }}
+                    />
+
+                    <TextField
+                      fullWidth
+                      label="Pincode"
+                      name="pincode"
+                      value={formData.pincode}
+                      onChange={handleChange}
+                      required
+                      variant="outlined"
+                      inputProps={{ maxLength: 6, pattern: "[0-9]{6}" }}
                       InputProps={{
                         sx: {
                           borderRadius: "8px",

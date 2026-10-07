@@ -52,6 +52,7 @@ const AdminCreditBureau = ({ defaultBureau = "" }) => {
     aadhaar: "",
     dob: "",
     gender: "",
+    pincode: "",
     bureau: defaultBureau || "cibil-ongrid", // Default to CIBIL as per Surepass documentation
   });
   const [loading, setLoading] = useState(false);
@@ -168,6 +169,30 @@ const AdminCreditBureau = ({ defaultBureau = "" }) => {
       return;
     }
 
+    // Experian Soft-Pull requires PAN + pincode + DOB + two-word name
+    if (formData.bureau === "experian") {
+      if (!formData.pan || !/^[A-Za-z0-9]{10}$/.test(formData.pan)) {
+        setError("PAN number is required for Experian (10 characters)");
+        setSaving(false);
+        return;
+      }
+      if (!formData.pincode || !/^[0-9]{6}$/.test(formData.pincode)) {
+        setError("Pincode is required for Experian (6 digits)");
+        setSaving(false);
+        return;
+      }
+      if (!formData.dob) {
+        setError("Date of birth is required for Experian");
+        setSaving(false);
+        return;
+      }
+      if (formData.name.trim().split(/\s+/).length < 2) {
+        setError("Full name must contain first and last name for Experian");
+        setSaving(false);
+        return;
+      }
+    }
+
     // Retry mechanism
     const maxRetries = 2;
     let retries = 0;
@@ -197,6 +222,8 @@ const AdminCreditBureau = ({ defaultBureau = "" }) => {
           if (formData.aadhaar) requestData.aadhaar = formData.aadhaar.trim();
           if (formData.dob) requestData.dob = formData.dob;
           if (formData.gender) requestData.gender = formData.gender;
+          if (formData.bureau === "experian" && formData.pincode)
+            requestData.pincode = formData.pincode.trim();
         }
 
         // Call the API to check credit
@@ -486,6 +513,29 @@ const AdminCreditBureau = ({ defaultBureau = "" }) => {
                     }}
                   />
                 </Grid>
+                {formData.bureau === "experian" && (
+                  <Grid
+                    item
+                    xs={12}
+                    sm={6}
+                    sx={{ minWidth: { xs: "0px", md: "500px" } }}
+                  >
+                    <TextField
+                      required
+                      id="pincode"
+                      name="pincode"
+                      label="Pincode"
+                      fullWidth
+                      value={formData.pincode}
+                      onChange={handleInputChange}
+                      inputProps={{
+                        maxLength: 6,
+                        pattern: "[0-9]{6}",
+                      }}
+                      helperText="6-digit pincode (required for Experian)"
+                    />
+                  </Grid>
+                )}
                 <Grid
                   item
                   xs={12}

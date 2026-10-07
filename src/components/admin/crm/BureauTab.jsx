@@ -23,6 +23,7 @@ const BureauTab = ({
   const fullName = customerBureau?.customerName || "";
   const pan = customerBureau?.panNumber || "";
   const [cibilApiType, setCibilApiType] = useState("ongrid");
+  const [expPincode, setExpPincode] = useState("");
   const [bureauData, setBureauData] = useState({
     cibil: {
       userId: "",
@@ -100,6 +101,9 @@ const BureauTab = ({
       mobile: customer?.customerPhone,
       bureau,
       cibilApiType: bureau !== "cibil" ? "surepass" : cibilApiType,
+      ...(bureau === "experian" && expPincode
+        ? { pincode: expPincode }
+        : {}),
     };
   };
 
@@ -173,6 +177,18 @@ const BureauTab = ({
             />
           </Grid>
 
+          {keyName === "experian" && (
+            <Grid item xs={12} md={4}>
+              <TextField
+                fullWidth
+                label="Pincode (required for Experian)"
+                value={expPincode}
+                onChange={(e) =>
+                  setExpPincode(e.target.value.replace(/\D/g, "").slice(0, 6))
+                }
+              />
+            </Grid>
+          )}
           {keyName === "cibil" && (
             <Grid item xs={12} md={4}>
               <TextField
