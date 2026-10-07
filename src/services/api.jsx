@@ -77,6 +77,7 @@ export const franchiseAPI = {
   verifyPayment: (data) => api.post("/payments/verify-payment", data),
   getCreditReport: (data) => api.post("/credit/check", data),
   getCreditReports: (params) => api.get("/credit/reports", { params }),
+  getCreditReportById: (id) => api.get(`/credit/reports/${id}`),
   getDashboardStats: () => api.get("/dashboard"),
 
   getFranchiseLeads: () => api.get("/leads/franchise"),
@@ -253,6 +254,10 @@ export const adminAPI = {
   getSurepassApiKey: () => api.get("/credit/settings/api-key"),
   updateSurepassApiKey: (apiKey) =>
     api.put("/credit/settings/api-key", { apiKey }),
+  // IndiConnect settings (CIBIL)
+  getIndiconnectKeys: () => api.get("/credit/settings/indiconnect-keys"),
+  updateIndiconnectKeys: (data) =>
+    api.put("/credit/settings/indiconnect-keys", data),
   // Credit reports
   getAllCreditReports: (params) => api.get("/credit/reports/all", { params }),
   // Referrals
@@ -331,7 +336,7 @@ export const adminAPI = {
     api.get(`/franchises/single-data/${franchiseCode}`),
   //get franhcise report data
   getFranchiseReport: (franchiseId) =>
-    api.get(`/credit/reports/${franchiseId}`),
+    api.get(`/credit/reports/franchise/${franchiseId}`),
   //get franchise ai report data
   getFranchiseAIDocuments: (franchiseId) =>
     api.get(`/ai-analysis/documents/${franchiseId}`),

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Box,
   Typography,
@@ -68,6 +68,46 @@ const CreditBureau = ({ bureauOptions = [], defaultBureau }) => {
   useEffect(() => {
     loadCreditReports();
   }, [page]);
+
+  // IndiConnect CIBIL PDF renders in background — poll until localPath lands
+  const pdfPollRef = useRef(null);
+  useEffect(() => {
+    return () => {
+      if (pdfPollRef.current) clearInterval(pdfPollRef.current);
+    };
+  }, []);
+
+  const startPdfPolling = (reportId) => {
+    if (pdfPollRef.current) clearInterval(pdfPollRef.current);
+    let tries = 0;
+    pdfPollRef.current = setInterval(async () => {
+      tries += 1;
+      try {
+        const res = await franchiseAPI.getCreditReportById(reportId);
+        const doc = res.data;
+        if (doc?.localPath || doc?.pdfStatus === "failed") {
+          clearInterval(pdfPollRef.current);
+          pdfPollRef.current = null;
+          setRecentReport((prev) =>
+            prev && (prev.id === reportId || prev._id === reportId)
+              ? {
+                  ...prev,
+                  localPath: doc.localPath || prev.localPath,
+                  pdfStatus: doc.pdfStatus || prev.pdfStatus,
+                }
+              : prev,
+          );
+          await loadCreditReports();
+        }
+      } catch (e) {
+        console.error("PDF status poll failed:", e.message);
+      }
+      if (tries >= 16) {
+        clearInterval(pdfPollRef.current);
+        pdfPollRef.current = null;
+      }
+    }, 15000);
+  };
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -206,6 +246,11 @@ const CreditBureau = ({ bureauOptions = [], defaultBureau }) => {
         setRecentReport(response.data.creditReport);
         setAvailableCredits(response.data.remainingCredits);
 
+        // IndiConnect CIBIL: PDF renders in background — poll for localPath
+        if (response.data.creditReport?.pdfStatus === "pending") {
+          startPdfPolling(response.data.creditReport.id);
+        }
+
         // Reload reports to include the new one
         await loadCreditReports();
       } catch (err) {
@@ -300,6 +345,7 @@ const CreditBureau = ({ bureauOptions = [], defaultBureau }) => {
 
   const getReportUrl = (report) => {
     // Use local path if available, otherwise use the original report URL
+    // IndiConnect CIBIL returns an HTML link — open as link, no local PDF
     if (report.localPath) {
       // For local paths, use the base server URL without /api prefix
       const baseUrl = import.meta.env.VITE_REACT_APP_API_URL
@@ -308,6 +354,15 @@ const CreditBureau = ({ bureauOptions = [], defaultBureau }) => {
       return `${baseUrl}${report.localPath}`;
     }
     return report.reportUrl;
+  };
+
+  const isHtmlReport = (report) => {
+    const url = getReportUrl(report);
+    return (
+      typeof url === "string" &&
+      (url.includes("myscore.cibil.com") || url.includes("webtoken")) &&
+      !report.localPath
+    );
   };
 
   const handleMobileChange = (e) => {
@@ -600,11 +655,32 @@ const CreditBureau = ({ bureauOptions = [], defaultBureau }) => {
                           href={getReportUrl(recentReport)}
                           target="_blank"
                         >
-                          Download PDF Report
+                          {isHtmlReport(recentReport)
+                            ? "View CIBIL Report"
+                            : "Download PDF Report"}
                         </Button>
                       ) : (
                         <Typography variant="body2" color="textSecondary">
                           No PDF report available for this credit check
+                        </Typography>
+                      )}
+                      {recentReport.pdfStatus === "pending" &&
+                        !recentReport.localPath && (
+                          <Typography
+                            variant="caption"
+                            color="textSecondary"
+                            sx={{ display: "block", mt: 1 }}
+                          >
+                            Preparing PDF… download will appear here shortly.
+                          </Typography>
+                        )}
+                      {recentReport.txnId && (
+                        <Typography
+                          variant="caption"
+                          color="textSecondary"
+                          sx={{ display: "block", mt: 1 }}
+                        >
+                          Txn: {recentReport.txnId} (IndiConnect)
                         </Typography>
                       )}
                     </Grid>
@@ -694,7 +770,7 @@ const CreditBureau = ({ bureauOptions = [], defaultBureau }) => {
                                 href={getReportUrl(report)}
                                 target="_blank"
                               >
-                                PDF
+                                {isHtmlReport(report) ? "View" : "PDF"}
                               </Button>
                             ) : (
                               <Typography

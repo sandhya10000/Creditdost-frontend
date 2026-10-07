@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Box,
   Typography,
@@ -81,6 +81,46 @@ const CreditCheck = () => {
   useEffect(() => {
     loadCreditReports();
   }, [page]);
+
+  // IndiConnect CIBIL PDF renders in background — poll until localPath lands
+  const pdfPollRef = useRef(null);
+  useEffect(() => {
+    return () => {
+      if (pdfPollRef.current) clearInterval(pdfPollRef.current);
+    };
+  }, []);
+
+  const startPdfPolling = (reportId) => {
+    if (pdfPollRef.current) clearInterval(pdfPollRef.current);
+    let tries = 0;
+    pdfPollRef.current = setInterval(async () => {
+      tries += 1;
+      try {
+        const res = await franchiseAPI.getCreditReportById(reportId);
+        const doc = res.data;
+        if (doc?.localPath || doc?.pdfStatus === "failed") {
+          clearInterval(pdfPollRef.current);
+          pdfPollRef.current = null;
+          setRecentReport((prev) =>
+            prev && (prev.id === reportId || prev._id === reportId)
+              ? {
+                  ...prev,
+                  localPath: doc.localPath || prev.localPath,
+                  pdfStatus: doc.pdfStatus || prev.pdfStatus,
+                }
+              : prev,
+          );
+          await loadCreditReports();
+        }
+      } catch (e) {
+        console.error("PDF status poll failed:", e.message);
+      }
+      if (tries >= 16) {
+        clearInterval(pdfPollRef.current);
+        pdfPollRef.current = null;
+      }
+    }, 15000);
+  };
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -219,6 +259,11 @@ const CreditCheck = () => {
         setRecentReport(response.data.creditReport);
         setAvailableCredits(response.data.remainingCredits);
 
+        // IndiConnect CIBIL: PDF renders in background — poll for localPath
+        if (response.data.creditReport?.pdfStatus === "pending") {
+          startPdfPolling(response.data.creditReport.id);
+        }
+
         // Reload reports to include the new one
         await loadCreditReports();
       } catch (err) {
@@ -313,6 +358,7 @@ const CreditCheck = () => {
 
   const getReportUrl = (report) => {
     // Use local path if available, otherwise use the original report URL
+    // IndiConnect CIBIL returns an HTML link (myscore.cibil.com) — open as link, no local PDF
     if (report.localPath) {
       // For local paths, use the base server URL without /api prefix
       const baseUrl = import.meta.env.VITE_REACT_APP_API_URL
@@ -321,6 +367,15 @@ const CreditCheck = () => {
       return `${baseUrl}${report.localPath}`;
     }
     return report.reportUrl;
+  };
+
+  const isHtmlReport = (report) => {
+    const url = getReportUrl(report);
+    return (
+      typeof url === "string" &&
+      (url.includes("myscore.cibil.com") || url.includes("webtoken")) &&
+      !report.localPath
+    );
   };
   // const formatDate = (dateStr) => {
   //   if (!dateStr) return "";
@@ -381,23 +436,31 @@ const CreditCheck = () => {
         err?.response?.data?.error?.message ||
         err?.response?.data?.message ||
         "Something went wrong";
-      // Block mobile for 24 hours on any error
-      localStorage.setItem(
-        `mobile_blocked_${mobile}`,
-        JSON.stringify({
-          timestamp: Date.now(),
-          status,
-          message,
-        }),
-      );
 
+      // Audit every prefill failure for the admin log
       await franchiseAPI.savePrefillFailure({
         mobile,
         message,
         statusCode: status,
       });
 
-      if (status === 422) {
+      // Lock the number for 24 hours ONLY when the bureau genuinely has no
+      // record for it (404) or the number itself is invalid (422).
+      // Transient/service errors (401/429/5xx/timeout) must never lock —
+      // otherwise one outage blocks every fresh number.
+      const noRecord = status === 404 || status === 422;
+      if (noRecord) {
+        localStorage.setItem(
+          `mobile_blocked_${mobile}`,
+          JSON.stringify({
+            timestamp: Date.now(),
+            status,
+            message,
+          }),
+        );
+      }
+
+      if (status === 404 || status === 422) {
         alert(
           "No PAN record found for this mobile number. You can proceed with Experian.",
         );
@@ -405,7 +468,7 @@ const CreditCheck = () => {
       } else if (status === 429) {
         alert("Too many requests. Please try again after some time.");
         setShowCreditButton(true);
-      } else if (status === 500) {
+      } else if (status === 500 || status === 503 || status === 504) {
         alert("Server error occurred. Please try again after 15 minutes.");
         setShowCreditButton(true);
       } else {
@@ -522,11 +585,6 @@ const CreditCheck = () => {
           {success}
         </Alert>
       )}
-      {/* {prefillError && (
-                    <Alert severity="warning" sx={{ mt: 1 }}>
-                      {prefillError}
-                    </Alert>
-                  )} */}
 
       {activeTab === 0 && (
         <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
@@ -784,11 +842,32 @@ const CreditCheck = () => {
                           href={getReportUrl(recentReport)}
                           target="_blank"
                         >
-                          Download PDF Report
+                          {isHtmlReport(recentReport)
+                            ? "View CIBIL Report"
+                            : "Download PDF Report"}
                         </Button>
                       ) : (
                         <Typography variant="body2" color="textSecondary">
                           No PDF report available for this credit check
+                        </Typography>
+                      )}
+                      {recentReport.pdfStatus === "pending" &&
+                        !recentReport.localPath && (
+                          <Typography
+                            variant="caption"
+                            color="textSecondary"
+                            sx={{ display: "block", mt: 1 }}
+                          >
+                            Preparing PDF… download will appear here shortly.
+                          </Typography>
+                        )}
+                      {recentReport.txnId && (
+                        <Typography
+                          variant="caption"
+                          color="textSecondary"
+                          sx={{ display: "block", mt: 1 }}
+                        >
+                          Txn: {recentReport.txnId} (IndiConnect)
                         </Typography>
                       )}
                     </Grid>
@@ -878,7 +957,7 @@ const CreditCheck = () => {
                                 href={getReportUrl(report)}
                                 target="_blank"
                               >
-                                PDF
+                                {isHtmlReport(report) ? "View" : "PDF"}
                               </Button>
                             ) : (
                               <Typography
