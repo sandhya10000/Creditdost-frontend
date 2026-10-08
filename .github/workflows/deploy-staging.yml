@@ -10,6 +10,26 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Verify SSH key fingerprint
+        env:
+          SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          set -e
+
+          echo "========================================"
+          echo "Verifying SSH key"
+          echo "========================================"
+
+          printf '%s\n' "$SSH_KEY" > /tmp/github_actions_key
+          chmod 600 /tmp/github_actions_key
+
+          ssh-keygen -y -f /tmp/github_actions_key > /tmp/github_actions_pub
+
+          echo "SSH key fingerprint:"
+          ssh-keygen -lf /tmp/github_actions_pub
+
+          rm -f /tmp/github_actions_key /tmp/github_actions_pub
+
       - name: Deploy frontend to staging VPS
         uses: appleboy/ssh-action@v1.2.2
         with:
@@ -52,7 +72,7 @@ jobs:
             echo "Frontend build successful"
             echo "========================================"
 
-            echo "Checking deployed files..."
+            echo "Checking build files..."
             ls -lah dist/
 
             echo "========================================"
