@@ -30,51 +30,31 @@ jobs:
 
           rm -f /tmp/github_actions_key /tmp/github_actions_pub
 
-      - name: Deploy frontend to staging VPS
-        uses: appleboy/ssh-action@v1.2.2
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
+      - name: Test SSH connection
+        env:
+          SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          set -e
 
-          script: |
-            set -e
+          echo "========================================"
+          echo "Testing SSH connection"
+          echo "========================================"
 
-            echo "========================================"
-            echo "Starting staging frontend deployment"
-            echo "========================================"
+          printf '%s\n' "$SSH_KEY" > /tmp/github_actions_key
+          chmod 600 /tmp/github_actions_key
 
-            cd /var/www/creditdost-staging/creditdost-staging-frontend/Creditdost-frontend
+          ssh \
+            -i /tmp/github_actions_key \
+            -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=no \
+            -o ConnectTimeout=10 \
+            "$VPS_USER@$VPS_HOST" \
+            "echo 'SSH authentication successful'"
 
-            echo "Fetching latest code..."
-            git fetch origin
+          rm -f /tmp/github_actions_key
 
-            echo "Switching to staging branch..."
-            git checkout staging
-
-            echo "Resetting to origin/staging..."
-            git reset --hard origin/staging
-
-            echo "Installing dependencies..."
-            npm ci
-
-            echo "Building frontend..."
-            npm run build
-
-            echo "Checking build output..."
-
-            if [ ! -f "dist/index.html" ]; then
-              echo "Frontend build failed: dist/index.html not found."
-              exit 1
-            fi
-
-            echo "========================================"
-            echo "Frontend build successful"
-            echo "========================================"
-
-            echo "Checking build files..."
-            ls -lah dist/
-
-            echo "========================================"
-            echo "Staging frontend deployment successful"
-            echo "========================================"
+          echo "========================================"
+          echo "SSH connection successful"
+          echo "========================================"
