@@ -10,51 +10,51 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Verify SSH key fingerprint
-        env:
-          SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
-        run: |
-          set -e
+      - name: Deploy frontend to staging VPS
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
 
-          echo "========================================"
-          echo "Verifying SSH key"
-          echo "========================================"
+          script: |
+            set -e
 
-          printf '%s\n' "$SSH_KEY" > /tmp/github_actions_key
-          chmod 600 /tmp/github_actions_key
+            echo "========================================"
+            echo "Starting staging frontend deployment"
+            echo "========================================"
 
-          ssh-keygen -y -f /tmp/github_actions_key > /tmp/github_actions_pub
+            cd /var/www/creditdost-staging/creditdost-staging-frontend/Creditdost-frontend
 
-          echo "SSH key fingerprint:"
-          ssh-keygen -lf /tmp/github_actions_pub
+            echo "Fetching latest code..."
+            git fetch origin
 
-          rm -f /tmp/github_actions_key /tmp/github_actions_pub
+            echo "Switching to staging branch..."
+            git checkout staging
 
-      - name: Test SSH connection
-        env:
-          SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
-          VPS_HOST: ${{ secrets.VPS_HOST }}
-          VPS_USER: ${{ secrets.VPS_USER }}
-        run: |
-          set -e
+            echo "Resetting to origin/staging..."
+            git reset --hard origin/staging
 
-          echo "========================================"
-          echo "Testing SSH connection"
-          echo "========================================"
+            echo "Installing dependencies..."
+            npm ci
 
-          printf '%s\n' "$SSH_KEY" > /tmp/github_actions_key
-          chmod 600 /tmp/github_actions_key
+            echo "Building frontend..."
+            npm run build
 
-          ssh \
-            -i /tmp/github_actions_key \
-            -o IdentitiesOnly=yes \
-            -o StrictHostKeyChecking=no \
-            -o ConnectTimeout=10 \
-            "$VPS_USER@$VPS_HOST" \
-            "echo 'SSH authentication successful'"
+            echo "Checking build output..."
 
-          rm -f /tmp/github_actions_key
+            if [ ! -f "dist/index.html" ]; then
+              echo "Frontend build failed: dist/index.html not found."
+              exit 1
+            fi
 
-          echo "========================================"
-          echo "SSH connection successful"
-          echo "========================================"
+            echo "========================================"
+            echo "Frontend build successful"
+            echo "========================================"
+
+            echo "Checking build files..."
+            ls -lah dist/
+
+            echo "========================================"
+            echo "Staging frontend deployment successful"
+            echo "========================================"
