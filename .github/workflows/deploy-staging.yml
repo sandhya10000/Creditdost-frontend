@@ -1,0 +1,60 @@
+name: Deploy Frontend to Staging
+
+on:
+  push:
+    branches:
+      - staging
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy frontend to staging VPS
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+
+          script: |
+            set -e
+
+            echo "========================================"
+            echo "Starting staging frontend deployment"
+            echo "========================================"
+
+            cd /var/www/creditdost-staging/creditdost-staging-frontend/Creditdost-frontend
+
+            echo "Fetching latest code..."
+            git fetch origin
+
+            echo "Switching to staging branch..."
+            git checkout staging
+
+            echo "Resetting to origin/staging..."
+            git reset --hard origin/staging
+
+            echo "Installing dependencies..."
+            npm ci
+
+            echo "Building frontend..."
+            npm run build
+
+            echo "Checking build output..."
+
+            if [ ! -f "dist/index.html" ]; then
+              echo "Frontend build failed: dist/index.html not found."
+              exit 1
+            fi
+
+            echo "========================================"
+            echo "Frontend build successful"
+            echo "========================================"
+
+            echo "Checking deployed files..."
+            ls -lah dist/
+
+            echo "========================================"
+            echo "Staging frontend deployment successful"
+            echo "========================================"
