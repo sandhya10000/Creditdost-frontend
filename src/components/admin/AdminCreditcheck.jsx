@@ -41,8 +41,10 @@ const AdminCreditBureau = ({ defaultBureau = "" }) => {
     { value: "cibil-indiconnect", label: "CIBIL (IndiConnect)" },
     { value: "cibil-digi", label: "CIBIL (Digi)" },
     { value: "cibil-surepass", label: "CIBIL (Surepass)" },
-    { value: "crif", label: "CRIF" },
-    { value: "experian", label: "Experian" },
+    { value: "crif-indiconnect", label: "CRIF (IndiConnect)" },
+    { value: "crif-surepass", label: "CRIF (Surepass)" },
+    { value: "experian-indiconnect", label: "Experian (IndiConnect)" },
+    { value: "experian-surepass", label: "Experian (Surepass)" },
     { value: "equifax", label: "Equifax" },
   ];
   // CIBIL standalone options route through /credit/credit-check-v2
@@ -50,6 +52,27 @@ const AdminCreditBureau = ({ defaultBureau = "" }) => {
     "cibil-indiconnect": "indiconnect",
     "cibil-digi": "digi",
     "cibil-surepass": "surepass",
+  };
+  // CRIF / Experian Surepass options route through V2 with their own picker
+  // keys; IndiConnect variants keep the existing V1 (/credit/check) flow.
+  const V2_PROVIDER_MAP = {
+    ...Object.fromEntries(
+      Object.entries(CIBIL_V2_MAP).map(([opt, value]) => [
+        opt,
+        { bureau: "cibil", key: "cibilApiType", value },
+      ]),
+    ),
+    "crif-surepass": { bureau: "crif", key: "crifApiType", value: "surepass" },
+    "experian-surepass": {
+      bureau: "experian",
+      key: "experianApiType",
+      value: "surepass",
+    },
+  };
+  // V1 (/credit/check) bureau values for the IndiConnect variants
+  const V1_BUREAU_MAP = {
+    "crif-indiconnect": "crif",
+    "experian-indiconnect": "experian",
   };
   const [activeTab, setActiveTab] = useState(0);
   const [formData, setFormData] = useState({
@@ -176,8 +199,9 @@ const AdminCreditBureau = ({ defaultBureau = "" }) => {
       return;
     }
 
-    // Experian Soft-Pull requires PAN + pincode + DOB + two-word name
-    if (formData.bureau === "experian") {
+    // Experian Soft-Pull (IndiConnect) requires PAN + pincode + DOB + two-word name.
+    // Experian via Surepass needs none of these.
+    if (formData.bureau === "experian-indiconnect") {
       if (!formData.pan || !/^[A-Za-z0-9]{10}$/.test(formData.pan)) {
         setError("PAN number is required for Experian (10 characters)");
         setSaving(false);
@@ -206,22 +230,22 @@ const AdminCreditBureau = ({ defaultBureau = "" }) => {
 
     const attemptRequest = async () => {
       try {
-        // CIBIL standalone options go through the admin V2 endpoint with an
-        // explicit provider picker (indiconnect / digi / surepass)
-        const cibilV2Type = CIBIL_V2_MAP[formData.bureau];
-        if (cibilV2Type) {
+        // Provider-picker options go through the admin V2 endpoint
+        // (CIBIL indiconnect/digi/surepass, CRIF/Experian surepass)
+        const v2Route = V2_PROVIDER_MAP[formData.bureau];
+        if (v2Route) {
           const v2Payload = {
             name: formData.name.trim(),
             mobile: formData.mobile.trim(),
-            bureau: "cibil",
-            cibilApiType: cibilV2Type,
+            bureau: v2Route.bureau,
+            [v2Route.key]: v2Route.value,
           };
           if (formData.pan) v2Payload.pan = formData.pan.trim().toUpperCase();
           const v2Response = await adminAPI.checkCreditV2(v2Payload);
           const v2Report = v2Response.data.creditReport || {};
           setSuccess(
             v2Response.data.message ||
-              `Credit check completed successfully from CIBIL (${cibilV2Type.toUpperCase()})!`,
+              `Credit check completed successfully from ${v2Route.bureau.toUpperCase()} (${v2Route.value.toUpperCase()})!`,
           );
           console.log("Credit report response:", v2Response.data);
           setRecentReport(v2Report);
@@ -229,15 +253,18 @@ const AdminCreditBureau = ({ defaultBureau = "" }) => {
           return;
         }
 
+        // V1 (/credit/check) bureau for the IndiConnect variants
+        const v1Bureau = V1_BUREAU_MAP[formData.bureau] || formData.bureau;
+
         // Prepare data for API call
         const requestData = {
           name: formData.name.trim(),
           mobile: formData.mobile.trim(),
-          bureau: formData.bureau,
+          bureau: v1Bureau,
         };
 
         // Add bureau-specific fields
-        if (formData.bureau === "equifax") {
+        if (v1Bureau === "equifax") {
           // For Equifax, we need id_number and id_type instead of separate PAN/Aadhaar
           if (formData.pan) {
             requestData.id_number = formData.pan.trim().toUpperCase();
@@ -252,7 +279,7 @@ const AdminCreditBureau = ({ defaultBureau = "" }) => {
           if (formData.aadhaar) requestData.aadhaar = formData.aadhaar.trim();
           if (formData.dob) requestData.dob = formData.dob;
           if (formData.gender) requestData.gender = formData.gender;
-          if (formData.bureau === "experian" && formData.pincode)
+          if (v1Bureau === "experian" && formData.pincode)
             requestData.pincode = formData.pincode.trim();
         }
 
@@ -260,7 +287,7 @@ const AdminCreditBureau = ({ defaultBureau = "" }) => {
         const response = await franchiseAPI.getCreditReport(requestData);
 
         setSuccess(
-          `Credit check completed successfully from ${formData.bureau.toUpperCase()}! ${
+          `Credit check completed successfully from ${v1Bureau.toUpperCase()}! ${
             response.data.remainingCredits
           } credits remaining.`,
         );
@@ -543,7 +570,7 @@ const AdminCreditBureau = ({ defaultBureau = "" }) => {
                     }}
                   />
                 </Grid>
-                {formData.bureau === "experian" && (
+                {formData.bureau === "experian-indiconnect" && (
                   <Grid
                     item
                     xs={12}
