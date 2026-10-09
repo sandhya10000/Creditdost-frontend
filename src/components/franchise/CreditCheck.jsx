@@ -39,6 +39,29 @@ import { franchiseAPI } from "../../services/api";
 const CreditCheck = () => {
   // TEMP: prefill unplugged for CIBIL checks. Set true to restore.
   const PREFILL_ENABLED = false;
+  // CIBIL-only 24h block on "No Bureau Record Found" (same key/mechanism as prefill block)
+  const CIBIL_BUREAUS = ["cibil", "cibil-ongrid", "cibil-surepass"];
+  const isCibilBureau = (b) => CIBIL_BUREAUS.includes(b);
+  const isNoBureauRecordMessage = (msg) =>
+    /no\s*(bureau|cibil)?\s*record\s*found/i.test(msg || "");
+  const getBlockedMobileData = (mobile) => {
+    try {
+      const raw = localStorage.getItem(`mobile_blocked_${mobile}`);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (Date.now() - parsed.timestamp < 24 * 60 * 60 * 1000) return parsed;
+      localStorage.removeItem(`mobile_blocked_${mobile}`);
+      return null;
+    } catch {
+      return null;
+    }
+  };
+  const blockMobileFor24h = (mobile, message) => {
+    localStorage.setItem(
+      `mobile_blocked_${mobile}`,
+      JSON.stringify({ timestamp: Date.now(), message }),
+    );
+  };
   const [activeTab, setActiveTab] = useState(0);
   const [formData, setFormData] = useState({
     name: "",
@@ -194,6 +217,13 @@ const CreditCheck = () => {
       return;
     }
 
+    // CIBIL-only: stop blocked numbers before hitting the API
+    if (isCibilBureau(formData.bureau) && getBlockedMobileData(formData.mobile)) {
+      setError("This mobile number is blocked for 24 hours.");
+      setSaving(false);
+      return;
+    }
+
     // Validate PAN if provided (alphanumeric, 10 characters)
     if (formData.pan && !/^[A-Za-z0-9]{10}$/.test(formData.pan)) {
       setError("Please enter a valid PAN number (10 alphanumeric characters)");
@@ -251,6 +281,21 @@ const CreditCheck = () => {
         // Call the API to check credit
         const response = await franchiseAPI.getCreditReport(requestData);
 
+        // CIBIL-only: backend returns HTTP 200 for no-record — block the number
+        // like the Surepass prefill flow (covers both the raw provider message
+        // "No Bureau Record Found For The Provided Inputs." and the mapped
+        // "No CIBIL record found for these details").
+        if (
+          isCibilBureau(formData.bureau) &&
+          isNoBureauRecordMessage(response.data?.message)
+        ) {
+          blockMobileFor24h(formData.mobile.trim(), response.data.message);
+          setRecentReport(null);
+          setError(response.data.message);
+          await loadCreditReports();
+          return;
+        }
+
         setSuccess(
           `Credit check completed successfully from ${formData.bureau.toUpperCase()}! ${
             response.data.remainingCredits
@@ -270,6 +315,32 @@ const CreditCheck = () => {
         await loadCreditReports();
       } catch (err) {
         console.error("Credit check error:", err);
+
+        // CIBIL-only: no-record must fail fast on FIRST attempt — never retry,
+        // block the number like the Surepass prefill flow. Backend sends this
+        // as 502 { message: "No Bureau Record Found ..." } (empty result
+        // envelope), which would otherwise fall into the NETWORK_ERROR retry
+        // branch below and poll 3x before showing a misleading network error.
+        const noRecordText = [
+          err.response?.data?.message,
+          err.response?.data?.error?.message,
+          typeof err.response?.data?.error === "string"
+            ? err.response.data.error
+            : "",
+        ]
+          .filter(Boolean)
+          .join(" ");
+        if (
+          isCibilBureau(formData.bureau) &&
+          isNoBureauRecordMessage(noRecordText)
+        ) {
+          blockMobileFor24h(
+            formData.mobile.trim(),
+            err.response.data.message || noRecordText,
+          );
+          setError(err.response.data.message || noRecordText);
+          return;
+        }
 
         // Handle specific error types
         if (
@@ -309,6 +380,13 @@ const CreditCheck = () => {
             Array.isArray(err.response.data.details)
           ) {
             errorMessage += ": " + err.response.data.details.join(", ");
+          }
+          // CIBIL-only: block the number on no-record errors (same as prefill)
+          if (
+            isCibilBureau(formData.bureau) &&
+            isNoBureauRecordMessage(err.response.data.message)
+          ) {
+            blockMobileFor24h(formData.mobile.trim(), errorMessage);
           }
           // setError(errorMessage);
           setError(errorMessage || "Something went wrong");
@@ -508,7 +586,7 @@ const CreditCheck = () => {
     }
   };
 
-  const isMobileBlocked = PREFILL_ENABLED && formData.mobile
+  const isMobileBlocked = formData.mobile && isCibilBureau(formData.bureau)
     ? (() => {
         const data = localStorage.getItem(`mobile_blocked_${formData.mobile}`);
 
