@@ -22,7 +22,7 @@ const BureauTab = ({
 }) => {
   const fullName = customerBureau?.customerName || "";
   const pan = customerBureau?.panNumber || "";
-  const [cibilApiType, setCibilApiType] = useState("ongrid");
+  const [cibilApiType, setCibilApiType] = useState("indiconnect");
   const [expPincode, setExpPincode] = useState("");
   const [bureauData, setBureauData] = useState({
     cibil: {
@@ -116,12 +116,18 @@ const BureauTab = ({
       const payload = getPayload(bureau);
       const response = await adminAPI.checkCreditV2(payload);
       const responseData = response.data;
+      // V2 nests the report under creditReport (top-level score/reportUrl
+      // are not returned) — map defensively for all providers.
+      const cr = responseData.creditReport || {};
       const reportData = {
         pan,
         bureau: bureau,
-        score: responseData.score,
-        reportUrl: responseData.reportUrl,
+        score: cr.score ?? responseData.score,
+        reportUrl: cr.reportUrl || cr.localPath || responseData.reportUrl,
         apiType: responseData.apiType,
+        provider: responseData.provider,
+        pdfStatus: cr.pdfStatus || null,
+        txnId: cr.txnId || null,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -198,7 +204,9 @@ const BureauTab = ({
                 value={cibilApiType}
                 onChange={(e) => setCibilApiType(e.target.value)}
               >
-                <MenuItem value="ongrid">Ongrid</MenuItem>
+                <MenuItem value="indiconnect">IndiConnect</MenuItem>
+
+                <MenuItem value="digi">Digi</MenuItem>
 
                 <MenuItem value="surepass">Surepass</MenuItem>
               </TextField>

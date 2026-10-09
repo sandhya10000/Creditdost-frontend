@@ -34,16 +34,23 @@ import {
   Download,
   Info,
 } from "@mui/icons-material";
-import { franchiseAPI } from "../../services/api";
+import { franchiseAPI, adminAPI } from "../../services/api";
 
 const AdminCreditBureau = ({ defaultBureau = "" }) => {
   const bureauOptions = [
-    { value: "cibil-ongrid", label: "CIBIL(on-grid)" },
-    { value: "cibil-surepass", label: "CIBIL(surepass)" },
+    { value: "cibil-indiconnect", label: "CIBIL (IndiConnect)" },
+    { value: "cibil-digi", label: "CIBIL (Digi)" },
+    { value: "cibil-surepass", label: "CIBIL (Surepass)" },
     { value: "crif", label: "CRIF" },
     { value: "experian", label: "Experian" },
     { value: "equifax", label: "Equifax" },
   ];
+  // CIBIL standalone options route through /credit/credit-check-v2
+  const CIBIL_V2_MAP = {
+    "cibil-indiconnect": "indiconnect",
+    "cibil-digi": "digi",
+    "cibil-surepass": "surepass",
+  };
   const [activeTab, setActiveTab] = useState(0);
   const [formData, setFormData] = useState({
     name: "",
@@ -53,7 +60,7 @@ const AdminCreditBureau = ({ defaultBureau = "" }) => {
     dob: "",
     gender: "",
     pincode: "",
-    bureau: defaultBureau || "cibil-ongrid", // Default to CIBIL as per Surepass documentation
+    bureau: defaultBureau || "cibil-indiconnect", // CIBIL via V2 provider picker
   });
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -199,6 +206,29 @@ const AdminCreditBureau = ({ defaultBureau = "" }) => {
 
     const attemptRequest = async () => {
       try {
+        // CIBIL standalone options go through the admin V2 endpoint with an
+        // explicit provider picker (indiconnect / digi / surepass)
+        const cibilV2Type = CIBIL_V2_MAP[formData.bureau];
+        if (cibilV2Type) {
+          const v2Payload = {
+            name: formData.name.trim(),
+            mobile: formData.mobile.trim(),
+            bureau: "cibil",
+            cibilApiType: cibilV2Type,
+          };
+          if (formData.pan) v2Payload.pan = formData.pan.trim().toUpperCase();
+          const v2Response = await adminAPI.checkCreditV2(v2Payload);
+          const v2Report = v2Response.data.creditReport || {};
+          setSuccess(
+            v2Response.data.message ||
+              `Credit check completed successfully from CIBIL (${cibilV2Type.toUpperCase()})!`,
+          );
+          console.log("Credit report response:", v2Response.data);
+          setRecentReport(v2Report);
+          await loadCreditReports();
+          return;
+        }
+
         // Prepare data for API call
         const requestData = {
           name: formData.name.trim(),
