@@ -53,6 +53,7 @@ const Business = ({ userType }) => {
     aadharNumber: "",
     pincode: "",
     state: "",
+    city: "",
     language: "",
     occupation: "",
     monthlyIncome: "",
@@ -720,6 +721,23 @@ const Business = ({ userType }) => {
                               ))}
                             </Select>
                           </FormControl>
+                        </Grid>
+
+                        <Grid
+                          item
+                          xs={12}
+                          sm={6}
+                          sx={{ minWidth: { xs: "0px", md: "350px" } }}
+                        >
+                          <TextField
+                            required
+                            fullWidth
+                            label="City"
+                            name="city"
+                            value={formData.city || ""}
+                            onChange={handleInputChange}
+                            placeholder="Enter City"
+                          />
                         </Grid>
                         <Grid
                           item
