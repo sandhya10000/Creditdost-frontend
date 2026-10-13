@@ -190,7 +190,6 @@ const AdminDashboard = () => {
   const [mobileOpen, setMobileOpen] = useState(false); /* MOBILE FIX */
   const [anchorEl, setAnchorEl] = useState(null);
 
-
   const handleToggle = (menu) => {
     setOpenMenu(openMenu === menu ? null : menu);
   };
@@ -239,6 +238,11 @@ const AdminDashboard = () => {
       text: "Website Enquiry",
       icon: <CreditScoreIcon />,
       children: [
+        {
+          text: " Website Franchise Enquiry",
+          path: "/admin/website-franchise-enquiry",
+          icon: <BusinessIcon />,
+        },
         {
           text: "Franchise Pending Case",
           path: "/admin/franchise-pending",
@@ -344,10 +348,10 @@ const AdminDashboard = () => {
     {
       text: "Case Studies",
       icon: <MenuBookIcon />,
-      children: CASE_STUDY_CATEGORIES.map(category => ({
+      children: CASE_STUDY_CATEGORIES.map((category) => ({
         text: category.label,
         path: `/admin/case-study/${category.value}`,
-        icon: <MenuBookIcon />
+        icon: <MenuBookIcon />,
       })),
     },
     {
@@ -373,10 +377,10 @@ const AdminDashboard = () => {
   ];
 
   useEffect(() => {
-    const activeParent = menuItems.find(item => 
-      item.children?.some(child => location.pathname === child.path)
+    const activeParent = menuItems.find((item) =>
+      item.children?.some((child) => location.pathname === child.path),
     );
-    
+
     if (activeParent) {
       setOpenMenu(activeParent.text);
     } else {
@@ -446,7 +450,9 @@ const AdminDashboard = () => {
               <NavItem
                 active={
                   isActive(item.path) ||
-                  item.children?.some((child) => location.pathname === child.path)
+                  item.children?.some(
+                    (child) => location.pathname === child.path,
+                  )
                     ? "true"
                     : undefined
                 }
@@ -470,7 +476,7 @@ const AdminDashboard = () => {
                 <ListItemIcon>{item.icon}</ListItemIcon>
                 <ListItemText
                   primary={item.text}
-                  sx={{ opacity: (open || isMobile) ? 1 : 0 }} /* MOBILE FIX */
+                  sx={{ opacity: open || isMobile ? 1 : 0 }} /* MOBILE FIX */
                   primaryTypographyProps={{
                     noWrap: true,
                     sx: {
@@ -485,7 +491,11 @@ const AdminDashboard = () => {
               </NavItem>
 
               {hasChildren && (
-                <Collapse in={openMenu === item.text} timeout="auto" unmountOnExit>
+                <Collapse
+                  in={openMenu === item.text}
+                  timeout="auto"
+                  unmountOnExit
+                >
                   {item.children.map((child) => (
                     <Tooltip
                       key={child.text}
@@ -506,7 +516,11 @@ const AdminDashboard = () => {
                           overflow: "hidden",
                         }}
                       >
-                        {child.icon && <ListItemIcon sx={{ minWidth: 36 }}>{child.icon}</ListItemIcon>}
+                        {child.icon && (
+                          <ListItemIcon sx={{ minWidth: 36 }}>
+                            {child.icon}
+                          </ListItemIcon>
+                        )}
                         <ListItemText
                           primary={child.text}
                           primaryTypographyProps={{
