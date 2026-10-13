@@ -20,7 +20,10 @@ import {
   TableHead,
   TableRow,
   Paper,
-  Snackbar
+  Snackbar,
+  Chip,
+  ToggleButton,
+  ToggleButtonGroup
 } from '@mui/material';
 import { adminAPI } from '../../services/api';
 
@@ -29,6 +32,7 @@ const RechargeCredits = () => {
   const [selectedFranchise, setSelectedFranchise] = useState('');
   const [credits, setCredits] = useState('');
   const [remarks, setRemarks] = useState('');
+  const [mode, setMode] = useState('add'); // 'add' | 'deduct'
   const [loading, setLoading] = useState(false);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [rechargeHistory, setRechargeHistory] = useState([]);
@@ -83,6 +87,12 @@ const RechargeCredits = () => {
     if (!credits || credits <= 0) {
       errors.credits = 'Please enter a valid number of credits';
     }
+    if (mode === 'deduct' && selectedFranchise && credits > 0) {
+      const franchise = franchises.find(f => f._id === selectedFranchise);
+      if (franchise && parseInt(credits) > (franchise.credits || 0)) {
+        errors.credits = `Insufficient balance. Available: ${franchise.credits || 0}`;
+      }
+    }
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -97,7 +107,8 @@ const RechargeCredits = () => {
       const response = await adminAPI.rechargeFranchiseCredits({
         franchiseId: selectedFranchise,
         credits: parseInt(credits),
-        remarks
+        remarks,
+        type: mode
       });
 
       showNotification(response.data.message);
@@ -110,10 +121,10 @@ const RechargeCredits = () => {
       fetchRechargeHistory();
     } catch (error) {
       showNotification(
-        error.response?.data?.message || 'Error recharging credits',
+        error.response?.data?.message || (mode === 'deduct' ? 'Error deducting credits' : 'Error recharging credits'),
         'error'
       );
-      console.error('Error recharging credits:', error);
+      console.error('Error adjusting credits:', error);
     } finally {
       setLoading(false);
     }
@@ -127,8 +138,18 @@ const RechargeCredits = () => {
   return (
     <Box>
       <Typography variant="h4" gutterBottom>
-        Recharge Credits
+        Manage Credits
       </Typography>
+
+      <ToggleButtonGroup
+        value={mode}
+        exclusive
+        onChange={(e, value) => value && setMode(value)}
+        sx={{ mb: 1 }}
+      >
+        <ToggleButton value="add" color="success">Add Funds</ToggleButton>
+        <ToggleButton value="deduct" color="error">Deduct Funds</ToggleButton>
+      </ToggleButtonGroup>
 
       <Snackbar
         open={alert.open}
@@ -151,7 +172,7 @@ const RechargeCredits = () => {
           <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
             <CardContent>
               <Typography variant="h6" gutterBottom>
-                Credit Recharge
+                {mode === 'deduct' ? 'Deduct Credits' : 'Credit Recharge'}
               </Typography>
               
               <FormControl fullWidth margin="normal" error={!!formErrors.franchise}>
@@ -176,7 +197,7 @@ const RechargeCredits = () => {
 
               <TextField
                 fullWidth
-                label="Credits to Add"
+                label={mode === 'deduct' ? 'Credits to Deduct' : 'Credits to Add'}
                 type="number"
                 value={credits}
                 onChange={(e) => setCredits(e.target.value)}
@@ -198,13 +219,13 @@ const RechargeCredits = () => {
 
               <Button
                 variant="contained"
-                color="primary"
+                color={mode === 'deduct' ? 'error' : 'primary'}
                 onClick={handleRecharge}
                 disabled={loading}
                 sx={{ mt: 2 }}
                 startIcon={loading ? <CircularProgress size={20} /> : null}
               >
-                {loading ? 'Processing...' : 'Recharge Credits'}
+                {loading ? 'Processing...' : (mode === 'deduct' ? 'Deduct Credits' : 'Recharge Credits')}
               </Button>
             </CardContent>
           </Card>
@@ -272,7 +293,8 @@ const RechargeCredits = () => {
                       <TableRow>
                         <TableCell>Date</TableCell>
                         <TableCell>Franchise</TableCell>
-                        <TableCell align="right">Credits Added</TableCell>
+                        <TableCell>Type</TableCell>
+                        <TableCell align="right">Credits</TableCell>
                         <TableCell>Remarks</TableCell>
                         <TableCell>Admin</TableCell>
                       </TableRow>
@@ -287,8 +309,16 @@ const RechargeCredits = () => {
                             <TableCell>
                               {transaction.userId ? transaction.userId.name : 'N/A'}
                             </TableCell>
+                            <TableCell>
+                              {transaction.paymentMethod === 'admin_deduct' ? (
+                                <Chip label="Deduct" color="error" size="small" />
+                              ) : (
+                                <Chip label="Add" color="success" size="small" />
+                              )}
+                            </TableCell>
                             <TableCell align="right">
-                              {transaction.metadata?.creditsAdded || 0}
+                              {transaction.paymentMethod === 'admin_deduct' ? '-' : '+'}
+                              {transaction.metadata?.creditsDeducted ?? transaction.metadata?.creditsAdded ?? 0}
                             </TableCell>
                             <TableCell>{transaction.remarks}</TableCell>
                             <TableCell>
@@ -298,9 +328,9 @@ const RechargeCredits = () => {
                         ))
                       ) : (
                         <TableRow>
-                          <TableCell colSpan={5} align="center">
-                            No recharge history found
-                          </TableCell>
+                            <TableCell colSpan={6} align="center">
+                              No recharge history found
+                            </TableCell>
                         </TableRow>
                       )}
                     </TableBody>
