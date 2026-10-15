@@ -246,27 +246,83 @@ const Profile = () => {
   };
 
   // Unified save function for all sections
+  // const handleSaveAll = async () => {
+  //   setLoading(true);
+  //   setError("");
+  //   setSuccess("");
+
+  //   try {
+  //     // Save business and address information
+  //     const profileResponse = await franchiseAPI.updateProfile(formData);
+
+  //     // Save PAN information
+  //     const panResponse = await franchiseAPI.updatePanDetails(panData);
+
+  //     // Save bank information
+  //     //const bankResponse = await franchiseAPI.updateBankDetails(bankData);
+
+  //     setSuccess(
+  //       "Your profile has been submitted successfully. Please wait for admin approval to access all dashboard features and data.",
+  //     );
+
+  //     // Update form data with response data
+  //     const updatedProfile = profileResponse.data.franchise;
+  //     setFormData({
+  //       businessName: updatedProfile.businessName || "",
+  //       ownerName: updatedProfile.ownerName || "",
+  //       email: updatedProfile.email || "",
+  //       phone: updatedProfile.phone || "",
+  //       address: {
+  //         street: updatedProfile.address?.street || "",
+  //         city: updatedProfile.address?.city || "",
+  //         state: updatedProfile.address?.state || "",
+  //         pincode: updatedProfile.address?.pincode || "",
+  //       },
+  //     });
+  //   } catch (err) {
+  //     setError(
+  //       err.response?.data?.message ||
+  //         err.response?.data?.details ||
+  //         "Failed to save profile information",
+  //     );
+  //     console.error("Error saving profile:", err);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
   const handleSaveAll = async () => {
     setLoading(true);
     setError("");
     setSuccess("");
 
     try {
-      // Save business and address information
-      const profileResponse = await franchiseAPI.updateProfile(formData);
+      // 1. Save business and address information
+      await franchiseAPI.updateProfile(formData);
 
-      // Save PAN information
+      // 2. Save PAN information
+      // Backend should run the final KYC approval check
+      // after PAN details have been saved and verified.
       const panResponse = await franchiseAPI.updatePanDetails(panData);
 
-      // Save bank information
-      //const bankResponse = await franchiseAPI.updateBankDetails(bankData);
+      const result = panResponse.data;
 
-      setSuccess(
-        "Your profile has been submitted successfully. Please wait for admin approval to access all dashboard features and data.",
-      );
+      if (result.kycStatus === "approved" && result.franchiseCode) {
+        setSuccess(
+          `Congratulations! Your account has been approved. ` +
+            `Your Franchise ID is ${result.franchiseCode}.`,
+        );
+      } else {
+        setSuccess(
+          result.message ||
+            "Your details have been saved. KYC verification is pending.",
+        );
+      }
 
-      // Update form data with response data
-      const updatedProfile = profileResponse.data.franchise;
+      // Refresh profile data returned by the backend
+      const profileResponse = await franchiseAPI.getProfile();
+      const updatedProfile = profileResponse.data;
+
       setFormData({
         businessName: updatedProfile.businessName || "",
         ownerName: updatedProfile.ownerName || "",
@@ -281,10 +337,9 @@ const Profile = () => {
       });
     } catch (err) {
       setError(
-        err.response?.data?.message ||
-          err.response?.data?.details ||
-          "Failed to save profile information",
+        err.response?.data?.message || "Failed to save profile information.",
       );
+
       console.error("Error saving profile:", err);
     } finally {
       setLoading(false);
@@ -639,7 +694,6 @@ const Profile = () => {
           <CardContent>
             <Accordion defaultExpanded>
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                
                 <Box
                   sx={{
                     display: "flex",

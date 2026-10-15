@@ -49,6 +49,7 @@ export const authAPI = {
 
 // Franchise API functions
 export const franchiseAPI = {
+  //Profile get and update
   getProfile: () => api.get("/franchises/profile"),
   updateProfile: (data) => api.put("/franchises/profile", data),
   getKycStatus: () => api.get("/kyc/status"),
@@ -271,8 +272,9 @@ export const adminAPI = {
   updateFranchiseCertificateName: (data) =>
     api.put("/admin/franchises/certificate-name", data),
   // Credit Repair Enquiries
-  getCreditRepairEnquiries: (params) => api.get("/admin/credit-repair", { params }),
-  updateCreditRepairEnquiryStatus: (id, status) => 
+  getCreditRepairEnquiries: (params) =>
+    api.get("/admin/credit-repair", { params }),
+  updateCreditRepairEnquiryStatus: (id, status) =>
     api.put(`/admin/credit-repair/${id}/status`, { status }),
   deleteCreditRepairEnquiry: (id) => api.delete(`/admin/credit-repair/${id}`),
   // Blogs
@@ -321,8 +323,7 @@ export const adminAPI = {
   updateMarketingMaterial: (id, formData) =>
     api.put(`/admin/marketing-material/${id}`, formData),
 
-  deleteMarketingMaterial: (id) =>
-    api.delete(`/admin/marketing/${id}`),
+  deleteMarketingMaterial: (id) => api.delete(`/admin/marketing/${id}`),
   //admin case study post api
   createCaseStudy: (formData) => api.post("/admin/case-studies", formData),
   updateCaseStudy: (editingId, formData) =>
