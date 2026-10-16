@@ -40,10 +40,13 @@ const TestimonialSection = () => {
 
   useEffect(() => {
     if (!isAutoPlaying) return;
-    
+    // Pause carousel when tab is hidden to save main-thread/CPU
+    if (typeof document !== 'undefined' && document.hidden) return;
+
     const interval = setInterval(() => {
+      if (typeof document !== 'undefined' && document.hidden) return;
       setCurrentIndex((prev) => (prev + 1) % testimonials.length);
-    }, 4000);
+    }, 5000);
 
     return () => clearInterval(interval);
   }, [isAutoPlaying]);

@@ -42,6 +42,7 @@ import {
 } from "@mui/icons-material";
 import axios from "axios";
 import api from "../services/api";
+import { ensureRazorpay } from "../utils/razorpay";
 import { useNavigate } from "react-router-dom";
 import Header from "./homepage/Header";
 import HomePageFooter from "./homepage/HomePageFooter";
@@ -259,6 +260,11 @@ const PackagesPage = () => {
         },
       };
 
+      const ready = await ensureRazorpay();
+      if (!ready) {
+        setPaymentError("Payment gateway failed to load. Please check your connection and retry.");
+        return;
+      }
       const rzp = new window.Razorpay(options);
       rzp.open();
     } catch (err) {

@@ -4,18 +4,43 @@ import { blogAPI } from '../../services/api';
 
 const CTASection = () => {
   const [blogs, setBlogs] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [cardsPerView, setCardsPerView] = useState(3);
+  const [hasEnteredView, setHasEnteredView] = useState(false);
   const navigate = useNavigate();
+  const sectionRef = React.useRef(null);
+
+  // Defer blog fetch until section scrolls into view (non-blocking for LCP)
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el || typeof IntersectionObserver === 'undefined') {
+      setHasEnteredView(true);
+      return;
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setHasEnteredView(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: '400px' },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
+    if (!hasEnteredView) return;
+    let cancelled = false;
     const fetchBlogs = async () => {
       try {
         setLoading(true);
         const response = await blogAPI.getAllBlogs({ limit: 5 });
-        const formattedBlogs = response.data.blogs.map(blog => ({
+        if (cancelled) return;
+        const formattedBlogs = (response.data.blogs || []).map(blog => ({
           id: blog._id,
           slug: blog.slug,
           image: blog.featuredImage,
@@ -28,15 +53,27 @@ const CTASection = () => {
         }));
         setBlogs(formattedBlogs);
       } catch (err) {
-        setError('Failed to fetch blogs');
+        if (!cancelled) setError('Failed to fetch blogs');
         console.error('Error fetching blogs:', err);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
-    fetchBlogs();
-  }, []);
+    // Yield to main thread: let above-fold paint first
+    const schedule =
+      typeof requestIdleCallback !== 'undefined'
+        ? requestIdleCallback(fetchBlogs, { timeout: 3000 })
+        : setTimeout(fetchBlogs, 500);
+    return () => {
+      cancelled = true;
+      if (typeof cancelIdleCallback !== 'undefined' && typeof schedule === 'number') {
+        try { cancelIdleCallback(schedule); } catch { /* noop */ }
+      } else {
+        clearTimeout(schedule);
+      }
+    };
+  }, [hasEnteredView]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -65,7 +102,7 @@ const CTASection = () => {
   const translateX = blogs.length > 0 ? -(currentIndex * (100 / cardsPerView)) : 0;
 
   return (
-    <section className="blogs-section" style={{padding: '56px 0'}}>
+    <section ref={sectionRef} className="blogs-section" style={{padding: '56px 0'}}>
       <div className="animated-bg-circle circle-1"></div>
       <div className="animated-bg-circle circle-2"></div>
       <div className="animated-bg-circle circle-3"></div>
@@ -77,13 +114,20 @@ const CTASection = () => {
           <h2 className="section-title">Building better businesses together</h2>
         </div>
 
-        {loading ? (
-          <div style={{ textAlign: 'center', padding: '40px' }}>
-            <p>Loading blogs...</p>
-          </div>
-        ) : error ? (
+        {error && blogs.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '40px' }}>
             <p>{error}</p>
+          </div>
+        ) : loading || blogs.length === 0 ? (
+          // Lightweight skeleton: keeps layout stable without blocking paint
+          <div className="slider-container" style={{maxWidth: '1400px'}} aria-hidden="true">
+            <div className="blog-cards-wrapper" style={{overflowX: 'hidden'}}>
+              <div className="blog-cards-container">
+                {[0, 1, 2].map((i) => (
+                  <div key={i} className="blog-card" style={{ minHeight: 320, background: '#eef1f4' }} />
+                ))}
+              </div>
+            </div>
           </div>
         ) : (
           <div className="slider-container" style={{maxWidth: '1400px'}}>
@@ -107,7 +151,7 @@ const CTASection = () => {
                 {blogs.map((blog) => (
                   <article key={blog.id} className="blog-card" onClick={() => navigate(`/blog/${blog.slug || blog.id}`)}>
                     <div className="blog-image-wrapper">
-                      <img src={blog.image} alt={blog.title} className="blog-image" />
+                      <img src={blog.image} alt={blog.title} className="blog-image" loading="lazy" decoding="async" />
                     </div>
                     <div className="blog-content">
                       <div className="meta-info">

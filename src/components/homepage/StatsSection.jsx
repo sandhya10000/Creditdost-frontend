@@ -294,8 +294,10 @@ const StatsSection = () => {
               <TopImage
                 src="./images/Homepage banner_500x400.jpg"
                 alt="Business professional"
+                loading="lazy"
+                decoding="async"
               />
-              <BottomImage src="./images/website image.jpg" alt="Team collaboration" />
+              <BottomImage src="./images/website image.jpg" alt="Team collaboration" loading="lazy" decoding="async" />
             </ImageContainer>
           </Grid>
 

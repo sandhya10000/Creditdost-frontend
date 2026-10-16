@@ -18,6 +18,7 @@ import {
 } from "@mui/material";
 import { useLocation, useNavigate } from "react-router-dom";
 import api from "../../services/api"; // Use the configured API instance instead of raw axios
+import { ensureRazorpay } from "../../utils/razorpay";
 
 // Toast notification component
 const ToastAlert = React.forwardRef(function Alert(props, ref) {
@@ -89,6 +90,11 @@ const Payment = () => {
         }
       };
       
+      const ready = await ensureRazorpay();
+      if (!ready) {
+        setError("Payment gateway failed to load. Please check your connection and retry.");
+        return;
+      }
       const rzp = new window.Razorpay(options);
       rzp.open();
     } catch (err) {
