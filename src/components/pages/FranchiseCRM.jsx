@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Box, Tabs, Tab, Card, CircularProgress } from "@mui/material";
+import { Box, Tabs, Tab, Card, CircularProgress, Alert, Chip } from "@mui/material";
 import { adminAPI, franchiseAPI } from "../../services/api";
 import FranchiseInfoTab from "../admin/Franchisecrm/FranchiseInfoTab";
 import FranchiseBusinessTab from "../admin/Franchisecrm/FranchiseBusinessTab";
@@ -90,6 +90,14 @@ const FranchiseTabs = () => {
           Back
         </Button>
       </Box>
+      {franchiseInfo?.isDeleted && (
+        <Box mb={2}>
+          <Alert severity="error">
+            This franchise user is deleted. Data below is preserved and
+            read-only. <Chip label="User Deleted" color="error" size="small" sx={{ ml: 1 }} />
+          </Alert>
+        </Box>
+      )}
       <Tabs
         value={tab}
         onChange={(e, newValue) => setTab(newValue)}

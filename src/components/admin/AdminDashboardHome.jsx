@@ -119,6 +119,11 @@ const AdminDashboardHome = () => {
     totalRevenue: 0,
     franchisePackageRevenue: 0,
     customerPackageRevenue: 0,
+    // Add these four fields
+    currentMonthRevenue: 0,
+    currentYearRevenue: 0,
+    monthlyRevenue: [],
+    yearlyRevenue: [],
   });
 
   const [visitorStats, setVisitorStats] = useState({
@@ -728,6 +733,209 @@ const AdminDashboardHome = () => {
             </StatCard>
           </Box>
         ))}
+      </Box>
+
+      {/* Monthly and Yearly Revenue Section */}
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h5" sx={{ fontWeight: 700, mb: 3 }}>
+          Revenue Overview
+        </Typography>
+
+        {/* Revenue Summary Cards */}
+        <Grid container spacing={3} sx={{ mb: 3 }}>
+          <Grid item xs={12} sm={6} md={4}>
+            <StatCard>
+              <CardContent sx={{ p: 3 }}>
+                <StatIconWrapper color="#6200ea">
+                  <AccountBalanceIcon sx={{ fontSize: 30 }} />
+                </StatIconWrapper>
+
+                <Typography variant="body2" color="text.secondary">
+                  Total Revenue (Lifetime)
+                </Typography>
+
+                <Typography variant="h4" sx={{ fontWeight: 700, mt: 1 }}>
+                  ₹{Number(stats.totalRevenue || 0).toLocaleString("en-IN")}
+                </Typography>
+              </CardContent>
+            </StatCard>
+          </Grid>
+
+          <Grid item xs={12} sm={6} md={4}>
+            <StatCard>
+              <CardContent sx={{ p: 3 }}>
+                <StatIconWrapper color="#03a9f4">
+                  <TrendingUpIcon sx={{ fontSize: 30 }} />
+                </StatIconWrapper>
+
+                <Typography variant="body2" color="text.secondary">
+                  Current Month Revenue
+                </Typography>
+
+                <Typography variant="h4" sx={{ fontWeight: 700, mt: 1 }}>
+                  ₹
+                  {Number(stats.currentMonthRevenue || 0).toLocaleString(
+                    "en-IN",
+                  )}
+                </Typography>
+              </CardContent>
+            </StatCard>
+          </Grid>
+
+          <Grid item xs={12} sm={6} md={4}>
+            <StatCard>
+              <CardContent sx={{ p: 3 }}>
+                <StatIconWrapper color="#4caf50">
+                  <AssessmentIcon sx={{ fontSize: 30 }} />
+                </StatIconWrapper>
+
+                <Typography variant="body2" color="text.secondary">
+                  Current Year Revenue
+                </Typography>
+
+                <Typography variant="h4" sx={{ fontWeight: 700, mt: 1 }}>
+                  ₹
+                  {Number(stats.currentYearRevenue || 0).toLocaleString(
+                    "en-IN",
+                  )}
+                </Typography>
+              </CardContent>
+            </StatCard>
+          </Grid>
+        </Grid>
+
+        {/* Month-wise Revenue Chart */}
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={8}>
+            <Card
+              sx={{
+                height: "100%",
+                borderRadius: 3,
+                border: "1px solid",
+                borderColor: "divider",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+              }}
+            >
+              <CardContent sx={{ p: 3 }}>
+                <Typography variant="h6" sx={{ fontWeight: 600, mb: 3 }}>
+                  Monthly Revenue
+                </Typography>
+
+                {stats.monthlyRevenue?.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={320}>
+                    <BarChart
+                      data={stats.monthlyRevenue.map((item) => ({
+                        month: new Date(
+                          item._id.year,
+                          item._id.month - 1,
+                          1,
+                        ).toLocaleDateString("en-IN", {
+                          month: "short",
+                          year: "numeric",
+                        }),
+                        revenue: item.revenue,
+                      }))}
+                      margin={{ top: 10, right: 10, left: 10, bottom: 10 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+
+                      <XAxis dataKey="month" />
+
+                      <YAxis
+                        tickFormatter={(value) =>
+                          value >= 1000
+                            ? `₹${(value / 1000).toFixed(0)}k`
+                            : `₹${value}`
+                        }
+                      />
+
+                      <Tooltip
+                        formatter={(value) => [
+                          `₹${Number(value).toLocaleString("en-IN")}`,
+                          "Revenue",
+                        ]}
+                      />
+
+                      <Legend />
+
+                      <Bar
+                        dataKey="revenue"
+                        name="Revenue"
+                        fill="#6200ea"
+                        radius={[6, 6, 0, 0]}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <Typography color="text.secondary">
+                    No monthly revenue data available.
+                  </Typography>
+                )}
+              </CardContent>
+            </Card>
+          </Grid>
+
+          {/* Year-wise Revenue Chart */}
+          <Grid item xs={12} md={4}>
+            <Card
+              sx={{
+                height: "100%",
+                borderRadius: 3,
+                border: "1px solid",
+                borderColor: "divider",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+              }}
+            >
+              <CardContent sx={{ p: 3 }}>
+                <Typography variant="h6" sx={{ fontWeight: 600, mb: 3 }}>
+                  Yearly Revenue
+                </Typography>
+
+                {stats.yearlyRevenue?.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={320}>
+                    <BarChart
+                      data={stats.yearlyRevenue.map((item) => ({
+                        year: String(item._id),
+                        revenue: item.revenue,
+                      }))}
+                      margin={{ top: 10, right: 10, left: 0, bottom: 10 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+
+                      <XAxis dataKey="year" />
+
+                      <YAxis
+                        tickFormatter={(value) =>
+                          value >= 1000
+                            ? `₹${(value / 1000).toFixed(0)}k`
+                            : `₹${value}`
+                        }
+                      />
+
+                      <Tooltip
+                        formatter={(value) => [
+                          `₹${Number(value).toLocaleString("en-IN")}`,
+                          "Revenue",
+                        ]}
+                      />
+
+                      <Bar
+                        dataKey="revenue"
+                        name="Revenue"
+                        fill="#4caf50"
+                        radius={[6, 6, 0, 0]}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <Typography color="text.secondary">
+                    No yearly revenue data available.
+                  </Typography>
+                )}
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
       </Box>
 
       <Grid

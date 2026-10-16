@@ -53,8 +53,12 @@ import {
   Delete,
   Info,
   Password,
+  Restore,
+  AddCircle,
+  RemoveCircle,
 } from "@mui/icons-material";
 import { adminAPI } from "../../services/api";
+import CreditAdjustDialog from "./CreditAdjustDialog";
 
 const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPage = false }) => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -73,6 +77,9 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [franchiseToDelete, setFranchiseToDelete] = useState(null);
+  const [creditDialogOpen, setCreditDialogOpen] = useState(false);
+  const [creditFranchise, setCreditFranchise] = useState(null);
+  const [creditMode, setCreditMode] = useState("add");
   const [newFranchise, setNewFranchise] = useState({
     name: "",
     email: "",
@@ -126,9 +133,10 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
   }, [initialKycStatus]);
 
   // Reload data when page, search or bureau filter changes
+  // tabValue 1 = Deleted Franchises tab
   useEffect(() => {
     fetchFranchises();
-  }, [page, kycStatus]);
+  }, [page, kycStatus, tabValue]);
 
   // Fetch all franchises and packages on component mount
   useEffect(() => {
@@ -180,6 +188,8 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
         limit: rowsPerPage,
         search: searchTerm,
         kycStatus: kycStatus !== "all" ? kycStatus : "",
+        // Deleted tab (tabValue 1) shows only soft-deleted franchises
+        showDeleted: tabValue === 1 ? "true" : undefined,
       };
       
       if (!isPendingPage && kycStatus === "all") {
@@ -609,9 +619,9 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
       setError("");
       setSuccess("");
 
-      // Call the delete franchise API endpoint
+      // Call the delete franchise API endpoint (soft-delete, data preserved)
       await adminAPI.deleteFranchise(franchiseToDelete._id);
-      setSuccess("Franchise deleted successfully!");
+      setSuccess("Franchise is deleted");
       setDeleteDialogOpen(false);
       setFranchiseToDelete(null);
 
@@ -625,10 +635,47 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
     }
   };
 
+  // Handle restore franchise
+  const handleRestoreFranchise = async (franchiseId) => {
+    try {
+      setLoading(true);
+      setError("");
+      setSuccess("");
+
+      await adminAPI.restoreFranchise(franchiseId);
+      setSuccess("Franchise restored successfully!");
+
+      // Refresh the franchise list
+      fetchFranchises();
+    } catch (err) {
+      setError("Failed to restore franchise. Please try again.");
+      console.error("Error restoring franchise:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Handle close delete dialog
   const handleCloseDeleteDialog = () => {
     setDeleteDialogOpen(false);
     setFranchiseToDelete(null);
+  };
+
+  // Handle add/deduct funds dialog
+  const handleCreditClick = (franchise, mode) => {
+    setCreditFranchise(franchise);
+    setCreditMode(mode);
+    setCreditDialogOpen(true);
+  };
+
+  const handleCloseCreditDialog = () => {
+    setCreditDialogOpen(false);
+    setCreditFranchise(null);
+  };
+
+  const handleCreditSuccess = (message) => {
+    showSnackbar(message, "success");
+    fetchFranchises();
   };
 
   const handleOpenCreateDialog = (userType = "franchise") => {
@@ -957,9 +1004,11 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
         }}
       >
         <Typography variant="h4">
-          {kycStatus === "pending"
-            ? "Franchise Pending Case"
-            : "Manage Franchises"}
+          {tabValue === 1
+            ? "Deleted Franchises"
+            : kycStatus === "pending"
+              ? "Franchise Pending Case"
+              : "Manage Franchises"}
         </Typography>
 
         <Button
@@ -982,6 +1031,7 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
           variant="fullWidth"
         >
           <Tab label="Franchise List" />
+          <Tab label="Deleted Franchises" />
           <Tab label="Create New Franchise" />
         </Tabs>
       </AppBar>
@@ -1013,7 +1063,7 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
         </Alert>
       </Snackbar>
 
-      {tabValue === 0 && (
+      {(tabValue === 0 || tabValue === 1) && (
         <>
           {error && (
             <Alert severity="error" sx={{ mb: 2 }}>
@@ -1181,6 +1231,16 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
                           </TableCell>
                           <TableCell component="th" scope="row">
                             {franchise.businessName}
+                            {franchise.isDeleted && (
+                              <Box sx={{ mt: 0.5 }}>
+                                <Chip
+                                  label="User Deleted"
+                                  color="error"
+                                  size="small"
+                                  variant="outlined"
+                                />
+                              </Box>
+                            )}
                           </TableCell>
                           <TableCell>{franchise.ownerName}</TableCell>
                           <TableCell
@@ -1289,17 +1349,51 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
                             >
                               <PictureAsPdfIcon />
                             </IconButton>
-                            {/* Delete Button - Show for all franchises */}
-                            <IconButton
-                              size="small"
-                              onClick={() =>
-                                handleDeleteFranchiseClick(franchise)
-                              }
-                              sx={{ color: "error.main" }}
-                              title="Delete Franchise"
-                            >
-                              <Delete />
-                            </IconButton>
+                            {/* Add / Deduct Funds - only for active list, deleted records are read-only */}
+                            {tabValue !== 1 && (
+                              <>
+                                <IconButton
+                                  size="small"
+                                  onClick={() => handleCreditClick(franchise, "add")}
+                                  sx={{ color: "success.main" }}
+                                  title="Add Funds"
+                                >
+                                  <AddCircle />
+                                </IconButton>
+                                <IconButton
+                                  size="small"
+                                  onClick={() => handleCreditClick(franchise, "deduct")}
+                                  sx={{ color: "warning.main" }}
+                                  title="Deduct Funds"
+                                >
+                                  <RemoveCircle />
+                                </IconButton>
+                              </>
+                            )}
+                            {/* Delete / Restore Button */}
+                            {tabValue === 1 ? (
+                              <IconButton
+                                size="small"
+                                onClick={() =>
+                                  handleRestoreFranchise(franchise._id)
+                                }
+                                sx={{ color: "success.main" }}
+                                title="Restore Franchise"
+                              >
+                                <Restore />
+                              </IconButton>
+                            ) : (
+                              <IconButton
+                                size="small"
+                                onClick={() =>
+                                  handleDeleteFranchiseClick(franchise)
+                                }
+                                sx={{ color: "error.main" }}
+                                title="Delete Franchise"
+                              >
+                                <Delete />
+                              </IconButton>
+                            )}
                           </TableCell>
                         </TableRow>
                       ))}
@@ -1338,7 +1432,7 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
         </>
       )}
 
-      {tabValue === 1 && (
+      {tabValue === 2 && (
         <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
           <CardContent>
             <Typography variant="h5" gutterBottom>
@@ -1626,9 +1720,8 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
         <DialogTitle>Confirm Delete</DialogTitle>
         <DialogContent>
           <Typography sx={{ mb: 2 }}>
-            Are you sure you want to delete the franchise{" "}
-            <strong>{franchiseToDelete?.businessName}</strong>? This action
-            cannot be undone and will permanently remove all associated data.
+            <strong>{franchiseToDelete?.businessName}</strong> — Franchise
+            will be deleted.
           </Typography>
         </DialogContent>
         <DialogActions>
@@ -1643,6 +1736,15 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Add / Deduct Funds Dialog */}
+      <CreditAdjustDialog
+        open={creditDialogOpen}
+        onClose={handleCloseCreditDialog}
+        franchise={creditFranchise}
+        mode={creditMode}
+        onSuccess={handleCreditSuccess}
+      />
 
       {/* Create Franchise Dialog */}
       <Dialog
