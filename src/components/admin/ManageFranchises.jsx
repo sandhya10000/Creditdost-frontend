@@ -60,6 +60,37 @@ import {
 import { adminAPI } from "../../services/api";
 import CreditAdjustDialog from "./CreditAdjustDialog";
 
+const DetailItem = ({ label, value }) => (
+  <Grid item xs={12} sm={6}>
+    <Typography variant="caption" color="textSecondary" display="block">
+      {label}
+    </Typography>
+    <Box sx={{ mt: 0.25, wordBreak: "break-word", fontSize: "0.875rem" }}>
+      {value === null || value === undefined || value === "" ? "N/A" : value}
+    </Box>
+  </Grid>
+);
+
+const DetailSection = ({ title, children }) => (
+  <Card
+    variant="outlined"
+    sx={{ mb: 2, boxShadow: 2, borderRadius: 2, bgcolor: "white" }}
+  >
+    <CardContent>
+      <Typography
+        variant="subtitle1"
+        sx={{ color: "primary.main", fontWeight: "bold", mb: 1 }}
+      >
+        {title}
+      </Typography>
+      <Divider sx={{ mb: 2 }} />
+      <Grid container spacing={2}>
+        {children}
+      </Grid>
+    </CardContent>
+  </Card>
+);
+
 const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPage = false }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
@@ -1545,7 +1576,7 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
         </Card>
       )}
 
-      {/* KYC Documents Dialog */}
+      {/* Franchise Details Dialog */}
       <Dialog
         open={kycDialogOpen}
         onClose={handleCloseKycDialog}
@@ -1555,87 +1586,162 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
         <DialogTitle
           sx={{ bgcolor: "primary.main", color: "white", fontWeight: "bold" }}
         >
-          KYC Documents - {selectedFranchise?.businessName}
+          Franchise Details - {selectedFranchise?.businessName}
         </DialogTitle>
         <DialogContent sx={{ bgcolor: "#f5f5f5" }}>
           {kycLoading ? (
             <Box display="flex" justifyContent="center" my={4}>
               <CircularProgress />
             </Box>
-          ) : kycData ? (
+          ) : (
             <Box sx={{ mt: 2 }}>
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
-                  <Typography
-                    variant="h6"
-                    gutterBottom
-                    sx={{ color: "primary.main", fontWeight: "bold" }}
-                  >
-                    Personal Information
-                  </Typography>
-                  <Card
-                    variant="outlined"
-                    sx={{ boxShadow: 3, borderRadius: 2, bgcolor: "white" }}
-                  >
-                    <CardContent>
-                      <Grid container spacing={2}>
-                        <Grid item xs={12} sm={6} style={{ minWidth: "200px" }}>
-                          <Typography variant="body2" color="textSecondary">
-                            <strong>Aadhaar Number:</strong>
-                          </Typography>
-                          <Typography variant="body1" sx={{ mt: 0.5 }}>
-                            {kycData.aadhaarNumber || "N/A"}
-                          </Typography>
+              {(() => {
+                const franchise = selectedFranchise || {};
+                const user =
+                  franchise.userId && typeof franchise.userId === "object"
+                    ? franchise.userId
+                    : {};
+                const kyc = kycData || {};
+                const address = franchise.address || {};
+
+                return (
+                  <>
+                    <DetailSection title="User Details">
+                      <DetailItem label="User Name" value={user.name} />
+                      <DetailItem
+                        label="Owner Name"
+                        value={franchise.ownerName}
+                      />
+                      <DetailItem
+                        label="Email"
+                        value={user.email || franchise.email}
+                      />
+                      <DetailItem
+                        label="Phone"
+                        value={user.phone || franchise.phone}
+                      />
+                      <DetailItem
+                        label="Business Name"
+                        value={franchise.businessName}
+                      />
+                      <DetailItem
+                        label="Franchise ID"
+                        value={franchise.franchiseCode}
+                      />
+                      <DetailItem
+                        label="Created On"
+                        value={formatDate(franchise.createdAt)}
+                      />
+                      <DetailItem
+                        label="Account Status"
+                        value={
+                          franchise.isDeleted
+                            ? "Deleted"
+                            : franchise.isActive
+                              ? "Active"
+                              : "Inactive"
+                        }
+                      />
+                    </DetailSection>
+
+                    <DetailSection title="Business & Address Details">
+                      <DetailItem
+                        label="Business Name"
+                        value={franchise.businessName}
+                      />
+                      <DetailItem
+                        label="Certificate Name"
+                        value={franchise.certificateName}
+                      />
+                      <DetailItem label="Street" value={address.street} />
+                      <DetailItem label="City" value={address.city} />
+                      <DetailItem label="State" value={address.state} />
+                      <DetailItem label="Pincode" value={address.pincode} />
+                      <DetailItem
+                        label="Country"
+                        value={address.country || "India"}
+                      />
+                    </DetailSection>
+
+                    <DetailSection title="KYC Details">
+                      <DetailItem
+                        label="KYC Status"
+                        value={getStatusChip(
+                          kyc.status || franchise.kycStatus || "pending",
+                        )}
+                      />
+                      <DetailItem
+                        label="PAN Number"
+                        value={kyc.panNumber || franchise.panNumber}
+                      />
+                      <DetailItem
+                        label="Aadhaar Number"
+                        value={kyc.aadhaarNumber}
+                      />
+                      <DetailItem
+                        label="Submitted At"
+                        value={formatDate(
+                          kyc.submittedAt || franchise.kycSubmittedAt,
+                        )}
+                      />
+                      <DetailItem
+                        label="Approved At"
+                        value={formatDate(franchise.kycApprovedAt)}
+                      />
+                      {kyc.source === "franchise-profile" && (
+                        <Grid item xs={12}>
+                          <Alert severity="info">
+                            No KYC submission on record for this franchise.
+                            Showing details from the franchise profile instead.
+                          </Alert>
                         </Grid>
-                        <Grid item xs={12} sm={6} style={{ minWidth: "200px" }}>
-                          <Typography variant="body2" color="textSecondary">
-                            <strong>PAN Number:</strong>
+                      )}
+                    </DetailSection>
+
+                    <DetailSection title="Bank Details">
+                      <DetailItem
+                        label="Bank Account Number"
+                        value={franchise.bankAccountNumber}
+                      />
+                      <DetailItem
+                        label="IFSC Code"
+                        value={franchise.bankIfscCode}
+                      />
+                    </DetailSection>
+
+                    <DetailSection title="KYC Documents">
+                      {[
+                        { label: "Aadhaar Front", url: kyc.aadhaarFrontDocument },
+                        { label: "Aadhaar Back", url: kyc.aadhaarBackDocument },
+                        { label: "PAN Card", url: kyc.panDocument },
+                        {
+                          label: "Business Registration",
+                          url: kyc.businessRegistrationDocument,
+                        },
+                      ].map((doc) => (
+                        <Grid item xs={12} sm={6} md={3} key={doc.label}>
+                          <Typography
+                            variant="body2"
+                            color="textSecondary"
+                            sx={{ mb: 0.5 }}
+                          >
+                            <strong>{doc.label}</strong>
                           </Typography>
-                          <Typography variant="body1" sx={{ mt: 0.5 }}>
-                            {kycData.panNumber || "N/A"}
-                          </Typography>
-                        </Grid>
-                        <Grid item xs={12} sm={6} style={{ minWidth: "200px" }}>
-                          <Typography variant="body2" color="textSecondary">
-                            <strong>Submitted At:</strong>
-                          </Typography>
-                          <Typography variant="body1" sx={{ mt: 0.5 }}>
-                            {formatDate(kycData.submittedAt)}
-                          </Typography>
-                        </Grid>
-                        <Grid item xs={12} sm={6}>
-                          <Typography variant="body2" color="textSecondary">
-                            <strong>Status:</strong>
-                          </Typography>
-                          <Box sx={{ mt: 0.5 }}>
-                            {getStatusChip(kycData.status)}
+                          <Box
+                            onClick={() =>
+                              handleViewDocument(doc.url, doc.label)
+                            }
+                            sx={{ cursor: doc.url ? "pointer" : "default" }}
+                          >
+                            {renderDocumentPreview(doc.url, doc.label)}
                           </Box>
                         </Grid>
-                        {kycData.isDigiLockerSubmission ? (
-                          <Grid item xs={12}>
-                            <Alert severity="info" sx={{ mt: 1 }}>
-                              <strong>DigiLocker Submission:</strong> Documents
-                              were fetched directly from DigiLocker. No file
-                              uploads were provided as part of this submission.
-                            </Alert>
-                          </Grid>
-                        ) : (
-                          <Grid item xs={12}>
-                            <Alert severity="info" sx={{ mt: 1 }}>
-                              <strong>Manual Submission:</strong> Documents were
-                              provided as Google Drive links. Please verify the
-                              links are accessible.
-                            </Alert>
-                          </Grid>
-                        )}
-                      </Grid>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              </Grid>
+                      ))}
+                    </DetailSection>
+                  </>
+                );
+              })()}
             </Box>
-          ) : (
-            <Typography>No KYC data available</Typography>
           )}
         </DialogContent>
         <DialogActions sx={{ bgcolor: "#f5f5f5", p: 2 }}>
