@@ -29,6 +29,8 @@ import {
   DialogActions,
 } from "@mui/material";
 import { adminAPI } from "../../services/api";
+import AmcDialog from "./AmcDialog";
+import { formatAmcDate } from "../../utils/amc";
 //import { useNavigate } from "react-router-dom";
 
 const BusinessForms = ({ status = "paid" }) => {
@@ -43,6 +45,7 @@ const BusinessForms = ({ status = "paid" }) => {
   const [toast, setToast] = useState({ open: false, message: "", severity: "success" });
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [businessToDelete, setBusinessToDelete] = useState(null);
+  const [amcEnrollCustomer, setAmcEnrollCustomer] = useState(null);
 
   const handleCloseToast = (event, reason) => {
     if (reason === "clickaway") return;
@@ -172,6 +175,7 @@ const BusinessForms = ({ status = "paid" }) => {
         "Document",
         "Date",
         "Work Status",
+        "AMC",
       ];
 
       const rows = exportData.map((form) => [
@@ -187,6 +191,9 @@ const BusinessForms = ({ status = "paid" }) => {
         Object.values(form.documents || {}).some(Boolean) ? "Yes" : "No",
         formatDate(form.createdAt),
         form.workStatus || "",
+        form.amc?.isEnrolled
+          ? `${formatAmcDate(form.amc.startDate)} to ${formatAmcDate(form.amc.endDate)}`
+          : "No",
       ]);
 
       // Enclose fields in double quotes to handle commas in data
@@ -477,6 +484,25 @@ const BusinessForms = ({ status = "paid" }) => {
                               </FormControl>
                             );
                           })()}
+                          {status === "paid" && form.customerId &&
+                            (form.amc?.isEnrolled ? (
+                              <Chip
+                                label={`AMC till ${formatAmcDate(form.amc.endDate)}`}
+                                color="secondary"
+                                size="small"
+                                component="a"
+                                href="amc-customers"
+                                clickable
+                              />
+                            ) : (
+                              <Button
+                                variant="outlined"
+                                size="small"
+                                onClick={() => setAmcEnrollCustomer(form)}
+                              >
+                                Enroll AMC
+                              </Button>
+                            ))}
                           {status !== "paid" && (
                             <Button
                               variant="contained"
@@ -550,6 +576,18 @@ const BusinessForms = ({ status = "paid" }) => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <AmcDialog
+        open={Boolean(amcEnrollCustomer)}
+        mode="enroll"
+        customer={amcEnrollCustomer}
+        onClose={() => setAmcEnrollCustomer(null)}
+        onSaved={(message) => {
+          setAmcEnrollCustomer(null);
+          setToast({ open: true, message: message || "Customer enrolled in AMC", severity: "success" });
+          fetchBusinessForms();
+        }}
+      />
 
       <Snackbar
         open={toast.open}

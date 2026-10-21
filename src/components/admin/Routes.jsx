@@ -13,6 +13,7 @@ const ManageReferrals = lazy(() => import("./ManageReferrals"));
 const SurepassSettings = lazy(() => import("./SurepassSettings"));
 const RechargeCredits = lazy(() => import("./RechargeCredits"));
 const BusinessForms = lazy(() => import("./BusinessForms"));
+const AmcCustomers = lazy(() => import("./AmcCustomers"));
 const ManageBlogs = lazy(() => import("./ManageBlogs"));
 const ManageRelationshipManagers = lazy(
   () => import("./ManageRelationshipManagers"),
@@ -67,6 +68,7 @@ const AdminRoutes = () => {
             path="business-forms-pending"
             element={<BusinessForms key="pending" status="pending" />}
           />
+          <Route path="amc-customers" element={<AmcCustomers />} />
           <Route path="blogs" element={<ManageBlogs />} />
           <Route path="rms" element={<ManageRelationshipManagers />} />
           <Route path="google-sheets" element={<GoogleSheetsSettings />} />
