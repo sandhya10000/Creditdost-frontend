@@ -612,7 +612,8 @@ const Profile = () => {
                     label="Email Address"
                     fullWidth
                     value={formData.email}
-                    onChange={handleInputChange}
+                    InputProps={{ readOnly: true }}
+                    helperText="This is your login email. Contact admin to change it."
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>

@@ -199,6 +199,10 @@ export const adminAPI = {
     api.put(`/admin/franchises/${id}/reject-registration`, { rejectionReason }),
   deleteFranchise: (id) => api.delete(`/admin/franchises/${id}`),
   restoreFranchise: (id) => api.put(`/admin/franchises/${id}/restore`),
+  resendFranchiseInvite: (id) =>
+    api.post(`/admin/franchises/${id}/resend-invite`),
+  changeFranchiseEmail: (id, data) =>
+    api.put(`/admin/franchises/${id}/email`, data),
   // Credit recharge functions
   getAllFranchisesWithCredits: () => api.get("/admin/franchises/credits"),
   rechargeFranchiseCredits: (data) =>
