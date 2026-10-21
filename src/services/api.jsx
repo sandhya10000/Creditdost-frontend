@@ -89,6 +89,7 @@ export const franchiseAPI = {
   submitBusinessForm: (data) => api.post("/business/submit", data),
   verifyBusinessPayment: (data) => api.post("/business/verify-payment", data),
   getBusinessForms: () => api.get("/business/franchise"),
+  getAmcCustomers: (params) => api.get("/business/franchise/amc", { params }),
 
   // Transactions
   getTransactions: () => api.get("/dashboard/transactions"),
@@ -363,6 +364,12 @@ export const adminAPI = {
     api.put(`/admin/business-forms/${id}/work-status`, data),
   getAllTickets: () => api.get("/admin/support/all-tickets"),
   deleteBusinessForm: (id) => api.delete(`/admin/business-forms/${id}`),
+  // AMC (Annual Maintenance Contract)
+  getAmcCustomers: (params) => api.get("/business/amc", { params }),
+  upsertAmc: (id, data) => api.put(`/admin/business-forms/${id}/amc`, data),
+  renewAmc: (id, data) => api.post(`/admin/business-forms/${id}/amc/renew`, data),
+  cancelAmc: (id, data) =>
+    api.delete(`/admin/business-forms/${id}/amc`, { data }),
 };
 
 // Credit API functions

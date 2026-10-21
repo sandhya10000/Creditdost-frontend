@@ -43,6 +43,7 @@ import CampaignIcon from "@mui/icons-material/Campaign";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
 import AnalyticsIcon from "@mui/icons-material/Analytics";
+import EventRepeatIcon from "@mui/icons-material/EventRepeat";
 import { useAuth } from "../../hooks/useAuth.jsx";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useEffect } from "react";
@@ -298,6 +299,11 @@ const AdminDashboard = () => {
       text: "Business MIS Pending",
       icon: <DescriptionIcon />,
       path: "/admin/business-forms-pending",
+    },
+    {
+      text: "AMC Customers",
+      icon: <EventRepeatIcon />,
+      path: "/admin/amc-customers",
     },
     {
       text: "Support Tickets",
