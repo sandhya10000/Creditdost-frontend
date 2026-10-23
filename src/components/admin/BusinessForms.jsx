@@ -23,8 +23,14 @@ import {
   Select,
   MenuItem,
   FormControl,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import { adminAPI } from "../../services/api";
+import AmcDialog from "./AmcDialog";
+import { formatAmcDate } from "../../utils/amc";
 //import { useNavigate } from "react-router-dom";
 
 const BusinessForms = ({ status = "paid" }) => {
@@ -37,6 +43,9 @@ const BusinessForms = ({ status = "paid" }) => {
   const [page, setPage] = useState(1);
   const rowsPerPage = 20;
   const [toast, setToast] = useState({ open: false, message: "", severity: "success" });
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [businessToDelete, setBusinessToDelete] = useState(null);
+  const [amcEnrollCustomer, setAmcEnrollCustomer] = useState(null);
 
   const handleCloseToast = (event, reason) => {
     if (reason === "clickaway") return;
@@ -166,6 +175,7 @@ const BusinessForms = ({ status = "paid" }) => {
         "Document",
         "Date",
         "Work Status",
+        "AMC",
       ];
 
       const rows = exportData.map((form) => [
@@ -181,6 +191,9 @@ const BusinessForms = ({ status = "paid" }) => {
         Object.values(form.documents || {}).some(Boolean) ? "Yes" : "No",
         formatDate(form.createdAt),
         form.workStatus || "",
+        form.amc?.isEnrolled
+          ? `${formatAmcDate(form.amc.startDate)} to ${formatAmcDate(form.amc.endDate)}`
+          : "No",
       ]);
 
       // Enclose fields in double quotes to handle commas in data
@@ -217,14 +230,34 @@ const BusinessForms = ({ status = "paid" }) => {
   //   return `${API_URL}/${path.replace(/\\/g, "/")}`;
   // };
 
-  const deleteBusinessForm = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this record?")) return;
+  const handleDeleteClick = (form) => {
+    setBusinessToDelete(form);
+    setDeleteDialogOpen(true);
+  };
 
+  const handleCloseDeleteDialog = () => {
+    setDeleteDialogOpen(false);
+    setBusinessToDelete(null);
+  };
+
+  const confirmDeleteBusinessForm = async () => {
+    if (!businessToDelete) return;
     try {
-      await adminAPI.deleteBusinessForm(id);
+      setLoading(true);
+      await adminAPI.deleteBusinessForm(businessToDelete._id);
+      setToast({ open: true, message: "Business deleted successfully", severity: "success" });
+      setDeleteDialogOpen(false);
+      setBusinessToDelete(null);
       fetchBusinessForms();
     } catch (err) {
+      setToast({
+        open: true,
+        message: err.response?.data?.message || "Failed to delete business. Please try again.",
+        severity: "error",
+      });
       console.error(err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -451,12 +484,31 @@ const BusinessForms = ({ status = "paid" }) => {
                               </FormControl>
                             );
                           })()}
+                          {status === "paid" && form.customerId &&
+                            (form.amc?.isEnrolled ? (
+                              <Chip
+                                label={`AMC till ${formatAmcDate(form.amc.endDate)}`}
+                                color="secondary"
+                                size="small"
+                                component="a"
+                                href="amc-customers"
+                                clickable
+                              />
+                            ) : (
+                              <Button
+                                variant="outlined"
+                                size="small"
+                                onClick={() => setAmcEnrollCustomer(form)}
+                              >
+                                Enroll AMC
+                              </Button>
+                            ))}
                           {status !== "paid" && (
                             <Button
                               variant="contained"
                               color="error"
                               size="small"
-                              onClick={() => deleteBusinessForm(form._id)}
+                              onClick={() => handleDeleteClick(form)}
                             >
                               Delete
                             </Button>
@@ -497,6 +549,45 @@ const BusinessForms = ({ status = "paid" }) => {
           )}
         </CardContent>
       </Card>
+
+      {/* Delete Business Confirmation Dialog (pending MIS only) */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={handleCloseDeleteDialog}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Confirm Delete</DialogTitle>
+        <DialogContent>
+          <Typography sx={{ mb: 2 }}>
+            <strong>{businessToDelete?.customerName || "This business"}</strong> — business
+            will be deleted.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDeleteDialog}>Cancel</Button>
+          <Button
+            onClick={confirmDeleteBusinessForm}
+            variant="contained"
+            color="error"
+            disabled={loading}
+          >
+            {loading ? <CircularProgress size={24} /> : "Delete"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <AmcDialog
+        open={Boolean(amcEnrollCustomer)}
+        mode="enroll"
+        customer={amcEnrollCustomer}
+        onClose={() => setAmcEnrollCustomer(null)}
+        onSaved={(message) => {
+          setAmcEnrollCustomer(null);
+          setToast({ open: true, message: message || "Customer enrolled in AMC", severity: "success" });
+          fetchBusinessForms();
+        }}
+      />
 
       <Snackbar
         open={toast.open}

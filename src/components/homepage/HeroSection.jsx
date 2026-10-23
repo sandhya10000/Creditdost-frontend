@@ -521,6 +521,10 @@ const HeroSection = () => {
                   <img
                     src="/images/hero-new.png"
                     alt="Business team collaboration"
+                    fetchpriority="high"
+                    decoding="async"
+                    width="900"
+                    height="700"
                     style={{
                       width: "100%",
                       height: "auto",

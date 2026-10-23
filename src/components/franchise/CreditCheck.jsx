@@ -109,6 +109,12 @@ const CreditCheck = () => {
 
   // IndiConnect CIBIL PDF renders in background — poll until localPath lands
   const pdfPollRef = useRef(null);
+  const checkInFlightRef = useRef(false);
+
+  // Release the in-flight guard whenever the check finishes (saving goes false)
+  useEffect(() => {
+    if (!saving) checkInFlightRef.current = false;
+  }, [saving]);
   useEffect(() => {
     return () => {
       if (pdfPollRef.current) clearInterval(pdfPollRef.current);
@@ -199,6 +205,9 @@ const CreditCheck = () => {
 
   const handleCheckCredit = async (e) => {
     e.preventDefault();
+    // Ref (not state) so a fast double click or Enter press is blocked before re-render
+    if (checkInFlightRef.current) return;
+    checkInFlightRef.current = true;
     setSaving(true);
     setError("");
     setSuccess("");
@@ -246,10 +255,6 @@ const CreditCheck = () => {
       setSaving(false);
       return;
     }
-
-    // Retry mechanism
-    const maxRetries = 2;
-    let retries = 0;
 
     const attemptRequest = async () => {
       try {
@@ -304,7 +309,11 @@ const CreditCheck = () => {
         console.log("Credit report response:", response.data);
         console.log("Credit report data:", response.data.creditReport);
         setRecentReport(response.data.creditReport);
-        setAvailableCredits(response.data.remainingCredits);
+        if (response.data.remainingCredits != null) {
+          setAvailableCredits(response.data.remainingCredits);
+        }
+        // Re-sync the badge from the server so it always matches the database
+        await loadDashboardStats();
 
         // IndiConnect CIBIL: PDF renders in background — poll for localPath
         if (response.data.creditReport?.pdfStatus === "pending") {
@@ -342,35 +351,18 @@ const CreditCheck = () => {
           return;
         }
 
-        // Handle specific error types
+        // Handle specific error types.
+        // Never auto-retry here: the backend may already have charged the
+        // credit, so a retry would charge again. Ask the user to check first.
         if (
           err.response?.data?.error === "TIMEOUT_ERROR" ||
-          err.response?.status === 504
-        ) {
-          if (retries < maxRetries) {
-            retries++;
-            // Wait 2 seconds before retry
-            await new Promise((resolve) => setTimeout(resolve, 2000));
-            return attemptRequest();
-          } else {
-            setError(
-              "Request timeout when connecting to credit bureau after multiple attempts. Please try again later.",
-            );
-          }
-        } else if (
+          err.response?.status === 504 ||
           err.response?.data?.error === "NETWORK_ERROR" ||
           err.response?.status === 502
         ) {
-          if (retries < maxRetries) {
-            retries++;
-            // Wait 2 seconds before retry
-            await new Promise((resolve) => setTimeout(resolve, 2000));
-            return attemptRequest();
-          } else {
-            setError(
-              "Network error when connecting to credit bureau after multiple attempts. Please check your internet connection and try again.",
-            );
-          }
+          setError(
+            "The request is taking longer than expected. Check your reports list before trying again. The report may already have been generated and charged.",
+          );
         } else if (err.response?.data?.message) {
           // Show specific error message from backend
           let errorMessage = err.response.data.message;

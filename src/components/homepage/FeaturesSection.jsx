@@ -383,6 +383,8 @@ const FeaturesSection = () => {
                   className="service-card-image"
                   src={service.image}
                   alt={service.title}
+                  loading="lazy"
+                  decoding="async"
                   style={{
                     width: "100%",
                     height: "245px",

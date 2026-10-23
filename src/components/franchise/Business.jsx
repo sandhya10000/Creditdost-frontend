@@ -32,6 +32,7 @@ import {
 } from "@mui/material";
 import { Check as CheckIcon, Close as CloseIcon } from "@mui/icons-material";
 import api, { franchiseAPI } from "../../services/api";
+import { ensureRazorpay } from "../../utils/razorpay";
 import IconButton from "@mui/material/IconButton";
 //import FileUploadField from "./FileUploadField";
 
@@ -53,6 +54,7 @@ const Business = ({ userType }) => {
     aadharNumber: "",
     pincode: "",
     state: "",
+    city: "",
     language: "",
     occupation: "",
     monthlyIncome: "",
@@ -339,6 +341,11 @@ const Business = ({ userType }) => {
       return;
     }
 
+    const ready = await ensureRazorpay();
+    if (!ready) {
+      setError("Payment gateway failed to load. Please check your connection and retry.");
+      return;
+    }
     const rzp = new window.Razorpay(options);
     rzp.open();
   };
@@ -720,6 +727,23 @@ const Business = ({ userType }) => {
                               ))}
                             </Select>
                           </FormControl>
+                        </Grid>
+
+                        <Grid
+                          item
+                          xs={12}
+                          sm={6}
+                          sx={{ minWidth: { xs: "0px", md: "350px" } }}
+                        >
+                          <TextField
+                            required
+                            fullWidth
+                            label="City"
+                            name="city"
+                            value={formData.city || ""}
+                            onChange={handleInputChange}
+                            placeholder="Enter City"
+                          />
                         </Grid>
                         <Grid
                           item

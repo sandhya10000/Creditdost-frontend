@@ -49,6 +49,7 @@ export const authAPI = {
 
 // Franchise API functions
 export const franchiseAPI = {
+  //Profile get and update
   getProfile: () => api.get("/franchises/profile"),
   updateProfile: (data) => api.put("/franchises/profile", data),
   getKycStatus: () => api.get("/kyc/status"),
@@ -88,6 +89,7 @@ export const franchiseAPI = {
   submitBusinessForm: (data) => api.post("/business/submit", data),
   verifyBusinessPayment: (data) => api.post("/business/verify-payment", data),
   getBusinessForms: () => api.get("/business/franchise"),
+  getAmcCustomers: (params) => api.get("/business/franchise/amc", { params }),
 
   // Transactions
   getTransactions: () => api.get("/dashboard/transactions"),
@@ -197,6 +199,11 @@ export const adminAPI = {
   rejectRegistration: (id, rejectionReason) =>
     api.put(`/admin/franchises/${id}/reject-registration`, { rejectionReason }),
   deleteFranchise: (id) => api.delete(`/admin/franchises/${id}`),
+  restoreFranchise: (id) => api.put(`/admin/franchises/${id}/restore`),
+  resendFranchiseInvite: (id) =>
+    api.post(`/admin/franchises/${id}/resend-invite`),
+  changeFranchiseEmail: (id, data) =>
+    api.put(`/admin/franchises/${id}/email`, data),
   // Credit recharge functions
   getAllFranchisesWithCredits: () => api.get("/admin/franchises/credits"),
   rechargeFranchiseCredits: (data) =>
@@ -270,8 +277,9 @@ export const adminAPI = {
   updateFranchiseCertificateName: (data) =>
     api.put("/admin/franchises/certificate-name", data),
   // Credit Repair Enquiries
-  getCreditRepairEnquiries: (params) => api.get("/admin/credit-repair", { params }),
-  updateCreditRepairEnquiryStatus: (id, status) => 
+  getCreditRepairEnquiries: (params) =>
+    api.get("/admin/credit-repair", { params }),
+  updateCreditRepairEnquiryStatus: (id, status) =>
     api.put(`/admin/credit-repair/${id}/status`, { status }),
   deleteCreditRepairEnquiry: (id) => api.delete(`/admin/credit-repair/${id}`),
   // Blogs
@@ -320,8 +328,7 @@ export const adminAPI = {
   updateMarketingMaterial: (id, formData) =>
     api.put(`/admin/marketing-material/${id}`, formData),
 
-  deleteMarketingMaterial: (id) =>
-    api.delete(`/admin/marketing/${id}`),
+  deleteMarketingMaterial: (id) => api.delete(`/admin/marketing/${id}`),
   //admin case study post api
   createCaseStudy: (formData) => api.post("/admin/case-studies", formData),
   updateCaseStudy: (editingId, formData) =>
@@ -357,6 +364,12 @@ export const adminAPI = {
     api.put(`/admin/business-forms/${id}/work-status`, data),
   getAllTickets: () => api.get("/admin/support/all-tickets"),
   deleteBusinessForm: (id) => api.delete(`/admin/business-forms/${id}`),
+  // AMC (Annual Maintenance Contract)
+  getAmcCustomers: (params) => api.get("/business/amc", { params }),
+  upsertAmc: (id, data) => api.put(`/admin/business-forms/${id}/amc`, data),
+  renewAmc: (id, data) => api.post(`/admin/business-forms/${id}/amc/renew`, data),
+  cancelAmc: (id, data) =>
+    api.delete(`/admin/business-forms/${id}/amc`, { data }),
 };
 
 // Credit API functions

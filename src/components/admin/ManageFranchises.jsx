@@ -53,8 +53,45 @@ import {
   Delete,
   Info,
   Password,
+  Restore,
+  AddCircle,
+  RemoveCircle,
+  Send,
+  AlternateEmail,
 } from "@mui/icons-material";
 import { adminAPI } from "../../services/api";
+import CreditAdjustDialog from "./CreditAdjustDialog";
+
+const DetailItem = ({ label, value }) => (
+  <Grid item xs={12} sm={6}>
+    <Typography variant="caption" color="textSecondary" display="block">
+      {label}
+    </Typography>
+    <Box sx={{ mt: 0.25, wordBreak: "break-word", fontSize: "0.875rem" }}>
+      {value === null || value === undefined || value === "" ? "N/A" : value}
+    </Box>
+  </Grid>
+);
+
+const DetailSection = ({ title, children }) => (
+  <Card
+    variant="outlined"
+    sx={{ mb: 2, boxShadow: 2, borderRadius: 2, bgcolor: "white" }}
+  >
+    <CardContent>
+      <Typography
+        variant="subtitle1"
+        sx={{ color: "primary.main", fontWeight: "bold", mb: 1 }}
+      >
+        {title}
+      </Typography>
+      <Divider sx={{ mb: 2 }} />
+      <Grid container spacing={2}>
+        {children}
+      </Grid>
+    </CardContent>
+  </Card>
+);
 
 const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPage = false }) => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -73,6 +110,18 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [franchiseToDelete, setFranchiseToDelete] = useState(null);
+  const [creditDialogOpen, setCreditDialogOpen] = useState(false);
+  const [creditFranchise, setCreditFranchise] = useState(null);
+  const [creditMode, setCreditMode] = useState("add");
+  // Resend invite / change email
+  const [resendTarget, setResendTarget] = useState(null);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [emailChangeTarget, setEmailChangeTarget] = useState(null);
+  const [newEmail, setNewEmail] = useState("");
+  const [sendCredentialsOnEmailChange, setSendCredentialsOnEmailChange] =
+    useState(true);
+  const [emailChangeLoading, setEmailChangeLoading] = useState(false);
+  const [emailChangeError, setEmailChangeError] = useState("");
   const [newFranchise, setNewFranchise] = useState({
     name: "",
     email: "",
@@ -126,9 +175,10 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
   }, [initialKycStatus]);
 
   // Reload data when page, search or bureau filter changes
+  // tabValue 1 = Deleted Franchises tab
   useEffect(() => {
     fetchFranchises();
-  }, [page, kycStatus]);
+  }, [page, kycStatus, tabValue]);
 
   // Fetch all franchises and packages on component mount
   useEffect(() => {
@@ -180,6 +230,8 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
         limit: rowsPerPage,
         search: searchTerm,
         kycStatus: kycStatus !== "all" ? kycStatus : "",
+        // Deleted tab (tabValue 1) shows only soft-deleted franchises
+        showDeleted: tabValue === 1 ? "true" : undefined,
       };
       
       if (!isPendingPage && kycStatus === "all") {
@@ -609,9 +661,9 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
       setError("");
       setSuccess("");
 
-      // Call the delete franchise API endpoint
+      // Call the delete franchise API endpoint (soft-delete, data preserved)
       await adminAPI.deleteFranchise(franchiseToDelete._id);
-      setSuccess("Franchise deleted successfully!");
+      setSuccess("Franchise is deleted");
       setDeleteDialogOpen(false);
       setFranchiseToDelete(null);
 
@@ -625,10 +677,47 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
     }
   };
 
+  // Handle restore franchise
+  const handleRestoreFranchise = async (franchiseId) => {
+    try {
+      setLoading(true);
+      setError("");
+      setSuccess("");
+
+      await adminAPI.restoreFranchise(franchiseId);
+      setSuccess("Franchise restored successfully!");
+
+      // Refresh the franchise list
+      fetchFranchises();
+    } catch (err) {
+      setError("Failed to restore franchise. Please try again.");
+      console.error("Error restoring franchise:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Handle close delete dialog
   const handleCloseDeleteDialog = () => {
     setDeleteDialogOpen(false);
     setFranchiseToDelete(null);
+  };
+
+  // Handle add/deduct funds dialog
+  const handleCreditClick = (franchise, mode) => {
+    setCreditFranchise(franchise);
+    setCreditMode(mode);
+    setCreditDialogOpen(true);
+  };
+
+  const handleCloseCreditDialog = () => {
+    setCreditDialogOpen(false);
+    setCreditFranchise(null);
+  };
+
+  const handleCreditSuccess = (message) => {
+    showSnackbar(message, "success");
+    fetchFranchises();
   };
 
   const handleOpenCreateDialog = (userType = "franchise") => {
@@ -904,6 +993,85 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
       severity,
     });
   };
+
+  // Resend invite / change email are only for live franchise partner accounts
+  const isFranchisePartnerRow = (franchise) =>
+    tabValue !== 1 &&
+    !franchise.isDeleted &&
+    franchise.userId &&
+    typeof franchise.userId === "object" &&
+    !franchise.userId.isDeleted &&
+    (franchise.userId.subRole || "franchise") === "franchise";
+
+  const handleResendInvite = async () => {
+    if (!resendTarget) return;
+    setResendLoading(true);
+    try {
+      const response = await adminAPI.resendFranchiseInvite(resendTarget._id);
+      showSnackbar(response.data.message || "Credentials sent", "success");
+      setResendTarget(null);
+      fetchFranchises();
+    } catch (err) {
+      showSnackbar(
+        err.response?.data?.message || "Failed to resend credentials",
+        "error",
+      );
+    } finally {
+      setResendLoading(false);
+    }
+  };
+
+  const handleChangeEmailClick = (franchise) => {
+    setEmailChangeTarget(franchise);
+    setNewEmail("");
+    setSendCredentialsOnEmailChange(true);
+    setEmailChangeError("");
+  };
+
+  const handleCloseChangeEmail = () => {
+    if (emailChangeLoading) return;
+    setEmailChangeTarget(null);
+    setEmailChangeError("");
+  };
+
+  const handleChangeEmail = async () => {
+    if (!emailChangeTarget) return;
+    const trimmed = newEmail.trim().toLowerCase();
+    const currentEmail = (
+      emailChangeTarget.userId?.email ||
+      emailChangeTarget.email ||
+      ""
+    ).toLowerCase();
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      setEmailChangeError("Please enter a valid email address");
+      return;
+    }
+    if (trimmed === currentEmail) {
+      setEmailChangeError("New email is the same as the current email");
+      return;
+    }
+
+    setEmailChangeLoading(true);
+    setEmailChangeError("");
+    try {
+      const response = await adminAPI.changeFranchiseEmail(
+        emailChangeTarget._id,
+        { newEmail: trimmed, sendCredentials: sendCredentialsOnEmailChange },
+      );
+      const { warning, message } = response.data;
+      showSnackbar(warning || message, warning ? "warning" : "success");
+      setEmailChangeTarget(null);
+      fetchFranchises();
+    } catch (err) {
+      setEmailChangeError(
+        err.response?.data?.message || "Failed to change email",
+      );
+    } finally {
+      setEmailChangeLoading(false);
+    }
+  };
+
   const handleDownloadCSV = async () => {
     try {
       setCsvExporting(true);
@@ -957,9 +1125,11 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
         }}
       >
         <Typography variant="h4">
-          {kycStatus === "pending"
-            ? "Franchise Pending Case"
-            : "Manage Franchises"}
+          {tabValue === 1
+            ? "Deleted Franchises"
+            : kycStatus === "pending"
+              ? "Franchise Pending Case"
+              : "Manage Franchises"}
         </Typography>
 
         <Button
@@ -982,6 +1152,7 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
           variant="fullWidth"
         >
           <Tab label="Franchise List" />
+          <Tab label="Deleted Franchises" />
           <Tab label="Create New Franchise" />
         </Tabs>
       </AppBar>
@@ -1013,7 +1184,7 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
         </Alert>
       </Snackbar>
 
-      {tabValue === 0 && (
+      {(tabValue === 0 || tabValue === 1) && (
         <>
           {error && (
             <Alert severity="error" sx={{ mb: 2 }}>
@@ -1181,6 +1352,16 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
                           </TableCell>
                           <TableCell component="th" scope="row">
                             {franchise.businessName}
+                            {franchise.isDeleted && (
+                              <Box sx={{ mt: 0.5 }}>
+                                <Chip
+                                  label="User Deleted"
+                                  color="error"
+                                  size="small"
+                                  variant="outlined"
+                                />
+                              </Box>
+                            )}
                           </TableCell>
                           <TableCell>{franchise.ownerName}</TableCell>
                           <TableCell
@@ -1190,6 +1371,41 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
                             }}
                           >
                             {franchise.email}
+                            {isFranchisePartnerRow(franchise) && (
+                              <Box sx={{ mt: 0.5 }}>
+                                {franchise.userId.lastLoginAt ? (
+                                  <Typography
+                                    variant="caption"
+                                    color="success.main"
+                                    display="block"
+                                  >
+                                    Last login:{" "}
+                                    {formatDate(franchise.userId.lastLoginAt)}
+                                  </Typography>
+                                ) : (
+                                  <Typography
+                                    variant="caption"
+                                    color="warning.main"
+                                    display="block"
+                                  >
+                                    Never logged in
+                                  </Typography>
+                                )}
+                                {franchise.userId.credentialsSentAt && (
+                                  <Typography
+                                    variant="caption"
+                                    color="textSecondary"
+                                    display="block"
+                                  >
+                                    Invite sent:{" "}
+                                    {formatDate(
+                                      franchise.userId.credentialsSentAt,
+                                    )}{" "}
+                                    (×{franchise.userId.credentialsSentCount || 1})
+                                  </Typography>
+                                )}
+                              </Box>
+                            )}
                           </TableCell>
                           <TableCell>{franchise.phone}</TableCell>
                           <TableCell>
@@ -1289,17 +1505,78 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
                             >
                               <PictureAsPdfIcon />
                             </IconButton>
-                            {/* Delete Button - Show for all franchises */}
-                            <IconButton
-                              size="small"
-                              onClick={() =>
-                                handleDeleteFranchiseClick(franchise)
-                              }
-                              sx={{ color: "error.main" }}
-                              title="Delete Franchise"
-                            >
-                              <Delete />
-                            </IconButton>
+                            {/* Resend Invite / Change Email - franchise partners only */}
+                            {isFranchisePartnerRow(franchise) && (
+                              <>
+                                {franchise.isActive && (
+                                  <IconButton
+                                    size="small"
+                                    onClick={() =>
+                                      setResendTarget(franchise)
+                                    }
+                                    sx={{ color: "info.main" }}
+                                    title="Resend invite / credentials"
+                                  >
+                                    <Send />
+                                  </IconButton>
+                                )}
+                                <IconButton
+                                  size="small"
+                                  onClick={() =>
+                                    handleChangeEmailClick(franchise)
+                                  }
+                                  sx={{ color: "secondary.main" }}
+                                  title="Change email"
+                                >
+                                  <AlternateEmail />
+                                </IconButton>
+                              </>
+                            )}
+                            {/* Add / Deduct Funds - only for active list, deleted records are read-only */}
+                            {tabValue !== 1 && (
+                              <>
+                                <IconButton
+                                  size="small"
+                                  onClick={() => handleCreditClick(franchise, "add")}
+                                  sx={{ color: "success.main" }}
+                                  title="Add Funds"
+                                >
+                                  <AddCircle />
+                                </IconButton>
+                                <IconButton
+                                  size="small"
+                                  onClick={() => handleCreditClick(franchise, "deduct")}
+                                  sx={{ color: "warning.main" }}
+                                  title="Deduct Funds"
+                                >
+                                  <RemoveCircle />
+                                </IconButton>
+                              </>
+                            )}
+                            {/* Delete / Restore Button */}
+                            {tabValue === 1 ? (
+                              <IconButton
+                                size="small"
+                                onClick={() =>
+                                  handleRestoreFranchise(franchise._id)
+                                }
+                                sx={{ color: "success.main" }}
+                                title="Restore Franchise"
+                              >
+                                <Restore />
+                              </IconButton>
+                            ) : (
+                              <IconButton
+                                size="small"
+                                onClick={() =>
+                                  handleDeleteFranchiseClick(franchise)
+                                }
+                                sx={{ color: "error.main" }}
+                                title="Delete Franchise"
+                              >
+                                <Delete />
+                              </IconButton>
+                            )}
                           </TableCell>
                         </TableRow>
                       ))}
@@ -1338,7 +1615,7 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
         </>
       )}
 
-      {tabValue === 1 && (
+      {tabValue === 2 && (
         <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
           <CardContent>
             <Typography variant="h5" gutterBottom>
@@ -1451,7 +1728,7 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
         </Card>
       )}
 
-      {/* KYC Documents Dialog */}
+      {/* Franchise Details Dialog */}
       <Dialog
         open={kycDialogOpen}
         onClose={handleCloseKycDialog}
@@ -1461,87 +1738,162 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
         <DialogTitle
           sx={{ bgcolor: "primary.main", color: "white", fontWeight: "bold" }}
         >
-          KYC Documents - {selectedFranchise?.businessName}
+          Franchise Details - {selectedFranchise?.businessName}
         </DialogTitle>
         <DialogContent sx={{ bgcolor: "#f5f5f5" }}>
           {kycLoading ? (
             <Box display="flex" justifyContent="center" my={4}>
               <CircularProgress />
             </Box>
-          ) : kycData ? (
+          ) : (
             <Box sx={{ mt: 2 }}>
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
-                  <Typography
-                    variant="h6"
-                    gutterBottom
-                    sx={{ color: "primary.main", fontWeight: "bold" }}
-                  >
-                    Personal Information
-                  </Typography>
-                  <Card
-                    variant="outlined"
-                    sx={{ boxShadow: 3, borderRadius: 2, bgcolor: "white" }}
-                  >
-                    <CardContent>
-                      <Grid container spacing={2}>
-                        <Grid item xs={12} sm={6} style={{ minWidth: "200px" }}>
-                          <Typography variant="body2" color="textSecondary">
-                            <strong>Aadhaar Number:</strong>
-                          </Typography>
-                          <Typography variant="body1" sx={{ mt: 0.5 }}>
-                            {kycData.aadhaarNumber || "N/A"}
-                          </Typography>
+              {(() => {
+                const franchise = selectedFranchise || {};
+                const user =
+                  franchise.userId && typeof franchise.userId === "object"
+                    ? franchise.userId
+                    : {};
+                const kyc = kycData || {};
+                const address = franchise.address || {};
+
+                return (
+                  <>
+                    <DetailSection title="User Details">
+                      <DetailItem label="User Name" value={user.name} />
+                      <DetailItem
+                        label="Owner Name"
+                        value={franchise.ownerName}
+                      />
+                      <DetailItem
+                        label="Email"
+                        value={user.email || franchise.email}
+                      />
+                      <DetailItem
+                        label="Phone"
+                        value={user.phone || franchise.phone}
+                      />
+                      <DetailItem
+                        label="Business Name"
+                        value={franchise.businessName}
+                      />
+                      <DetailItem
+                        label="Franchise ID"
+                        value={franchise.franchiseCode}
+                      />
+                      <DetailItem
+                        label="Created On"
+                        value={formatDate(franchise.createdAt)}
+                      />
+                      <DetailItem
+                        label="Account Status"
+                        value={
+                          franchise.isDeleted
+                            ? "Deleted"
+                            : franchise.isActive
+                              ? "Active"
+                              : "Inactive"
+                        }
+                      />
+                    </DetailSection>
+
+                    <DetailSection title="Business & Address Details">
+                      <DetailItem
+                        label="Business Name"
+                        value={franchise.businessName}
+                      />
+                      <DetailItem
+                        label="Certificate Name"
+                        value={franchise.certificateName}
+                      />
+                      <DetailItem label="Street" value={address.street} />
+                      <DetailItem label="City" value={address.city} />
+                      <DetailItem label="State" value={address.state} />
+                      <DetailItem label="Pincode" value={address.pincode} />
+                      <DetailItem
+                        label="Country"
+                        value={address.country || "India"}
+                      />
+                    </DetailSection>
+
+                    <DetailSection title="KYC Details">
+                      <DetailItem
+                        label="KYC Status"
+                        value={getStatusChip(
+                          kyc.status || franchise.kycStatus || "pending",
+                        )}
+                      />
+                      <DetailItem
+                        label="PAN Number"
+                        value={kyc.panNumber || franchise.panNumber}
+                      />
+                      <DetailItem
+                        label="Aadhaar Number"
+                        value={kyc.aadhaarNumber}
+                      />
+                      <DetailItem
+                        label="Submitted At"
+                        value={formatDate(
+                          kyc.submittedAt || franchise.kycSubmittedAt,
+                        )}
+                      />
+                      <DetailItem
+                        label="Approved At"
+                        value={formatDate(franchise.kycApprovedAt)}
+                      />
+                      {kyc.source === "franchise-profile" && (
+                        <Grid item xs={12}>
+                          <Alert severity="info">
+                            No KYC submission on record for this franchise.
+                            Showing details from the franchise profile instead.
+                          </Alert>
                         </Grid>
-                        <Grid item xs={12} sm={6} style={{ minWidth: "200px" }}>
-                          <Typography variant="body2" color="textSecondary">
-                            <strong>PAN Number:</strong>
+                      )}
+                    </DetailSection>
+
+                    <DetailSection title="Bank Details">
+                      <DetailItem
+                        label="Bank Account Number"
+                        value={franchise.bankAccountNumber}
+                      />
+                      <DetailItem
+                        label="IFSC Code"
+                        value={franchise.bankIfscCode}
+                      />
+                    </DetailSection>
+
+                    <DetailSection title="KYC Documents">
+                      {[
+                        { label: "Aadhaar Front", url: kyc.aadhaarFrontDocument },
+                        { label: "Aadhaar Back", url: kyc.aadhaarBackDocument },
+                        { label: "PAN Card", url: kyc.panDocument },
+                        {
+                          label: "Business Registration",
+                          url: kyc.businessRegistrationDocument,
+                        },
+                      ].map((doc) => (
+                        <Grid item xs={12} sm={6} md={3} key={doc.label}>
+                          <Typography
+                            variant="body2"
+                            color="textSecondary"
+                            sx={{ mb: 0.5 }}
+                          >
+                            <strong>{doc.label}</strong>
                           </Typography>
-                          <Typography variant="body1" sx={{ mt: 0.5 }}>
-                            {kycData.panNumber || "N/A"}
-                          </Typography>
-                        </Grid>
-                        <Grid item xs={12} sm={6} style={{ minWidth: "200px" }}>
-                          <Typography variant="body2" color="textSecondary">
-                            <strong>Submitted At:</strong>
-                          </Typography>
-                          <Typography variant="body1" sx={{ mt: 0.5 }}>
-                            {formatDate(kycData.submittedAt)}
-                          </Typography>
-                        </Grid>
-                        <Grid item xs={12} sm={6}>
-                          <Typography variant="body2" color="textSecondary">
-                            <strong>Status:</strong>
-                          </Typography>
-                          <Box sx={{ mt: 0.5 }}>
-                            {getStatusChip(kycData.status)}
+                          <Box
+                            onClick={() =>
+                              handleViewDocument(doc.url, doc.label)
+                            }
+                            sx={{ cursor: doc.url ? "pointer" : "default" }}
+                          >
+                            {renderDocumentPreview(doc.url, doc.label)}
                           </Box>
                         </Grid>
-                        {kycData.isDigiLockerSubmission ? (
-                          <Grid item xs={12}>
-                            <Alert severity="info" sx={{ mt: 1 }}>
-                              <strong>DigiLocker Submission:</strong> Documents
-                              were fetched directly from DigiLocker. No file
-                              uploads were provided as part of this submission.
-                            </Alert>
-                          </Grid>
-                        ) : (
-                          <Grid item xs={12}>
-                            <Alert severity="info" sx={{ mt: 1 }}>
-                              <strong>Manual Submission:</strong> Documents were
-                              provided as Google Drive links. Please verify the
-                              links are accessible.
-                            </Alert>
-                          </Grid>
-                        )}
-                      </Grid>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              </Grid>
+                      ))}
+                    </DetailSection>
+                  </>
+                );
+              })()}
             </Box>
-          ) : (
-            <Typography>No KYC data available</Typography>
           )}
         </DialogContent>
         <DialogActions sx={{ bgcolor: "#f5f5f5", p: 2 }}>
@@ -1626,9 +1978,8 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
         <DialogTitle>Confirm Delete</DialogTitle>
         <DialogContent>
           <Typography sx={{ mb: 2 }}>
-            Are you sure you want to delete the franchise{" "}
-            <strong>{franchiseToDelete?.businessName}</strong>? This action
-            cannot be undone and will permanently remove all associated data.
+            <strong>{franchiseToDelete?.businessName}</strong> — Franchise
+            will be deleted.
           </Typography>
         </DialogContent>
         <DialogActions>
@@ -1643,6 +1994,15 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Add / Deduct Funds Dialog */}
+      <CreditAdjustDialog
+        open={creditDialogOpen}
+        onClose={handleCloseCreditDialog}
+        franchise={creditFranchise}
+        mode={creditMode}
+        onSuccess={handleCreditSuccess}
+      />
 
       {/* Create Franchise Dialog */}
       <Dialog
@@ -1796,8 +2156,9 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
                   name="email"
                   type="email"
                   value={editFranchiseData.email || ""}
-                  onChange={handleEditFranchiseChange}
                   margin="normal"
+                  InputProps={{ readOnly: true }}
+                  helperText="Use the 'Change email' action in the list to update the login email"
                 />
               </Grid>
 
@@ -2763,6 +3124,127 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
             disabled={loading || !certificateName.trim()}
           >
             {loading ? <CircularProgress size={24} /> : "Update Name"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Resend Invite Dialog */}
+      <Dialog
+        open={Boolean(resendTarget)}
+        onClose={() => !resendLoading && setResendTarget(null)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Resend Invite / Credentials</DialogTitle>
+        <DialogContent>
+          <Typography sx={{ mt: 1 }}>
+            Send new login credentials to{" "}
+            <strong>{resendTarget?.userId?.email || resendTarget?.email}</strong>?
+          </Typography>
+          <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
+            A new password will be generated and emailed. If the email cannot
+            be sent, the current password stays unchanged.
+          </Typography>
+          {resendTarget?.userId?.lastLoginAt && (
+            <Alert severity="warning" sx={{ mt: 2 }}>
+              This partner has already logged in (last login{" "}
+              {formatDate(resendTarget.userId.lastLoginAt)}). Their current
+              password will stop working.
+            </Alert>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setResendTarget(null)}
+            disabled={resendLoading}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleResendInvite}
+            disabled={resendLoading}
+            startIcon={
+              resendLoading ? <CircularProgress size={18} /> : <Send />
+            }
+          >
+            {resendLoading ? "Sending..." : "Send Credentials"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Change Email Dialog */}
+      <Dialog
+        open={Boolean(emailChangeTarget)}
+        onClose={handleCloseChangeEmail}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Change Franchise Email</DialogTitle>
+        <DialogContent>
+          <TextField
+            fullWidth
+            label="Current Email"
+            value={emailChangeTarget?.userId?.email || emailChangeTarget?.email || ""}
+            margin="normal"
+            InputProps={{ readOnly: true }}
+          />
+          <TextField
+            fullWidth
+            autoFocus
+            label="New Email"
+            type="email"
+            value={newEmail}
+            onChange={(e) => {
+              setNewEmail(e.target.value);
+              setEmailChangeError("");
+            }}
+            margin="normal"
+            error={Boolean(emailChangeError)}
+            helperText={
+              emailChangeError ||
+              "This becomes the partner's login email as well"
+            }
+            disabled={emailChangeLoading}
+          />
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={sendCredentialsOnEmailChange}
+                onChange={(e) =>
+                  setSendCredentialsOnEmailChange(e.target.checked)
+                }
+                disabled={emailChangeLoading}
+              />
+            }
+            label="Send new login credentials to the new email"
+          />
+          {!sendCredentialsOnEmailChange && (
+            <Alert severity="info" sx={{ mt: 1 }}>
+              The password will stay the same. Inform the partner that they
+              must log in with the new email.
+            </Alert>
+          )}
+          {sendCredentialsOnEmailChange && emailChangeTarget && !emailChangeTarget.isActive && (
+            <Alert severity="warning" sx={{ mt: 1 }}>
+              This franchise is inactive, so credentials will not be sent
+              until it is activated.
+            </Alert>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseChangeEmail} disabled={emailChangeLoading}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleChangeEmail}
+            disabled={emailChangeLoading || !newEmail.trim()}
+            startIcon={
+              emailChangeLoading ? <CircularProgress size={18} /> : <AlternateEmail />
+            }
+          >
+            {emailChangeLoading ? "Saving..." : "Change Email"}
           </Button>
         </DialogActions>
       </Dialog>

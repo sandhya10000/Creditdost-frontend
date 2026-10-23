@@ -22,7 +22,9 @@ const BureauTab = ({
 }) => {
   const fullName = customerBureau?.customerName || "";
   const pan = customerBureau?.panNumber || "";
-  const [cibilApiType, setCibilApiType] = useState("ongrid");
+  const [cibilApiType, setCibilApiType] = useState("indiconnect");
+  const [crifApiType, setCrifApiType] = useState("indiconnect");
+  const [experianApiType, setExperianApiType] = useState("indiconnect");
   const [expPincode, setExpPincode] = useState("");
   const [bureauData, setBureauData] = useState({
     cibil: {
@@ -100,8 +102,13 @@ const BureauTab = ({
       pan: customer?.panNumber,
       mobile: customer?.customerPhone,
       bureau,
-      cibilApiType: bureau !== "cibil" ? "surepass" : cibilApiType,
-      ...(bureau === "experian" && expPincode
+      cibilApiType,
+      crifApiType,
+      experianApiType,
+      ...(dob ? { dob } : {}),
+      ...(bureau === "experian" &&
+      experianApiType === "indiconnect" &&
+      expPincode
         ? { pincode: expPincode }
         : {}),
     };
@@ -116,12 +123,18 @@ const BureauTab = ({
       const payload = getPayload(bureau);
       const response = await adminAPI.checkCreditV2(payload);
       const responseData = response.data;
+      // V2 nests the report under creditReport (top-level score/reportUrl
+      // are not returned) — map defensively for all providers.
+      const cr = responseData.creditReport || {};
       const reportData = {
         pan,
         bureau: bureau,
-        score: responseData.score,
-        reportUrl: responseData.reportUrl,
+        score: cr.score ?? responseData.score,
+        reportUrl: cr.reportUrl || cr.localPath || responseData.reportUrl,
         apiType: responseData.apiType,
+        provider: responseData.provider,
+        pdfStatus: cr.pdfStatus || null,
+        txnId: cr.txnId || null,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -177,11 +190,11 @@ const BureauTab = ({
             />
           </Grid>
 
-          {keyName === "experian" && (
+          {keyName === "experian" && experianApiType === "indiconnect" && (
             <Grid item xs={12} md={4}>
               <TextField
                 fullWidth
-                label="Pincode (required for Experian)"
+                label="Pincode (required for Experian IndiConnect)"
                 value={expPincode}
                 onChange={(e) =>
                   setExpPincode(e.target.value.replace(/\D/g, "").slice(0, 6))
@@ -198,8 +211,42 @@ const BureauTab = ({
                 value={cibilApiType}
                 onChange={(e) => setCibilApiType(e.target.value)}
               >
-                <MenuItem value="ongrid">Ongrid</MenuItem>
+                <MenuItem value="indiconnect">IndiConnect</MenuItem>
 
+                <MenuItem value="digi">Digi</MenuItem>
+
+                <MenuItem value="surepass">Surepass</MenuItem>
+              </TextField>
+            </Grid>
+          )}
+          {(keyName === "crif" || keyName === "experian") && (
+            <Grid item xs={12} md={4}>
+              <TextField
+                select
+                fullWidth
+                label="Select API"
+                value={keyName === "crif" ? crifApiType : experianApiType}
+                onChange={(e) =>
+                  keyName === "crif"
+                    ? setCrifApiType(e.target.value)
+                    : setExperianApiType(e.target.value)
+                }
+              >
+                <MenuItem value="indiconnect">IndiConnect</MenuItem>
+
+                <MenuItem value="surepass">Surepass</MenuItem>
+              </TextField>
+            </Grid>
+          )}
+          {keyName === "equifax" && (
+            <Grid item xs={12} md={4}>
+              <TextField
+                select
+                fullWidth
+                label="Select API"
+                value="surepass"
+                disabled
+              >
                 <MenuItem value="surepass">Surepass</MenuItem>
               </TextField>
             </Grid>

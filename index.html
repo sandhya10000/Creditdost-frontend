@@ -16,17 +16,28 @@
       gtag("config", "G-0RHRSHTHV1");
     </script>
 
-    <!-- Google Tag Manager -->
+    <!-- Google Tag Manager (delayed until browser idle so it doesn't block LCP) -->
     <script>
       (function (w, d, s, l, i) {
-        w[l] = w[l] || [];
-        w[l].push({ "gtm.start": new Date().getTime(), event: "gtm.js" });
-        var f = d.getElementsByTagName(s)[0],
-          j = d.createElement(s),
-          dl = l != "dataLayer" ? "&l=" + l : "";
-        j.async = true;
-        j.src = "https://www.googletagmanager.com/gtm.js?id=" + i + dl;
-        f.parentNode.insertBefore(j, f);
+        function loadGTM() {
+          if (w.__gtmLoaded) return;
+          w.__gtmLoaded = true;
+          w[l] = w[l] || [];
+          w[l].push({ "gtm.start": new Date().getTime(), event: "gtm.js" });
+          var f = d.getElementsByTagName(s)[0],
+            j = d.createElement(s),
+            dl = l != "dataLayer" ? "&l=" + l : "";
+          j.async = true;
+          j.src = "https://www.googletagmanager.com/gtm.js?id=" + i + dl;
+          f.parentNode.insertBefore(j, f);
+        }
+        if ("requestIdleCallback" in window) {
+          requestIdleCallback(loadGTM, { timeout: 4000 });
+        } else {
+          window.addEventListener("load", function () {
+            setTimeout(loadGTM, 2500);
+          });
+        }
       })(window, document, "script", "dataLayer", "GTM-WZPQ2M75");
     </script>
     <!-- End Google Tag Manager -->
@@ -38,18 +49,28 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Single combined font request, only weights actually used (400,500,600,700) -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Jost:wght@400;500;600;700&display=swap"
       rel="stylesheet"
+      media="print"
+      onload="this.media='all'"
     />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Jost:ital,wght@0,100..900;1,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
-      rel="stylesheet"
-    />
-    <!-- Razorpay Checkout Script -->
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <!-- Razorpay is only needed on payment pages: lazy-load on demand instead of blocking homepage -->
+    <script>
+      window.loadRazorpay = function (callback) {
+        if (window.Razorpay) {
+          if (callback) callback();
+          return;
+        }
+        var s = document.createElement("script");
+        s.src = "https://checkout.razorpay.com/v1/checkout.js";
+        s.async = true;
+        s.defer = true;
+        if (callback) s.onload = callback;
+        document.body.appendChild(s);
+      };
+    </script>
   </head>
   <body>
     <!-- Google Tag Manager (noscript) -->

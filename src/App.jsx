@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense, lazy } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -12,30 +12,52 @@ import ProtectedRoute from "./components/common/ProtectedRoute";
 import ScrollToTop from "./components/common/ScrollToTop";
 import AnalyticsTracker from "./components/common/AnalyticsTracker";
 import "./App.css";
-// Import components
+// Home is above-the-fold: keep eager so LCP is fast.
+// Everything else is code-split so homepage visitors don't download
+// admin/franchise editors (tinymce/tiptap), charts (recharts), pdf libs, etc.
 import Home from "./components/homepage/HomePage";
-import Login from "./components/auth/Login";
-import Register from "./components/auth/Register";
-import ResetPassword from "./components/auth/ResetPassword";
-import FranchiseRoutes from "./components/franchise/Routes";
-import AdminRoutes from "./components/admin/Routes";
-import PackagesPage from "./components/PackagesPage";
-import AboutPage from "./components/About/AboutPage";
-import BlogsPage from "./components/BlogsPage";
-import BlogDetailPage from "./components/BlogDetailPage";
-import ContactPage from "./components/ContactPage";
-import CreditCheckPage from "./components/CreditCheckPage";
-import EmiCalculatorPage from "./components/EmiCalculatorPage";
-import IfscFinder from "./components/homepage/IfscFinder";
-import CreditScoreRepairPage from "./components/CreditScoreRepairPage";
-import FranchiseOpportunityPage from "./components/FranchiseOpportunityPage";
-import TermsAndConditionsPage from "./components/TermsAndConditionsPage";
-import PrivacyPolicyPage from "./components/PrivacyPolicyPage";
-import DisclaimerPage from "./components/DisclaimerPage";
-import RefundPolicyPage from "./components/RefundPolicyPage";
-import ApplyForLoanPage from "./components/ApplyForLoanPage";
-import SuvidhaCentrePage from "./components/SuvidhaCentrePage";
-import CareersPage from "./components/CareersPage";
+const Login = lazy(() => import("./components/auth/Login"));
+const Register = lazy(() => import("./components/auth/Register"));
+const ResetPassword = lazy(() => import("./components/auth/ResetPassword"));
+const FranchiseRoutes = lazy(() => import("./components/franchise/Routes"));
+const AdminRoutes = lazy(() => import("./components/admin/Routes"));
+const PackagesPage = lazy(() => import("./components/PackagesPage"));
+const AboutPage = lazy(() => import("./components/About/AboutPage"));
+const BlogsPage = lazy(() => import("./components/BlogsPage"));
+const BlogDetailPage = lazy(() => import("./components/BlogDetailPage"));
+const ContactPage = lazy(() => import("./components/ContactPage"));
+const CreditCheckPage = lazy(() => import("./components/CreditCheckPage"));
+const EmiCalculatorPage = lazy(() => import("./components/EmiCalculatorPage"));
+const IfscFinder = lazy(() => import("./components/homepage/IfscFinder"));
+const CreditScoreRepairPage = lazy(
+  () => import("./components/CreditScoreRepairPage"),
+);
+const FranchiseOpportunityPage = lazy(
+  () => import("./components/FranchiseOpportunityPage"),
+);
+const TermsAndConditionsPage = lazy(
+  () => import("./components/TermsAndConditionsPage"),
+);
+const PrivacyPolicyPage = lazy(() => import("./components/PrivacyPolicyPage"));
+const DisclaimerPage = lazy(() => import("./components/DisclaimerPage"));
+const RefundPolicyPage = lazy(() => import("./components/RefundPolicyPage"));
+const ApplyForLoanPage = lazy(() => import("./components/ApplyForLoanPage"));
+const SuvidhaCentrePage = lazy(() => import("./components/SuvidhaCentrePage"));
+const CareersPage = lazy(() => import("./components/CareersPage"));
+
+const RouteFallback = () => (
+  <div
+    style={{
+      minHeight: "60vh",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      color: "#757575",
+    }}
+  >
+    Loading...
+  </div>
+);
 
 // Create enhanced theme
 const theme = createTheme({
@@ -153,6 +175,7 @@ function App() {
         <Router>
           <AnalyticsTracker />
           <ScrollToTop />
+          <Suspense fallback={<RouteFallback />}>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/about" element={<AboutPage />} />
@@ -202,6 +225,7 @@ function App() {
             />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
+          </Suspense>
         </Router>
       </ThemeProvider>
     </AuthProvider>

@@ -37,6 +37,7 @@ import {
   AccountBalance as AccountBalanceIcon,
   GroupAdd as GroupAddIcon,
   Assessment as AssessmentIcon,
+  EventRepeat as EventRepeatIcon,
   Settings as SettingsIcon,
   Notifications as NotificationsIcon,
   Description as DescriptionIcon,
@@ -338,6 +339,11 @@ const FranchiseDashboard = () => {
       text: "Business MIS",
       icon: <AssessmentIcon />,
       path: "/franchise/business-mis",
+    },
+    {
+      text: "AMC Customers",
+      icon: <EventRepeatIcon />,
+      path: "/franchise/amc-customers",
     },
 
     // {
