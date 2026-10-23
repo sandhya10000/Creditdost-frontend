@@ -36,7 +36,30 @@ import { ensureRazorpay } from "../../utils/razorpay";
 import IconButton from "@mui/material/IconButton";
 //import FileUploadField from "./FileUploadField";
 
-const Business = ({ userType }) => {
+const EMPTY_BUSINESS_DETAILS = {
+  directorName: "",
+  gstUsername: "",
+  gstNumber: "",
+  companyType: "",
+  companyPanNumber: "",
+};
+
+const COMPANY_TYPES = [
+  "Proprietorship",
+  "Partnership",
+  "LLP",
+  "Private Limited",
+  "Public Limited",
+  "One Person Company (OPC)",
+  "Other",
+];
+
+const PAN_REGEX = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
+const GSTIN_REGEX = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
+
+// fixedCustomerType ("individual" | "business") locks the form to one customer type
+// and hides the Customer Type dropdown. Omit it to let the user pick.
+const Business = ({ userType, fixedCustomerType }) => {
   // console.log("userType", userType);
   const [customerPackages, setCustomerPackages] = useState([]);
   const [filteredPackages, setFilteredPackages] = useState([]);
@@ -47,6 +70,7 @@ const Business = ({ userType }) => {
     Number(localStorage.getItem("businessFormStep")) || 0,
   ); // For step navigation
   const [formData, setFormData] = useState({
+    customerType: fixedCustomerType || "individual",
     customerName: "",
     customerEmail: "",
     customerPhone: "",
@@ -66,6 +90,10 @@ const Business = ({ userType }) => {
     // ADD THIS
     manualAmount: "",
   });
+  // Required only when customerType is "business"
+  const [businessDetails, setBusinessDetails] = useState(
+    EMPTY_BUSINESS_DETAILS,
+  );
   const [selectedPackage, setSelectedPackage] = useState(null);
   const [razorpayOrderId, setRazorpayOrderId] = useState("");
   const [businessFormId, setBusinessFormId] = useState("");
@@ -205,6 +233,15 @@ const Business = ({ userType }) => {
     // localStorage.setItem("businessFormData", JSON.stringify(updatedFormData));
   };
 
+  const handleBusinessDetailChange = (e) => {
+    const { name, value } = e.target;
+    const upper = name === "gstNumber" || name === "companyPanNumber";
+    setBusinessDetails((prev) => ({
+      ...prev,
+      [name]: upper ? value.toUpperCase() : value,
+    }));
+  };
+
   const handleNext = () => {
     setActiveStep((prevActiveStep) => prevActiveStep + 1);
   };
@@ -239,6 +276,8 @@ const Business = ({ userType }) => {
       const formDataWithPackage = {
         ...formData,
         documents,
+
+        ...(formData.customerType === "business" && { businessDetails }),
 
         ...(userType !== "admin" && {
           selectedPackage: selectedPackage?._id,
@@ -415,6 +454,7 @@ const Business = ({ userType }) => {
 
   const resetForm = () => {
     setFormData({
+      customerType: fixedCustomerType || "individual",
       customerName: "",
       customerEmail: "",
       customerPhone: "",
@@ -431,6 +471,7 @@ const Business = ({ userType }) => {
       bankAccountNumber: "",
       ifscCode: "",
     });
+    setBusinessDetails(EMPTY_BUSINESS_DETAILS);
     setSelectedPackage(null);
   };
 
@@ -527,6 +568,21 @@ const Business = ({ userType }) => {
       setError("Please enter valid Email ID");
       return false;
     }
+    if (formData.customerType === "business") {
+      if (Object.values(businessDetails).some((v) => !v.trim())) {
+        setError("Please enter all the required business details");
+        return false;
+      }
+      if (!GSTIN_REGEX.test(businessDetails.gstNumber)) {
+        setError("Please enter a valid 15-character GST Number");
+        return false;
+      }
+      if (!PAN_REGEX.test(businessDetails.companyPanNumber)) {
+        setError("Please enter a valid Company PAN Number");
+        return false;
+      }
+    }
+    setError("");
     handleNext();
   };
 
@@ -605,6 +661,27 @@ const Business = ({ userType }) => {
                                 />
                               )}
                             />
+                          </Grid>
+                        )}
+                        {!fixedCustomerType && (
+                          <Grid
+                            item
+                            xs={12}
+                            sm={6}
+                            sx={{ minWidth: { xs: "0px", md: "350px" } }}
+                          >
+                            <FormControl fullWidth required>
+                              <InputLabel>Customer Type</InputLabel>
+                              <Select
+                                name="customerType"
+                                value={formData.customerType}
+                                onChange={handleInputChange}
+                                label="Customer Type"
+                              >
+                                <MenuItem value="individual">Individual</MenuItem>
+                                <MenuItem value="business">Business</MenuItem>
+                              </Select>
+                            </FormControl>
                           </Grid>
                         )}
                         <Grid
@@ -924,6 +1001,108 @@ const Business = ({ userType }) => {
                             }}
                           />
                         </Grid>
+
+                        {/* Business customer details */}
+                        {formData.customerType === "business" && (
+                          <>
+                            <Grid item xs={12}>
+                              <Typography
+                                variant="subtitle1"
+                                sx={{ fontWeight: 600, mt: 1 }}
+                              >
+                                Business Details
+                              </Typography>
+                            </Grid>
+                            <Grid
+                              item
+                              xs={12}
+                              sm={6}
+                              sx={{ minWidth: { xs: "0px", md: "350px" } }}
+                            >
+                              <TextField
+                                required
+                                fullWidth
+                                label="Director Name"
+                                name="directorName"
+                                value={businessDetails.directorName}
+                                onChange={handleBusinessDetailChange}
+                              />
+                            </Grid>
+                            <Grid
+                              item
+                              xs={12}
+                              sm={6}
+                              sx={{ minWidth: { xs: "0px", md: "350px" } }}
+                            >
+                              <TextField
+                                required
+                                fullWidth
+                                label="GST Username"
+                                name="gstUsername"
+                                value={businessDetails.gstUsername}
+                                onChange={handleBusinessDetailChange}
+                              />
+                            </Grid>
+                            <Grid
+                              item
+                              xs={12}
+                              sm={6}
+                              sx={{ minWidth: { xs: "0px", md: "350px" } }}
+                            >
+                              <TextField
+                                required
+                                fullWidth
+                                label="GST Number"
+                                name="gstNumber"
+                                value={businessDetails.gstNumber}
+                                onChange={handleBusinessDetailChange}
+                                inputProps={{ maxLength: 15 }}
+                              />
+                            </Grid>
+                            <Grid
+                              item
+                              xs={12}
+                              sm={6}
+                              sx={{ minWidth: { xs: "0px", md: "350px" } }}
+                            >
+                              <FormControl
+                                fullWidth
+                                required
+                                style={{ minWidth: "200px" }}
+                              >
+                                <InputLabel>Company Type</InputLabel>
+                                <Select
+                                  name="companyType"
+                                  value={businessDetails.companyType}
+                                  onChange={handleBusinessDetailChange}
+                                  label="Company Type"
+                                >
+                                  {COMPANY_TYPES.map((type) => (
+                                    <MenuItem key={type} value={type}>
+                                      {type}
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+                              </FormControl>
+                            </Grid>
+                            <Grid
+                              item
+                              xs={12}
+                              sm={6}
+                              sx={{ minWidth: { xs: "0px", md: "350px" } }}
+                            >
+                              <TextField
+                                required
+                                fullWidth
+                                label="Company PAN Number"
+                                name="companyPanNumber"
+                                value={businessDetails.companyPanNumber}
+                                onChange={handleBusinessDetailChange}
+                                inputProps={{ maxLength: 10 }}
+                              />
+                            </Grid>
+                          </>
+                        )}
 
                         <Grid
                           item

@@ -1,6 +1,6 @@
 import React, { Suspense, lazy } from "react";
 
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 
 const Dashboard = lazy(() => import("./Dashboard"));
 const ManageFranchises = lazy(() => import("./ManageFranchises"));
@@ -37,6 +37,12 @@ const FranchisePending = lazy(
 const CreditScoreRepair = lazy(
   () => import("../admin/Website-enquiry/CreditScoreRepair"),
 );
+const CreditReportLeads = lazy(
+  () => import("../admin/Website-enquiry/CreditReportLeads"),
+);
+const WebsiteFranchiseLeads = lazy(
+  () => import("../admin/Website-enquiry/WebsiteFranchiseLeads"),
+);
 const AdminTickets = lazy(() => import("../admin/supportTicket"));
 const AdminRoutes = () => {
   return (
@@ -61,7 +67,27 @@ const AdminRoutes = () => {
           <Route path="recharge" element={<RechargeCredits />} />
           <Route
             path="business-forms"
-            element={<BusinessForms key="paid" status="paid" />}
+            element={<Navigate to="/admin/business-forms/individual" replace />}
+          />
+          <Route
+            path="business-forms/individual"
+            element={
+              <BusinessForms
+                key="paid-individual"
+                status="paid"
+                customerType="individual"
+              />
+            }
+          />
+          <Route
+            path="business-forms/business"
+            element={
+              <BusinessForms
+                key="paid-business"
+                status="paid"
+                customerType="business"
+              />
+            }
           />
 
           <Route
@@ -108,6 +134,11 @@ const AdminRoutes = () => {
           />
 
           <Route path="credit-repair" element={<CreditScoreRepair />} />
+          <Route path="credit-report-leads" element={<CreditReportLeads />} />
+          <Route
+            path="website-franchise-leads"
+            element={<WebsiteFranchiseLeads />}
+          />
         </Route>
       </Routes>
     </Suspense>

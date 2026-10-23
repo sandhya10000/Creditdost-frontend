@@ -215,7 +215,7 @@ const AmcCustomers = () => {
   return (
     <Box>
       <Typography variant="h4" sx={{ mb: 2, fontSize: { xs: "1.5rem", md: "2rem" } }}>
-        AMC Customers
+        AMC
       </Typography>
 
       {error && (

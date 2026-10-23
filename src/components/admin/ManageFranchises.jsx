@@ -1128,8 +1128,10 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
           {tabValue === 1
             ? "Deleted Franchises"
             : kycStatus === "pending"
-              ? "Franchise Pending Case"
-              : "Manage Franchises"}
+              ? "Pending Franchise"
+              : initialKycStatus === "approved"
+                ? "Active Franchise"
+                : "Manage Franchises"}
         </Typography>
 
         <Button

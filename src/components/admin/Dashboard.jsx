@@ -236,30 +236,35 @@ const AdminDashboard = () => {
   const menuItems = [
     { text: "Dashboard", icon: <DashboardIcon />, path: "/admin" },
     {
-      text: "Website Enquiry",
+      text: "Credit Report Leads",
       icon: <CreditScoreIcon />,
-      children: [
-        // {
-        //   text: " Website Franchise Enquiry",
-        //   path: "/admin/website-franchise-enquiry",
-        //   icon: <BusinessIcon />,
-        // },
-        {
-          text: "Franchise Pending Case",
-          path: "/admin/franchise-pending",
-          icon: <BusinessIcon />,
-        },
-        {
-          text: "Credit Score Repair",
-          path: "/admin/credit-repair",
-          icon: <AssessmentIcon />,
-        },
-      ],
+      path: "/admin/credit-report-leads",
+    },
+    {
+      text: "Franchise Leads",
+      icon: <BusinessIcon />,
+      path: "/admin/website-franchise-leads",
+    },
+    {
+      text: "Credit Score Repair",
+      icon: <AssessmentIcon />,
+      path: "/admin/credit-repair",
     },
     {
       text: "Manage Franchises",
       icon: <PeopleIcon />,
-      path: "/admin/franchises",
+      children: [
+        {
+          text: "Pending Franchise",
+          path: "/admin/franchise-pending",
+          icon: <BusinessIcon />,
+        },
+        {
+          text: "Active Franchise",
+          path: "/admin/franchises",
+          icon: <PeopleIcon />,
+        },
+      ],
     },
     {
       text: "Manage Franchise Packages",
@@ -293,17 +298,28 @@ const AdminDashboard = () => {
     {
       text: "Business MIS",
       icon: <DescriptionIcon />,
-      path: "/admin/business-forms",
+      children: [
+        {
+          text: "Individual Customers",
+          path: "/admin/business-forms/individual",
+          icon: <PeopleIcon />,
+        },
+        {
+          text: "Business Customers",
+          path: "/admin/business-forms/business",
+          icon: <BusinessCenterIcon />,
+        },
+        {
+          text: "AMC",
+          path: "/admin/amc-customers",
+          icon: <EventRepeatIcon />,
+        },
+      ],
     },
     {
       text: "Business MIS Pending",
       icon: <DescriptionIcon />,
       path: "/admin/business-forms-pending",
-    },
-    {
-      text: "AMC Customers",
-      icon: <EventRepeatIcon />,
-      path: "/admin/amc-customers",
     },
     {
       text: "Support Tickets",
