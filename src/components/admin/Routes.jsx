@@ -44,6 +44,8 @@ const WebsiteFranchiseLeads = lazy(
   () => import("../admin/Website-enquiry/WebsiteFranchiseLeads"),
 );
 const AdminTickets = lazy(() => import("../admin/supportTicket"));
+const ManageStaff = lazy(() => import("./ManageStaff"));
+const StaffProfile = lazy(() => import("./StaffProfile"));
 const AdminRoutes = () => {
   return (
     <Suspense fallback={<div>Loading...</div>}>
@@ -97,6 +99,8 @@ const AdminRoutes = () => {
           <Route path="amc-customers" element={<AmcCustomers />} />
           <Route path="blogs" element={<ManageBlogs />} />
           <Route path="rms" element={<ManageRelationshipManagers />} />
+          <Route path="staff" element={<ManageStaff />} />
+          <Route path="staff/:id" element={<StaffProfile />} />
           <Route path="google-sheets" element={<GoogleSheetsSettings />} />
           <Route
             path="digital-agreements"

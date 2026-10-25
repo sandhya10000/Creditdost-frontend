@@ -8,6 +8,15 @@ const api = axios.create({
   withCredentials: true,
 });
 
+// Attachments are served from the backend origin (/uploads/...), not under /api
+export const getAttachmentUrl = (url) => {
+  const base = (
+    import.meta.env.VITE_REACT_APP_API_URL ||
+    "https://reactbackend.creditdost.co.in/api"
+  ).replace(/\/api\/?$/, "");
+  return `${base}${url}`;
+};
+
 // Request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {
@@ -157,6 +166,9 @@ export const franchiseAPI = {
     api.put(`/admin/business/update-form/${customerId}`, formData),
   customerSupport: (formData) => api.post("/support/create-ticket", formData),
   getTickets: () => api.get("/support/my-tickets"),
+  getTicket: (id) => api.get(`/support/tickets/${id}`),
+  replyTicket: (id, formData) =>
+    api.post(`/support/tickets/${id}/reply`, formData),
 };
 
 // Blog API functions
@@ -366,7 +378,32 @@ export const adminAPI = {
   // closeBusinessCaseadmin: (id) => api.post(`/business/close-case/${id}`),
   updateBusinessWorkStatus: (id, data) =>
     api.put(`/admin/business-forms/${id}/work-status`, data),
-  getAllTickets: () => api.get("/admin/support/all-tickets"),
+  // Staff & roles (full administrators only)
+  getPermissionCatalog: () => api.get("/admin/permissions"),
+  getStaffRoles: () => api.get("/admin/roles"),
+  createStaffRole: (data) => api.post("/admin/roles", data),
+  updateStaffRole: (id, data) => api.put(`/admin/roles/${id}`, data),
+  deleteStaffRole: (id) => api.delete(`/admin/roles/${id}`),
+  getStaffMembers: () => api.get("/admin/staff"),
+  getStaffProfile: (id) => api.get(`/admin/staff/${id}`),
+  reassignFranchiseManager: (franchiseId, businessManagerId) =>
+    api.put(`/franchises/${franchiseId}/business-manager`, { businessManagerId }),
+  assignStaffMember: (data) => api.post("/admin/staff", data),
+  changeStaffMemberRole: (id, roleId) =>
+    api.patch(`/admin/staff/${id}/role`, { roleId }),
+  setStaffMemberStatus: (id, isActive) =>
+    api.patch(`/admin/staff/${id}/status`, { isActive }),
+  resendStaffMemberCredentials: (id) =>
+    api.post(`/admin/staff/${id}/resend-credentials`),
+  getAllTickets: (params) =>
+    api.get("/admin/support/all-tickets", { params }),
+  getTicket: (id) => api.get(`/admin/support/tickets/${id}`),
+  replyTicket: (id, formData) =>
+    api.post(`/admin/support/tickets/${id}/reply`, formData),
+  updateTicketStatus: (id, status) =>
+    api.patch(`/admin/support/tickets/${id}/status`, { status }),
+  updateTicketMeta: (id, data) =>
+    api.patch(`/admin/support/tickets/${id}/meta`, data),
   deleteBusinessForm: (id) => api.delete(`/admin/business-forms/${id}`),
   // AMC (Annual Maintenance Contract)
   getAmcCustomers: (params) => api.get("/business/amc", { params }),

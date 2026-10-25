@@ -22,6 +22,22 @@ import {
   ListItemButton,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
+import { canAccess } from "../../config/adminPermissions";
+
+// Hides sidebar entries (and sub-entries) the signed-in user cannot open
+const filterMenu = (items, user) =>
+  items
+    .map((item) =>
+      item.children
+        ? {
+            ...item,
+            children: item.children.filter((child) => canAccess(user, child.path)),
+          }
+        : item,
+    )
+    .filter((item) =>
+      item.children ? item.children.length > 0 : canAccess(user, item.path),
+    );
 import { Outlet } from "react-router-dom";
 import {
   Menu as MenuIcon,
@@ -235,6 +251,7 @@ const AdminDashboard = () => {
 
   const menuItems = [
     { text: "Dashboard", icon: <DashboardIcon />, path: "/admin" },
+    { text: "Staff & Roles", icon: <PeopleIcon />, path: "/admin/staff" },
     {
       text: "Credit Report Leads",
       icon: <CreditScoreIcon />,
@@ -464,7 +481,7 @@ const AdminDashboard = () => {
       </DrawerHeader>
       <Divider />
       <List sx={{ flexGrow: 1, pt: 2 }}>
-        {menuItems.map((item) => {
+        {filterMenu(menuItems, user).map((item) => {
           const hasChildren = item.children && item.children.length > 0;
 
           return (
@@ -651,11 +668,11 @@ const AdminDashboard = () => {
                       alignSelf: "flex-start",
                     }}
                   >
-                    {user?.subRole === "super_admin"
+                    {user?.staffRoleName ?? (user?.subRole === "super_admin"
                       ? "Admin"
                       : user?.subRole === "relationship_manager"
                         ? "Relationship Manager"
-                        : "Credit Analyst"}
+                        : "Credit Analyst")}
                   </Typography>
                 </Box>
               </MenuItem>
@@ -713,7 +730,15 @@ const AdminDashboard = () => {
           overflowX: "hidden" /* MOBILE FIX */,
         }}
       >
-        <Outlet />
+        {canAccess(user, location.pathname) ? (
+          <Outlet />
+        ) : (
+          <Box p={4}>
+            <Typography variant="h6">
+              You do not have access to this section.
+            </Typography>
+          </Box>
+        )}
       </Box>
     </Box>
   );
