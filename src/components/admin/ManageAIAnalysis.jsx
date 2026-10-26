@@ -325,7 +325,7 @@ const ManageAIAnalysis = () => {
                         </TableCell>
                         <TableCell>{doc.uploadedDocumentName}</TableCell>
                         <TableCell>
-                          {new Date(doc.uploadedAt).toLocaleDateString()}
+                          {new Date(doc.uploadedAt).toLocaleString()}
                         </TableCell>
                         <TableCell>
                           <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, flexWrap: "wrap" }}>

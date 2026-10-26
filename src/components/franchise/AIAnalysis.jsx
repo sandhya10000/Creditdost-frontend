@@ -651,7 +651,7 @@ const AIAnalysis = () => {
                           <Box>
                             <Typography variant="body2" component="div">
                               Uploaded:{" "}
-                              {new Date(doc.uploadedAt).toLocaleDateString()}
+                              {new Date(doc.uploadedAt).toLocaleString()}
                             </Typography>
                             <Typography
                               variant="body2"
