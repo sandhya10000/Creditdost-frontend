@@ -127,8 +127,8 @@ export const franchiseAPI = {
     return api.post("/ai-analysis/upload", formData, config);
   },
   getAIAnalysisDocuments: () => api.get("/ai-analysis/franchise/documents"),
-  analyzeWithClaude: (docId) =>
-    api.post(`/ai-analysis/franchise/analyze/${docId}`),
+  analyzeWithClaude: (docId, data = {}) =>
+    api.post(`/ai-analysis/franchise/analyze/${docId}`, data),
   downloadClaudeAnalysis: (docId) =>
     api.get(`/ai-analysis/franchise/download-analysis/${docId}`, {
       responseType: "blob",
@@ -321,6 +321,11 @@ export const adminAPI = {
   },
   downloadClaudeAnalysis: (id) =>
     api.get(`/ai-analysis/admin/download-analysis/${id}`, {
+      responseType: "blob",
+    }),
+  downloadOriginalDocument: (id, params = {}) =>
+    api.get(`/ai-analysis/admin/original/${id}`, {
+      params,
       responseType: "blob",
     }),
   //admin upload marketing materials post method
