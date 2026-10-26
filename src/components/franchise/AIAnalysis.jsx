@@ -29,10 +29,40 @@ import {
   HourglassEmpty as HourglassIcon,
   CloudUpload as CloudUploadIcon,
   Analytics as AnalyticsIcon,
+  Translate as TranslateIcon,
 } from "@mui/icons-material";
+import {
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+} from "@mui/material";
 import { franchiseAPI } from "../../services/api";
 
+const SUPPORTED_LANGUAGES = [
+  { code: "en", label: "English" },
+  { code: "hi", label: "Hindi (हिन्दी)" },
+  { code: "bn", label: "Bengali (বাংলা)" },
+  { code: "mr", label: "Marathi (मराठी)" },
+  { code: "gu", label: "Gujarati (ગુજરાતી)" },
+  { code: "ta", label: "Tamil (தமிழ்)" },
+  { code: "te", label: "Telugu (తెలుగు)" },
+  { code: "kn", label: "Kannada (ಕನ್ನಡ)" },
+  { code: "ml", label: "Malayalam (മലയാളം)" },
+  { code: "pa", label: "Punjabi (ਪੰਜਾਬੀ)" },
+];
+
 const AIAnalysis = () => {
+  const isMultiLangEnabled = import.meta.env.VITE_MULTILANG_ENABLED === "true";
+
+  const [selectedLanguage, setSelectedLanguage] = useState(() => {
+    try {
+      return localStorage.getItem("cd_report_lang") || "en";
+    } catch {
+      return "en";
+    }
+  });
+
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -97,6 +127,9 @@ const AIAnalysis = () => {
 
     try {
       const formData = new FormData();
+      if (isMultiLangEnabled && selectedLanguage && selectedLanguage !== "en") {
+        formData.append("language", selectedLanguage);
+      }
       formData.append("document", selectedFile);
 
       // Simulate progress during upload
@@ -167,7 +200,8 @@ const AIAnalysis = () => {
           }
         }, 2000); // Poll every 2 seconds for faster updates
 
-        // Timeout after 3 minutes
+        // Timeout: 3 minutes (180,000ms) for English; 4.5 minutes (270,000ms) for non-English Indic scripts
+        const timeoutDuration = (isMultiLangEnabled && selectedLanguage !== "en") ? 270000 : 180000;
         setTimeout(() => {
           clearInterval(pollInterval);
           const finalStatus = currentStatus;
@@ -183,7 +217,7 @@ const AIAnalysis = () => {
             setSelectedFile(null);
             fetchDocuments();
           }
-        }, 180000); // 3 minutes timeout
+        }, timeoutDuration);
       }
     } catch (error) {
       showSnackbar(
@@ -213,11 +247,14 @@ const AIAnalysis = () => {
   };
 
   // Trigger AI analysis manually
-  const handleAnalyze = async (docId) => {
+  const handleAnalyze = async (docId, docLang) => {
     setAnalyzingDocId(docId);
     try {
-      await franchiseAPI.analyzeWithClaude(docId);
-      setUploadSuccess(false);
+      const analyzePayload = {};
+      if (isMultiLangEnabled) {
+        analyzePayload.language = docLang || selectedLanguage || "en";
+      }
+      await franchiseAPI.analyzeWithClaude(docId, analyzePayload);
       // Refresh documents after a delay to show processing status
       setTimeout(() => fetchDocuments(), 2000);
     } catch (error) {
@@ -275,6 +312,37 @@ const AIAnalysis = () => {
             HTML report to your email. <br />
             Analysis typically completes within 1-2 minutes.
           </Typography>
+
+          {isMultiLangEnabled && (
+            <Box sx={{ mb: 2, maxWidth: 300 }}>
+              <FormControl fullWidth size="small">
+                <InputLabel id="report-language-select-label">Report Language</InputLabel>
+                <Select
+                  labelId="report-language-select-label"
+                  id="report-language-select"
+                  value={selectedLanguage}
+                  label="Report Language"
+                  disabled={uploading}
+                  startAdornment={<TranslateIcon sx={{ mr: 1, color: "action.active" }} />}
+                  onChange={(e) => {
+                    const newLang = e.target.value;
+                    setSelectedLanguage(newLang);
+                    try {
+                      localStorage.setItem("cd_report_lang", newLang);
+                    } catch (err) {
+                      console.warn("Could not save language to localStorage", err);
+                    }
+                  }}
+                >
+                  {SUPPORTED_LANGUAGES.map((lang) => (
+                    <MenuItem key={lang.code} value={lang.code}>
+                      {lang.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+          )}
 
           <input
             accept="application/pdf,.html,text/html"
@@ -569,6 +637,14 @@ const AIAnalysis = () => {
                                 variant="outlined"
                               />
                             )}
+                            {doc.language && doc.language !== "en" && (
+                              <Chip
+                                label={doc.languageName || doc.language.toUpperCase()}
+                                color="primary"
+                                size="small"
+                                variant="outlined"
+                              />
+                            )}
                           </Box>
                         }
                         secondary={
@@ -650,7 +726,7 @@ const AIAnalysis = () => {
                             }
                           >
                             <IconButton
-                              onClick={() => handleAnalyze(doc._id)}
+                              onClick={() => handleAnalyze(doc._id, doc.language)}
                               disabled={isProcessing}
                               color="primary"
                               size="small"

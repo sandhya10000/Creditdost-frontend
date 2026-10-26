@@ -23,6 +23,7 @@ import {
   IconButton,
   Tooltip,
   Pagination,
+  Snackbar,
 } from "@mui/material";
 import {
   UploadFile as UploadIcon,
@@ -30,6 +31,7 @@ import {
   Download as DownloadIcon,
   CheckCircle as CheckCircleIcon,
   HourglassEmpty as HourglassIcon,
+  OpenInNew as OpenInNewIcon,
 } from "@mui/icons-material";
 import { adminAPI } from "../../services/api";
 
@@ -175,6 +177,86 @@ const ManageAIAnalysis = () => {
     }
   };
 
+  const [toast, setToast] = useState({
+    open: false,
+    message: "",
+    severity: "info",
+  });
+  const [downloadingOriginal, setDownloadingOriginal] = useState(false);
+
+  const showToast = (message, severity = "info") => {
+    setToast({ open: true, message, severity });
+  };
+
+  const handleCloseToast = () => {
+    setToast((prev) => ({ ...prev, open: false }));
+  };
+
+  // View original document (PDF only in new browser tab, revoked on unload)
+  const handleViewOriginalDocument = async (doc) => {
+    if (!doc || !doc._id) return;
+    const fileName = doc.uploadedDocumentName || "original_document.pdf";
+    const isHtml = fileName.toLowerCase().endsWith(".html") || fileName.toLowerCase().endsWith(".htm");
+
+    if (isHtml) {
+      showToast("HTML files cannot be viewed inline for security. Please use Download Original.", "warning");
+      return;
+    }
+
+    try {
+      setDownloadingOriginal(true);
+      const response = await adminAPI.downloadOriginalDocument(doc._id, { disposition: "inline" });
+      const blob = new Blob([response.data], { type: "application/pdf" });
+      const url = window.URL.createObjectURL(blob);
+      const newTab = window.open(url, "_blank");
+
+      if (!newTab) {
+        showToast("Popup blocked by browser. Please allow popups to view document.", "warning");
+      }
+
+      // Revoke object URL after delay to prevent memory leak
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url);
+      }, 60000);
+    } catch (error) {
+      console.error("Failed to view original document:", error);
+      const errMsg = error.response?.data?.message || "Original file not found";
+      showToast(errMsg, "error");
+    } finally {
+      setDownloadingOriginal(false);
+    }
+  };
+
+  // Download original uploaded document
+  const handleDownloadOriginalDocument = async (doc) => {
+    if (!doc || !doc._id) return;
+    const fileName = doc.uploadedDocumentName || "original_document";
+    const fileExt = fileName.toLowerCase().endsWith(".html") || fileName.toLowerCase().endsWith(".htm")
+      ? "text/html"
+      : "application/pdf";
+
+    try {
+      setDownloadingOriginal(true);
+      const response = await adminAPI.downloadOriginalDocument(doc._id, { disposition: "attachment" });
+      const blob = new Blob([response.data], { type: fileExt });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", fileName);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      showToast("Download started", "success");
+    } catch (error) {
+      console.error("Failed to download original document:", error);
+      const errMsg = error.response?.data?.message || "Original file not found";
+      showToast(errMsg, "error");
+    } finally {
+      setDownloadingOriginal(false);
+    }
+  };
+
   // Download AI analysis report
   const handleDownloadAnalysis = async (docId, fileName) => {
     try {
@@ -192,7 +274,7 @@ const ManageAIAnalysis = () => {
       window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error("Failed to download analysis:", error);
-      alert("Failed to download analysis report. Please try again.");
+      showToast("Failed to download analysis report. Please try again.", "error");
     }
   };
 
@@ -246,13 +328,23 @@ const ManageAIAnalysis = () => {
                           {new Date(doc.uploadedAt).toLocaleDateString()}
                         </TableCell>
                         <TableCell>
-                          <Chip
-                            label={statusChip.label}
-                            color={statusChip.color}
-                            icon={statusChip.icon}
-                            size="small"
-                            variant="outlined"
-                          />
+                          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, flexWrap: "wrap" }}>
+                            <Chip
+                              label={statusChip.label}
+                              color={statusChip.color}
+                              icon={statusChip.icon}
+                              size="small"
+                              variant="outlined"
+                            />
+                            {doc.language && doc.language !== "en" && (
+                              <Chip
+                                label={doc.languageName || doc.language.toUpperCase()}
+                                color="primary"
+                                size="small"
+                                variant="outlined"
+                              />
+                            )}
+                          </Box>
                         </TableCell>
                         <TableCell>
                           <Box sx={{ display: "flex", gap: 0.5 }}>
@@ -334,27 +426,63 @@ const ManageAIAnalysis = () => {
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
+              flexWrap: "wrap",
+              gap: 1,
             }}
           >
             <Typography variant="h6">Document Details</Typography>
-            {selectedDocument &&
-              (selectedDocument.claudeAnalysisStatus === "completed" ||
-                selectedDocument.claudeAnalysisStatus === "email_sent") && (
-                <Button
-                  startIcon={<DownloadIcon />}
-                  onClick={() =>
-                    handleDownloadAnalysis(
-                      selectedDocument._id,
-                      selectedDocument.claudeAnalysisFileName,
-                    )
-                  }
-                  color="success"
-                  variant="outlined"
-                  size="small"
-                >
-                  Download AI Report
-                </Button>
-              )}
+            {selectedDocument && (
+              <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+                {/* View Original (PDF only) */}
+                {selectedDocument.uploadedDocument &&
+                  !selectedDocument.uploadedDocumentName?.toLowerCase().endsWith(".html") &&
+                  !selectedDocument.uploadedDocumentName?.toLowerCase().endsWith(".htm") && (
+                    <Button
+                      startIcon={<OpenInNewIcon />}
+                      onClick={() => handleViewOriginalDocument(selectedDocument)}
+                      color="primary"
+                      variant="outlined"
+                      size="small"
+                      disabled={downloadingOriginal}
+                    >
+                      View Original
+                    </Button>
+                  )}
+
+                {/* Download Original */}
+                {selectedDocument.uploadedDocument && (
+                  <Button
+                    startIcon={<DownloadIcon />}
+                    onClick={() => handleDownloadOriginalDocument(selectedDocument)}
+                    color="primary"
+                    variant="outlined"
+                    size="small"
+                    disabled={downloadingOriginal}
+                  >
+                    Download Original
+                  </Button>
+                )}
+
+                {/* Download AI Report */}
+                {(selectedDocument.claudeAnalysisStatus === "completed" ||
+                  selectedDocument.claudeAnalysisStatus === "email_sent") && (
+                  <Button
+                    startIcon={<DownloadIcon />}
+                    onClick={() =>
+                      handleDownloadAnalysis(
+                        selectedDocument._id,
+                        selectedDocument.claudeAnalysisFileName,
+                      )
+                    }
+                    color="success"
+                    variant="outlined"
+                    size="small"
+                  >
+                    Download AI Report
+                  </Button>
+                )}
+              </Box>
+            )}
           </Box>
         </DialogTitle>
         <DialogContent>
@@ -519,6 +647,22 @@ const ManageAIAnalysis = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Toast Notification */}
+      <Snackbar
+        open={toast.open}
+        autoHideDuration={4000}
+        onClose={handleCloseToast}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={handleCloseToast}
+          severity={toast.severity}
+          sx={{ width: "100%" }}
+        >
+          {toast.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
