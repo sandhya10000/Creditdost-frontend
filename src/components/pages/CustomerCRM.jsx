@@ -137,7 +137,9 @@ const CustomerCRM = () => {
                 )}
                 {tab === 5 && (
                   <DocumentTab
-                    documents={customerInfo?.customerData.documents}
+                    customerId={customerInfo?.customerData?._id}
+                    documents={customerInfo?.customerData?.documents}
+                    onUpdated={fetchCustomer}
                   />
                 )}
               </Box>

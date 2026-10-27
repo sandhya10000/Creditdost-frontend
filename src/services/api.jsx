@@ -420,6 +420,9 @@ export const adminAPI = {
     api.put(`/business/admin/business-forms/${id}/follow-up`, data),
   clearBusinessFollowUp: (id) =>
     api.delete(`/business/admin/business-forms/${id}/follow-up`),
+  // Admin document upload (formData: one file per document key)
+  uploadBusinessDocuments: (id, formData) =>
+    api.put(`/business/admin/business-forms/${id}/documents`, formData),
 };
 
 // Credit API functions
