@@ -355,11 +355,6 @@ const AdminDashboard = () => {
       path: "/admin/blogs",
     },
     {
-      text: "Manage RMs",
-      icon: <PeopleIcon />,
-      path: "/admin/rms",
-    },
-    {
       text: "Google Sheets",
       icon: <DescriptionIcon />,
       path: "/admin/google-sheets",
