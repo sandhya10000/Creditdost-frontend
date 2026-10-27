@@ -50,7 +50,6 @@ import { AmcPaymentChip, AmcStatusChip } from "./AmcChips";
 const WORK_STATUS_COLORS = {
   in_progress: { bg: "#0288d1", color: "#fff" },
   closed: { bg: "#2e7d32", color: "#fff" },
-  on_hold: { bg: "#ed6c02", color: "#fff" },
 };
 
 const rowsPerPage = 20;
@@ -406,7 +405,6 @@ const AmcCustomers = () => {
                             >
                               <MenuItem value="in_progress">In Progress</MenuItem>
                               <MenuItem value="closed">Closed</MenuItem>
-                              <MenuItem value="on_hold">On Hold</MenuItem>
                             </Select>
                           </FormControl>
                         </TableCell>

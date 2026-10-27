@@ -87,6 +87,7 @@ const Business = ({ userType, fixedCustomerType }) => {
     gender: "",
     bankAccountNumber: "",
     ifscCode: "",
+    clientIssues: "",
     // ADD THIS
     manualAmount: "",
   });
@@ -554,6 +555,10 @@ const Business = ({ userType, fixedCustomerType }) => {
       if (key === "bankAccountNumber" || key === "ifscCode") {
         continue;
       }
+      // Client issues are optional
+      if (key === "clientIssues") {
+        continue;
+      }
 
       if (!formData[key]) {
         setError("Please enter all the required fields");
@@ -923,6 +928,25 @@ const Business = ({ userType, fixedCustomerType }) => {
                             onChange={handleInputChange}
                             multiline
                             rows={3}
+                            sx={{ minWidth: { xs: "0px", md: "280px" } }}
+                          />
+                        </Grid>
+                        {/* Client issues (optional) */}
+                        <Grid
+                          item
+                          xs={12}
+                          sx={{ minWidth: { xs: "0px", md: "350px" } }}
+                        >
+                          <TextField
+                            fullWidth
+                            label="Client's Issues / Concerns (optional)"
+                            name="clientIssues"
+                            value={formData.clientIssues}
+                            onChange={handleInputChange}
+                            multiline
+                            rows={3}
+                            inputProps={{ maxLength: 1000 }}
+                            helperText={`What the client is facing and wants help with · ${formData.clientIssues.length}/1000`}
                             sx={{ minWidth: { xs: "0px", md: "280px" } }}
                           />
                         </Grid>

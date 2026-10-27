@@ -162,7 +162,6 @@ const BusinessFollowUps = () => {
   const workStatusChip = (status) => {
     const map = {
       closed: { label: "Closed", color: "success" },
-      on_hold: { label: "On Hold", color: "warning" },
       hold: { label: "Hold", color: "error" },
       pending: { label: "Pending", color: "secondary" },
     };

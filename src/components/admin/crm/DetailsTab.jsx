@@ -15,6 +15,7 @@ import HomeIcon from "@mui/icons-material/Home";
 import LocalAtmIcon from "@mui/icons-material/LocalAtm";
 import DomainAddIcon from "@mui/icons-material/DomainAdd";
 import StyleIcon from "@mui/icons-material/Style";
+import ReportProblemOutlinedIcon from "@mui/icons-material/ReportProblemOutlined";
 
 const DetailsTab = ({ customer, creditReport, ifscDeatails }) => {
   const [editMode, setEditMode] = useState(false);
@@ -357,6 +358,30 @@ const DetailsTab = ({ customer, creditReport, ifscDeatails }) => {
           <Typography>{customer?.franchiseId?.phone || "-"}</Typography>
         </Grid>
       </Grid>
+
+      {/* ================= CLIENT ISSUES ================= */}
+
+      {renderSectionTitle(
+        "Client Issues",
+        <ReportProblemOutlinedIcon color="primary" />,
+      )}
+
+      <Box
+        sx={{
+          p: 2,
+          borderRadius: 2,
+          backgroundColor: "#fafafa",
+          border: "1px solid",
+          borderColor: "divider",
+          minHeight: 64,
+        }}
+      >
+        <Typography
+          sx={{ whiteSpace: "pre-wrap", color: customer?.clientIssues ? "text.primary" : "text.disabled" }}
+        >
+          {customer?.clientIssues || "No issues recorded by the client"}
+        </Typography>
+      </Box>
     </Paper>
   );
 };

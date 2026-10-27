@@ -38,7 +38,6 @@ const WORK_STATUS = {
   in_progress: { label: "In Progress", bg: "#0288d1", text: "#1565c0" },
   pending: { label: "Pending", bg: "#7b1fa2", text: "#7b1fa2" },
   hold: { label: "Hold", bg: "#d32f2f", text: "#d32f2f" },
-  on_hold: { label: "On Hold", bg: "#ed6c02", text: "#e65100" },
   closed: { label: "Closed", bg: "#2e7d32", text: "#2e7d32" },
 };
 const getWorkStatus = (status) => WORK_STATUS[status] || WORK_STATUS.in_progress;
@@ -547,7 +546,6 @@ const BusinessForms = ({ status = "paid", customerType }) => {
                                   <MenuItem value="in_progress">In Progress</MenuItem>
                                   <MenuItem value="pending">Pending</MenuItem>
                                   <MenuItem value="hold">Hold</MenuItem>
-                                  <MenuItem value="on_hold">On Hold</MenuItem>
                                   <MenuItem value="closed">Closed</MenuItem>
                                 </Select>
                               </FormControl>
