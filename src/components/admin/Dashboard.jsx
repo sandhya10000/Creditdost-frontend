@@ -238,11 +238,11 @@ const AdminDashboard = () => {
       text: "Website Enquiry",
       icon: <CreditScoreIcon />,
       children: [
-        // {
-        //   text: " Website Franchise Enquiry",
-        //   path: "/admin/website-franchise-enquiry",
-        //   icon: <BusinessIcon />,
-        // },
+        {
+          text: " Website Franchise Enquiry",
+          path: "/admin/website-franchise-enquiry",
+          icon: <BusinessIcon />,
+        },
         {
           text: "Franchise Pending Case",
           path: "/admin/franchise-pending",

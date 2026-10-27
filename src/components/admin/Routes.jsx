@@ -33,6 +33,9 @@ const ManualBusiness = lazy(() => import("../admin/ManualBusiness"));
 const FranchisePending = lazy(
   () => import("../admin/Website-enquiry/FranchisePending"),
 );
+const FranchiseInquiry = lazy(
+  () => import("../admin/Website-enquiry/website-franchise-enquiry"),
+);
 const CreditScoreRepair = lazy(
   () => import("../admin/Website-enquiry/CreditScoreRepair"),
 );
@@ -90,9 +93,10 @@ const AdminRoutes = () => {
             element={<ManageFranchises kycStatus="all" />}
           />
 
+          <Route path="franchise-pending" element={<FranchisePending />} />
           <Route
-            path="franchise-pending"
-            element={<FranchisePending />}
+            path="website-franchise-enquiry"
+            element={<FranchiseInquiry />}
           />
 
           <Route
