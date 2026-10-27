@@ -19,6 +19,7 @@ import {
   DialogContent,
   DialogActions,
   Snackbar,
+  LinearProgress,
 } from "@mui/material";
 import {
   UploadFile as UploadIcon,
@@ -30,6 +31,9 @@ import {
   CloudUpload as CloudUploadIcon,
   Analytics as AnalyticsIcon,
   Translate as TranslateIcon,
+  Lock as LockIcon,
+  Upgrade as UpgradeIcon,
+  AllInclusive as UnlimitedIcon,
 } from "@mui/icons-material";
 import {
   FormControl,
@@ -37,6 +41,7 @@ import {
   Select,
   MenuItem,
 } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 import { franchiseAPI } from "../../services/api";
 
 const SUPPORTED_LANGUAGES = [
@@ -73,6 +78,8 @@ const AIAnalysis = () => {
   const [analyzingDocId, setAnalyzingDocId] = useState(null);
   const [currentStatus, setCurrentStatus] = useState("pending"); // Track actual backend status
   const [uploadError, setUploadError] = useState("");
+  // Diamond fair-use cap reached (hidden from UI — no numbers exposed)
+  const [fairUseLimitReached, setFairUseLimitReached] = useState(false);
 
   // Snackbar state for notifications
   const [snackbar, setSnackbar] = useState({
@@ -180,6 +187,7 @@ const AIAnalysis = () => {
                 }, 1500);
                 setSelectedFile(null);
                 fetchDocuments();
+                fetchUsage();
                 return;
               } else if (backendStatus === "failed") {
                 clearInterval(pollInterval);
@@ -192,6 +200,7 @@ const AIAnalysis = () => {
                 }, 2000);
                 setSelectedFile(null);
                 fetchDocuments();
+                fetchUsage();
                 return;
               }
             }
@@ -216,20 +225,65 @@ const AIAnalysis = () => {
             }, 2000);
             setSelectedFile(null);
             fetchDocuments();
+            fetchUsage();
           }
         }, timeoutDuration);
       }
     } catch (error) {
-      showSnackbar(
-        error.response?.data?.message || "Failed to upload document",
-        "error",
-      );
+      const errCode = error.response?.data?.code;
+      const errorMsg =
+        error.response?.data?.message || "Failed to upload document";
+
+      if (errCode === "AI_FAIR_USE_LIMIT_REACHED") {
+        // Hidden Diamond cap — never expose the number
+        setFairUseLimitReached(true);
+        showSnackbar(
+          "You have reached the maximum AI analysis usage for your plan. Please contact your Relationship Manager.",
+          "error",
+        );
+      } else {
+        showSnackbar(errorMsg, "error");
+      }
+      // Refresh usage in case limit was reached
+      fetchUsage();
       setTimeout(() => {
         setShowProgressDialog(false);
       }, 2000);
     } finally {
       setUploading(false);
       setIsAnalyzing(false);
+    }
+  };
+
+  const navigate = useNavigate();
+  const [usage, setUsage] = useState({
+    hasActivePackage: true,
+    packageName: "",
+    used: 0,
+    limit: 10,
+    isUnlimited: false,
+    remaining: 10,
+    loading: true,
+  });
+
+  // Fetch AI usage limits
+  const fetchUsage = async () => {
+    try {
+      const res = await franchiseAPI.getAIAnalysisUsage();
+      if (res.data && res.data.success) {
+        setUsage({
+          hasActivePackage: res.data.hasActivePackage,
+          packageName: res.data.packageName || "Unknown",
+          used: res.data.used || 0,
+          limit: res.data.limit,
+          isUnlimited: res.data.isUnlimited || false,
+          remaining: res.data.remaining,
+          loading: false,
+        });
+      }
+    } catch (err) {
+      console.error("Failed to fetch AI usage:", err);
+      setUsage((prev) => ({ ...prev, loading: false }));
     }
   };
 
@@ -255,12 +309,18 @@ const AIAnalysis = () => {
         analyzePayload.language = docLang || selectedLanguage || "en";
       }
       await franchiseAPI.analyzeWithClaude(docId, analyzePayload);
-      // Refresh documents after a delay to show processing status
-      setTimeout(() => fetchDocuments(), 2000);
+      showSnackbar("AI analysis started successfully.", "info");
+      // Refresh documents and usage after a delay to show processing status
+      setTimeout(() => {
+        fetchDocuments();
+        fetchUsage();
+      }, 2000);
     } catch (error) {
-      setUploadError(
-        error.response?.data?.message || "Failed to trigger AI analysis",
-      );
+      const errorMsg =
+        error.response?.data?.message || "Failed to trigger AI analysis";
+      setUploadError(errorMsg);
+      showSnackbar(errorMsg, "error");
+      fetchUsage();
     } finally {
       setAnalyzingDocId(null);
     }
@@ -289,19 +349,211 @@ const AIAnalysis = () => {
     }
   };
 
-  // Load documents on component mount
+  // Load documents and usage on component mount
   useEffect(() => {
     fetchDocuments();
+    fetchUsage();
   }, []);
+
+  // Determine if user has reached limit or has no active package
+  const isLimitReached = !usage.isUnlimited && usage.limit !== null && usage.used >= usage.limit;
+  // isBlocked also covers Diamond fair-use cap (hidden from UI)
+  const isBlocked = !usage.hasActivePackage || isLimitReached || fairUseLimitReached;
+
+  const progressPercent = usage.isUnlimited
+    ? 100
+    : usage.limit > 0
+    ? Math.min(100, Math.round((usage.used / usage.limit) * 100))
+    : 100;
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>
-        AI Analysis
-      </Typography>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: 2,
+          mb: 2,
+        }}
+      >
+        <Typography variant="h4">AI Analysis</Typography>
+        <Button
+          variant="outlined"
+          color="primary"
+          startIcon={<UpgradeIcon />}
+          onClick={() => navigate("/franchise/upgrade-package")}
+        >
+          View Packages & Upgrades
+        </Button>
+      </Box>
+
+      {/* Usage Overview Banner */}
+      <Card
+        sx={{
+          mb: 3,
+          p: 2.5,
+          borderRadius: 2,
+          boxShadow: 2,
+          border: isLimitReached
+            ? "1px solid #d32f2f"
+            : !usage.hasActivePackage
+            ? "1px solid #ed6c02"
+            : "1px solid #e0e0e0",
+          background: isLimitReached
+            ? "linear-gradient(135deg, #fff5f5 0%, #ffffff 100%)"
+            : "linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%)",
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            flexWrap: "wrap",
+            gap: 2,
+            mb: 1.5,
+          }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+            <Box
+              sx={{
+                width: 44,
+                height: 44,
+                borderRadius: "50%",
+                bgcolor: isLimitReached
+                  ? "error.light"
+                  : usage.isUnlimited
+                  ? "success.light"
+                  : "primary.light",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: isLimitReached
+                  ? "error.main"
+                  : usage.isUnlimited
+                  ? "success.main"
+                  : "primary.main",
+              }}
+            >
+              {usage.isUnlimited ? (
+                <UnlimitedIcon />
+              ) : isLimitReached ? (
+                <LockIcon />
+              ) : (
+                <AnalyticsIcon />
+              )}
+            </Box>
+            <Box>
+              <Typography variant="subtitle2" color="text.secondary">
+                Active Plan: <strong>{usage.packageName || "No Active Plan"}</strong>
+              </Typography>
+              <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                {usage.isUnlimited
+                  ? "AI Reports Used: Unlimited"
+                  : `AI Reports Used: ${usage.used}`}
+              </Typography>
+            </Box>
+          </Box>
+
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            {/* {!usage.isUnlimited && (
+              // <Chip
+              //   label={
+              //     isLimitReached
+              //       ? "Limit Reached"
+              //       : `${Math.max(0, (usage.limit ?? 0) - usage.used)} analyses left`
+              //   }
+              //   color={isLimitReached ? "error" : "primary"}
+              //   variant={isLimitReached ? "filled" : "outlined"}
+              //   size="medium"
+              // />
+            )} */}
+            {usage.isUnlimited && (
+              <Chip
+                icon={<UnlimitedIcon />}
+                label="Unlimited Analyses"
+                color="success"
+                variant="outlined"
+                size="medium"
+              />
+            )}
+            {(isLimitReached || !usage.hasActivePackage) && (
+              <Button
+                variant="contained"
+                color="primary"
+                size="small"
+                startIcon={<UpgradeIcon />}
+                onClick={() => navigate("/franchise/upgrade-package")}
+              >
+                Upgrade Package
+              </Button>
+            )}
+          </Box>
+        </Box>
+
+        {!usage.isUnlimited && (
+          <Box sx={{ mt: 1 }}>
+            <LinearProgress
+              variant="determinate"
+              value={progressPercent}
+              color={isLimitReached ? "error" : progressPercent > 80 ? "warning" : "primary"}
+              sx={{
+                height: 8,
+                borderRadius: 4,
+                bgcolor: "grey.200",
+              }}
+            />
+          </Box>
+        )}
+      </Card>
+
+      {/* Warning/Blocking Alerts */}
+      {!usage.hasActivePackage && (
+        <Alert
+          severity="warning"
+          sx={{ mb: 3 }}
+          action={
+            <Button
+              color="inherit"
+              size="small"
+              onClick={() => navigate("/franchise/upgrade-package")}
+            >
+              Get Package
+            </Button>
+          }
+        >
+          You do not have an active package assigned. Please purchase or activate a package to perform AI report analyses.
+        </Alert>
+      )}
+
+      {isLimitReached && (
+        <Alert
+          severity="error"
+          sx={{ mb: 3 }}
+          action={
+            <Button
+              color="inherit"
+              size="small"
+              onClick={() => navigate("/franchise/upgrade-package")}
+            >
+              Upgrade Now
+            </Button>
+          }
+        >
+          You have used all {usage.limit} AI report analyses in your {usage.packageName} package. Please upgrade your package to continue analyzing reports.
+        </Alert>
+      )}
+
+      {fairUseLimitReached && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          You have reached the maximum AI analysis usage for your plan. Please contact your Relationship Manager for assistance.
+        </Alert>
+      )}
 
       {/* Upload Section */}
-      <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
+      <Card sx={{ mt: 2, boxShadow: 3, borderRadius: 2 }}>
         <CardContent>
           <Typography variant="h6" gutterBottom>
             Upload Document for AI Analysis
@@ -322,7 +574,7 @@ const AIAnalysis = () => {
                   id="report-language-select"
                   value={selectedLanguage}
                   label="Report Language"
-                  disabled={uploading}
+                  disabled={uploading || isBlocked}
                   startAdornment={<TranslateIcon sx={{ mr: 1, color: "action.active" }} />}
                   onChange={(e) => {
                     const newLang = e.target.value;
@@ -349,6 +601,7 @@ const AIAnalysis = () => {
             style={{ display: "none" }}
             id="pdf-upload"
             type="file"
+            disabled={isBlocked || uploading}
             onChange={handleFileChange}
           />
           <Box
@@ -365,7 +618,7 @@ const AIAnalysis = () => {
                 variant="outlined"
                 component="span"
                 startIcon={<UploadIcon />}
-                disabled={uploading}
+                disabled={uploading || isBlocked}
               >
                 Select PDF/HTML File
               </Button>
@@ -389,14 +642,17 @@ const AIAnalysis = () => {
             <Button
               variant="contained"
               onClick={handleUpload}
-              disabled={!selectedFile || uploading}
-              startIcon={uploading ? null : <UploadIcon />}
+              disabled={!selectedFile || uploading || isBlocked}
+              startIcon={uploading ? null : isBlocked ? <LockIcon /> : <UploadIcon />}
+              color={isBlocked ? "inherit" : "primary"}
             >
               {uploading ? (
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                   <CircularProgress size={20} color="inherit" />
                   Uploading...
                 </Box>
+              ) : isBlocked ? (
+                "Limit Reached - Upgrade to Analyze"
               ) : (
                 "Upload & Analyze Document"
               )}
@@ -720,19 +976,23 @@ const AIAnalysis = () => {
                         {!hasAnalysis && !isAnalyzing && !isProcessing && (
                           <Tooltip
                             title={
-                              analysisFailed
+                              isBlocked
+                                ? "AI report limit reached. Upgrade package to analyze."
+                                : analysisFailed
                                 ? "Retry AI Analysis"
                                 : "Trigger AI Analysis"
                             }
                           >
-                            <IconButton
-                              onClick={() => handleAnalyze(doc._id, doc.language)}
-                              disabled={isProcessing}
-                              color="primary"
-                              size="small"
-                            >
-                              <RefreshIcon />
-                            </IconButton>
+                            <span>
+                              <IconButton
+                                onClick={() => handleAnalyze(doc._id, doc.language)}
+                                disabled={isProcessing || isBlocked}
+                                color={isBlocked ? "default" : "primary"}
+                                size="small"
+                              >
+                                {isBlocked ? <LockIcon fontSize="small" /> : <RefreshIcon />}
+                              </IconButton>
+                            </span>
                           </Tooltip>
                         )}
 
