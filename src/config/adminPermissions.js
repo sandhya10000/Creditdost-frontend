@@ -6,7 +6,7 @@ const PATH_PERMISSIONS = [
   ["/admin/website-franchise-leads", "leads"],
   ["/admin/credit-repair", "leads"],
   ["/admin/leads", "leads"],
-  ["/admin/customer", "leads"],
+  ["/admin/customer", "business"],
   ["/admin/franchise-pending", "franchises"],
   ["/admin/franchise-approved", "franchises"],
   ["/admin/franchise-rejected", "franchises"],
