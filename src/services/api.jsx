@@ -136,6 +136,7 @@ export const franchiseAPI = {
     return api.post("/ai-analysis/upload", formData, config);
   },
   getAIAnalysisDocuments: () => api.get("/ai-analysis/franchise/documents"),
+  getAIAnalysisUsage: () => api.get("/ai-analysis/franchise/usage"),
   analyzeWithClaude: (docId, data = {}) =>
     api.post(`/ai-analysis/franchise/analyze/${docId}`, data),
   downloadClaudeAnalysis: (docId) =>
