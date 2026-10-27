@@ -29,6 +29,7 @@ import ManualPaymentDialog from "./ManualPaymentDialog";
 import { adminAPI } from "../../services/api";
 
 const PAGE_SIZE = 20;
+const AUTO_REFRESH_MS = 15 * 1000;
 
 const STATUS_META = {
   created: { label: "Link sent", color: "info" },
@@ -94,8 +95,8 @@ const ManualPayments = () => {
     return () => clearTimeout(t);
   }, [searchInput]);
 
-  const fetchPayments = useCallback(async () => {
-    setLoading(true);
+  const fetchPayments = useCallback(async ({ silent = false } = {}) => {
+    if (!silent) setLoading(true);
     setError("");
     try {
       const { data } = await adminAPI.getManualPayments({
@@ -117,15 +118,24 @@ const ManualPayments = () => {
     fetchPayments();
   }, [fetchPayments]);
 
+  // Auto-update: while any link is still open, refresh the table every 15s (silently).
+  // The backend syncs open links with Razorpay every 30s, so changes show up here.
+  const hasOpenLinks = payments.some((p) => p.status === "created");
+  useEffect(() => {
+    if (!hasOpenLinks) return undefined;
+    const id = setInterval(() => {
+      fetchPayments({ silent: true });
+    }, AUTO_REFRESH_MS);
+    return () => clearInterval(id);
+  }, [hasOpenLinks, fetchPayments]);
+
   const handleCreated = async (data) => {
     setDialogOpen(false);
     const copied = await copyToClipboard(data.payment.shortUrl);
-    const copyNote = copied ? "Link copied to clipboard." : "Could not copy link. Use the copy icon.";
-    if (data.emailSent) {
-      showToast(`Payment link created and emailed to ${data.payment.email}. ${copyNote}`);
-    } else {
-      showToast(`Payment link created, but the email failed. ${copyNote}`, "warning");
-    }
+    showToast(
+      copied ? "Payment link created and copied to clipboard" : "Payment link created. Could not copy, use the copy icon",
+      copied ? "success" : "warning",
+    );
     setPage(1);
     fetchPayments();
   };
@@ -172,9 +182,16 @@ const ManualPayments = () => {
         <Typography variant="h5" fontWeight={600}>
           Manual Payments
         </Typography>
-        <Button variant="contained" startIcon={<AddIcon />} onClick={() => setDialogOpen(true)}>
-          Create Payment
-        </Button>
+        <Stack direction="row" spacing={2} alignItems="center">
+          {hasOpenLinks && (
+            <Typography variant="caption" color="text.secondary">
+              Auto-updating
+            </Typography>
+          )}
+          <Button variant="contained" startIcon={<AddIcon />} onClick={() => setDialogOpen(true)}>
+            Create Payment
+          </Button>
+        </Stack>
       </Stack>
 
       <Stack direction={{ xs: "column", md: "row" }} spacing={2} sx={{ mb: 2 }}>

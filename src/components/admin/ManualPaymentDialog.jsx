@@ -132,7 +132,7 @@ const ManualPaymentDialog = ({ open, onClose, onCreated }) => {
           Cancel
         </Button>
         <Button variant="contained" onClick={handleSubmit} disabled={submitting}>
-          {submitting ? "Creating..." : "Create & Email Link"}
+          {submitting ? "Creating..." : "Create Payment Link"}
         </Button>
       </DialogActions>
     </Dialog>

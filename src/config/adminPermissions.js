@@ -26,7 +26,7 @@ const PATH_PERMISSIONS = [
   ["/admin/admin-tickets", "support_tickets"],
   ["/admin/recharge", "finance"],
   ["/admin/payouts", "finance"],
-  ["/admin/manual-payments", "finance"],
+  ["/admin/manual-payments", "manual_payments"],
   ["/admin/blogs", "blogs"],
   ["/admin/rms", "relationship_managers"],
   ["/admin/google-sheets", "google_sheets"],
