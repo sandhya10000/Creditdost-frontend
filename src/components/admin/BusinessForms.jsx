@@ -31,10 +31,12 @@ import {
 import { adminAPI } from "../../services/api";
 import AmcDialog from "./AmcDialog";
 import { formatAmcDate } from "../../utils/amc";
-//import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import EventAvailableIcon from "@mui/icons-material/EventAvailable";
 
 const BusinessForms = ({ status = "paid", customerType }) => {
   const isBusinessView = customerType === "business";
+  const navigate = useNavigate();
   const [businessForms, setBusinessForms] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -335,14 +337,29 @@ const BusinessForms = ({ status = "paid", customerType }) => {
                 maxWidth: { xs: "100%", sm: 400 },
               }}
             />
-            <Button
-              variant="contained"
-              color="success"
-              onClick={handleDownloadCSV}
-              sx={{ color: "#fff", width: { xs: "100%", sm: "auto" } }}
+            <Stack
+              direction={{ xs: "column", sm: "row" }}
+              spacing={1.5}
+              sx={{ width: { xs: "100%", sm: "auto" } }}
             >
-              Download CSV
-            </Button>
+              <Button
+                variant="outlined"
+                color="primary"
+                startIcon={<EventAvailableIcon />}
+                onClick={() => navigate("/admin/business-forms/follow-ups")}
+                sx={{ width: { xs: "100%", sm: "auto" }, whiteSpace: "nowrap" }}
+              >
+                Follow Up
+              </Button>
+              <Button
+                variant="contained"
+                color="success"
+                onClick={handleDownloadCSV}
+                sx={{ color: "#fff", width: { xs: "100%", sm: "auto" } }}
+              >
+                Download CSV
+              </Button>
+            </Stack>
           </Box>
           {loading && businessForms.length === 0 ? (
             <Box display="flex" justifyContent="center" my={4}>

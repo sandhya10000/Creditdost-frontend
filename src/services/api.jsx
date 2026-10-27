@@ -413,6 +413,12 @@ export const adminAPI = {
   renewAmc: (id, data) => api.post(`/admin/business-forms/${id}/amc/renew`, data),
   cancelAmc: (id, data) =>
     api.delete(`/admin/business-forms/${id}/amc`, { data }),
+  // Follow-ups
+  getBusinessFollowUps: (params) => api.get("/business/follow-ups", { params }),
+  setBusinessFollowUp: (id, data) =>
+    api.put(`/business/admin/business-forms/${id}/follow-up`, data),
+  clearBusinessFollowUp: (id) =>
+    api.delete(`/business/admin/business-forms/${id}/follow-up`),
 };
 
 // Credit API functions
