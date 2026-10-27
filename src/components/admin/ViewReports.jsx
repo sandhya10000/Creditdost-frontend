@@ -25,7 +25,7 @@ import {
   Pagination,
 } from "@mui/material";
 import TablePagination from "@mui/material/TablePagination";
-import { PictureAsPdf, Search } from "@mui/icons-material";
+import { Download, PictureAsPdf, Search } from "@mui/icons-material";
 import { adminAPI } from "../../services/api";
 
 const ViewReports = () => {
@@ -33,6 +33,40 @@ const ViewReports = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [downloadingId, setDownloadingId] = useState("");
+
+  // Error responses come back as blobs when responseType is "blob"; read the JSON message out of them
+  const readErrorMessage = async (err) => {
+    const data = err.response?.data;
+    if (data instanceof Blob) {
+      try {
+        return JSON.parse(await data.text()).message || "Download failed";
+      } catch {
+        return "Download failed";
+      }
+    }
+    return data?.message || "Download failed";
+  };
+
+  const handleDownload = async (report) => {
+    setDownloadingId(report._id);
+    setError("");
+    try {
+      const { data } = await adminAPI.downloadCreditReport(report._id);
+      const url = URL.createObjectURL(data);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${(report.name || "Report").replace(/[^a-z0-9]+/gi, "_")}_${(report.bureau || "credit").toUpperCase()}_Report.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      setError(await readErrorMessage(err));
+    } finally {
+      setDownloadingId("");
+    }
+  };
   const [bureauFilter, setBureauFilter] = useState("");
 
   // Pagination States
@@ -241,6 +275,23 @@ const ViewReports = () => {
                               PDF
                             </Button>
                           )}
+                          <Button
+                            size="small"
+                            startIcon={<Download />}
+                            onClick={() => handleDownload(report)}
+                            disabled={
+                              downloadingId === report._id ||
+                              report.pdfStatus === "pending" ||
+                              (!report.localPath && !report.reportUrl)
+                            }
+                            title={
+                              report.pdfStatus === "pending"
+                                ? "PDF is still being generated"
+                                : undefined
+                            }
+                          >
+                            {downloadingId === report._id ? "..." : "Download"}
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))}

@@ -1445,26 +1445,23 @@ const FranchiseOpportunityPage = () => {
                             successfully.
                           </Typography>
                           <Typography sx={{ color: "#666", mb: 2 }}>
-                            Join our exclusive WhatsApp group for partners to
-                            connect with fellow franchisees and get instant
-                            support.
+                            Join our free webinar to learn more about the
+                            franchise program and get your questions answered.
                           </Typography>
                           <Button
                             variant="contained"
-                            href={
-                              "https://chat.whatsapp.com/J9D0d2qF1PHFiecQyFw7PW"
-                            }
+                            href="https://www.creditdost.co.in/webinar"
                             target="_blank"
                             sx={{
                               background:
-                                "linear-gradient(135deg, #25D366, #128C7E)",
+                                "linear-gradient(135deg, #6200ea, #3700b3)",
                               mb: 0,
                               mr: 2,
                               py: 1.2,
                               fontSize: { xs: "0.9rem", md: "1rem" },
                             }}
                           >
-                            Join WhatsApp Group
+                            Join the Webinar
                           </Button>
                           <Button
                             variant="contained"

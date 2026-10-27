@@ -183,7 +183,7 @@ export const blogAPI = {
 
 // Admin API functions
 export const adminAPI = {
-  getDashboardStats: () => api.get("/admin/dashboard"),
+  getDashboardStats: (params) => api.get("/admin/dashboard", { params }),
   getRecentActivities: () => api.get("/admin/dashboard/activities"),
   getPerformanceOverview: (params) =>
     api.get("/admin/dashboard/performance", { params }),
@@ -283,6 +283,8 @@ export const adminAPI = {
     api.put("/credit/settings/indiconnect-keys", data),
   // Credit reports
   getAllCreditReports: (params) => api.get("/credit/reports/all", { params }),
+  downloadCreditReport: (id) =>
+    api.get(`/credit/reports/${id}/download`, { responseType: "blob" }),
   // Certificate name update
   updateFranchiseCertificateName: (data) =>
     api.put("/admin/franchises/certificate-name", data),
