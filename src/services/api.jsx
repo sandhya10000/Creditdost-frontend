@@ -414,6 +414,11 @@ export const adminAPI = {
   renewAmc: (id, data) => api.post(`/admin/business-forms/${id}/amc/renew`, data),
   cancelAmc: (id, data) =>
     api.delete(`/admin/business-forms/${id}/amc`, { data }),
+  // Manual Payments (Razorpay payment links created by admin)
+  getManualPayments: (params) => api.get("/admin/manual-payments", { params }),
+  createManualPayment: (data) => api.post("/admin/manual-payments", data),
+  refreshManualPayment: (id) => api.post(`/admin/manual-payments/${id}/refresh`),
+  cancelManualPayment: (id) => api.post(`/admin/manual-payments/${id}/cancel`),
   // Follow-ups
   getBusinessFollowUps: (params) => api.get("/business/follow-ups", { params }),
   setBusinessFollowUp: (id, data) =>

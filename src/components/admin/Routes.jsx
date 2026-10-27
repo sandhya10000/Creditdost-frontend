@@ -13,6 +13,7 @@ const SurepassSettings = lazy(() => import("./SurepassSettings"));
 const RechargeCredits = lazy(() => import("./RechargeCredits"));
 const BusinessForms = lazy(() => import("./BusinessForms"));
 const AmcCustomers = lazy(() => import("./AmcCustomers"));
+const ManualPayments = lazy(() => import("./ManualPayments"));
 const BusinessFollowUps = lazy(() => import("./BusinessFollowUps"));
 const ManageBlogs = lazy(() => import("./ManageBlogs"));
 const ManageRelationshipManagers = lazy(
@@ -97,6 +98,7 @@ const AdminRoutes = () => {
           />
           <Route path="business-forms/follow-ups" element={<BusinessFollowUps />} />
           <Route path="amc-customers" element={<AmcCustomers />} />
+          <Route path="manual-payments" element={<ManualPayments />} />
           <Route path="blogs" element={<ManageBlogs />} />
           <Route path="rms" element={<ManageRelationshipManagers />} />
           <Route path="staff" element={<ManageStaff />} />

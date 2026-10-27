@@ -350,6 +350,11 @@ const AdminDashboard = () => {
       path: "/admin/recharge",
     },
     {
+      text: "Manual Payments",
+      icon: <AccountBalanceIcon />,
+      path: "/admin/manual-payments",
+    },
+    {
       text: "Manage Blogs",
       icon: <DescriptionIcon />,
       path: "/admin/blogs",
