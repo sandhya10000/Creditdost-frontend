@@ -31,9 +31,12 @@ import {
 import { adminAPI } from "../../services/api";
 import AmcDialog from "./AmcDialog";
 import { formatAmcDate } from "../../utils/amc";
-//import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import EventAvailableIcon from "@mui/icons-material/EventAvailable";
 
-const BusinessForms = ({ status = "paid" }) => {
+const BusinessForms = ({ status = "paid", customerType }) => {
+  const isBusinessView = customerType === "business";
+  const navigate = useNavigate();
   const [businessForms, setBusinessForms] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -55,12 +58,12 @@ const BusinessForms = ({ status = "paid" }) => {
 
   useEffect(() => {
     setPage(1);
-  }, [status]);
+  }, [status, customerType]);
 
   // Fetch all business forms on component mount or dependency change
   useEffect(() => {
     fetchBusinessForms();
-  }, [status, page, searchTerm]);
+  }, [status, customerType, page, searchTerm]);
 
   const fetchBusinessForms = async () => {
     try {
@@ -71,6 +74,7 @@ const BusinessForms = ({ status = "paid" }) => {
         limit: rowsPerPage,
         search: searchTerm,
         paymentStatus: status,
+        ...(customerType && { customerType }),
       });
       // console.log("fetch all documents with details----", response);
       setBusinessForms(response.data.businessData || []);
@@ -155,6 +159,7 @@ const BusinessForms = ({ status = "paid" }) => {
         limit: 1000000, // Large number to fetch all records
         search: searchTerm,
         paymentStatus: status,
+        ...(customerType && { customerType }),
       });
       
       const allBusinessForms = response.data.businessData || [];
@@ -176,6 +181,15 @@ const BusinessForms = ({ status = "paid" }) => {
         "Date",
         "Work Status",
         "AMC",
+        ...(isBusinessView
+          ? [
+              "Director Name",
+              "GST Username",
+              "GST Number",
+              "Company Type",
+              "Company PAN Number",
+            ]
+          : []),
       ];
 
       const rows = exportData.map((form) => [
@@ -194,6 +208,15 @@ const BusinessForms = ({ status = "paid" }) => {
         form.amc?.isEnrolled
           ? `${formatAmcDate(form.amc.startDate)} to ${formatAmcDate(form.amc.endDate)}`
           : "No",
+        ...(isBusinessView
+          ? [
+              form.businessDetails?.directorName || "",
+              form.businessDetails?.gstUsername || "",
+              form.businessDetails?.gstNumber || "",
+              form.businessDetails?.companyType || "",
+              form.businessDetails?.companyPanNumber || "",
+            ]
+          : []),
       ]);
 
       // Enclose fields in double quotes to handle commas in data
@@ -206,7 +229,9 @@ const BusinessForms = ({ status = "paid" }) => {
 
       const link = document.createElement("a");
       link.href = encodedUri;
-      link.download = "business_mis.csv";
+      link.download = customerType
+        ? `business_mis_${customerType}.csv`
+        : "business_mis.csv";
 
       document.body.appendChild(link);
       link.click();
@@ -270,7 +295,13 @@ const BusinessForms = ({ status = "paid" }) => {
           fontSize: { xs: "1.5rem", md: "2rem" },
         }}
       >
-        {status === "pending" ? "Business MIS Pending" : "Business MIS"}
+        {status === "pending"
+          ? "Business MIS Pending"
+          : customerType === "business"
+            ? "Business MIS – Business Customers"
+            : customerType === "individual"
+              ? "Business MIS – Individual Customers"
+              : "Business MIS"}
       </Typography>
 
       {error && (
@@ -306,14 +337,29 @@ const BusinessForms = ({ status = "paid" }) => {
                 maxWidth: { xs: "100%", sm: 400 },
               }}
             />
-            <Button
-              variant="contained"
-              color="success"
-              onClick={handleDownloadCSV}
-              sx={{ color: "#fff", width: { xs: "100%", sm: "auto" } }}
+            <Stack
+              direction={{ xs: "column", sm: "row" }}
+              spacing={1.5}
+              sx={{ width: { xs: "100%", sm: "auto" } }}
             >
-              Download CSV
-            </Button>
+              <Button
+                variant="outlined"
+                color="primary"
+                startIcon={<EventAvailableIcon />}
+                onClick={() => navigate("/admin/business-forms/follow-ups")}
+                sx={{ width: { xs: "100%", sm: "auto" }, whiteSpace: "nowrap" }}
+              >
+                Follow Up
+              </Button>
+              <Button
+                variant="contained"
+                color="success"
+                onClick={handleDownloadCSV}
+                sx={{ color: "#fff", width: { xs: "100%", sm: "auto" } }}
+              >
+                Download CSV
+              </Button>
+            </Stack>
           </Box>
           {loading && businessForms.length === 0 ? (
             <Box display="flex" justifyContent="center" my={4}>
@@ -360,6 +406,8 @@ const BusinessForms = ({ status = "paid" }) => {
                     <TableCell>Customer ID</TableCell>
 
                     <TableCell>Customer Name</TableCell>
+                    {isBusinessView && <TableCell>Company Type</TableCell>}
+                    {isBusinessView && <TableCell>GST Number</TableCell>}
                     <TableCell>Email</TableCell>
                     <TableCell>Phone</TableCell>
                     <TableCell>Franchise</TableCell>
@@ -392,13 +440,23 @@ const BusinessForms = ({ status = "paid" }) => {
                           fontWeight: "bold",
                         }}
                       >
-                        <a href={`customer/${form.customerId}`}>
+                        <a href={`/admin/customer/${form.customerId}`}>
                           {form.customerId}
                         </a>
                       </TableCell>
                       <TableCell component="th" scope="row">
                         {form.customerName}
                       </TableCell>
+                      {isBusinessView && (
+                        <TableCell sx={{ whiteSpace: "nowrap" }}>
+                          {form.businessDetails?.companyType || "N/A"}
+                        </TableCell>
+                      )}
+                      {isBusinessView && (
+                        <TableCell sx={{ whiteSpace: "nowrap" }}>
+                          {form.businessDetails?.gstNumber || "N/A"}
+                        </TableCell>
+                      )}
                       <TableCell
                         sx={{
                           maxWidth: 180,
@@ -491,7 +549,7 @@ const BusinessForms = ({ status = "paid" }) => {
                                 color="secondary"
                                 size="small"
                                 component="a"
-                                href="amc-customers"
+                                href="/admin/amc-customers"
                                 clickable
                               />
                             ) : (

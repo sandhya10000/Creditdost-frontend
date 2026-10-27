@@ -1,6 +1,6 @@
 import React, { Suspense, lazy } from "react";
 
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 
 const Dashboard = lazy(() => import("./Dashboard"));
 const ManageFranchises = lazy(() => import("./ManageFranchises"));
@@ -9,11 +9,11 @@ const ManageCustomerPackages = lazy(() => import("./ManageCustomerPackages"));
 const ManageLeads = lazy(() => import("./ManageLeads"));
 const ManagePayouts = lazy(() => import("./ManagePayouts"));
 const ViewReports = lazy(() => import("./ViewReports"));
-const ManageReferrals = lazy(() => import("./ManageReferrals"));
 const SurepassSettings = lazy(() => import("./SurepassSettings"));
 const RechargeCredits = lazy(() => import("./RechargeCredits"));
 const BusinessForms = lazy(() => import("./BusinessForms"));
 const AmcCustomers = lazy(() => import("./AmcCustomers"));
+const BusinessFollowUps = lazy(() => import("./BusinessFollowUps"));
 const ManageBlogs = lazy(() => import("./ManageBlogs"));
 const ManageRelationshipManagers = lazy(
   () => import("./ManageRelationshipManagers"),
@@ -37,7 +37,15 @@ const FranchisePending = lazy(
 const CreditScoreRepair = lazy(
   () => import("../admin/Website-enquiry/CreditScoreRepair"),
 );
+const CreditReportLeads = lazy(
+  () => import("../admin/Website-enquiry/CreditReportLeads"),
+);
+const WebsiteFranchiseLeads = lazy(
+  () => import("../admin/Website-enquiry/WebsiteFranchiseLeads"),
+);
 const AdminTickets = lazy(() => import("../admin/supportTicket"));
+const ManageStaff = lazy(() => import("./ManageStaff"));
+const StaffProfile = lazy(() => import("./StaffProfile"));
 const AdminRoutes = () => {
   return (
     <Suspense fallback={<div>Loading...</div>}>
@@ -56,21 +64,43 @@ const AdminRoutes = () => {
           <Route path="leads" element={<ManageLeads />} />
           <Route path="payouts" element={<ManagePayouts />} />
           <Route path="reports" element={<ViewReports />} />
-          <Route path="referrals" element={<ManageReferrals />} />
           <Route path="surepass-settings" element={<SurepassSettings />} />
           <Route path="recharge" element={<RechargeCredits />} />
           <Route
             path="business-forms"
-            element={<BusinessForms key="paid" status="paid" />}
+            element={<Navigate to="/admin/business-forms/individual" replace />}
+          />
+          <Route
+            path="business-forms/individual"
+            element={
+              <BusinessForms
+                key="paid-individual"
+                status="paid"
+                customerType="individual"
+              />
+            }
+          />
+          <Route
+            path="business-forms/business"
+            element={
+              <BusinessForms
+                key="paid-business"
+                status="paid"
+                customerType="business"
+              />
+            }
           />
 
           <Route
             path="business-forms-pending"
             element={<BusinessForms key="pending" status="pending" />}
           />
+          <Route path="business-forms/follow-ups" element={<BusinessFollowUps />} />
           <Route path="amc-customers" element={<AmcCustomers />} />
           <Route path="blogs" element={<ManageBlogs />} />
           <Route path="rms" element={<ManageRelationshipManagers />} />
+          <Route path="staff" element={<ManageStaff />} />
+          <Route path="staff/:id" element={<StaffProfile />} />
           <Route path="google-sheets" element={<GoogleSheetsSettings />} />
           <Route
             path="digital-agreements"
@@ -108,6 +138,11 @@ const AdminRoutes = () => {
           />
 
           <Route path="credit-repair" element={<CreditScoreRepair />} />
+          <Route path="credit-report-leads" element={<CreditReportLeads />} />
+          <Route
+            path="website-franchise-leads"
+            element={<WebsiteFranchiseLeads />}
+          />
         </Route>
       </Routes>
     </Suspense>

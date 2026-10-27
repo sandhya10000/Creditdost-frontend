@@ -22,6 +22,22 @@ import {
   ListItemButton,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
+import { canAccess } from "../../config/adminPermissions";
+
+// Hides sidebar entries (and sub-entries) the signed-in user cannot open
+const filterMenu = (items, user) =>
+  items
+    .map((item) =>
+      item.children
+        ? {
+            ...item,
+            children: item.children.filter((child) => canAccess(user, child.path)),
+          }
+        : item,
+    )
+    .filter((item) =>
+      item.children ? item.children.length > 0 : canAccess(user, item.path),
+    );
 import { Outlet } from "react-router-dom";
 import {
   Menu as MenuIcon,
@@ -235,31 +251,37 @@ const AdminDashboard = () => {
 
   const menuItems = [
     { text: "Dashboard", icon: <DashboardIcon />, path: "/admin" },
+    { text: "Team & Roles", icon: <PeopleIcon />, path: "/admin/staff" },
     {
-      text: "Website Enquiry",
+      text: "Credit Report Leads",
       icon: <CreditScoreIcon />,
-      children: [
-        // {
-        //   text: " Website Franchise Enquiry",
-        //   path: "/admin/website-franchise-enquiry",
-        //   icon: <BusinessIcon />,
-        // },
-        {
-          text: "Franchise Pending Case",
-          path: "/admin/franchise-pending",
-          icon: <BusinessIcon />,
-        },
-        {
-          text: "Credit Score Repair",
-          path: "/admin/credit-repair",
-          icon: <AssessmentIcon />,
-        },
-      ],
+      path: "/admin/credit-report-leads",
+    },
+    {
+      text: "Franchise Leads",
+      icon: <BusinessIcon />,
+      path: "/admin/website-franchise-leads",
+    },
+    {
+      text: "Credit Score Repair",
+      icon: <AssessmentIcon />,
+      path: "/admin/credit-repair",
     },
     {
       text: "Manage Franchises",
       icon: <PeopleIcon />,
-      path: "/admin/franchises",
+      children: [
+        {
+          text: "Pending Franchise",
+          path: "/admin/franchise-pending",
+          icon: <BusinessIcon />,
+        },
+        {
+          text: "Active Franchise",
+          path: "/admin/franchises",
+          icon: <PeopleIcon />,
+        },
+      ],
     },
     {
       text: "Manage Franchise Packages",
@@ -285,25 +307,31 @@ const AdminDashboard = () => {
       path: "/admin/prefill-failed-logs",
     },
 
-    // {
-    //   text: "Manage Referrals",
-    //   icon: <GroupAddIcon />,
-    //   path: "/admin/referrals",
-    // },
     {
       text: "Business MIS",
       icon: <DescriptionIcon />,
-      path: "/admin/business-forms",
+      children: [
+        {
+          text: "Individual Customers",
+          path: "/admin/business-forms/individual",
+          icon: <PeopleIcon />,
+        },
+        {
+          text: "Business Customers",
+          path: "/admin/business-forms/business",
+          icon: <BusinessCenterIcon />,
+        },
+        {
+          text: "AMC",
+          path: "/admin/amc-customers",
+          icon: <EventRepeatIcon />,
+        },
+      ],
     },
     {
       text: "Business MIS Pending",
       icon: <DescriptionIcon />,
       path: "/admin/business-forms-pending",
-    },
-    {
-      text: "AMC Customers",
-      icon: <EventRepeatIcon />,
-      path: "/admin/amc-customers",
     },
     {
       text: "Support Tickets",
@@ -448,7 +476,7 @@ const AdminDashboard = () => {
       </DrawerHeader>
       <Divider />
       <List sx={{ flexGrow: 1, pt: 2 }}>
-        {menuItems.map((item) => {
+        {filterMenu(menuItems, user).map((item) => {
           const hasChildren = item.children && item.children.length > 0;
 
           return (
@@ -635,11 +663,11 @@ const AdminDashboard = () => {
                       alignSelf: "flex-start",
                     }}
                   >
-                    {user?.subRole === "super_admin"
+                    {user?.staffRoleName ?? (user?.subRole === "super_admin"
                       ? "Admin"
                       : user?.subRole === "relationship_manager"
                         ? "Relationship Manager"
-                        : "Credit Analyst"}
+                        : "Credit Analyst")}
                   </Typography>
                 </Box>
               </MenuItem>
@@ -697,7 +725,15 @@ const AdminDashboard = () => {
           overflowX: "hidden" /* MOBILE FIX */,
         }}
       >
-        <Outlet />
+        {canAccess(user, location.pathname) ? (
+          <Outlet />
+        ) : (
+          <Box p={4}>
+            <Typography variant="h6">
+              You do not have access to this section.
+            </Typography>
+          </Box>
+        )}
       </Box>
     </Box>
   );

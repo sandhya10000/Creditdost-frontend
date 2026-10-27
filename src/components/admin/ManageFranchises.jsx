@@ -1,4 +1,8 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
+import { useAuth } from "../../hooks/useAuth.jsx";
+import ReassignRmDialog from "./ReassignRmDialog";
 import {
   Box,
   Typography,
@@ -213,12 +217,16 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
 
   const fetchPackages = async () => {
     try {
-      const response = await adminAPI.getAllPackages();
+      const response = await adminAPI.getPackageOptions();
       setPackages(response.data);
     } catch (err) {
       console.error("Error fetching packages:", err);
     }
   };
+
+  // RM column: full admins can open a manager's profile; managers see the code only
+  const { user: currentUser } = useAuth();
+  const [rmFranchise, setRmFranchise] = useState(null);
 
   const fetchFranchises = async () => {
     try {
@@ -1128,8 +1136,10 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
           {tabValue === 1
             ? "Deleted Franchises"
             : kycStatus === "pending"
-              ? "Franchise Pending Case"
-              : "Manage Franchises"}
+              ? "Pending Franchise"
+              : initialKycStatus === "approved"
+                ? "Active Franchise"
+                : "Manage Franchises"}
         </Typography>
 
         <Button
@@ -1298,21 +1308,8 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
                 >
                   Franchise
                 </MenuItem>
-                <MenuItem
-                  onClick={() => {
-                    handleClose();
-                    handleOpenCreateDialog("relation_manager");
-                  }}
-                >
-                  Relationship Manager
-                </MenuItem>
-                <MenuItem
-                  onClick={() => {
-                    handleClose();
-                    handleOpenCreateDialog("credit_analyst");
-                  }}
-                >
-                  Credit Analysist
+                <MenuItem component={Link} to="/admin/staff" onClick={handleClose}>
+                  Staff (Relationship Manager / Credit Analyst)
                 </MenuItem>
               </Menu>
 
@@ -1333,6 +1330,7 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
                         <TableCell>KYC Status</TableCell>
                         <TableCell>Status</TableCell>
                         <TableCell>Credits</TableCell>
+                        <TableCell>RM</TableCell>
                         <TableCell>Created</TableCell>
                         <TableCell>Actions</TableCell>
                       </TableRow>
@@ -1430,6 +1428,47 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
                             />
                           </TableCell>
                           <TableCell>{franchise.credits}</TableCell>
+                          <TableCell>
+                            <Box display="flex" alignItems="center" gap={0.5}>
+                              {franchise.businessManager ? (
+                                currentUser?.scopedToOwnFranchises ? (
+                                  franchise.businessManager.staffCode
+                                ) : (
+                                  <Link
+                                    to={`/admin/staff/${franchise.businessManager._id}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                  >
+                                    {franchise.businessManager.staffCode ||
+                                      franchise.businessManager.name}
+                                  </Link>
+                                )
+                              ) : (
+                                <Typography variant="body2" color="text.secondary">
+                                  Unassigned
+                                </Typography>
+                              )}
+                              {!currentUser?.scopedToOwnFranchises && (
+                                <IconButton
+                                  size="small"
+                                  aria-label="Change RM"
+                                  onClick={() => setRmFranchise(franchise)}
+                                >
+                                  <SwapHorizIcon fontSize="small" />
+                                </IconButton>
+                              )}
+                            </Box>
+                            {rmFranchise?._id === franchise._id && (
+                              <ReassignRmDialog
+                                franchise={rmFranchise}
+                                onClose={() => setRmFranchise(null)}
+                                onSaved={() => {
+                                  setRmFranchise(null);
+                                  fetchFranchises();
+                                }}
+                              />
+                            )}
+                          </TableCell>
                           <TableCell>
                             {formatDate(franchise.createdAt)}
                           </TableCell>
