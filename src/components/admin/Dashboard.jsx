@@ -438,6 +438,20 @@ const AdminDashboard = () => {
     }
   }, [location.pathname, navigate, location.state]);
 
+  // Staff without Dashboard access land on the first section they can see, not the denial page
+  useEffect(() => {
+    const isBase = location.pathname === "/admin" || location.pathname === "/admin/";
+    if (!isBase || canAccess(user, "/admin")) return;
+
+    const firstPath = filterMenu(menuItems, user)
+      .map((item) => item.path ?? item.children?.[0]?.path)
+      .find(Boolean);
+    if (firstPath) {
+      navigate(firstPath, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname, user, navigate]);
+
   const drawer = (
     <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
       <DrawerHeader>
