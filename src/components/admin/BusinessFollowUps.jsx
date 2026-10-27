@@ -163,6 +163,8 @@ const BusinessFollowUps = () => {
     const map = {
       closed: { label: "Closed", color: "success" },
       on_hold: { label: "On Hold", color: "warning" },
+      hold: { label: "Hold", color: "error" },
+      pending: { label: "Pending", color: "secondary" },
     };
     const config = map[status] || { label: "In Progress", color: "info" };
     return <Chip size="small" label={config.label} color={config.color} sx={{ color: "#fff" }} />;

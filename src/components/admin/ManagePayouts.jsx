@@ -51,11 +51,77 @@ const ManagePayouts = () => {
   const [remarks, setRemarks] = useState("");
   const [calculatedPayout, setCalculatedPayout] = useState(null);
 
-  // Fetch franchises and payouts on component mount
+  // Package payout settings (moved here from Manage Franchise Packages)
+  const [packages, setPackages] = useState([]);
+  const [editingPackage, setEditingPackage] = useState(null);
+  const [payoutForm, setPayoutForm] = useState({
+    businessPayoutType: "percentage",
+    businessPayoutPercentage: 20,
+    businessPayoutFixedAmount: 0,
+  });
+  const [savingPackage, setSavingPackage] = useState(false);
+
+  // Fetch franchises, payouts and packages on component mount
   useEffect(() => {
     fetchFranchises();
     fetchAllPayouts();
+    fetchPackages();
   }, []);
+
+  const fetchPackages = async () => {
+    try {
+      const response = await adminAPI.getAllPackages();
+      setPackages(response.data || []);
+    } catch (error) {
+      showNotification("Error fetching packages", "error");
+      console.error("Error fetching packages:", error);
+    }
+  };
+
+  const handleOpenPayoutDialog = (pkg) => {
+    setEditingPackage(pkg);
+    setPayoutForm({
+      businessPayoutType: pkg.businessPayoutType || "percentage",
+      businessPayoutPercentage: pkg.businessPayoutPercentage ?? 20,
+      businessPayoutFixedAmount: pkg.businessPayoutFixedAmount ?? 0,
+    });
+  };
+
+  const handleSavePayoutSettings = async () => {
+    try {
+      setSavingPackage(true);
+      // The package API validates the whole package, so send every required field
+      // along with the payout values (unknown keys like _id are rejected)
+      await adminAPI.updatePackage(editingPackage._id, {
+        name: editingPackage.name,
+        description: editingPackage.description,
+        price: Number(editingPackage.price),
+        gstPercentage: Number(editingPackage.gstPercentage || 0),
+        creditsIncluded: Number(editingPackage.creditsIncluded),
+        features: editingPackage.features || [],
+        isActive: editingPackage.isActive,
+        businessPayoutType: payoutForm.businessPayoutType,
+        businessPayoutPercentage: Number(payoutForm.businessPayoutPercentage),
+        businessPayoutFixedAmount: Number(payoutForm.businessPayoutFixedAmount),
+      });
+      showNotification("Payout settings updated");
+      setEditingPackage(null);
+      fetchPackages();
+    } catch (error) {
+      showNotification(
+        error.response?.data?.message || "Error updating payout settings",
+        "error",
+      );
+      console.error("Error updating payout settings:", error);
+    } finally {
+      setSavingPackage(false);
+    }
+  };
+
+  const describePayout = (pkg) =>
+    pkg.businessPayoutType === "fixed"
+      ? `₹${pkg.businessPayoutFixedAmount ?? 0} fixed`
+      : `${pkg.businessPayoutPercentage ?? 0}% of package price`;
 
   const fetchFranchises = async () => {
     try {
@@ -226,6 +292,113 @@ const ManagePayouts = () => {
       </Snackbar>
 
       <Grid container spacing={3} style={{ flexDirection: "column" }}>
+        {/* Package Payout Settings */}
+        <Grid item xs={12}>
+          <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                Package Payout Settings
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                Business payout rule applied to each franchise package.
+              </Typography>
+              <TableContainer component={Paper}>
+                <Table size="small" aria-label="package payout settings">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Package</TableCell>
+                      <TableCell>Package Price</TableCell>
+                      <TableCell>Payout</TableCell>
+                      <TableCell align="center">Action</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {packages.map((pkg) => (
+                      <TableRow key={pkg._id}>
+                        <TableCell>{pkg.name}</TableCell>
+                        <TableCell>₹{pkg.price}</TableCell>
+                        <TableCell>
+                          <Chip size="small" variant="outlined" label={describePayout(pkg)} />
+                        </TableCell>
+                        <TableCell align="center">
+                          <Button size="small" variant="outlined" onClick={() => handleOpenPayoutDialog(pkg)}>
+                            Edit
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {packages.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={4} align="center">
+                          No packages found
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </CardContent>
+          </Card>
+
+          <Dialog
+            open={Boolean(editingPackage)}
+            onClose={() => setEditingPackage(null)}
+            maxWidth="xs"
+            fullWidth
+          >
+            <DialogTitle>Payout Settings – {editingPackage?.name}</DialogTitle>
+            <DialogContent>
+              <Grid container spacing={2} sx={{ mt: 0.5 }}>
+                <Grid item xs={12}>
+                  <TextField
+                    select
+                    fullWidth
+                    label="Payout Type"
+                    value={payoutForm.businessPayoutType}
+                    onChange={(e) =>
+                      setPayoutForm({ ...payoutForm, businessPayoutType: e.target.value })
+                    }
+                  >
+                    <MenuItem value="percentage">Percentage</MenuItem>
+                    <MenuItem value="fixed">Fixed Amount</MenuItem>
+                  </TextField>
+                </Grid>
+                <Grid item xs={12}>
+                  {payoutForm.businessPayoutType === "percentage" ? (
+                    <TextField
+                      fullWidth
+                      label="Payout Percentage (%)"
+                      type="number"
+                      value={payoutForm.businessPayoutPercentage}
+                      onChange={(e) =>
+                        setPayoutForm({ ...payoutForm, businessPayoutPercentage: e.target.value })
+                      }
+                      InputProps={{ inputProps: { min: 0, max: 100 } }}
+                    />
+                  ) : (
+                    <TextField
+                      fullWidth
+                      label="Fixed Payout Amount (₹)"
+                      type="number"
+                      value={payoutForm.businessPayoutFixedAmount}
+                      onChange={(e) =>
+                        setPayoutForm({ ...payoutForm, businessPayoutFixedAmount: e.target.value })
+                      }
+                      InputProps={{ inputProps: { min: 0 } }}
+                    />
+                  )}
+                </Grid>
+              </Grid>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setEditingPackage(null)}>Cancel</Button>
+              <Button variant="contained" onClick={handleSavePayoutSettings} disabled={savingPackage}>
+                {savingPackage ? <CircularProgress size={24} /> : "Save"}
+              </Button>
+            </DialogActions>
+          </Dialog>
+        </Grid>
+
         {/* Payout Calculation Form */}
         <Grid item xs={12}>
           <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>

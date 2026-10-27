@@ -29,10 +29,19 @@ import {
   DialogActions,
 } from "@mui/material";
 import { adminAPI } from "../../services/api";
-import AmcDialog from "./AmcDialog";
 import { formatAmcDate } from "../../utils/amc";
 import { useNavigate } from "react-router-dom";
 import EventAvailableIcon from "@mui/icons-material/EventAvailable";
+
+// Work status: label, select/chip background, and the Customer ID text color
+const WORK_STATUS = {
+  in_progress: { label: "In Progress", bg: "#0288d1", text: "#1565c0" },
+  pending: { label: "Pending", bg: "#7b1fa2", text: "#7b1fa2" },
+  hold: { label: "Hold", bg: "#d32f2f", text: "#d32f2f" },
+  on_hold: { label: "On Hold", bg: "#ed6c02", text: "#e65100" },
+  closed: { label: "Closed", bg: "#2e7d32", text: "#2e7d32" },
+};
+const getWorkStatus = (status) => WORK_STATUS[status] || WORK_STATUS.in_progress;
 
 const BusinessForms = ({ status = "paid", customerType }) => {
   const isBusinessView = customerType === "business";
@@ -48,7 +57,6 @@ const BusinessForms = ({ status = "paid", customerType }) => {
   const [toast, setToast] = useState({ open: false, message: "", severity: "success" });
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [businessToDelete, setBusinessToDelete] = useState(null);
-  const [amcEnrollCustomer, setAmcEnrollCustomer] = useState(null);
 
   const handleCloseToast = (event, reason) => {
     if (reason === "clickaway") return;
@@ -436,11 +444,16 @@ const BusinessForms = ({ status = "paid", customerType }) => {
                       <TableCell
                         sx={{
                           cursor: "pointer",
-                          color: "blue",
                           fontWeight: "bold",
                         }}
                       >
-                        <a href={`/admin/customer/${form.customerId}`}>
+                        <a
+                          href={`/admin/customer/${form.customerId}`}
+                          style={{
+                            color: getWorkStatus(form.workStatus).text,
+                            textDecoration: "none",
+                          }}
+                        >
                           {form.customerId}
                         </a>
                       </TableCell>
@@ -511,13 +524,9 @@ const BusinessForms = ({ status = "paid", customerType }) => {
                       <TableCell align="center" sx={{ whiteSpace: "nowrap" }}>
                         <Stack direction="row" spacing={1} justifyContent="center" alignItems="center">
                           {status !== "pending" && (() => {
-                            const workStatusColorMap = {
-                              in_progress: { bg: "#0288d1", color: "#fff" },
-                              closed:      { bg: "#2e7d32", color: "#fff" },
-                              on_hold:     { bg: "#ed6c02", color: "#fff" },
-                            };
                             const current = form.workStatus || "in_progress";
-                            const { bg, color } = workStatusColorMap[current] || { bg: "#757575", color: "#fff" };
+                            const { bg } = getWorkStatus(current);
+                            const color = "#fff";
                             return (
                               <FormControl size="small" sx={{ minWidth: 130 }}>
                                 <Select
@@ -536,31 +545,24 @@ const BusinessForms = ({ status = "paid", customerType }) => {
                                   }}
                                 >
                                   <MenuItem value="in_progress">In Progress</MenuItem>
-                                  <MenuItem value="closed">Closed</MenuItem>
+                                  <MenuItem value="pending">Pending</MenuItem>
+                                  <MenuItem value="hold">Hold</MenuItem>
                                   <MenuItem value="on_hold">On Hold</MenuItem>
+                                  <MenuItem value="closed">Closed</MenuItem>
                                 </Select>
                               </FormControl>
                             );
                           })()}
-                          {status === "paid" && form.customerId &&
-                            (form.amc?.isEnrolled ? (
-                              <Chip
-                                label={`AMC till ${formatAmcDate(form.amc.endDate)}`}
-                                color="secondary"
-                                size="small"
-                                component="a"
-                                href="/admin/amc-customers"
-                                clickable
-                              />
-                            ) : (
-                              <Button
-                                variant="outlined"
-                                size="small"
-                                onClick={() => setAmcEnrollCustomer(form)}
-                              >
-                                Enroll AMC
-                              </Button>
-                            ))}
+                          {status === "paid" && form.customerId && form.amc?.isEnrolled && (
+                            <Chip
+                              label={`AMC till ${formatAmcDate(form.amc.endDate)}`}
+                              color="secondary"
+                              size="small"
+                              component="a"
+                              href="/admin/amc-customers"
+                              clickable
+                            />
+                          )}
                           {status !== "paid" && (
                             <Button
                               variant="contained"
@@ -634,18 +636,6 @@ const BusinessForms = ({ status = "paid", customerType }) => {
           </Button>
         </DialogActions>
       </Dialog>
-
-      <AmcDialog
-        open={Boolean(amcEnrollCustomer)}
-        mode="enroll"
-        customer={amcEnrollCustomer}
-        onClose={() => setAmcEnrollCustomer(null)}
-        onSaved={(message) => {
-          setAmcEnrollCustomer(null);
-          setToast({ open: true, message: message || "Customer enrolled in AMC", severity: "success" });
-          fetchBusinessForms();
-        }}
-      />
 
       <Snackbar
         open={toast.open}
