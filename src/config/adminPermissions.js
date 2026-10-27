@@ -26,15 +26,14 @@ const PATH_PERMISSIONS = [
   ["/admin/admin-tickets", "support_tickets"],
   ["/admin/recharge", "finance"],
   ["/admin/payouts", "finance"],
-  ["/admin/referrals", "referrals"],
   ["/admin/blogs", "blogs"],
   ["/admin/rms", "relationship_managers"],
   ["/admin/google-sheets", "google_sheets"],
   ["/admin/ai-analysis", "ai_analysis"],
   ["/admin/surepass-settings", "settings"],
-  ["/admin/marketing-materials", "settings"],
-  ["/admin/reward", "settings"],
-  ["/admin/case-study", "settings"],
+  ["/admin/marketing-materials", "marketing"],
+  ["/admin/reward", "marketing"],
+  ["/admin/case-study", "marketing"],
 ];
 
 // Full administrators only, regardless of permissions

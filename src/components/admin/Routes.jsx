@@ -9,7 +9,6 @@ const ManageCustomerPackages = lazy(() => import("./ManageCustomerPackages"));
 const ManageLeads = lazy(() => import("./ManageLeads"));
 const ManagePayouts = lazy(() => import("./ManagePayouts"));
 const ViewReports = lazy(() => import("./ViewReports"));
-const ManageReferrals = lazy(() => import("./ManageReferrals"));
 const SurepassSettings = lazy(() => import("./SurepassSettings"));
 const RechargeCredits = lazy(() => import("./RechargeCredits"));
 const BusinessForms = lazy(() => import("./BusinessForms"));
@@ -64,7 +63,6 @@ const AdminRoutes = () => {
           <Route path="leads" element={<ManageLeads />} />
           <Route path="payouts" element={<ManagePayouts />} />
           <Route path="reports" element={<ViewReports />} />
-          <Route path="referrals" element={<ManageReferrals />} />
           <Route path="surepass-settings" element={<SurepassSettings />} />
           <Route path="recharge" element={<RechargeCredits />} />
           <Route

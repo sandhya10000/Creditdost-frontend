@@ -251,7 +251,7 @@ const AdminDashboard = () => {
 
   const menuItems = [
     { text: "Dashboard", icon: <DashboardIcon />, path: "/admin" },
-    { text: "Staff & Roles", icon: <PeopleIcon />, path: "/admin/staff" },
+    { text: "Team & Roles", icon: <PeopleIcon />, path: "/admin/staff" },
     {
       text: "Credit Report Leads",
       icon: <CreditScoreIcon />,
@@ -307,11 +307,6 @@ const AdminDashboard = () => {
       path: "/admin/prefill-failed-logs",
     },
 
-    // {
-    //   text: "Manage Referrals",
-    //   icon: <GroupAddIcon />,
-    //   path: "/admin/referrals",
-    // },
     {
       text: "Business MIS",
       icon: <DescriptionIcon />,

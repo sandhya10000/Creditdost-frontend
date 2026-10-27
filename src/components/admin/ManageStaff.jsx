@@ -258,7 +258,7 @@ const ManageStaff = () => {
   return (
     <Box p={3}>
       <Typography variant="h5" fontWeight="bold" mb={2}>
-        Staff & Roles
+        Team & Roles
       </Typography>
       <Tabs value={tab} onChange={(_, value) => setTab(value)} sx={{ mb: 3 }}>
         <Tab label="Staff" />

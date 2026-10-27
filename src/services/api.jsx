@@ -237,6 +237,7 @@ export const adminAPI = {
     api.put(`/kyc/reject/${id}`, { rejectionReason }),
   // Package management
   getAllPackages: () => api.get("/packages/all"),
+  getPackageOptions: () => api.get("/packages/options"),
   getPackageById: (id) => api.get(`/packages/${id}`),
   createPackage: (packageData) => api.post("/packages", packageData),
   updatePackage: (id, packageData) => api.put(`/packages/${id}`, packageData),
@@ -281,10 +282,6 @@ export const adminAPI = {
     api.put("/credit/settings/indiconnect-keys", data),
   // Credit reports
   getAllCreditReports: (params) => api.get("/credit/reports/all", { params }),
-  // Referrals
-  getAllReferrals: () => api.get("/admin/referrals"),
-  getReferralSettings: () => api.get("/admin/referral-settings"),
-  updateReferralSettings: (data) => api.put("/admin/referral-settings", data),
   // Certificate name update
   updateFranchiseCertificateName: (data) =>
     api.put("/admin/franchises/certificate-name", data),

@@ -217,7 +217,7 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
 
   const fetchPackages = async () => {
     try {
-      const response = await adminAPI.getAllPackages();
+      const response = await adminAPI.getPackageOptions();
       setPackages(response.data);
     } catch (err) {
       console.error("Error fetching packages:", err);
