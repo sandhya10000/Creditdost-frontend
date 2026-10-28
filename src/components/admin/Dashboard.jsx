@@ -58,7 +58,6 @@ import {
 import CampaignIcon from "@mui/icons-material/Campaign";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
-import AnalyticsIcon from "@mui/icons-material/Analytics";
 import EventRepeatIcon from "@mui/icons-material/EventRepeat";
 import { useAuth } from "../../hooks/useAuth.jsx";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -258,16 +257,6 @@ const AdminDashboard = () => {
       path: "/admin/credit-report-leads",
     },
     {
-      text: "Franchise Leads",
-      icon: <BusinessIcon />,
-      path: "/admin/website-franchise-leads",
-    },
-    {
-      text: "Credit Score Repair",
-      icon: <AssessmentIcon />,
-      path: "/admin/credit-repair",
-    },
-    {
       text: "Manage Franchises",
       icon: <PeopleIcon />,
       children: [
@@ -293,7 +282,6 @@ const AdminDashboard = () => {
       icon: <BusinessCenterIcon />,
       path: "/admin/customer-packages",
     },
-    { text: "Manage Leads", icon: <PeopleIcon />, path: "/admin/leads" },
     {
       text: "Credit Check",
       icon: <AssessmentIcon />,
@@ -345,11 +333,6 @@ const AdminDashboard = () => {
     //   path: "/admin/surepass-settings",
     // },
     {
-      text: "Recharge Credits",
-      icon: <CreditScoreIcon />,
-      path: "/admin/recharge",
-    },
-    {
       text: "Manual Payments",
       icon: <AccountBalanceIcon />,
       path: "/admin/manual-payments",
@@ -387,11 +370,6 @@ const AdminDashboard = () => {
         path: `/admin/case-study/${category.value}`,
         icon: <MenuBookIcon />,
       })),
-    },
-    {
-      text: "Report Analytics",
-      icon: <AnalyticsIcon />,
-      path: "/admin/report-analytics",
     },
     {
       text: "AI Analysis",

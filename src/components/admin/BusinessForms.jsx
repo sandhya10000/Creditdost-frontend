@@ -30,7 +30,8 @@ import {
 } from "@mui/material";
 import { adminAPI } from "../../services/api";
 import { formatAmcDate } from "../../utils/amc";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link as RouterLink } from "react-router-dom";
+import { Link } from "@mui/material";
 import EventAvailableIcon from "@mui/icons-material/EventAvailable";
 
 // Work status: label, select/chip background, and the Customer ID text color
@@ -480,7 +481,16 @@ const BusinessForms = ({ status = "paid", customerType }) => {
                       </TableCell>
                       <TableCell>{form.customerPhone}</TableCell>
                       <TableCell sx={{ minWidth: 120 }}>
-                        {form.franchiseId?.businessName || "N/A"}
+                        {form.franchiseId?._id ? (
+                          <Link
+                            component={RouterLink}
+                            to={`/admin/franchise/${form.franchiseId.franchiseCode || form.franchiseId._id}`}
+                          >
+                            {form.franchiseId.franchiseCode || form.franchiseId.businessName}
+                          </Link>
+                        ) : (
+                          "N/A"
+                        )}
                       </TableCell>
                       <TableCell sx={{ minWidth: 100 }}>
                         {form.selectedPackage?.name || "N/A"}

@@ -16,6 +16,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import { Link } from "react-router-dom";
 import { adminAPI } from "../../services/api";
 import ManageRoles from "./ManageRoles";
 
@@ -183,7 +184,14 @@ const StaffList = () => {
           <Paper key={member._id} sx={{ p: 2, mb: 2, borderRadius: 2 }}>
             <Stack direction={{ xs: "column", md: "row" }} justifyContent="space-between" spacing={2}>
               <Box>
-                <Typography variant="h6">{member.name}</Typography>
+                <Typography
+                  variant="h6"
+                  component={Link}
+                  to={`/admin/staff/${member._id}`}
+                  sx={{ color: "primary.main", textDecoration: "none", "&:hover": { textDecoration: "underline" } }}
+                >
+                  {member.name}
+                </Typography>
                 <Typography variant="body2" color="text.secondary">
                   {member.email}
                 </Typography>

@@ -59,7 +59,7 @@ const GSTIN_REGEX = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
 
 // fixedCustomerType ("individual" | "business") locks the form to one customer type
 // and hides the Customer Type dropdown. Omit it to let the user pick.
-const Business = ({ userType, fixedCustomerType }) => {
+const Business = ({ userType, fixedCustomerType, amcEnabled = false }) => {
   // console.log("userType", userType);
   const [customerPackages, setCustomerPackages] = useState([]);
   const [filteredPackages, setFilteredPackages] = useState([]);
@@ -92,6 +92,14 @@ const Business = ({ userType, fixedCustomerType }) => {
     manualAmount: "",
   });
   // Required only when customerType is "business"
+  // AMC fields (admin AMC tab only). Kept apart from formData so the required-field check ignores them
+  const [amcData, setAmcData] = useState({
+    startDate: "",
+    endDate: "",
+    amount: "",
+    paymentStatus: "pending",
+    workStatus: "in_progress",
+  });
   const [businessDetails, setBusinessDetails] = useState(
     EMPTY_BUSINESS_DETAILS,
   );
@@ -288,6 +296,16 @@ const Business = ({ userType, fixedCustomerType }) => {
           franchiseId: franchiseData1.franchiseId,
           manualAmount: Number(formData.manualAmount),
         }),
+
+        ...(amcEnabled && {
+          amc: {
+            startDate: amcData.startDate,
+            endDate: amcData.endDate,
+            amount: Number(amcData.amount),
+            paymentStatus: amcData.paymentStatus,
+          },
+          workStatus: amcData.workStatus,
+        }),
       };
 
       const response =
@@ -474,6 +492,7 @@ const Business = ({ userType, fixedCustomerType }) => {
     });
     setBusinessDetails(EMPTY_BUSINESS_DETAILS);
     setSelectedPackage(null);
+    setAmcData({ startDate: "", endDate: "", amount: "", paymentStatus: "pending", workStatus: "in_progress" });
   };
 
   const states = [
@@ -565,6 +584,20 @@ const Business = ({ userType, fixedCustomerType }) => {
         return false;
       }
     }
+    if (amcEnabled) {
+      if (!amcData.startDate || !amcData.endDate) {
+        setError("Please select AMC From and To dates");
+        return false;
+      }
+      if (amcData.endDate <= amcData.startDate) {
+        setError("AMC To date must be after the From date");
+        return false;
+      }
+      if (amcData.amount === "" || Number.isNaN(Number(amcData.amount)) || Number(amcData.amount) < 0) {
+        setError("Please enter a valid AMC amount (0 or more)");
+        return false;
+      }
+    }
     // Email Validation
     if (
       formData.customerEmail &&
@@ -594,7 +627,7 @@ const Business = ({ userType, fixedCustomerType }) => {
   return (
     <Box>
       <Typography variant="h4" gutterBottom>
-        Business Form
+        {amcEnabled ? "AMC" : "Business Form"}
       </Typography>
 
       {error && (
@@ -1124,6 +1157,87 @@ const Business = ({ userType, fixedCustomerType }) => {
                                 onChange={handleBusinessDetailChange}
                                 inputProps={{ maxLength: 10 }}
                               />
+                            </Grid>
+                          </>
+                        )}
+
+                        {amcEnabled && (
+                          <>
+                            <Grid item xs={12}>
+                              <Typography variant="subtitle1" fontWeight="bold">
+                                AMC Details
+                              </Typography>
+                            </Grid>
+                            <Grid item xs={12} sm={6} md={3}>
+                              <TextField
+                                fullWidth
+                                size="small"
+                                type="date"
+                                label="AMC From"
+                                InputLabelProps={{ shrink: true }}
+                                value={amcData.startDate}
+                                onChange={(e) =>
+                                  setAmcData((prev) => ({ ...prev, startDate: e.target.value }))
+                                }
+                              />
+                            </Grid>
+                            <Grid item xs={12} sm={6} md={3}>
+                              <TextField
+                                fullWidth
+                                size="small"
+                                type="date"
+                                label="AMC To"
+                                InputLabelProps={{ shrink: true }}
+                                inputProps={{ min: amcData.startDate || undefined }}
+                                value={amcData.endDate}
+                                onChange={(e) =>
+                                  setAmcData((prev) => ({ ...prev, endDate: e.target.value }))
+                                }
+                              />
+                            </Grid>
+                            <Grid item xs={12} sm={6} md={3}>
+                              <TextField
+                                fullWidth
+                                size="small"
+                                type="number"
+                                label="AMC Amount"
+                                inputProps={{ min: 0, step: "0.01" }}
+                                value={amcData.amount}
+                                onChange={(e) =>
+                                  setAmcData((prev) => ({ ...prev, amount: e.target.value }))
+                                }
+                              />
+                            </Grid>
+                            <Grid item xs={12} sm={6} md={3}>
+                              <TextField
+                                select
+                                fullWidth
+                                size="small"
+                                label="AMC Payment Status"
+                                value={amcData.paymentStatus}
+                                onChange={(e) =>
+                                  setAmcData((prev) => ({ ...prev, paymentStatus: e.target.value }))
+                                }
+                              >
+                                <MenuItem value="pending">Pending</MenuItem>
+                                <MenuItem value="paid">Paid</MenuItem>
+                              </TextField>
+                            </Grid>
+                            <Grid item xs={12} sm={6} md={3}>
+                              <TextField
+                                select
+                                fullWidth
+                                size="small"
+                                label="Work Status"
+                                value={amcData.workStatus}
+                                onChange={(e) =>
+                                  setAmcData((prev) => ({ ...prev, workStatus: e.target.value }))
+                                }
+                              >
+                                <MenuItem value="in_progress">In Progress</MenuItem>
+                                <MenuItem value="pending">Pending</MenuItem>
+                                <MenuItem value="closed">Closed</MenuItem>
+                              </TextField>
                             </Grid>
                           </>
                         )}

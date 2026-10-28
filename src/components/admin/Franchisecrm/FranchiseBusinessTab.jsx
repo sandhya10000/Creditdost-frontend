@@ -1,5 +1,7 @@
 import React from "react";
+import { Link as RouterLink } from "react-router-dom";
 import {
+  Link,
   Paper,
   Typography,
   Table,
@@ -12,11 +14,11 @@ import {
   Box,
 } from "@mui/material";
 
+// Admin-entered amount wins; otherwise the sold package's price (same as Business Forms)
+const amountOf = (item) => Number(item.manualAmount) || Number(item.selectedPackage?.price) || 0;
+
 const FranchiseBusinessTab = ({ businessForms = [] }) => {
-  const totalBusinessAmount = businessForms.reduce(
-    (sum, item) => sum + (Number(item.manualAmount) || 0),
-    0,
-  );
+  const totalBusinessAmount = businessForms.reduce((sum, item) => sum + amountOf(item), 0);
 
   return (
     <Paper sx={{ p: 3 }}>
@@ -80,7 +82,15 @@ const FranchiseBusinessTab = ({ businessForms = [] }) => {
             {businessForms.length > 0 ? (
               businessForms.map((item) => (
                 <TableRow key={item._id}>
-                  <TableCell>{item.customerId || "-"}</TableCell>
+                  <TableCell>
+                    {item.customerId ? (
+                      <Link component={RouterLink} to={`/admin/customer/${item.customerId}`}>
+                        {item.customerId}
+                      </Link>
+                    ) : (
+                      "-"
+                    )}
+                  </TableCell>
 
                   <TableCell>{item.customerName || "-"}</TableCell>
 
@@ -89,7 +99,7 @@ const FranchiseBusinessTab = ({ businessForms = [] }) => {
                   </TableCell>
 
                   <TableCell>
-                    ₹ {(item.manualAmount || 0).toLocaleString("en-IN")}
+                    ₹ {amountOf(item).toLocaleString("en-IN")}
                   </TableCell>
 
                   <TableCell>

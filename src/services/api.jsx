@@ -391,6 +391,7 @@ export const adminAPI = {
   deleteStaffRole: (id) => api.delete(`/admin/roles/${id}`),
   getStaffMembers: () => api.get("/admin/staff"),
   getStaffProfile: (id) => api.get(`/admin/staff/${id}`),
+  assignBusinessManagersToPartners: () => api.post("/franchises/assign-business-managers"),
   reassignFranchiseManager: (franchiseId, businessManagerId) =>
     api.put(`/franchises/${franchiseId}/business-manager`, { businessManagerId }),
   assignStaffMember: (data) => api.post("/admin/staff", data),

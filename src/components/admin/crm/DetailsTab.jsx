@@ -9,7 +9,9 @@ import {
   Box,
   Button,
   TextField,
+  Link,
 } from "@mui/material";
+import { Link as RouterLink } from "react-router-dom";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import HomeIcon from "@mui/icons-material/Home";
 import LocalAtmIcon from "@mui/icons-material/LocalAtm";
@@ -349,9 +351,28 @@ const DetailsTab = ({ customer, creditReport, ifscDeatails }) => {
 
       <Grid container spacing={3}>
         <Grid item xs={12} md={6}>
+          <Typography fontWeight="medium">Franchise ID</Typography>
+          {customer?.franchiseId?.franchiseCode ? (
+            <Link component={RouterLink} to={`/admin/franchise/${customer.franchiseId.franchiseCode}`}>
+              {customer.franchiseId.franchiseCode}
+            </Link>
+          ) : (
+            <Typography>-</Typography>
+          )}
+        </Grid>
+        <Grid item xs={12} md={6}>
           <Typography fontWeight="Medium">Business Name</Typography>
 
-          <Typography>{customer?.franchiseId?.businessName || "-"}</Typography>
+          {customer?.franchiseId?._id ? (
+            <Link
+              component={RouterLink}
+              to={`/admin/franchise/${customer.franchiseId.franchiseCode || customer.franchiseId._id}`}
+            >
+              {customer.franchiseId.businessName || "-"}
+            </Link>
+          ) : (
+            <Typography>{customer?.franchiseId?.businessName || "-"}</Typography>
+          )}
         </Grid>
         <Grid item xs={12} md={6}>
           <Typography fontWeight="medium">Phone No.</Typography>

@@ -6,11 +6,9 @@ const Dashboard = lazy(() => import("./Dashboard"));
 const ManageFranchises = lazy(() => import("./ManageFranchises"));
 const ManagePackages = lazy(() => import("./ManagePackages"));
 const ManageCustomerPackages = lazy(() => import("./ManageCustomerPackages"));
-const ManageLeads = lazy(() => import("./ManageLeads"));
 const ManagePayouts = lazy(() => import("./ManagePayouts"));
 const ViewReports = lazy(() => import("./ViewReports"));
 const SurepassSettings = lazy(() => import("./SurepassSettings"));
-const RechargeCredits = lazy(() => import("./RechargeCredits"));
 const BusinessForms = lazy(() => import("./BusinessForms"));
 const AmcCustomers = lazy(() => import("./AmcCustomers"));
 const ManualPayments = lazy(() => import("./ManualPayments"));
@@ -26,7 +24,6 @@ const ManageAIAnalysis = lazy(() => import("./ManageAIAnalysis"));
 const AdminMarketing = lazy(() => import("./AdminMarketing"));
 const AdminReward = lazy(() => import("./AdminReward"));
 const AdminCaseStudies = lazy(() => import("./AdminCaseStudy"));
-const ReportAnalytics = lazy(() => import("./ReportAnalytics"));
 const CustomerCRM = lazy(() => import("../pages/CustomerCRM"));
 const FranchiseCRM = lazy(() => import("../pages/FranchiseCRM"));
 const AdminCreditBureau = lazy(() => import("../admin/AdminCreditcheck"));
@@ -35,14 +32,8 @@ const ManualBusiness = lazy(() => import("../admin/ManualBusiness"));
 const FranchisePending = lazy(
   () => import("../admin/Website-enquiry/FranchisePending"),
 );
-const CreditScoreRepair = lazy(
-  () => import("../admin/Website-enquiry/CreditScoreRepair"),
-);
 const CreditReportLeads = lazy(
   () => import("../admin/Website-enquiry/CreditReportLeads"),
-);
-const WebsiteFranchiseLeads = lazy(
-  () => import("../admin/Website-enquiry/WebsiteFranchiseLeads"),
 );
 const AdminTickets = lazy(() => import("../admin/supportTicket"));
 const ManageStaff = lazy(() => import("./ManageStaff"));
@@ -62,11 +53,9 @@ const AdminRoutes = () => {
             path="customer-packages"
             element={<ManageCustomerPackages />}
           />
-          <Route path="leads" element={<ManageLeads />} />
           <Route path="payouts" element={<ManagePayouts />} />
           <Route path="reports" element={<ViewReports />} />
           <Route path="surepass-settings" element={<SurepassSettings />} />
-          <Route path="recharge" element={<RechargeCredits />} />
           <Route
             path="business-forms"
             element={<Navigate to="/admin/business-forms/individual" replace />}
@@ -112,7 +101,6 @@ const AdminRoutes = () => {
           <Route path="marketing-materials" element={<AdminMarketing />} />
           <Route path="reward" element={<AdminReward />} />
           <Route path="case-study/:category?" element={<AdminCaseStudies />} />
-          <Route path="report-analytics" element={<ReportAnalytics />} />
           <Route path="/customer/:customerId" element={<CustomerCRM />} />
           <Route path="/franchise/:franchiseCode" element={<FranchiseCRM />} />
           <Route path="/credit-check" element={<AdminCreditBureau />} />
@@ -139,12 +127,7 @@ const AdminRoutes = () => {
             element={<ManageFranchises kycStatus="rejected" />}
           />
 
-          <Route path="credit-repair" element={<CreditScoreRepair />} />
           <Route path="credit-report-leads" element={<CreditReportLeads />} />
-          <Route
-            path="website-franchise-leads"
-            element={<WebsiteFranchiseLeads />}
-          />
         </Route>
       </Routes>
     </Suspense>

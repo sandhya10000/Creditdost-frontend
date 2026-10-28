@@ -5,6 +5,7 @@ import { useAuth } from "../../hooks/useAuth.jsx";
 import ReassignRmDialog from "./ReassignRmDialog";
 import {
   Box,
+  Stack,
   Typography,
   Card,
   CardContent,
@@ -130,6 +131,7 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
     name: "",
     email: "",
     phone: "",
+    alternatePhone: "",
     state: "",
     pincode: "",
     language: "english",
@@ -171,6 +173,8 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
   const [page, setPage] = useState(1);
   const rowsPerPage = 20;
   const [csvExporting, setCsvExporting] = useState(false);
+  const [assignDialogOpen, setAssignDialogOpen] = useState(false);
+  const [assigning, setAssigning] = useState(false);
   const [kycStatus, setKycStatus] = useState(initialKycStatus);
 
   // Sync local state if the route/prop changes
@@ -771,6 +775,7 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
       name: "",
       email: "",
       phone: "",
+      alternatePhone: "",
       state: "",
       pincode: "",
       language: "english",
@@ -806,6 +811,12 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
         return;
       }
 
+      // Alternate mobile is optional, but must be 10 digits when given
+      if (newFranchise.alternatePhone && !/^\d{10}$/.test(newFranchise.alternatePhone)) {
+        setError("Please enter a valid 10-digit alternate mobile number.");
+        return;
+      }
+
       // Email validation
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(newFranchise.email)) {
@@ -820,6 +831,7 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
         name: newFranchise.name,
         email: newFranchise.email,
         phone: newFranchise.phone,
+        alternatePhone: newFranchise.alternatePhone || undefined,
         role: isFranchiseUser ? "franchise_user" : "admin",
         subRole: isFranchiseUser ? "franchise" : createUserRole,
         assignedPackages: isFranchiseUser ? selectedPackages : null,
@@ -1086,6 +1098,26 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
     }
   };
 
+  // Gives every partner without a Business Manager a turn in the rotation
+  const handleAssignBusinessManagers = async () => {
+    try {
+      setAssigning(true);
+      const res = await adminAPI.assignBusinessManagersToPartners();
+      const { assigned, managers = [] } = res.data.data;
+      const breakdown = managers.map((m) => `${m.staffCode || m.name}: ${m.count}`).join(", ");
+      showSnackbar(
+        assigned ? `Assigned ${assigned} partner(s). ${breakdown}` : "No unassigned partners found",
+        "success",
+      );
+      setAssignDialogOpen(false);
+      fetchFranchises();
+    } catch (err) {
+      showSnackbar(err.response?.data?.message || "Failed to assign Business Managers", "error");
+    } finally {
+      setAssigning(false);
+    }
+  };
+
   const handleDownloadCSV = async () => {
     try {
       setCsvExporting(true);
@@ -1148,15 +1180,40 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
                 : "Manage Franchises"}
         </Typography>
 
-        <Button
-          variant="contained"
-          color="success"
-          onClick={handleDownloadCSV}
-          disabled={csvExporting}
-          sx={{ color: "#fff", minWidth: 140 }}
-        >
-          {csvExporting ? "Exporting..." : "Download CSV"}
-        </Button>
+        <Stack direction="row" spacing={1}>
+          {!currentUser?.staffRoleName && (
+            <Button variant="contained" onClick={() => setAssignDialogOpen(true)}>
+              Assign BM to Partners
+            </Button>
+          )}
+          <Button
+            variant="contained"
+            color="success"
+            onClick={handleDownloadCSV}
+            disabled={csvExporting}
+            sx={{ color: "#fff", minWidth: 140 }}
+          >
+            {csvExporting ? "Exporting..." : "Download CSV"}
+          </Button>
+        </Stack>
+
+        <Dialog open={assignDialogOpen} onClose={() => !assigning && setAssignDialogOpen(false)}>
+          <DialogTitle>Assign Business Managers</DialogTitle>
+          <DialogContent>
+            <Typography>
+              Assign every partner without a Business Manager to the active Business Managers, one
+              after another in serial order? Partners that already have one are not changed.
+            </Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setAssignDialogOpen(false)} disabled={assigning}>
+              Cancel
+            </Button>
+            <Button variant="contained" onClick={handleAssignBusinessManagers} disabled={assigning}>
+              {assigning ? "Assigning..." : "Assign"}
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Box>
 
       <AppBar position="static" color="default" sx={{ mb: 3, borderRadius: 1 }}>
@@ -1716,6 +1773,18 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
                     onChange={handleCreateFranchiseChange}
                     inputProps={{ maxLength: 10, inputMode: "numeric" }}
                     helperText="10-digit mobile number (used for WhatsApp messages)"
+                    margin="normal"
+                  />
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Alternate Mobile Number (Optional)"
+                    name="alternatePhone"
+                    value={newFranchise.alternatePhone}
+                    onChange={handleCreateFranchiseChange}
+                    inputProps={{ maxLength: 10, inputMode: "numeric" }}
                     margin="normal"
                   />
                 </Grid>

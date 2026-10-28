@@ -3,9 +3,6 @@
 // block pages for staff. The backend still enforces every API call.
 const PATH_PERMISSIONS = [
   ["/admin/credit-report-leads", "leads"],
-  ["/admin/website-franchise-leads", "leads"],
-  ["/admin/credit-repair", "leads"],
-  ["/admin/leads", "leads"],
   ["/admin/customer", "business"],
   ["/admin/franchise-pending", "franchises"],
   ["/admin/franchise-approved", "franchises"],
@@ -18,13 +15,11 @@ const PATH_PERMISSIONS = [
   ["/admin/credit-check", "credit"],
   ["/admin/prefill-failed-logs", "credit"],
   ["/admin/reports", "dashboard"],
-  ["/admin/report-analytics", "dashboard"],
   ["/admin/business-forms", "business"],
   ["/admin/amc-customers", "business"],
   ["/admin/manual-business", "business"],
   ["/admin/digital-agreements", "business"],
   ["/admin/admin-tickets", "support_tickets"],
-  ["/admin/recharge", "finance"],
   ["/admin/payouts", "finance"],
   ["/admin/manual-payments", "manual_payments"],
   ["/admin/blogs", "blogs"],

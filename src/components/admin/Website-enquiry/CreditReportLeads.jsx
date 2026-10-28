@@ -1,80 +1,462 @@
-import React from "react";
-import { Typography } from "@mui/material";
-import LeadsTablePage from "./LeadsTablePage";
+import React, { useEffect, useState } from "react";
+import {
+  Box,
+  Button,
+  Chip,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Grid,
+  MenuItem,
+  Stack,
+  Tab,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TablePagination,
+  TableRow,
+  Tabs,
+  TextField,
+  Typography,
+} from "@mui/material";
+import { adminAPI } from "../../../services/api";
 
-const STATUSES = ["New", "Contacted", "Converted", "Closed"];
+const CR_STATUSES = ["New", "Contacted", "In Progress", "Resolved"];
+const FRANCHISE_STATUSES = ["New", "Contacted", "Interested", "Not Interested"];
 
 const STATUS_COLORS = {
   New: "error",
   Contacted: "warning",
-  Converted: "success",
-  Closed: "default",
+  "In Progress": "info",
+  Resolved: "success",
+  Interested: "info",
+  "Not Interested": "default",
 };
 
-// TODO: replace MOCK_CREDIT_REPORT_LEADS with API data once the backend endpoint exists
-const MOCK_CREDIT_REPORT_LEADS = [
-  { name: "Rahul Sharma", phone: "9876543210", email: "rahul.sharma@gmail.com", city: "Delhi", pan: "ABCPS1234K", creditScore: "642", status: "New", daysAgo: 0 },
-  { name: "Priya Verma", phone: "9812345678", email: "priya.verma@yahoo.com", city: "Lucknow", pan: "BQWPV5678L", creditScore: "711", status: "Contacted", daysAgo: 1 },
-  { name: "Amit Patel", phone: "9898989898", email: "amit.patel@gmail.com", city: "Ahmedabad", pan: "CXZPP9012M", creditScore: "580", status: "New", daysAgo: 1 },
-  { name: "Sneha Reddy", phone: "9700011122", email: "sneha.reddy@outlook.com", city: "Hyderabad", pan: "DLKPR3456N", creditScore: "755", status: "Converted", daysAgo: 2 },
-  { name: "Vikram Singh", phone: "9811122233", email: "vikram.singh@gmail.com", city: "Jaipur", pan: "EMNPS7890P", creditScore: "", status: "Closed", daysAgo: 3 },
-  { name: "Anjali Gupta", phone: "9922334455", email: "anjali.gupta@gmail.com", city: "Pune", pan: "FGHPG2345Q", creditScore: "690", status: "Contacted", daysAgo: 4 },
-  { name: "Mohammed Irfan", phone: "9833445566", email: "irfan.m@gmail.com", city: "Mumbai", pan: "GHJPI6789R", creditScore: "615", status: "New", daysAgo: 5 },
-  { name: "Kavita Nair", phone: "9744556677", email: "kavita.nair@gmail.com", city: "Kochi", pan: "HJKPN1234S", creditScore: "728", status: "Converted", daysAgo: 6 },
-  { name: "Suresh Kumar", phone: "9655667788", email: "suresh.kumar@rediffmail.com", city: "Chennai", pan: "JKLPK5678T", creditScore: "560", status: "New", daysAgo: 7 },
-  { name: "Neha Joshi", phone: "9566778899", email: "neha.joshi@gmail.com", city: "Indore", pan: "KLMPJ9012U", creditScore: "702", status: "Contacted", daysAgo: 8 },
-  { name: "Arjun Mehta", phone: "9477889900", email: "arjun.mehta@gmail.com", city: "Surat", pan: "LMNPM3456V", creditScore: "668", status: "Closed", daysAgo: 10 },
-  { name: "Pooja Das", phone: "9388990011", email: "pooja.das@gmail.com", city: "Kolkata", pan: "MNOPD7890W", creditScore: "735", status: "New", daysAgo: 12 },
-].map((lead, i) => ({
-  ...lead,
-  _id: `mock-crl-${i + 1}`,
-  source: "Website",
-  createdAt: new Date(Date.now() - lead.daysAgo * 86400000).toISOString(),
-}));
+const COMMON_FILTERS = ["search", "status", "state", "from", "to"];
+
+const FILTER_FIELDS = {
+  search: { label: "Search name / phone / email", type: "text", width: 280 },
+  status: { label: "Status", type: "select", width: 180 },
+  state: { label: "State", type: "text", width: 160 },
+  from: { label: "From", type: "date", width: 170 },
+  to: { label: "To", type: "date", width: 170 },
+  language: { label: "Language", type: "text", width: 160 },
+  problemType: { label: "Problem type", type: "text", width: 200 },
+  profession: { label: "Profession", type: "text", width: 180 },
+  minScore: { label: "Min score", type: "number", width: 130 },
+  maxScore: { label: "Max score", type: "number", width: 130 },
+  bureau: { label: "Bureau", type: "text", width: 160 },
+};
 
 const maskPan = (pan) => (pan ? `${pan.slice(0, 2)}XXXX${pan.slice(-4)}` : "—");
+const formatDate = (value) => (value ? new Date(value).toLocaleDateString("en-IN") : "—");
+const locationOf = (r) => [r.city, r.state].filter(Boolean).join(", ") || "—";
 
-const COLUMNS = [
-  { key: "name", label: "Full Name" },
-  {
-    key: "contact",
-    label: "Contact",
-    render: (row) => (
-      <>
-        <Typography variant="body2">{row.phone}</Typography>
-        <Typography variant="caption" color="textSecondary">
-          {row.email}
-        </Typography>
-      </>
-    ),
-  },
-  { key: "city", label: "City" },
-  { key: "pan", label: "PAN", render: (row) => maskPan(row.pan) },
-  { key: "creditScore", label: "Credit Score" },
-  { key: "source", label: "Source" },
-];
-
-const DETAIL_FIELDS = [
-  { key: "name", label: "Full Name" },
-  { key: "phone", label: "Mobile Number" },
-  { key: "email", label: "Email ID" },
-  { key: "city", label: "City" },
-  { key: "pan", label: "PAN Number", render: (row) => maskPan(row.pan) },
-  { key: "creditScore", label: "Credit Score" },
-  { key: "source", label: "Source" },
-];
-
-const CreditReportLeads = () => (
-  <LeadsTablePage
-    title="Credit Report Leads"
-    initialRows={MOCK_CREDIT_REPORT_LEADS}
-    statuses={STATUSES}
-    statusColors={STATUS_COLORS}
-    columns={COLUMNS}
-    detailFields={DETAIL_FIELDS}
-    searchKeys={["name", "phone", "email", "city"]}
-    csvFileName="Credit_Report_Leads"
-  />
+const contactCell = (r) => (
+  <>
+    <Typography variant="body2">{r.mobileNumber}</Typography>
+    <Typography variant="caption" color="text.secondary">
+      {r.email}
+    </Typography>
+  </>
 );
+
+// Shared columns for the enquiry tables. `detail` drives both the dialog and CSV export.
+const BASE_DETAIL = [
+  { label: "Full Name", value: (r) => r.fullName },
+  { label: "Mobile Number", value: (r) => r.mobileNumber },
+  { label: "Email", value: (r) => r.email },
+  { label: "City", value: (r) => r.city },
+  { label: "State", value: (r) => r.state },
+  { label: "Status", value: (r) => r.status },
+  { label: "Received On", value: (r) => formatDate(r.createdAt) },
+];
+
+const TABS = [
+  {
+    key: "credit-repair",
+    label: "Credit Repair Enquiry",
+    description: "Enquiries from the website Credit Repair form.",
+    source: "website",
+    statuses: CR_STATUSES,
+    filters: [...COMMON_FILTERS, "language", "problemType", "minScore", "maxScore"],
+    columns: [
+      { label: "Full Name", render: (r) => r.fullName },
+      { label: "Contact", render: contactCell },
+      { label: "Location", render: locationOf },
+      { label: "Problem", render: (r) => r.problemType || "—" },
+      { label: "Score", render: (r) => r.creditScore || "—" },
+      { label: "Language", render: (r) => r.language || "—" },
+    ],
+    detail: [
+      ...BASE_DETAIL,
+      { label: "Problem Type", value: (r) => r.problemType },
+      { label: "Credit Score", value: (r) => r.creditScore },
+      { label: "Language", value: (r) => r.language },
+      { label: "Occupation", value: (r) => r.occupation },
+      { label: "Income", value: (r) => r.income },
+      { label: "Message", value: (r) => r.message },
+    ],
+  },
+  {
+    key: "franchise",
+    label: "Franchise Leads",
+    description: "Enquiries from the Franchise Opportunity form.",
+    statuses: FRANCHISE_STATUSES,
+    filters: [...COMMON_FILTERS, "profession"],
+    columns: [
+      { label: "Full Name", render: (r) => r.fullName },
+      { label: "Contact", render: contactCell },
+      { label: "Location", render: locationOf },
+      { label: "Profession", render: (r) => r.profession || "—" },
+    ],
+    detail: [
+      ...BASE_DETAIL,
+      { label: "Profession", value: (r) => r.profession },
+      { label: "Message", value: (r) => r.message },
+    ],
+  },
+  {
+    key: "whatsapp",
+    label: "WhatsApp Credit Repair Leads",
+    description: "Customers with a credit score below 700 who tapped Contact Support on WhatsApp.",
+    source: "whatsapp",
+    statuses: CR_STATUSES,
+    filters: [...COMMON_FILTERS, "minScore", "maxScore", "bureau"],
+    columns: [
+      { label: "Full Name", render: (r) => r.fullName },
+      { label: "Contact", render: contactCell },
+      { label: "Location", render: locationOf },
+      {
+        label: "Score",
+        render: (r) => {
+          const score = r.creditReport?.score ?? r.creditScore;
+          return score ? <Chip size="small" label={score} color={Number(score) < 600 ? "error" : "warning"} /> : "—";
+        },
+      },
+      { label: "Bureau", render: (r) => r.creditReport?.bureau || "—" },
+      { label: "PAN", render: (r) => maskPan(r.creditReport?.pan) },
+    ],
+    detail: [
+      ...BASE_DETAIL,
+      { label: "Credit Score", value: (r) => r.creditReport?.score ?? r.creditScore },
+      { label: "Bureau", value: (r) => r.creditReport?.bureau },
+      { label: "PAN", value: (r) => r.creditReport?.pan },
+      { label: "Score Prompt Sent", value: (r) => formatDate(r.creditReport?.lowScorePromptSentAt) },
+      { label: "Occupation", value: (r) => r.occupation },
+      { label: "Language", value: (r) => r.language },
+    ],
+  },
+];
+
+const EMPTY_FILTERS = {
+  search: "",
+  status: "",
+  state: "",
+  from: "",
+  to: "",
+  language: "",
+  problemType: "",
+  profession: "",
+  minScore: "",
+  maxScore: "",
+  bureau: "",
+};
+
+// Only send the filters this tab supports and that have a value
+const buildParams = (tab, filters, page, rowsPerPage) => {
+  const params = { page: page + 1, limit: rowsPerPage };
+  if (tab.source) params.source = tab.source;
+  tab.filters.forEach((key) => {
+    if (filters[key]) params[key] = filters[key];
+  });
+  return params;
+};
+
+const downloadCsv = (tab, rows) => {
+  const headers = tab.detail.map((d) => d.label);
+  const lines = rows.map((r) =>
+    tab.detail
+      .map((d) => `"${String(d.value(r) ?? "").replace(/"/g, '""')}"`)
+      .join(","),
+  );
+  const blob = new Blob([[headers.join(","), ...lines].join("\n")], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `${tab.label.replace(/\s+/g, "_")}_${new Date().toISOString().slice(0, 10)}.csv`;
+  link.click();
+  URL.revokeObjectURL(url);
+};
+
+const CreditReportLeads = () => {
+  const [tabIndex, setTabIndex] = useState(0);
+  const tab = TABS[tabIndex];
+
+  const [filters, setFilters] = useState(EMPTY_FILTERS);
+  const [appliedFilters, setAppliedFilters] = useState(EMPTY_FILTERS);
+  const [rows, setRows] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [detailRow, setDetailRow] = useState(null);
+
+  // Debounce typing so each keystroke doesn't trigger a request
+  useEffect(() => {
+    const timer = setTimeout(() => setAppliedFilters(filters), 350);
+    return () => clearTimeout(timer);
+  }, [filters]);
+
+  useEffect(() => {
+    let ignore = false;
+    const load = async () => {
+      setLoading(true);
+      setError("");
+      try {
+        const params = buildParams(tab, appliedFilters, page, rowsPerPage);
+        const res =
+          tab.key === "franchise"
+            ? await adminAPI.getFranchiseLeads(params)
+            : await adminAPI.getCreditRepairEnquiries(params);
+        if (ignore) return;
+        const data = res.data;
+        setRows(tab.key === "franchise" ? data.leads || [] : data.enquiries || []);
+        setTotal(data.total || 0);
+      } catch (err) {
+        if (!ignore) setError(err.response?.data?.message || "Failed to load leads");
+      } finally {
+        if (!ignore) setLoading(false);
+      }
+    };
+    load();
+    return () => {
+      ignore = true;
+    };
+  }, [tab, appliedFilters, page, rowsPerPage, refreshKey]);
+
+  const handleTabChange = (_, value) => {
+    setTabIndex(value);
+    setFilters(EMPTY_FILTERS);
+    setAppliedFilters(EMPTY_FILTERS);
+    setPage(0);
+  };
+
+  const handleFilterChange = (key) => (e) => {
+    setFilters((prev) => ({ ...prev, [key]: e.target.value }));
+    setPage(0);
+  };
+
+  const resetFilters = () => {
+    setFilters(EMPTY_FILTERS);
+    setPage(0);
+  };
+
+  const changeStatus = async (row, status) => {
+    try {
+      if (tab.key === "franchise") {
+        await adminAPI.updateFranchiseLeadStatus(row._id, status);
+      } else {
+        await adminAPI.updateCreditRepairEnquiryStatus(row._id, status);
+      }
+      setRows((prev) => prev.map((r) => (r._id === row._id ? { ...r, status } : r)));
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to update status");
+      setRefreshKey((k) => k + 1);
+    }
+  };
+
+  const renderFilter = (key) => {
+    const def = FILTER_FIELDS[key];
+    if (key === "status") {
+      return (
+        <TextField
+          select
+          size="small"
+          fullWidth
+          label={def.label}
+          value={filters.status}
+          onChange={handleFilterChange("status")}
+        >
+          <MenuItem value="">All</MenuItem>
+          {tab.statuses.map((s) => (
+            <MenuItem key={s} value={s}>
+              {s}
+            </MenuItem>
+          ))}
+        </TextField>
+      );
+    }
+    return (
+      <TextField
+        size="small"
+        fullWidth
+        type={def.type}
+        label={def.label}
+        value={filters[key]}
+        onChange={handleFilterChange(key)}
+        InputLabelProps={def.type === "date" ? { shrink: true } : undefined}
+      />
+    );
+  };
+
+  return (
+    <Box p={3}>
+      <Typography variant="h5" fontWeight="bold" mb={2}>
+        Credit Report Leads
+      </Typography>
+
+      <Box>
+        <Tabs
+          value={tabIndex}
+          onChange={handleTabChange}
+          variant="scrollable"
+          scrollButtons="auto"
+          sx={{ borderBottom: 1, borderColor: "divider", px: 2 }}
+        >
+          {TABS.map((t) => (
+            <Tab key={t.key} label={t.label} />
+          ))}
+        </Tabs>
+
+        <Box p={2}>
+          <Typography variant="body2" color="text.secondary" mb={2}>
+            {tab.description}
+          </Typography>
+
+          {/* Filters: one wrapping row of fixed-width fields, actions on the right */}
+          <Stack direction="row" flexWrap="wrap" useFlexGap gap={1.5} alignItems="center" mb={2}>
+            {tab.filters.map((key) => (
+              <Box key={key} sx={{ width: FILTER_FIELDS[key].width }}>
+                {renderFilter(key)}
+              </Box>
+            ))}
+            <Stack direction="row" spacing={1} sx={{ ml: "auto" }}>
+              <Button variant="outlined" onClick={resetFilters}>
+                Reset
+              </Button>
+              <Button
+                variant="contained"
+                onClick={() => downloadCsv(tab, rows)}
+                disabled={rows.length === 0}
+              >
+                Export CSV
+              </Button>
+            </Stack>
+          </Stack>
+
+          <Typography variant="body2" color="text.secondary" mb={1}>
+            {total} lead{total === 1 ? "" : "s"} found
+          </Typography>
+
+          {error && (
+            <Typography color="error" mb={2}>
+              {error}
+            </Typography>
+          )}
+
+          {loading ? (
+            <Box display="flex" justifyContent="center" py={6}>
+              <CircularProgress />
+            </Box>
+          ) : rows.length === 0 ? (
+            <Typography color="text.secondary" py={4} textAlign="center">
+              No leads match these filters.
+            </Typography>
+          ) : (
+            <Box sx={{ overflowX: "auto" }}>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    {tab.columns.map((c) => (
+                      <TableCell key={c.label}>{c.label}</TableCell>
+                    ))}
+                    <TableCell>Status</TableCell>
+                    <TableCell>Received</TableCell>
+                    <TableCell align="right">Details</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {rows.map((row) => (
+                    <TableRow key={row._id} hover>
+                      {tab.columns.map((c) => (
+                        <TableCell key={c.label}>{c.render(row)}</TableCell>
+                      ))}
+                      <TableCell>
+                        <TextField
+                          select
+                          size="small"
+                          value={row.status}
+                          onChange={(e) => changeStatus(row, e.target.value)}
+                          sx={{ minWidth: 140 }}
+                        >
+                          {tab.statuses.map((s) => (
+                            <MenuItem key={s} value={s}>
+                              <Chip size="small" label={s} color={STATUS_COLORS[s]} variant="outlined" />
+                            </MenuItem>
+                          ))}
+                        </TextField>
+                      </TableCell>
+                      <TableCell>{formatDate(row.createdAt)}</TableCell>
+                      <TableCell align="right">
+                        <Button size="small" onClick={() => setDetailRow(row)}>
+                          View
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Box>
+          )}
+
+          <TablePagination
+            component="div"
+            count={total}
+            page={page}
+            rowsPerPage={rowsPerPage}
+            rowsPerPageOptions={[10, 25, 50]}
+            onPageChange={(_, p) => setPage(p)}
+            onRowsPerPageChange={(e) => {
+              setRowsPerPage(parseInt(e.target.value, 10));
+              setPage(0);
+            }}
+          />
+        </Box>
+      </Box>
+
+      {/* Details */}
+      <Dialog open={Boolean(detailRow)} onClose={() => setDetailRow(null)} fullWidth maxWidth="sm">
+        <DialogTitle>{detailRow?.fullName || "Lead details"}</DialogTitle>
+        <DialogContent dividers>
+          {detailRow &&
+            tab.detail.map((d) => (
+              <Grid container key={d.label} py={0.75}>
+                <Grid item xs={5}>
+                  <Typography variant="body2" color="text.secondary">
+                    {d.label}
+                  </Typography>
+                </Grid>
+                <Grid item xs={7}>
+                  <Typography variant="body2" sx={{ wordBreak: "break-word" }}>
+                    {d.value(detailRow) || "—"}
+                  </Typography>
+                </Grid>
+              </Grid>
+            ))}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDetailRow(null)}>Close</Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
+  );
+};
 
 export default CreditReportLeads;
