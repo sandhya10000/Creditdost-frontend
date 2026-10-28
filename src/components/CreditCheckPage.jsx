@@ -20,7 +20,7 @@ import {
   Select,
 } from "@mui/material";
 import { CheckCircle, Download, Sms } from "@mui/icons-material";
-import { creditAPI, smsAPI } from "../services/api";
+import { creditAPI, smsAPI, getAttachmentUrl } from "../services/api";
 import Header from "./homepage/Header";
 import HomePageFooter from "./homepage/HomePageFooter";
 
@@ -320,15 +320,15 @@ const CreditCheckPage = () => {
                     Report Generated Successfully!
                   </Typography>
                   <Typography sx={{ mb: 3, color: "white" }}>
-                    Your Experian credit report has been generated and sent to
-                    your email. Please check your inbox (and spam folder) for
-                    the report.
+                    Your Experian credit report has been sent to your WhatsApp
+                    and email. Please check WhatsApp (and your inbox or spam
+                    folder) for the report.
                   </Typography>
-                  {reportData?.reportUrl && (
+                  {reportData?.creditReport?.localPath && (
                     <StyledButton
                       variant="contained"
                       startIcon={<Download />}
-                      href={reportData.reportUrl}
+                      href={getAttachmentUrl(reportData.creditReport.localPath)}
                       target="_blank"
                       sx={{ mt: 2 }}
                     >
@@ -860,8 +860,9 @@ const CreditCheckPage = () => {
           sx={{ backgroundColor: "rgba(255, 255, 255, 0.05)", pt: 2 }}
         >
           <Typography sx={{ mb: 2, color: "white" }}>
-            We've sent a 6-digit OTP to <strong>{formData.mobile}</strong>.
-            Please enter it below to proceed.
+            We've sent a 6-digit OTP to your WhatsApp on{" "}
+            <strong>{formData.mobile}</strong>. Please enter it below to
+            proceed.
           </Typography>
 
           {otpError && (
