@@ -19,7 +19,7 @@ import {
 import { adminAPI } from "../../services/api";
 import ManageRoles from "./ManageRoles";
 
-const EMPTY_FORM = { name: "", email: "", roleId: "" };
+const EMPTY_FORM = { name: "", email: "", phone: "", roleId: "" };
 
 const StaffList = () => {
   const [staff, setStaff] = useState([]);
@@ -56,11 +56,15 @@ const StaffList = () => {
     if (!form.name.trim() || !form.email.trim() || !form.roleId) {
       return alert("Name, email and role are required");
     }
+    if (!/^\d{10}$/.test(form.phone.trim())) {
+      return alert("Enter a valid 10-digit phone number");
+    }
     try {
       setSaving(true);
       const res = await adminAPI.assignStaffMember({
         name: form.name.trim(),
         email: form.email.trim(),
+        phone: form.phone.trim(),
         roleId: form.roleId,
       });
       alert(res.data?.message || "Done");
@@ -224,6 +228,16 @@ const StaffList = () => {
             helperText="If this email already belongs to a staff account, its role is updated instead"
             value={form.email}
             onChange={(e) => setForm((prev) => ({ ...prev, email: e.target.value }))}
+            margin="normal"
+          />
+          <TextField
+            fullWidth
+            label="Phone Number"
+            helperText="10-digit mobile number (RM contact shared with partners on WhatsApp)"
+            value={form.phone}
+            onChange={(e) =>
+              setForm((prev) => ({ ...prev, phone: e.target.value.replace(/\D/g, "").slice(0, 10) }))
+            }
             margin="normal"
           />
           <TextField

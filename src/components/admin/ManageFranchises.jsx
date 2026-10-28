@@ -796,8 +796,13 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
       setSuccess("");
 
       // Validate required fields
-      if (!newFranchise.name || !newFranchise.email) {
+      if (!newFranchise.name || !newFranchise.email || !newFranchise.phone) {
         setError("Please fill in all required fields.");
+        return;
+      }
+
+      if (!/^\d{10}$/.test(newFranchise.phone)) {
+        setError("Please enter a valid 10-digit phone number.");
         return;
       }
 
@@ -814,6 +819,7 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
       const franchiseData = {
         name: newFranchise.name,
         email: newFranchise.email,
+        phone: newFranchise.phone,
         role: isFranchiseUser ? "franchise_user" : "admin",
         subRole: isFranchiseUser ? "franchise" : createUserRole,
         assignedPackages: isFranchiseUser ? selectedPackages : null,
@@ -1696,6 +1702,20 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
                     type="email"
                     value={newFranchise.email}
                     onChange={handleCreateFranchiseChange}
+                    margin="normal"
+                  />
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    required
+                    label="Phone Number"
+                    name="phone"
+                    value={newFranchise.phone}
+                    onChange={handleCreateFranchiseChange}
+                    inputProps={{ maxLength: 10, inputMode: "numeric" }}
+                    helperText="10-digit mobile number (used for WhatsApp messages)"
                     margin="normal"
                   />
                 </Grid>
