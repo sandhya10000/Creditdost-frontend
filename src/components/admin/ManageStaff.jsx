@@ -29,6 +29,9 @@ const StaffList = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
+  const [editMember, setEditMember] = useState(null);
+  const [editForm, setEditForm] = useState({ name: "", email: "", phone: "" });
+  const [editSaving, setEditSaving] = useState(false);
 
   const load = async () => {
     try {
@@ -75,6 +78,35 @@ const StaffList = () => {
       alert(err.response?.data?.message || "Failed to assign role");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const openEdit = (member) => {
+    setEditMember(member);
+    setEditForm({ name: member.name || "", email: member.email || "", phone: member.phone || "" });
+  };
+
+  const saveEdit = async () => {
+    if (!editForm.name.trim() || !editForm.email.trim()) {
+      return alert("Name and email are required");
+    }
+    if (!/^\d{10}$/.test(editForm.phone.trim())) {
+      return alert("Enter a valid 10-digit phone number");
+    }
+    try {
+      setEditSaving(true);
+      const res = await adminAPI.updateStaffMemberDetails(editMember._id, {
+        name: editForm.name.trim(),
+        email: editForm.email.trim(),
+        phone: editForm.phone.trim(),
+      });
+      alert(res.data?.message || "Staff details updated");
+      setEditMember(null);
+      load();
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to update staff details");
+    } finally {
+      setEditSaving(false);
     }
   };
 
@@ -193,6 +225,14 @@ const StaffList = () => {
                   size="small"
                   variant="outlined"
                   disabled={busyId === member._id}
+                  onClick={() => openEdit(member)}
+                >
+                  Edit details
+                </Button>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  disabled={busyId === member._id}
                   onClick={() => toggleStatus(member)}
                 >
                   {member.isActive ? "Deactivate" : "Activate"}
@@ -210,6 +250,46 @@ const StaffList = () => {
           </Paper>
         ))
       )}
+
+      <Dialog open={!!editMember} onClose={() => !editSaving && setEditMember(null)} fullWidth maxWidth="sm">
+        <DialogTitle>Edit staff details</DialogTitle>
+        <DialogContent dividers>
+          <TextField
+            fullWidth
+            label="Name"
+            value={editForm.name}
+            onChange={(e) => setEditForm((prev) => ({ ...prev, name: e.target.value }))}
+            margin="normal"
+          />
+          <TextField
+            fullWidth
+            label="Email (login)"
+            type="email"
+            helperText="Changing the email changes the login address. The password stays the same."
+            value={editForm.email}
+            onChange={(e) => setEditForm((prev) => ({ ...prev, email: e.target.value }))}
+            margin="normal"
+          />
+          <TextField
+            fullWidth
+            label="Phone Number"
+            helperText="10-digit mobile number"
+            value={editForm.phone}
+            onChange={(e) =>
+              setEditForm((prev) => ({ ...prev, phone: e.target.value.replace(/\D/g, "").slice(0, 10) }))
+            }
+            margin="normal"
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setEditMember(null)} disabled={editSaving}>
+            Cancel
+          </Button>
+          <Button variant="contained" onClick={saveEdit} disabled={editSaving}>
+            {editSaving ? "Saving..." : "Save"}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth maxWidth="sm">
         <DialogTitle>Assign role</DialogTitle>

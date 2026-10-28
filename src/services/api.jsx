@@ -396,6 +396,7 @@ export const adminAPI = {
   assignStaffMember: (data) => api.post("/admin/staff", data),
   changeStaffMemberRole: (id, roleId) =>
     api.patch(`/admin/staff/${id}/role`, { roleId }),
+  updateStaffMemberDetails: (id, data) => api.patch(`/admin/staff/${id}`, data),
   setStaffMemberStatus: (id, isActive) =>
     api.patch(`/admin/staff/${id}/status`, { isActive }),
   resendStaffMemberCredentials: (id) =>
