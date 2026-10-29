@@ -348,11 +348,6 @@ const AdminDashboard = () => {
       path: "/admin/google-sheets",
     },
     {
-      text: "Digital Agreements",
-      icon: <DescriptionIcon />,
-      path: "/admin/digital-agreements",
-    },
-    {
       text: "Marketing Materials",
       icon: <CampaignIcon />,
       path: "/admin/marketing-materials",
