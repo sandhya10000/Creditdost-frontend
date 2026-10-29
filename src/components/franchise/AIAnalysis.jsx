@@ -43,6 +43,7 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { franchiseAPI } from "../../services/api";
+import LanguageIcon from "@mui/icons-material/Language";
 
 const SUPPORTED_LANGUAGES = [
   { code: "en", label: "English" },
@@ -575,7 +576,7 @@ const AIAnalysis = () => {
                   value={selectedLanguage}
                   label="Report Language"
                   disabled={uploading || isBlocked}
-                  startAdornment={<TranslateIcon sx={{ mr: 1, color: "action.active" }} />}
+                  startAdornment={<LanguageIcon sx={{ mr: 1, color: "action.active" }} />}
                   onChange={(e) => {
                     const newLang = e.target.value;
                     setSelectedLanguage(newLang);
