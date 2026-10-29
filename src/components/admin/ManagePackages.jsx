@@ -24,7 +24,6 @@ import {
   DialogActions,
   Chip,
   Autocomplete,
-  MenuItem,
 } from '@mui/material';
 import { Add, Edit, Delete, Check, Close } from '@mui/icons-material';
 import { adminAPI } from '../../services/api';
@@ -44,10 +43,6 @@ const ManagePackages = () => {
     creditsIncluded: '',
     features: [], // Add features field
     isActive: true,
-    // Business payout settings
-    businessPayoutPercentage: 20,
-    businessPayoutType: 'percentage',
-    businessPayoutFixedAmount: 0,
   });
   const [featureInput, setFeatureInput] = useState(''); // Add feature input state
 
@@ -81,10 +76,6 @@ const ManagePackages = () => {
         creditsIncluded: pkg.creditsIncluded,
         features: pkg.features || [], // Add features
         isActive: pkg.isActive,
-        // Business payout settings
-        businessPayoutPercentage: pkg.businessPayoutPercentage || 20,
-        businessPayoutType: pkg.businessPayoutType || 'percentage',
-        businessPayoutFixedAmount: pkg.businessPayoutFixedAmount || 0,
       });
     } else {
       setEditingPackage(null);
@@ -96,10 +87,6 @@ const ManagePackages = () => {
         creditsIncluded: '',
         features: [], // Add features
         isActive: true,
-        // Business payout settings
-        businessPayoutPercentage: 20,
-        businessPayoutType: 'percentage',
-        businessPayoutFixedAmount: 0,
       });
     }
     setOpenDialog(true);
@@ -256,7 +243,6 @@ const ManagePackages = () => {
                     <TableCell>Total Price</TableCell>
                     <TableCell>Credits</TableCell>
                     <TableCell>Features</TableCell>
-                    <TableCell>Payout Settings</TableCell>
                     <TableCell>Status</TableCell>
                     <TableCell>Actions</TableCell>
                   </TableRow>
@@ -285,17 +271,6 @@ const ManagePackages = () => {
                         ) : (
                           <Typography variant="body2" color="textSecondary">
                             No features
-                          </Typography>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {pkg.businessPayoutType === 'percentage' ? (
-                          <Typography variant="body2">
-                            {pkg.businessPayoutPercentage}% of package price
-                          </Typography>
-                        ) : (
-                          <Typography variant="body2">
-                            ₹{pkg.businessPayoutFixedAmount} fixed
                           </Typography>
                         )}
                       </TableCell>
@@ -429,53 +404,6 @@ const ManagePackages = () => {
                   ))}
                 </Box>
               </Grid>
-              
-              {/* Business Payout Settings */}
-              <Grid item xs={12}>
-                <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
-                  Business Payout Settings
-                </Typography>
-              </Grid>
-              
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  select
-                  fullWidth
-                  label="Payout Type"
-                  name="businessPayoutType"
-                  value={formData.businessPayoutType}
-                  onChange={handleInputChange}
-                >
-                  <MenuItem value="percentage">Percentage</MenuItem>
-                  <MenuItem value="fixed">Fixed Amount</MenuItem>
-                </TextField>
-              </Grid>
-              
-              {formData.businessPayoutType === 'percentage' ? (
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    label="Payout Percentage (%)"
-                    name="businessPayoutPercentage"
-                    type="number"
-                    value={formData.businessPayoutPercentage}
-                    onChange={handleInputChange}
-                    InputProps={{ inputProps: { min: 0, max: 100 } }}
-                  />
-                </Grid>
-              ) : (
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    label="Fixed Payout Amount (₹)"
-                    name="businessPayoutFixedAmount"
-                    type="number"
-                    value={formData.businessPayoutFixedAmount}
-                    onChange={handleInputChange}
-                    InputProps={{ inputProps: { min: 0 } }}
-                  />
-                </Grid>
-              )}
               
               <Grid item xs={12}>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>

@@ -22,6 +22,22 @@ import {
   ListItemButton,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
+import { canAccess } from "../../config/adminPermissions";
+
+// Hides sidebar entries (and sub-entries) the signed-in user cannot open
+const filterMenu = (items, user) =>
+  items
+    .map((item) =>
+      item.children
+        ? {
+            ...item,
+            children: item.children.filter((child) => canAccess(user, child.path)),
+          }
+        : item,
+    )
+    .filter((item) =>
+      item.children ? item.children.length > 0 : canAccess(user, item.path),
+    );
 import { Outlet } from "react-router-dom";
 import {
   Menu as MenuIcon,
@@ -42,7 +58,6 @@ import {
 import CampaignIcon from "@mui/icons-material/Campaign";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
-import AnalyticsIcon from "@mui/icons-material/Analytics";
 import EventRepeatIcon from "@mui/icons-material/EventRepeat";
 import { useAuth } from "../../hooks/useAuth.jsx";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -235,31 +250,27 @@ const AdminDashboard = () => {
 
   const menuItems = [
     { text: "Dashboard", icon: <DashboardIcon />, path: "/admin" },
+    { text: "Team & Roles", icon: <PeopleIcon />, path: "/admin/staff" },
     {
-      text: "Website Enquiry",
+      text: "Credit Report Leads",
       icon: <CreditScoreIcon />,
-      children: [
-        // {
-        //   text: " Website Franchise Enquiry",
-        //   path: "/admin/website-franchise-enquiry",
-        //   icon: <BusinessIcon />,
-        // },
-        {
-          text: "Franchise Pending Case",
-          path: "/admin/franchise-pending",
-          icon: <BusinessIcon />,
-        },
-        {
-          text: "Credit Score Repair",
-          path: "/admin/credit-repair",
-          icon: <AssessmentIcon />,
-        },
-      ],
+      path: "/admin/credit-report-leads",
     },
     {
       text: "Manage Franchises",
       icon: <PeopleIcon />,
-      path: "/admin/franchises",
+      children: [
+        {
+          text: "Pending Franchise",
+          path: "/admin/franchise-pending",
+          icon: <BusinessIcon />,
+        },
+        {
+          text: "Active Franchise",
+          path: "/admin/franchises",
+          icon: <PeopleIcon />,
+        },
+      ],
     },
     {
       text: "Manage Franchise Packages",
@@ -271,7 +282,6 @@ const AdminDashboard = () => {
       icon: <BusinessCenterIcon />,
       path: "/admin/customer-packages",
     },
-    { text: "Manage Leads", icon: <PeopleIcon />, path: "/admin/leads" },
     {
       text: "Credit Check",
       icon: <AssessmentIcon />,
@@ -285,25 +295,31 @@ const AdminDashboard = () => {
       path: "/admin/prefill-failed-logs",
     },
 
-    // {
-    //   text: "Manage Referrals",
-    //   icon: <GroupAddIcon />,
-    //   path: "/admin/referrals",
-    // },
     {
       text: "Business MIS",
       icon: <DescriptionIcon />,
-      path: "/admin/business-forms",
+      children: [
+        {
+          text: "Individual Customers",
+          path: "/admin/business-forms/individual",
+          icon: <PeopleIcon />,
+        },
+        {
+          text: "Business Customers",
+          path: "/admin/business-forms/business",
+          icon: <BusinessCenterIcon />,
+        },
+        {
+          text: "AMC",
+          path: "/admin/amc-customers",
+          icon: <EventRepeatIcon />,
+        },
+      ],
     },
     {
       text: "Business MIS Pending",
       icon: <DescriptionIcon />,
       path: "/admin/business-forms-pending",
-    },
-    {
-      text: "AMC Customers",
-      icon: <EventRepeatIcon />,
-      path: "/admin/amc-customers",
     },
     {
       text: "Support Tickets",
@@ -317,19 +333,14 @@ const AdminDashboard = () => {
     //   path: "/admin/surepass-settings",
     // },
     {
-      text: "Recharge Credits",
-      icon: <CreditScoreIcon />,
-      path: "/admin/recharge",
+      text: "Manual Payments",
+      icon: <AccountBalanceIcon />,
+      path: "/admin/manual-payments",
     },
     {
       text: "Manage Blogs",
       icon: <DescriptionIcon />,
       path: "/admin/blogs",
-    },
-    {
-      text: "Manage RMs",
-      icon: <PeopleIcon />,
-      path: "/admin/rms",
     },
     {
       text: "Google Sheets",
@@ -361,19 +372,9 @@ const AdminDashboard = () => {
       })),
     },
     {
-      text: "Report Analytics",
-      icon: <AnalyticsIcon />,
-      path: "/admin/report-analytics",
-    },
-    {
       text: "AI Analysis",
       icon: <AutoGraphIcon />,
       path: "/admin/ai-analysis",
-    },
-    {
-      text: "Manage Payouts",
-      icon: <AccountBalanceIcon />,
-      path: "/admin/payouts",
     },
     {
       text: "Manual Business",
@@ -415,6 +416,20 @@ const AdminDashboard = () => {
     }
   }, [location.pathname, navigate, location.state]);
 
+  // Staff without Dashboard access land on the first section they can see, not the denial page
+  useEffect(() => {
+    const isBase = location.pathname === "/admin" || location.pathname === "/admin/";
+    if (!isBase || canAccess(user, "/admin")) return;
+
+    const firstPath = filterMenu(menuItems, user)
+      .map((item) => item.path ?? item.children?.[0]?.path)
+      .find(Boolean);
+    if (firstPath) {
+      navigate(firstPath, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname, user, navigate]);
+
   const drawer = (
     <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
       <DrawerHeader>
@@ -448,7 +463,7 @@ const AdminDashboard = () => {
       </DrawerHeader>
       <Divider />
       <List sx={{ flexGrow: 1, pt: 2 }}>
-        {menuItems.map((item) => {
+        {filterMenu(menuItems, user).map((item) => {
           const hasChildren = item.children && item.children.length > 0;
 
           return (
@@ -635,11 +650,11 @@ const AdminDashboard = () => {
                       alignSelf: "flex-start",
                     }}
                   >
-                    {user?.subRole === "super_admin"
+                    {user?.staffRoleName ?? (user?.subRole === "super_admin"
                       ? "Admin"
                       : user?.subRole === "relationship_manager"
                         ? "Relationship Manager"
-                        : "Credit Analyst"}
+                        : "Credit Analyst")}
                   </Typography>
                 </Box>
               </MenuItem>
@@ -697,7 +712,15 @@ const AdminDashboard = () => {
           overflowX: "hidden" /* MOBILE FIX */,
         }}
       >
-        <Outlet />
+        {canAccess(user, location.pathname) ? (
+          <Outlet />
+        ) : (
+          <Box p={4}>
+            <Typography variant="h6">
+              You do not have access to this section.
+            </Typography>
+          </Box>
+        )}
       </Box>
     </Box>
   );

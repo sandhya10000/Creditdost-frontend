@@ -11,8 +11,10 @@ import {
   Chip,
   Box,
   TableContainer,
+  Link,
 } from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
+import DescriptionIcon from "@mui/icons-material/Description";
 
 const FranchiseAITab = ({ aireports = [] }) => {
   const getAnalysisUrl = (report) => {
@@ -21,6 +23,15 @@ const FranchiseAITab = ({ aireports = [] }) => {
       : "http://localhost:5000";
 
     return `${baseUrl}/api/ai-analysis/admin/download-analysis/${report._id}`;
+  };
+
+  // Original file the client uploaded (admin-only endpoint)
+  const getOriginalUrl = (report) => {
+    const baseUrl = import.meta.env.VITE_REACT_APP_API_URL
+      ? import.meta.env.VITE_REACT_APP_API_URL.replace("/api", "")
+      : "http://localhost:5000";
+
+    return `${baseUrl}/api/ai-analysis/admin/original/${report._id}`;
   };
   return (
     <Paper sx={{ p: 3 }}>
@@ -33,7 +44,7 @@ const FranchiseAITab = ({ aireports = [] }) => {
           <TableHead>
             <TableRow>
               <TableCell>
-                <Typography fontWeight="medium">Report Name</Typography>
+                <Typography fontWeight="medium">Uploaded Report</Typography>
               </TableCell>
 
               <TableCell>
@@ -62,7 +73,18 @@ const FranchiseAITab = ({ aireports = [] }) => {
             {aireports.length > 0 ? (
               aireports.map((report) => (
                 <TableRow key={report._id} hover>
-                  <TableCell>{report.uploadedDocumentName}</TableCell>
+                  <TableCell>
+                    <Link
+                      component="button"
+                      variant="body2"
+                      underline="hover"
+                      onClick={() => window.open(getOriginalUrl(report), "_blank")}
+                      sx={{ textAlign: "left", display: "inline-flex", alignItems: "center", gap: 0.5 }}
+                    >
+                      <DescriptionIcon fontSize="small" />
+                      {report.uploadedDocumentName || "View original"}
+                    </Link>
+                  </TableCell>
 
                   <TableCell>{report.franchiseName}</TableCell>
 

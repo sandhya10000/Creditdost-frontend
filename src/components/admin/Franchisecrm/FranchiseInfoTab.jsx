@@ -70,27 +70,31 @@ const FranchiseInfoTab = ({ franchise }) => {
 
           <Grid item xs={12} md={6}>
             <Typography fontWeight="bold">AI Total</Typography>
-            <Typography>{franchise?.aiTotal}</Typography>
+            <Typography>
+              {franchise?.aiUsage?.hasActivePackage ? franchise.aiUsage.total : "N/A"}
+            </Typography>
           </Grid>
 
           <Grid item xs={12} md={6}>
             <Typography fontWeight="bold">AI Used</Typography>
-            <Typography>{franchise?.aiUsed}</Typography>
-          </Grid>
-
-          <Grid item xs={12} md={6}>
-            <Typography fontWeight="bold">Agreement Signed</Typography>
-
-            <Chip
-              label={franchise?.agreementSigned ? "Signed" : "Pending"}
-              color={franchise?.agreementSigned ? "success" : "warning"}
-            />
+            <Typography>
+              {franchise?.aiUsage?.hasActivePackage ? franchise.aiUsage.used : "N/A"}
+            </Typography>
           </Grid>
 
           <Grid item xs={12} md={6}>
             <Typography fontWeight="bold">Registration Date</Typography>
             <Typography>
               {new Date(franchise?.createdAt).toLocaleDateString()}
+            </Typography>
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <Typography fontWeight="bold">Last Login</Typography>
+            <Typography>
+              {franchise?.userId?.lastLoginAt
+                ? new Date(franchise.userId.lastLoginAt).toLocaleString("en-IN")
+                : "Never logged in"}
             </Typography>
           </Grid>
         </Grid>

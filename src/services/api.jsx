@@ -8,6 +8,15 @@ const api = axios.create({
   withCredentials: true,
 });
 
+// Attachments are served from the backend origin (/uploads/...), not under /api
+export const getAttachmentUrl = (url) => {
+  const base = (
+    import.meta.env.VITE_REACT_APP_API_URL ||
+    "https://reactbackend.creditdost.co.in/api"
+  ).replace(/\/api\/?$/, "");
+  return `${base}${url}`;
+};
+
 // Request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {
@@ -127,8 +136,9 @@ export const franchiseAPI = {
     return api.post("/ai-analysis/upload", formData, config);
   },
   getAIAnalysisDocuments: () => api.get("/ai-analysis/franchise/documents"),
-  analyzeWithClaude: (docId) =>
-    api.post(`/ai-analysis/franchise/analyze/${docId}`),
+  getAIAnalysisUsage: () => api.get("/ai-analysis/franchise/usage"),
+  analyzeWithClaude: (docId, data = {}) =>
+    api.post(`/ai-analysis/franchise/analyze/${docId}`, data),
   downloadClaudeAnalysis: (docId) =>
     api.get(`/ai-analysis/franchise/download-analysis/${docId}`, {
       responseType: "blob",
@@ -157,6 +167,9 @@ export const franchiseAPI = {
     api.put(`/admin/business/update-form/${customerId}`, formData),
   customerSupport: (formData) => api.post("/support/create-ticket", formData),
   getTickets: () => api.get("/support/my-tickets"),
+  getTicket: (id) => api.get(`/support/tickets/${id}`),
+  replyTicket: (id, formData) =>
+    api.post(`/support/tickets/${id}/reply`, formData),
 };
 
 // Blog API functions
@@ -170,7 +183,7 @@ export const blogAPI = {
 
 // Admin API functions
 export const adminAPI = {
-  getDashboardStats: () => api.get("/admin/dashboard"),
+  getDashboardStats: (params) => api.get("/admin/dashboard", { params }),
   getRecentActivities: () => api.get("/admin/dashboard/activities"),
   getPerformanceOverview: (params) =>
     api.get("/admin/dashboard/performance", { params }),
@@ -225,6 +238,7 @@ export const adminAPI = {
     api.put(`/kyc/reject/${id}`, { rejectionReason }),
   // Package management
   getAllPackages: () => api.get("/packages/all"),
+  getPackageOptions: () => api.get("/packages/options"),
   getPackageById: (id) => api.get(`/packages/${id}`),
   createPackage: (packageData) => api.post("/packages", packageData),
   updatePackage: (id, packageData) => api.put(`/packages/${id}`, packageData),
@@ -269,10 +283,8 @@ export const adminAPI = {
     api.put("/credit/settings/indiconnect-keys", data),
   // Credit reports
   getAllCreditReports: (params) => api.get("/credit/reports/all", { params }),
-  // Referrals
-  getAllReferrals: () => api.get("/admin/referrals"),
-  getReferralSettings: () => api.get("/admin/referral-settings"),
-  updateReferralSettings: (data) => api.put("/admin/referral-settings", data),
+  downloadCreditReport: (id) =>
+    api.get(`/credit/reports/${id}/download`, { responseType: "blob" }),
   // Certificate name update
   updateFranchiseCertificateName: (data) =>
     api.put("/admin/franchises/certificate-name", data),
@@ -282,6 +294,10 @@ export const adminAPI = {
   updateCreditRepairEnquiryStatus: (id, status) =>
     api.put(`/admin/credit-repair/${id}/status`, { status }),
   deleteCreditRepairEnquiry: (id) => api.delete(`/admin/credit-repair/${id}`),
+  // Website Franchise Leads
+  getFranchiseLeads: (params) => api.get("/admin/franchise-leads", { params }),
+  updateFranchiseLeadStatus: (id, status) =>
+    api.put(`/admin/franchise-leads/${id}/status`, { status }),
   // Blogs
   getAllBlogs: (params) => api.get("/blogs/admin", { params }),
   createBlog: (blogData) => api.post("/blogs/admin", blogData),
@@ -323,6 +339,11 @@ export const adminAPI = {
     api.get(`/ai-analysis/admin/download-analysis/${id}`, {
       responseType: "blob",
     }),
+  downloadOriginalDocument: (id, params = {}) =>
+    api.get(`/ai-analysis/admin/original/${id}`, {
+      params,
+      responseType: "blob",
+    }),
   //admin upload marketing materials post method
   UploadDocument: (formData) => api.post("/admin/marketing/upload", formData),
   updateMarketingMaterial: (id, formData) =>
@@ -362,7 +383,34 @@ export const adminAPI = {
   // closeBusinessCaseadmin: (id) => api.post(`/business/close-case/${id}`),
   updateBusinessWorkStatus: (id, data) =>
     api.put(`/admin/business-forms/${id}/work-status`, data),
-  getAllTickets: () => api.get("/admin/support/all-tickets"),
+  // Staff & roles (full administrators only)
+  getPermissionCatalog: () => api.get("/admin/permissions"),
+  getStaffRoles: () => api.get("/admin/roles"),
+  createStaffRole: (data) => api.post("/admin/roles", data),
+  updateStaffRole: (id, data) => api.put(`/admin/roles/${id}`, data),
+  deleteStaffRole: (id) => api.delete(`/admin/roles/${id}`),
+  getStaffMembers: () => api.get("/admin/staff"),
+  getStaffProfile: (id) => api.get(`/admin/staff/${id}`),
+  assignBusinessManagersToPartners: () => api.post("/franchises/assign-business-managers"),
+  reassignFranchiseManager: (franchiseId, businessManagerId) =>
+    api.put(`/franchises/${franchiseId}/business-manager`, { businessManagerId }),
+  assignStaffMember: (data) => api.post("/admin/staff", data),
+  changeStaffMemberRole: (id, roleId) =>
+    api.patch(`/admin/staff/${id}/role`, { roleId }),
+  updateStaffMemberDetails: (id, data) => api.patch(`/admin/staff/${id}`, data),
+  setStaffMemberStatus: (id, isActive) =>
+    api.patch(`/admin/staff/${id}/status`, { isActive }),
+  resendStaffMemberCredentials: (id) =>
+    api.post(`/admin/staff/${id}/resend-credentials`),
+  getAllTickets: (params) =>
+    api.get("/admin/support/all-tickets", { params }),
+  getTicket: (id) => api.get(`/admin/support/tickets/${id}`),
+  replyTicket: (id, formData) =>
+    api.post(`/admin/support/tickets/${id}/reply`, formData),
+  updateTicketStatus: (id, status) =>
+    api.patch(`/admin/support/tickets/${id}/status`, { status }),
+  updateTicketMeta: (id, data) =>
+    api.patch(`/admin/support/tickets/${id}/meta`, data),
   deleteBusinessForm: (id) => api.delete(`/admin/business-forms/${id}`),
   // AMC (Annual Maintenance Contract)
   getAmcCustomers: (params) => api.get("/business/amc", { params }),
@@ -370,6 +418,20 @@ export const adminAPI = {
   renewAmc: (id, data) => api.post(`/admin/business-forms/${id}/amc/renew`, data),
   cancelAmc: (id, data) =>
     api.delete(`/admin/business-forms/${id}/amc`, { data }),
+  // Manual Payments (Razorpay payment links created by admin)
+  getManualPayments: (params) => api.get("/admin/manual-payments", { params }),
+  createManualPayment: (data) => api.post("/admin/manual-payments", data),
+  refreshManualPayment: (id) => api.post(`/admin/manual-payments/${id}/refresh`),
+  cancelManualPayment: (id) => api.post(`/admin/manual-payments/${id}/cancel`),
+  // Follow-ups
+  getBusinessFollowUps: (params) => api.get("/business/follow-ups", { params }),
+  setBusinessFollowUp: (id, data) =>
+    api.put(`/business/admin/business-forms/${id}/follow-up`, data),
+  clearBusinessFollowUp: (id) =>
+    api.delete(`/business/admin/business-forms/${id}/follow-up`),
+  // Admin document upload (formData: one file per document key)
+  uploadBusinessDocuments: (id, formData) =>
+    api.put(`/business/admin/business-forms/${id}/documents`, formData),
 };
 
 // Credit API functions

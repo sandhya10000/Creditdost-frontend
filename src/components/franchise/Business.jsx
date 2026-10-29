@@ -36,7 +36,30 @@ import { ensureRazorpay } from "../../utils/razorpay";
 import IconButton from "@mui/material/IconButton";
 //import FileUploadField from "./FileUploadField";
 
-const Business = ({ userType }) => {
+const EMPTY_BUSINESS_DETAILS = {
+  directorName: "",
+  gstUsername: "",
+  gstNumber: "",
+  companyType: "",
+  companyPanNumber: "",
+};
+
+const COMPANY_TYPES = [
+  "Proprietorship",
+  "Partnership",
+  "LLP",
+  "Private Limited",
+  "Public Limited",
+  "One Person Company (OPC)",
+  "Other",
+];
+
+const PAN_REGEX = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
+const GSTIN_REGEX = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
+
+// fixedCustomerType ("individual" | "business") locks the form to one customer type
+// and hides the Customer Type dropdown. Omit it to let the user pick.
+const Business = ({ userType, fixedCustomerType, amcEnabled = false }) => {
   // console.log("userType", userType);
   const [customerPackages, setCustomerPackages] = useState([]);
   const [filteredPackages, setFilteredPackages] = useState([]);
@@ -47,6 +70,7 @@ const Business = ({ userType }) => {
     Number(localStorage.getItem("businessFormStep")) || 0,
   ); // For step navigation
   const [formData, setFormData] = useState({
+    customerType: fixedCustomerType || "individual",
     customerName: "",
     customerEmail: "",
     customerPhone: "",
@@ -63,9 +87,22 @@ const Business = ({ userType }) => {
     gender: "",
     bankAccountNumber: "",
     ifscCode: "",
+    clientIssues: "",
     // ADD THIS
     manualAmount: "",
   });
+  // Required only when customerType is "business"
+  // AMC fields (admin AMC tab only). Kept apart from formData so the required-field check ignores them
+  const [amcData, setAmcData] = useState({
+    startDate: "",
+    endDate: "",
+    amount: "",
+    paymentStatus: "pending",
+    workStatus: "in_progress",
+  });
+  const [businessDetails, setBusinessDetails] = useState(
+    EMPTY_BUSINESS_DETAILS,
+  );
   const [selectedPackage, setSelectedPackage] = useState(null);
   const [razorpayOrderId, setRazorpayOrderId] = useState("");
   const [businessFormId, setBusinessFormId] = useState("");
@@ -205,6 +242,15 @@ const Business = ({ userType }) => {
     // localStorage.setItem("businessFormData", JSON.stringify(updatedFormData));
   };
 
+  const handleBusinessDetailChange = (e) => {
+    const { name, value } = e.target;
+    const upper = name === "gstNumber" || name === "companyPanNumber";
+    setBusinessDetails((prev) => ({
+      ...prev,
+      [name]: upper ? value.toUpperCase() : value,
+    }));
+  };
+
   const handleNext = () => {
     setActiveStep((prevActiveStep) => prevActiveStep + 1);
   };
@@ -240,6 +286,8 @@ const Business = ({ userType }) => {
         ...formData,
         documents,
 
+        ...(formData.customerType === "business" && { businessDetails }),
+
         ...(userType !== "admin" && {
           selectedPackage: selectedPackage?._id,
         }),
@@ -247,6 +295,16 @@ const Business = ({ userType }) => {
         ...(userType === "admin" && {
           franchiseId: franchiseData1.franchiseId,
           manualAmount: Number(formData.manualAmount),
+        }),
+
+        ...(amcEnabled && {
+          amc: {
+            startDate: amcData.startDate,
+            endDate: amcData.endDate,
+            amount: Number(amcData.amount),
+            paymentStatus: amcData.paymentStatus,
+          },
+          workStatus: amcData.workStatus,
         }),
       };
 
@@ -415,6 +473,7 @@ const Business = ({ userType }) => {
 
   const resetForm = () => {
     setFormData({
+      customerType: fixedCustomerType || "individual",
       customerName: "",
       customerEmail: "",
       customerPhone: "",
@@ -431,7 +490,9 @@ const Business = ({ userType }) => {
       bankAccountNumber: "",
       ifscCode: "",
     });
+    setBusinessDetails(EMPTY_BUSINESS_DETAILS);
     setSelectedPackage(null);
+    setAmcData({ startDate: "", endDate: "", amount: "", paymentStatus: "pending", workStatus: "in_progress" });
   };
 
   const states = [
@@ -513,9 +574,27 @@ const Business = ({ userType }) => {
       if (key === "bankAccountNumber" || key === "ifscCode") {
         continue;
       }
+      // Client issues are optional
+      if (key === "clientIssues") {
+        continue;
+      }
 
       if (!formData[key]) {
         setError("Please enter all the required fields");
+        return false;
+      }
+    }
+    if (amcEnabled) {
+      if (!amcData.startDate || !amcData.endDate) {
+        setError("Please select AMC From and To dates");
+        return false;
+      }
+      if (amcData.endDate <= amcData.startDate) {
+        setError("AMC To date must be after the From date");
+        return false;
+      }
+      if (amcData.amount === "" || Number.isNaN(Number(amcData.amount)) || Number(amcData.amount) < 0) {
+        setError("Please enter a valid AMC amount (0 or more)");
         return false;
       }
     }
@@ -527,13 +606,28 @@ const Business = ({ userType }) => {
       setError("Please enter valid Email ID");
       return false;
     }
+    if (formData.customerType === "business") {
+      if (Object.values(businessDetails).some((v) => !v.trim())) {
+        setError("Please enter all the required business details");
+        return false;
+      }
+      if (!GSTIN_REGEX.test(businessDetails.gstNumber)) {
+        setError("Please enter a valid 15-character GST Number");
+        return false;
+      }
+      if (!PAN_REGEX.test(businessDetails.companyPanNumber)) {
+        setError("Please enter a valid Company PAN Number");
+        return false;
+      }
+    }
+    setError("");
     handleNext();
   };
 
   return (
     <Box>
       <Typography variant="h4" gutterBottom>
-        Business Form
+        {amcEnabled ? "AMC" : "Business Form"}
       </Typography>
 
       {error && (
@@ -605,6 +699,27 @@ const Business = ({ userType }) => {
                                 />
                               )}
                             />
+                          </Grid>
+                        )}
+                        {!fixedCustomerType && (
+                          <Grid
+                            item
+                            xs={12}
+                            sm={6}
+                            sx={{ minWidth: { xs: "0px", md: "350px" } }}
+                          >
+                            <FormControl fullWidth required>
+                              <InputLabel>Customer Type</InputLabel>
+                              <Select
+                                name="customerType"
+                                value={formData.customerType}
+                                onChange={handleInputChange}
+                                label="Customer Type"
+                              >
+                                <MenuItem value="individual">Individual</MenuItem>
+                                <MenuItem value="business">Business</MenuItem>
+                              </Select>
+                            </FormControl>
                           </Grid>
                         )}
                         <Grid
@@ -849,6 +964,25 @@ const Business = ({ userType }) => {
                             sx={{ minWidth: { xs: "0px", md: "280px" } }}
                           />
                         </Grid>
+                        {/* Client issues (optional) */}
+                        <Grid
+                          item
+                          xs={12}
+                          sx={{ minWidth: { xs: "0px", md: "350px" } }}
+                        >
+                          <TextField
+                            fullWidth
+                            label="Client's Issues / Concerns (optional)"
+                            name="clientIssues"
+                            value={formData.clientIssues}
+                            onChange={handleInputChange}
+                            multiline
+                            rows={3}
+                            inputProps={{ maxLength: 1000 }}
+                            helperText={`What the client is facing and wants help with · ${formData.clientIssues.length}/1000`}
+                            sx={{ minWidth: { xs: "0px", md: "280px" } }}
+                          />
+                        </Grid>
                         {/* DOB */}
                         <Grid
                           item
@@ -924,6 +1058,189 @@ const Business = ({ userType }) => {
                             }}
                           />
                         </Grid>
+
+                        {/* Business customer details */}
+                        {formData.customerType === "business" && (
+                          <>
+                            <Grid item xs={12}>
+                              <Typography
+                                variant="subtitle1"
+                                sx={{ fontWeight: 600, mt: 1 }}
+                              >
+                                Business Details
+                              </Typography>
+                            </Grid>
+                            <Grid
+                              item
+                              xs={12}
+                              sm={6}
+                              sx={{ minWidth: { xs: "0px", md: "350px" } }}
+                            >
+                              <TextField
+                                required
+                                fullWidth
+                                label="Director Name"
+                                name="directorName"
+                                value={businessDetails.directorName}
+                                onChange={handleBusinessDetailChange}
+                              />
+                            </Grid>
+                            <Grid
+                              item
+                              xs={12}
+                              sm={6}
+                              sx={{ minWidth: { xs: "0px", md: "350px" } }}
+                            >
+                              <TextField
+                                required
+                                fullWidth
+                                label="GST Username"
+                                name="gstUsername"
+                                value={businessDetails.gstUsername}
+                                onChange={handleBusinessDetailChange}
+                              />
+                            </Grid>
+                            <Grid
+                              item
+                              xs={12}
+                              sm={6}
+                              sx={{ minWidth: { xs: "0px", md: "350px" } }}
+                            >
+                              <TextField
+                                required
+                                fullWidth
+                                label="GST Number"
+                                name="gstNumber"
+                                value={businessDetails.gstNumber}
+                                onChange={handleBusinessDetailChange}
+                                inputProps={{ maxLength: 15 }}
+                              />
+                            </Grid>
+                            <Grid
+                              item
+                              xs={12}
+                              sm={6}
+                              sx={{ minWidth: { xs: "0px", md: "350px" } }}
+                            >
+                              <FormControl
+                                fullWidth
+                                required
+                                style={{ minWidth: "200px" }}
+                              >
+                                <InputLabel>Company Type</InputLabel>
+                                <Select
+                                  name="companyType"
+                                  value={businessDetails.companyType}
+                                  onChange={handleBusinessDetailChange}
+                                  label="Company Type"
+                                >
+                                  {COMPANY_TYPES.map((type) => (
+                                    <MenuItem key={type} value={type}>
+                                      {type}
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+                              </FormControl>
+                            </Grid>
+                            <Grid
+                              item
+                              xs={12}
+                              sm={6}
+                              sx={{ minWidth: { xs: "0px", md: "350px" } }}
+                            >
+                              <TextField
+                                required
+                                fullWidth
+                                label="Company PAN Number"
+                                name="companyPanNumber"
+                                value={businessDetails.companyPanNumber}
+                                onChange={handleBusinessDetailChange}
+                                inputProps={{ maxLength: 10 }}
+                              />
+                            </Grid>
+                          </>
+                        )}
+
+                        {amcEnabled && (
+                          <>
+                            <Grid item xs={12}>
+                              <Typography variant="subtitle1" fontWeight="bold">
+                                AMC Details
+                              </Typography>
+                            </Grid>
+                            <Grid item xs={12} sm={6} md={3}>
+                              <TextField
+                                fullWidth
+                                size="small"
+                                type="date"
+                                label="AMC From"
+                                InputLabelProps={{ shrink: true }}
+                                value={amcData.startDate}
+                                onChange={(e) =>
+                                  setAmcData((prev) => ({ ...prev, startDate: e.target.value }))
+                                }
+                              />
+                            </Grid>
+                            <Grid item xs={12} sm={6} md={3}>
+                              <TextField
+                                fullWidth
+                                size="small"
+                                type="date"
+                                label="AMC To"
+                                InputLabelProps={{ shrink: true }}
+                                inputProps={{ min: amcData.startDate || undefined }}
+                                value={amcData.endDate}
+                                onChange={(e) =>
+                                  setAmcData((prev) => ({ ...prev, endDate: e.target.value }))
+                                }
+                              />
+                            </Grid>
+                            <Grid item xs={12} sm={6} md={3}>
+                              <TextField
+                                fullWidth
+                                size="small"
+                                type="number"
+                                label="AMC Amount"
+                                inputProps={{ min: 0, step: "0.01" }}
+                                value={amcData.amount}
+                                onChange={(e) =>
+                                  setAmcData((prev) => ({ ...prev, amount: e.target.value }))
+                                }
+                              />
+                            </Grid>
+                            <Grid item xs={12} sm={6} md={3}>
+                              <TextField
+                                select
+                                fullWidth
+                                size="small"
+                                label="AMC Payment Status"
+                                value={amcData.paymentStatus}
+                                onChange={(e) =>
+                                  setAmcData((prev) => ({ ...prev, paymentStatus: e.target.value }))
+                                }
+                              >
+                                <MenuItem value="pending">Pending</MenuItem>
+                                <MenuItem value="paid">Paid</MenuItem>
+                              </TextField>
+                            </Grid>
+                            <Grid item xs={12} sm={6} md={3}>
+                              <TextField
+                                select
+                                fullWidth
+                                size="small"
+                                label="Work Status"
+                                value={amcData.workStatus}
+                                onChange={(e) =>
+                                  setAmcData((prev) => ({ ...prev, workStatus: e.target.value }))
+                                }
+                              >
+                                <MenuItem value="in_progress">In Progress</MenuItem>
+                                <MenuItem value="pending">Pending</MenuItem>
+                                <MenuItem value="closed">Closed</MenuItem>
+                              </TextField>
+                            </Grid>
+                          </>
+                        )}
 
                         <Grid
                           item

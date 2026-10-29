@@ -16,6 +16,10 @@ import {
   ListItemIcon,
   Divider,
   Alert,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
 } from "@mui/material";
 import PeopleIcon from "@mui/icons-material/People";
 import BusinessIcon from "@mui/icons-material/Business";
@@ -154,6 +158,32 @@ const AdminDashboardHome = () => {
     period: "monthly",
   });
   const [selectedPeriod, setSelectedPeriod] = useState("monthly");
+  // Period filter for the two package revenue cards (all time / a month / a year)
+  const nowForFilter = new Date();
+  const [revenueFilter, setRevenueFilter] = useState({
+    period: "all",
+    month: nowForFilter.getMonth() + 1,
+    year: nowForFilter.getFullYear(),
+  });
+
+  useEffect(() => {
+    const params =
+      revenueFilter.period === "month"
+        ? { period: "month", month: revenueFilter.month, year: revenueFilter.year }
+        : revenueFilter.period === "year"
+          ? { period: "year", year: revenueFilter.year }
+          : {};
+    adminAPI
+      .getDashboardStats(params)
+      .then((res) =>
+        setStats((prev) => ({
+          ...prev,
+          franchisePackageRevenue: res.data.franchisePackageRevenue,
+          customerPackageRevenue: res.data.customerPackageRevenue,
+        })),
+      )
+      .catch((err) => console.error("Error fetching package revenue:", err));
+  }, [revenueFilter]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -541,14 +571,68 @@ const AdminDashboardHome = () => {
             Welcome back, Administrator. Here's what's happening today.
           </Typography>
         </Box>
-        <Chip
-          label={`Last updated: ${new Date().toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          })}`}
-          variant="outlined"
-          size="small"
-        />
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap" }}>
+          <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", }}>
+            <FormControl size="small" sx={{ minWidth: 160 }}>
+              <InputLabel>Period</InputLabel>
+              <Select
+                label="Period"
+                value={revenueFilter.period}
+                onChange={(e) =>
+                  setRevenueFilter((prev) => ({ ...prev, period: e.target.value }))
+                }
+              >
+                <MenuItem value="all">All time</MenuItem>
+                <MenuItem value="month">Month</MenuItem>
+                <MenuItem value="year">Year</MenuItem>
+              </Select>
+            </FormControl>
+            {revenueFilter.period === "month" && (
+              <FormControl size="small" sx={{ minWidth: 140 }}>
+                <InputLabel>Month</InputLabel>
+                <Select
+                  label="Month"
+                  value={revenueFilter.month}
+                  onChange={(e) =>
+                    setRevenueFilter((prev) => ({ ...prev, month: e.target.value }))
+                  }
+                >
+                  {Array.from({ length: 12 }, (_, i) => (
+                    <MenuItem key={i + 1} value={i + 1}>
+                      {new Date(2000, i, 1).toLocaleString("en-IN", { month: "long" })}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            )}
+            {revenueFilter.period !== "all" && (
+              <FormControl size="small" sx={{ minWidth: 120 }}>
+                <InputLabel>Year</InputLabel>
+                <Select
+                  label="Year"
+                  value={revenueFilter.year}
+                  onChange={(e) =>
+                    setRevenueFilter((prev) => ({ ...prev, year: e.target.value }))
+                  }
+                >
+                  {Array.from({ length: 6 }, (_, i) => nowForFilter.getFullYear() - i).map((y) => (
+                    <MenuItem key={y} value={y}>
+                      {y}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            )}
+          </Box>
+          <Chip
+            label={`Last updated: ${new Date().toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}`}
+            variant="outlined"
+            size="small"
+          />
+        </Box>
       </Box>
 
       <Box
@@ -740,6 +824,7 @@ const AdminDashboardHome = () => {
         <Typography variant="h5" sx={{ fontWeight: 700, mb: 3 }}>
           Revenue Overview
         </Typography>
+
 
         {/* Revenue Summary Cards */}
         <Grid container spacing={3} sx={{ mb: 3 }}>
