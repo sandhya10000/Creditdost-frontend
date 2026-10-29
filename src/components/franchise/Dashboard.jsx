@@ -34,10 +34,8 @@ import {
   VerifiedUser as VerifiedUserIcon,
   CreditScore as CreditScoreIcon,
   People as PeopleIcon,
-  AccountBalance as AccountBalanceIcon,
   GroupAdd as GroupAddIcon,
   Assessment as AssessmentIcon,
-  EventRepeat as EventRepeatIcon,
   Settings as SettingsIcon,
   Notifications as NotificationsIcon,
   Description as DescriptionIcon,
@@ -176,6 +174,8 @@ const FranchiseDashboard = () => {
   const [openMenu, setOpenMenu] = useState(null);
   // Dynamic language list for Marketing Materials sidebar sub-items
   const [marketingLanguages, setMarketingLanguages] = useState([]);
+  // True when the partner already holds the top (₹1 lakh) package
+  const [hasTopPackage, setHasTopPackage] = useState(false);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -209,6 +209,33 @@ const FranchiseDashboard = () => {
 
     if (user && user.role === "franchise_user") {
       fetchKycStatus();
+    }
+  }, [user]);
+
+  // Check whether the partner holds the ₹1 lakh package (hides Upgrade Package)
+  useEffect(() => {
+    const checkTopPackage = async () => {
+      try {
+        const [transactionsResponse, dashboardResponse] = await Promise.all([
+          franchiseAPI.getTransactions(),
+          franchiseAPI.getDashboardStats(),
+        ]);
+        const paid = transactionsResponse.data.filter(
+          (tx) => tx.status === "paid",
+        );
+        const purchasedPrice = paid[0]?.packageId?.price || 0;
+        const assignedPrices = (
+          dashboardResponse.data.franchise?.assignedPackages || []
+        ).map((pkg) => pkg.price || 0);
+        const maxPrice = Math.max(purchasedPrice, ...assignedPrices);
+        setHasTopPackage(maxPrice >= 100000);
+      } catch (error) {
+        console.error("Failed to check partner package:", error);
+      }
+    };
+
+    if (user && user.role === "franchise_user") {
+      checkTopPackage();
     }
   }, [user]);
 
@@ -340,12 +367,6 @@ const FranchiseDashboard = () => {
       icon: <AssessmentIcon />,
       path: "/franchise/business-mis",
     },
-    {
-      text: "AMC Customers",
-      icon: <EventRepeatIcon />,
-      path: "/franchise/amc-customers",
-    },
-
     // {
     //   text: "Digital Agreement",
     //   icon: <DescriptionIcon />,
@@ -404,12 +425,7 @@ const FranchiseDashboard = () => {
       })),
     },
     {
-      text: "Payouts",
-      icon: <AccountBalanceIcon />,
-      path: "/franchise/payouts",
-    },
-    {
-      text: "WhatsApp Groups",
+      text: "Join Now",
       icon: <WhatsAppIcon />,
       path: "/franchise/whatsapp-groups",
     },
@@ -452,7 +468,9 @@ const FranchiseDashboard = () => {
     return allMenuItems.slice(0, 2);
   };
 
-  const menuItems = getMenuItems();
+  const menuItems = getMenuItems().filter(
+    (item) => !(hasTopPackage && item.text === "Upgrade Package"),
+  );
 
   useEffect(() => {
     const activeParent = menuItems.find(item => 

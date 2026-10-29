@@ -74,6 +74,7 @@ const DashboardHome = () => {
   const [assignedPackages, setAssignedPackages] = useState([]);
   const [kycStatus, setKycStatus] = useState(null);
   const [kycRejectedReason, setKycRejectedReason] = useState("");
+  const [franchiseCode, setFranchiseCode] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -87,6 +88,12 @@ const DashboardHome = () => {
         ) {
           setKycRejectedReason(kycResponse.data.kycRequest.rejectionReason);
         }
+
+        // Fetch franchise profile for the franchise ID
+        franchiseAPI
+          .getProfile()
+          .then((res) => setFranchiseCode(res.data?.franchiseCode || ""))
+          .catch((err) => console.error("Error fetching franchise ID:", err));
 
         // Fetch dashboard stats
         const dashboardResponse = await franchiseAPI.getDashboardStats();
@@ -499,9 +506,11 @@ const DashboardHome = () => {
                 >
                   {purchasedPackage.name}
                 </Typography>
-                <Typography variant="body1" sx={{ mb: 1 }}>
-                  <strong>{purchasedPackage.credits} Credits</strong> included
-                </Typography>
+                {franchiseCode && (
+                  <Typography variant="body1" sx={{ mb: 1 }}>
+                    Franchise ID: <strong>{franchiseCode}</strong>
+                  </Typography>
+                )}
                 <Typography variant="body2" sx={{ opacity: 0.9 }}>
                   Purchased on{" "}
                   {new Date(purchasedPackage.purchaseDate).toLocaleDateString()}
@@ -595,17 +604,11 @@ const DashboardHome = () => {
                     >
                       {pkg.name}
                     </Typography>
-                    <Typography variant="body1" sx={{ mb: 1 }}>
-                      <strong>
-                        {pkg.creditsIncluded === "Unlimited"
-                          ? "Unlimited"
-                          : pkg.creditsIncluded}{" "}
-                        Credits
-                      </strong>{" "}
-                      included
-                    </Typography>
                   </Box>
                 ))}
+                <Typography variant="body1" sx={{ mb: 1 }}>
+                  <strong>Unlimited</strong> reports
+                </Typography>
                 <Typography variant="body2" sx={{ opacity: 0.9 }}>
                   {/* Assigned by admin */}
                 </Typography>
@@ -619,19 +622,18 @@ const DashboardHome = () => {
                   width: { xs: "100%", md: "auto" } /* MOBILE FIX */,
                 }}
               >
-                <Chip
-                  icon={<Star />}
-                  label="Active"
-                  color="success"
-                  sx={{
-                    fontWeight: "bold",
-                    marginTop: { xs: "0px", md: "0" } /* MOBILE FIX */,
-                    height: 32,
-                    "& .MuiChip-icon": {
-                      color: "white !important",
-                    },
-                  }}
-                />
+                {franchiseCode && (
+                  <Chip
+                    label={`Franchise ID: ${franchiseCode}`}
+                    sx={{
+                      fontWeight: "bold",
+                      marginTop: { xs: "0px", md: "0" } /* MOBILE FIX */,
+                      height: 32,
+                      backgroundColor: "rgba(255, 255, 255, 0.2)",
+                      color: "white",
+                    }}
+                  />
+                )}
                 {/* <Button
                   variant="contained"
                   color="secondary"
