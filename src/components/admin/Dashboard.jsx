@@ -601,7 +601,7 @@ const AdminDashboard = () => {
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-            Admin Dashboard
+            {user?.staffRoleName ? `Welcome, ${user.name}` : "Admin Dashboard"}
           </Typography>
           <Box sx={{ display: "flex", alignItems: "center" }}>
             <Tooltip title="Account settings">
