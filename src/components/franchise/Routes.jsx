@@ -12,11 +12,9 @@ import ViewReports from "./ViewReports";
 import Referrals from "./Referrals";
 import Business from "./Business";
 import BusinessMIS from "./BusinessMIS";
-import AmcCustomers from "./AmcCustomers";
 import AIAnalysis from "./AIAnalysis";
 import Certificate from "./Certificate";
 import DigitalAgreement from "./DigitalAgreement";
-import Payouts from "./Payouts";
 import RelationshipManagerInfo from "./RelationshipManagerInfo";
 import WhatsAppGroups from "./WhatsAppGroups";
 import Support from "./Support";
@@ -46,11 +44,9 @@ const FranchiseRoutes = () => {
         <Route path="referrals" element={<Referrals />} />
         <Route path="business" element={<Business />} />
         <Route path="business-mis" element={<BusinessMIS />} />
-        <Route path="amc-customers" element={<AmcCustomers />} />
         <Route path="ai-analysis" element={<AIAnalysis />} />
         <Route path="certificate" element={<Certificate />} />
         <Route path="agreement" element={<DigitalAgreement />} />
-        <Route path="payouts" element={<Payouts />} />
         <Route path="/support" element={<Support />} />
         <Route path="/credit-check/crif" element={<CRIF />} />
         <Route path="/credit-check/experian" element={<Experian />} />

@@ -23,6 +23,7 @@ import {
   Typography,
 } from "@mui/material";
 import { adminAPI } from "../../../services/api";
+import { useLeadUnreadCounts, notifyLeadCountsChanged } from "../useLeadUnreadCounts";
 
 const CR_STATUSES = ["New", "Contacted", "In Progress", "Resolved"];
 const FRANCHISE_STATUSES = ["New", "Contacted", "Interested", "Not Interested"];
@@ -80,6 +81,7 @@ const TABS = [
   {
     key: "credit-repair",
     label: "Credit Repair Enquiry",
+    countKey: "creditRepair",
     description: "Enquiries from the website Credit Repair form.",
     source: "website",
     statuses: CR_STATUSES,
@@ -105,6 +107,7 @@ const TABS = [
   {
     key: "franchise",
     label: "Franchise Leads",
+    countKey: "franchise",
     description: "Enquiries from the Franchise Opportunity form.",
     statuses: FRANCHISE_STATUSES,
     filters: [...COMMON_FILTERS, "profession"],
@@ -123,6 +126,7 @@ const TABS = [
   {
     key: "whatsapp",
     label: "WhatsApp Credit Repair Leads",
+    countKey: "whatsapp",
     description: "Customers with a credit score below 700 who tapped Contact Support on WhatsApp.",
     source: "whatsapp",
     statuses: CR_STATUSES,
@@ -207,6 +211,7 @@ const CreditReportLeads = () => {
   const [error, setError] = useState("");
   const [refreshKey, setRefreshKey] = useState(0);
   const [detailRow, setDetailRow] = useState(null);
+  const leadCounts = useLeadUnreadCounts();
 
   // Debounce typing so each keystroke doesn't trigger a request
   useEffect(() => {
@@ -258,6 +263,27 @@ const CreditReportLeads = () => {
     setPage(0);
   };
 
+  // Opening or acting on a lead marks it read; the list and sidebar counts update
+  const markRead = async (row) => {
+    if (row.isRead) return;
+    try {
+      if (tab.key === "franchise") {
+        await adminAPI.markFranchiseLeadRead(row._id);
+      } else {
+        await adminAPI.markCreditRepairRead(row._id);
+      }
+      setRows((prev) => prev.map((r) => (r._id === row._id ? { ...r, isRead: true } : r)));
+      notifyLeadCountsChanged();
+    } catch {
+      // Not fatal: the lead stays unread and is retried on the next action
+    }
+  };
+
+  const openDetails = (row) => {
+    setDetailRow(row);
+    markRead(row);
+  };
+
   const changeStatus = async (row, status) => {
     try {
       if (tab.key === "franchise") {
@@ -266,6 +292,7 @@ const CreditReportLeads = () => {
         await adminAPI.updateCreditRepairEnquiryStatus(row._id, status);
       }
       setRows((prev) => prev.map((r) => (r._id === row._id ? { ...r, status } : r)));
+      markRead(row);
     } catch (err) {
       alert(err.response?.data?.message || "Failed to update status");
       setRefreshKey((k) => k + 1);
@@ -320,9 +347,20 @@ const CreditReportLeads = () => {
           scrollButtons="auto"
           sx={{ borderBottom: 1, borderColor: "divider", px: 2 }}
         >
-          {TABS.map((t) => (
-            <Tab key={t.key} label={t.label} />
-          ))}
+          {TABS.map((t) => {
+            const count = leadCounts[t.countKey] || 0;
+            return (
+              <Tab
+                key={t.key}
+                label={
+                  <Stack direction="row" alignItems="center" spacing={1}>
+                    {t.label}
+                    {count > 0 && <Chip size="small" color="error" label={count} />}
+                  </Stack>
+                }
+              />
+            );
+          })}
         </Tabs>
 
         <Box p={2}>
@@ -384,7 +422,11 @@ const CreditReportLeads = () => {
                 </TableHead>
                 <TableBody>
                   {rows.map((row) => (
-                    <TableRow key={row._id} hover>
+                    <TableRow
+                      key={row._id}
+                      hover
+                      sx={{ "& td": { fontWeight: row.isRead ? "normal" : 600 } }}
+                    >
                       {tab.columns.map((c) => (
                         <TableCell key={c.label}>{c.render(row)}</TableCell>
                       ))}
@@ -405,7 +447,7 @@ const CreditReportLeads = () => {
                       </TableCell>
                       <TableCell>{formatDate(row.createdAt)}</TableCell>
                       <TableCell align="right">
-                        <Button size="small" onClick={() => setDetailRow(row)}>
+                        <Button size="small" onClick={() => openDetails(row)}>
                           View
                         </Button>
                       </TableCell>

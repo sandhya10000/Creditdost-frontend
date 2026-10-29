@@ -294,10 +294,14 @@ export const adminAPI = {
   updateCreditRepairEnquiryStatus: (id, status) =>
     api.put(`/admin/credit-repair/${id}/status`, { status }),
   deleteCreditRepairEnquiry: (id) => api.delete(`/admin/credit-repair/${id}`),
+  markCreditRepairRead: (id) => api.put(`/admin/credit-repair/${id}/read`),
   // Website Franchise Leads
   getFranchiseLeads: (params) => api.get("/admin/franchise-leads", { params }),
   updateFranchiseLeadStatus: (id, status) =>
     api.put(`/admin/franchise-leads/${id}/status`, { status }),
+  markFranchiseLeadRead: (id) => api.put(`/admin/franchise-leads/${id}/read`),
+  // New, unread lead counts (sidebar badge + tabs)
+  getLeadUnreadCounts: () => api.get("/admin/leads/unread-counts"),
   // Blogs
   getAllBlogs: (params) => api.get("/blogs/admin", { params }),
   createBlog: (blogData) => api.post("/blogs/admin", blogData),
