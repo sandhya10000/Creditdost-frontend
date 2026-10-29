@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import {
   Box,
+  Chip,
   CssBaseline,
   AppBar,
   Toolbar,
@@ -66,6 +67,7 @@ import Collapse from "@mui/material/Collapse";
 import ExpandLess from "@mui/icons-material/ExpandLess";
 import ExpandMore from "@mui/icons-material/ExpandMore";
 import CASE_STUDY_CATEGORIES from "../../config/caseStudyCategories";
+import { useLeadUnreadCounts } from "./useLeadUnreadCounts";
 
 // Styled components for enhanced UI
 const drawerWidth = 260;
@@ -217,6 +219,7 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
+  const leadCounts = useLeadUnreadCounts();
   const [openMenu, setOpenMenu] = useState({});
 
   // Redirect non-admin users to appropriate dashboard
@@ -491,7 +494,21 @@ const AdminDashboard = () => {
               >
                 <ListItemIcon>{item.icon}</ListItemIcon>
                 <ListItemText
-                  primary={item.text}
+                  primary={
+                    item.path === "/admin/credit-report-leads" && leadCounts.total > 0 ? (
+                      <>
+                        {item.text}
+                        <Chip
+                          size="small"
+                          color="error"
+                          label={leadCounts.total}
+                          sx={{ ml: 1, height: 20 }}
+                        />
+                      </>
+                    ) : (
+                      item.text
+                    )
+                  }
                   sx={{ opacity: open || isMobile ? 1 : 0 }} /* MOBILE FIX */
                   primaryTypographyProps={{
                     noWrap: true,
