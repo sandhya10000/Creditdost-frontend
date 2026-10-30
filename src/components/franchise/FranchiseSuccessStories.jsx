@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Grid, Typography, Box, Paper, IconButton } from "@mui/material";
+import { Typography, Box, Paper, IconButton, alpha } from "@mui/material";
 import { ChevronLeft, ChevronRight } from "@mui/icons-material";
 
 const FranchiseSuccessStories = () => {
@@ -109,16 +109,16 @@ const FranchiseSuccessStories = () => {
       elevation={0}
       sx={{
         padding: "25px",
-        borderRadius: "20px",
-        background: "linear-gradient(135deg, #e8f5e9 0%, #e3f2fd 100%)",
-        border: "1px solid #c8e6c9",
+        background: (theme) =>
+          `linear-gradient(135deg, ${alpha(theme.palette.success.main, 0.08)} 0%, ${alpha(theme.palette.primary.main, 0.08)} 100%)`,
+        border: "1px solid",
+        borderColor: "divider",
         position: "relative",
         height: "100%",
-        boxShadow: "0 15px 30px rgba(0, 0, 0, 0.05)",
-        transition: "all 0.3s ease",
+        transition: "transform 0.3s ease, box-shadow 0.3s ease",
         "&:hover": {
           transform: "translateY(-5px)",
-          boxShadow: "0 20px 40px rgba(0, 0, 0, 0.1)",
+          boxShadow: 2,
         },
         "&::before": {
           content: '"“"',
@@ -126,7 +126,7 @@ const FranchiseSuccessStories = () => {
           top: 20,
           left: 20,
           fontSize: "4rem",
-          color: "#4caf50",
+          color: "success.main",
           opacity: 0.2,
           fontFamily: "Georgia, serif",
         },
@@ -149,19 +149,19 @@ const FranchiseSuccessStories = () => {
         <Box>
           <Typography
             variant="h6"
-            sx={{ fontWeight: 700, color: "#1a237e", mb: 0.5 }}
+            sx={{ fontWeight: 700, color: "text.primary", mb: 0.5 }}
           >
             {props.name}
           </Typography>
           {props.company && (
             <Typography
               variant="body2"
-              sx={{ color: "#4caf50", fontWeight: 600, mb: 0.5 }}
+              sx={{ color: "success.main", fontWeight: 600, mb: 0.5 }}
             >
               {props.company}
             </Typography>
           )}
-          <Typography variant="body2" sx={{ color: "#666" }}>
+          <Typography variant="body2" sx={{ color: "text.secondary" }}>
             {props.location}
           </Typography>
         </Box>
@@ -169,7 +169,7 @@ const FranchiseSuccessStories = () => {
       <Typography
         variant="body1"
         sx={{
-          color: "#333",
+          color: "text.primary",
           fontStyle: "normal",
           lineHeight: 1.6,
           mt: 3,
@@ -258,11 +258,13 @@ const FranchiseSuccessStories = () => {
       >
         <IconButton
           onClick={prevSlide}
+          aria-label="Previous success story"
           sx={{
-            backgroundColor: "white",
-            border: "1px solid #ddd",
+            backgroundColor: "background.paper",
+            border: "1px solid",
+            borderColor: "divider",
             "&:hover": {
-              backgroundColor: "#f5f5f5",
+              backgroundColor: "action.hover",
             },
           }}
         >
@@ -277,12 +279,12 @@ const FranchiseSuccessStories = () => {
                 width: 10,
                 height: 10,
                 borderRadius: "50%",
-                backgroundColor: currentSlide === index ? "#4caf50" : "#e0e0e0",
+                backgroundColor: currentSlide === index ? "success.main" : "divider",
                 cursor: "pointer",
                 transition: "background-color 0.3s",
                 "&:hover": {
                   backgroundColor:
-                    currentSlide === index ? "#4caf50" : "#bdbdbd",
+                    currentSlide === index ? "success.main" : "text.disabled",
                 },
               }}
               onClick={() => setCurrentSlide(index)}
@@ -292,11 +294,13 @@ const FranchiseSuccessStories = () => {
 
         <IconButton
           onClick={nextSlide}
+          aria-label="Next success story"
           sx={{
-            backgroundColor: "white",
-            border: "1px solid #ddd",
+            backgroundColor: "background.paper",
+            border: "1px solid",
+            borderColor: "divider",
             "&:hover": {
-              backgroundColor: "#f5f5f5",
+              backgroundColor: "action.hover",
             },
           }}
         >

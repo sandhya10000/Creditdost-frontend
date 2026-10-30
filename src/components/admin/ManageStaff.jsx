@@ -181,7 +181,7 @@ const StaffList = () => {
         <Typography color="text.secondary">No staff assigned yet.</Typography>
       ) : (
         staff.map((member) => (
-          <Paper key={member._id} sx={{ p: 2, mb: 2, borderRadius: 2 }}>
+          <Paper key={member._id} sx={{ p: 2, mb: 2, }}>
             <Stack direction={{ xs: "column", md: "row" }} justifyContent="space-between" spacing={2}>
               <Box>
                 <Typography

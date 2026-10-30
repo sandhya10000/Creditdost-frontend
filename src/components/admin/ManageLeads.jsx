@@ -407,7 +407,7 @@ const ManageLeads = () => {
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>
+      <Typography variant="h5" component="h1" gutterBottom>
         Manage Leads
       </Typography>
 
@@ -423,7 +423,7 @@ const ManageLeads = () => {
         </Alert>
       )}
 
-      <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
+      <Card sx={{ mt: 3 }}>
         <CardContent>
           <Box
             sx={{
@@ -535,12 +535,14 @@ const ManageLeads = () => {
                       <TableCell>
                         <IconButton
                           size="small"
+                          aria-label="Assign lead"
                           onClick={() => handleAssignLead(lead)}
                         >
                           <AssignmentInd />
                         </IconButton>
                         <IconButton
                           size="small"
+                          aria-label="Mark lead qualified"
                           onClick={() =>
                             handleUpdateLeadStatus(lead._id, "qualified")
                           }
@@ -550,6 +552,7 @@ const ManageLeads = () => {
                         </IconButton>
                         <IconButton
                           size="small"
+                          aria-label="Mark lead lost"
                           onClick={() =>
                             handleUpdateLeadStatus(lead._id, "lost")
                           }
@@ -559,6 +562,7 @@ const ManageLeads = () => {
                         </IconButton>
                         <IconButton
                           size="small"
+                          aria-label="Delete lead"
                           onClick={() => handleDeleteLead(lead)}
                           sx={{ color: "error.main" }}
                         >

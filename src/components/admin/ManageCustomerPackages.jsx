@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PageHeader from "../ui/PageHeader";
 import {
   Box,
   Typography,
@@ -239,9 +240,7 @@ const ManageCustomerPackages = () => {
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>
-        Manage Customer Packages
-      </Typography>
+      <PageHeader title="Manage Customer Packages" />
       
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
@@ -255,7 +254,7 @@ const ManageCustomerPackages = () => {
         </Alert>
       )}
       
-      <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
+      <Card sx={{ mt: 3 }}>
         <CardContent>
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 3 }}>
             <Button
@@ -272,7 +271,7 @@ const ManageCustomerPackages = () => {
               <CircularProgress />
             </Box>
           ) : (
-            <TableContainer component={Paper}>
+            <TableContainer component={Paper} sx={{ overflowX: "auto" }}>
               <Table sx={{ minWidth: 650 }} aria-label="customer packages table">
                 <TableHead>
                   <TableRow>
@@ -349,12 +348,14 @@ const ManageCustomerPackages = () => {
                       </TableCell>
                       <TableCell>
                         <IconButton 
+                aria-label="Edit package"
                           size="small" 
                           onClick={() => handleOpenDialog(pkg)}
                         >
                           <Edit />
                         </IconButton>
                         <IconButton 
+                aria-label="Delete package"
                           size="small" 
                           onClick={() => handleDelete(pkg._id)}
                           sx={{ color: 'error.main' }}

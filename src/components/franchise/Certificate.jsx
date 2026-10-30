@@ -5,7 +5,6 @@ import {
   Card,
   CardContent,
   Button,
-  CircularProgress,
   Alert,
   TextField,
   Dialog,
@@ -20,6 +19,8 @@ import {
 } from "@mui/icons-material";
 import { franchiseAPI } from "../../services/api";
 import html2canvas from "html2canvas";
+import PageHeader from "../ui/PageHeader";
+import { LoadingState } from "../ui/StateViews";
 
 const Certificate = () => {
   const [certificateData, setCertificateData] = useState(null);
@@ -127,33 +128,22 @@ const Certificate = () => {
   };
 
   if (loading) {
-    return (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        minHeight="400px"
-      >
-        <CircularProgress />
-      </Box>
-    );
+    return <LoadingState label="Loading certificate..." />;
   }
 
   if (error) {
     return (
       <Box>
-        <Alert severity="error">{error}</Alert>
+        <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>
       </Box>
     );
   }
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>
-        Certificate of Authority
-      </Typography>
+      <PageHeader title="Certificate of Authority" />
 
-      <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
+      <Card sx={{ mt: 3 }}>
         <CardContent>
           <Box
             display="flex"

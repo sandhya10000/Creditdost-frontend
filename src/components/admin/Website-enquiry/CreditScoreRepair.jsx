@@ -17,7 +17,6 @@ import {
   FormControl,
   InputLabel,
   Select,
-  CircularProgress,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -33,6 +32,8 @@ import {
   Download as DownloadIcon,
 } from "@mui/icons-material";
 import { adminAPI } from "../../../services/api";
+import PageHeader from "../../ui/PageHeader";
+import { EmptyState, LoadingState } from "../../ui/StateViews";
 
 const STATUS_COLORS = {
   New: "error",
@@ -184,32 +185,25 @@ const CreditScoreRepair = () => {
   };
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: { xs: 2, md: 3 } }}>
       {/* Page Header */}
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          mb: 3,
-        }}
-      >
-        <Typography variant="h4" sx={{ fontWeight: 700 }}>
-          Credit Score Repair Inquiries
-        </Typography>
-        <Button
-          variant="contained"
-          color="success"
-          startIcon={<DownloadIcon />}
-          onClick={downloadCSV}
-          sx={{ color: "#fff", minWidth: 160 }}
-        >
-          Download CSV
-        </Button>
-      </Box>
+      <PageHeader
+        title="Credit Score Repair Inquiries"
+        actions={
+          <Button
+            variant="contained"
+            color="success"
+            startIcon={<DownloadIcon />}
+            onClick={downloadCSV}
+            sx={{ minWidth: 160 }}
+          >
+            Download CSV
+          </Button>
+        }
+      />
 
       {/* Filters */}
-      <Paper sx={{ p: 2, mb: 3, borderRadius: 2 }}>
+      <Paper sx={{ p: 2, mb: 3 }}>
         <Grid container spacing={2} alignItems="center">
           <Grid item xs={12} md={5}>
             <form onSubmit={handleSearch} style={{ display: "flex", gap: "8px" }}>
@@ -220,7 +214,7 @@ const CreditScoreRepair = () => {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
-              <Button type="submit" variant="contained" sx={{ px: 2, minWidth: "auto" }}>
+              <Button type="submit" variant="contained" aria-label="Search" sx={{ px: 2, minWidth: "auto" }}>
                 <SearchIcon />
               </Button>
             </form>
@@ -266,9 +260,9 @@ const CreditScoreRepair = () => {
       </Paper>
 
       {/* Table */}
-      <TableContainer component={Paper} sx={{ borderRadius: 2 }}>
+      <TableContainer component={Paper} sx={{ overflowX: "auto" }}>
         <Table sx={{ minWidth: 1100 }}>
-          <TableHead sx={{ backgroundColor: "#f5f5f5" }}>
+          <TableHead sx={{ backgroundColor: "background.default" }}>
             <TableRow>
               <TableCell sx={{ fontWeight: 700 }}>Date</TableCell>
               <TableCell sx={{ fontWeight: 700 }}>Full Name</TableCell>
@@ -286,8 +280,8 @@ const CreditScoreRepair = () => {
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={11} align="center" sx={{ py: 6 }}>
-                  <CircularProgress />
+                <TableCell colSpan={11} align="center" sx={{ p: 0 }}>
+                  <LoadingState label="Loading inquiries..." />
                 </TableCell>
               </TableRow>
             ) : error ? (
@@ -298,10 +292,8 @@ const CreditScoreRepair = () => {
               </TableRow>
             ) : enquiries.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={11} align="center" sx={{ py: 6 }}>
-                  <Typography color="textSecondary">
-                    No pending inquiries found
-                  </Typography>
+                <TableCell colSpan={11} sx={{ p: 0 }}>
+                  <EmptyState title="No pending inquiries found" />
                 </TableCell>
               </TableRow>
             ) : (
@@ -351,6 +343,7 @@ const CreditScoreRepair = () => {
                   <TableCell align="center">
                     <IconButton
                       color="primary"
+                      aria-label="View details"
                       onClick={() => {
                         setSelectedEnquiry(enq);
                         setViewModalOpen(true);
@@ -361,6 +354,7 @@ const CreditScoreRepair = () => {
                     </IconButton>
                     <IconButton
                       color="error"
+                      aria-label="Delete inquiry"
                       onClick={() => {
                         setEnquiryToDelete(enq);
                         setDeleteDialogOpen(true);
@@ -466,7 +460,7 @@ const CreditScoreRepair = () => {
                 </Typography>
                 <Paper
                   variant="outlined"
-                  sx={{ p: 2, mt: 1, backgroundColor: "#fafafa", minHeight: 80 }}
+                  sx={{ p: 2, mt: 1, backgroundColor: "background.default", minHeight: 80 }}
                 >
                   <Typography variant="body2" style={{ whiteSpace: "pre-wrap" }}>
                     {selectedEnquiry.message || "No additional information provided."}

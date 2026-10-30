@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { LoadingState } from "../ui/StateViews";
 import {
   Box,
   Typography,
@@ -249,9 +250,7 @@ const GoogleSheetsSettings = () => {
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
-        <CircularProgress />
-      </Box>
+      <LoadingState label="Loading..." />
     );
   }
 
@@ -329,13 +328,13 @@ const GoogleSheetsSettings = () => {
       </Box>
 
       {error && (
-        <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
+        <Alert severity="error" sx={{ mb: 2 }}>
           {error}
         </Alert>
       )}
 
       {success && (
-        <Alert severity="success" sx={{ mb: 3, borderRadius: 2 }}>
+        <Alert severity="success" sx={{ mb: 2 }}>
           {success}
         </Alert>
       )}

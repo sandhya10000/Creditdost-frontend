@@ -86,7 +86,7 @@ const Payment = () => {
           packageName: pkg.name
         },
         theme: {
-          color: "#6200ea"
+          color: "primary.main"
         }
       };
       

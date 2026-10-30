@@ -13,6 +13,7 @@ import {
   Chip,
   Box,
 } from "@mui/material";
+import { EmptyState } from "../../ui/StateViews";
 
 // Admin-entered amount wins; otherwise the sold package's price (same as Business Forms)
 const amountOf = (item) => Number(item.manualAmount) || Number(item.selectedPackage?.price) || 0;
@@ -21,7 +22,7 @@ const FranchiseBusinessTab = ({ businessForms = [] }) => {
   const totalBusinessAmount = businessForms.reduce((sum, item) => sum + amountOf(item), 0);
 
   return (
-    <Paper sx={{ p: 3 }}>
+    <Paper sx={{ p: { xs: 2, md: 3 } }}>
       <Box
         display="flex"
         justifyContent="space-between"
@@ -30,11 +31,11 @@ const FranchiseBusinessTab = ({ businessForms = [] }) => {
         gap={2}
         mb={3}
       >
-        <Typography variant="h6" fontWeight="bold">
+        <Typography variant="h6" component="h2" fontWeight="bold">
           Business Activity
         </Typography>
 
-        <Box display="flex" gap={2}>
+        <Box display="flex" flexWrap="wrap" gap={2}>
           <Chip
             label={`Total Businesses: ${businessForms.length}`}
             color="primary"
@@ -49,7 +50,7 @@ const FranchiseBusinessTab = ({ businessForms = [] }) => {
         </Box>
       </Box>
 
-      <TableContainer>
+      <TableContainer sx={{ overflowX: "auto" }}>
         <Table>
           <TableHead>
             <TableRow>
@@ -125,8 +126,8 @@ const FranchiseBusinessTab = ({ businessForms = [] }) => {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={6} align="center">
-                  No business records found
+                <TableCell colSpan={6}>
+                  <EmptyState title="No business records found" />
                 </TableCell>
               </TableRow>
             )}

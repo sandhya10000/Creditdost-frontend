@@ -199,7 +199,7 @@ const ManagePackages = () => {
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>
+      <Typography variant="h5" component="h1" gutterBottom>
         Manage Franchise Packages
       </Typography>
       
@@ -215,7 +215,7 @@ const ManagePackages = () => {
         </Alert>
       )}
       
-      <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
+      <Card sx={{ mt: 3 }}>
         <CardContent>
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 3 }}>
             <Button
@@ -232,7 +232,7 @@ const ManagePackages = () => {
               <CircularProgress />
             </Box>
           ) : (
-            <TableContainer component={Paper}>
+            <TableContainer component={Paper} sx={{ overflowX: "auto" }}>
               <Table sx={{ minWidth: 650 }} aria-label="packages table">
                 <TableHead>
                   <TableRow>
@@ -288,12 +288,14 @@ const ManagePackages = () => {
                       <TableCell>
                         <IconButton 
                           size="small" 
+                          aria-label="Edit package" 
                           onClick={() => handleOpenDialog(pkg)}
                         >
                           <Edit />
                         </IconButton>
                         <IconButton 
                           size="small" 
+                          aria-label="Delete package" 
                           onClick={() => handleDelete(pkg._id)}
                           sx={{ color: 'error.main' }}
                         >

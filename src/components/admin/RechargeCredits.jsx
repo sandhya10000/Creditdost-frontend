@@ -137,7 +137,7 @@ const RechargeCredits = () => {
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>
+      <Typography variant="h5" component="h1" gutterBottom>
         Manage Credits
       </Typography>
 
@@ -169,7 +169,7 @@ const RechargeCredits = () => {
       <Grid container spacing={3}>
         {/* Recharge Form */}
         <Grid item xs={12} md={6}>
-          <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
+          <Card sx={{ mt: 3 }}>
             <CardContent>
               <Typography variant="h6" gutterBottom>
                 {mode === 'deduct' ? 'Deduct Credits' : 'Credit Recharge'}
@@ -233,7 +233,7 @@ const RechargeCredits = () => {
 
         {/* Credit Balance Overview */}
         <Grid item xs={12} md={6}>
-          <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
+          <Card sx={{ mt: 3 }}>
             <CardContent>
               <Typography variant="h6" gutterBottom>
                 Franchise Credit Balances
@@ -244,7 +244,7 @@ const RechargeCredits = () => {
                   <CircularProgress />
                 </Box>
               ) : (
-                <TableContainer component={Paper}>
+                <TableContainer component={Paper} sx={{ overflowX: "auto" }}>
                   <Table size="small">
                     <TableHead>
                       <TableRow>
@@ -276,7 +276,7 @@ const RechargeCredits = () => {
 
         {/* Recharge History */}
         <Grid item xs={12}>
-          <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
+          <Card sx={{ mt: 3 }}>
             <CardContent>
               <Typography variant="h6" gutterBottom>
                 Recharge History
@@ -287,7 +287,7 @@ const RechargeCredits = () => {
                   <CircularProgress />
                 </Box>
               ) : (
-                <TableContainer component={Paper}>
+                <TableContainer component={Paper} sx={{ overflowX: "auto" }}>
                   <Table size="small">
                     <TableHead>
                       <TableRow>

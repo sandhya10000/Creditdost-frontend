@@ -15,6 +15,7 @@ import {
   Divider,
 } from "@mui/material";
 import { franchiseAPI } from "../../services/api";
+import PageHeader from "../ui/PageHeader";
 
 const KycVerification = () => {
   const [activeStep, setActiveStep] = useState(0);
@@ -199,9 +200,7 @@ const KycVerification = () => {
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>
-        KYC Verification
-      </Typography>
+      <PageHeader title="KYC Verification" />
 
       {/* Show rejection reason if KYC is rejected */}
       {kycStatus === "rejected" && rejectionReason && (
@@ -227,7 +226,7 @@ const KycVerification = () => {
       )}
 
       {kycStatus === "approved" ? (
-        <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
+        <Card sx={{ mt: 3 }}>
           <CardContent>
             <Typography variant="h6" gutterBottom>
               KYC Already Approved
@@ -239,7 +238,7 @@ const KycVerification = () => {
           </CardContent>
         </Card>
       ) : (
-        <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
+        <Card sx={{ mt: 3 }}>
           <CardContent>
             <Stepper activeStep={activeStep} alternativeLabel>
               {steps.map((label) => (

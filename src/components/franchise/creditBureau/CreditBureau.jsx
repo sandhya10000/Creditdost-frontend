@@ -509,7 +509,7 @@ const CreditBureau = ({ bureauOptions = [], defaultBureau }) => {
   };
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>
+      <Typography variant="h4" component="h1" gutterBottom>
         Credit Check
       </Typography>
 
@@ -517,8 +517,6 @@ const CreditBureau = ({ bureauOptions = [], defaultBureau }) => {
       <Card
         sx={{
           mb: 3,
-          boxShadow: 3,
-          borderRadius: 2,
           bgcolor: "background.default",
         }}
       >
@@ -571,7 +569,7 @@ const CreditBureau = ({ bureauOptions = [], defaultBureau }) => {
       )}
 
       {activeTab === 0 && (
-        <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
+        <Card sx={{ mt: 3 }}>
           <CardContent>
             <Typography variant="h6" gutterBottom>
               Check Customer Credit
@@ -862,7 +860,7 @@ const CreditBureau = ({ bureauOptions = [], defaultBureau }) => {
       )}
 
       {activeTab === 1 && (
-        <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
+        <Card sx={{ mt: 3 }}>
           <CardContent>
             <Typography variant="h6" gutterBottom>
               Recent Credit Reports
@@ -874,7 +872,7 @@ const CreditBureau = ({ bureauOptions = [], defaultBureau }) => {
                 reports here.
               </Typography>
             ) : (
-              <TableContainer component={Paper}>
+              <TableContainer component={Paper} sx={{ overflowX: "auto" }}>
                 <Table sx={{ minWidth: 650 }} aria-label="credit reports table">
                   <TableHead>
                     <TableRow>
@@ -999,7 +997,7 @@ const CreditBureau = ({ bureauOptions = [], defaultBureau }) => {
         </Card>
       )}
 
-      <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
+      <Card sx={{ mt: 3 }}>
         <CardContent>
           <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
             <Info color="info" sx={{ mr: 1 }} />

@@ -19,7 +19,7 @@ import {
 import { adminAPI } from "../../services/api";
 
 const StatCard = ({ label, value }) => (
-  <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, textAlign: "center" }}>
+  <Paper variant="outlined" sx={{ p: 2, textAlign: "center" }}>
     <Typography variant="h5" fontWeight="bold">
       {value}
     </Typography>
@@ -73,7 +73,7 @@ const StaffProfile = () => {
       </Button>
 
       {/* Header */}
-      <Paper sx={{ p: 3, mb: 3, borderRadius: 2 }}>
+      <Paper sx={{ p: 3, mb: 3, }}>
         <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
           <Typography variant="h5" fontWeight="bold">
             {staff.name}
@@ -122,7 +122,7 @@ const StaffProfile = () => {
       </Grid>
 
       {/* Role & permissions */}
-      <Paper sx={{ p: 3, mb: 3, borderRadius: 2 }}>
+      <Paper sx={{ p: 3, mb: 3, }}>
         <Typography variant="h6" fontWeight="bold" mb={1}>
           Role: {role?.name || "No role"}
         </Typography>
@@ -144,7 +144,7 @@ const StaffProfile = () => {
 
       {/* Assigned franchises (Business Manager) */}
       {hasFranchiseAccess && (
-        <Paper sx={{ p: 3, borderRadius: 2 }}>
+        <Paper sx={{ p: 3, }}>
           <Typography variant="h6" fontWeight="bold" mb={2}>
             Franchise partners ({franchises.length})
           </Typography>

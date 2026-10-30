@@ -34,6 +34,7 @@ import { Check as CheckIcon, Close as CloseIcon } from "@mui/icons-material";
 import api, { franchiseAPI } from "../../services/api";
 import { ensureRazorpay } from "../../utils/razorpay";
 import IconButton from "@mui/material/IconButton";
+import PageHeader from "../ui/PageHeader";
 //import FileUploadField from "./FileUploadField";
 
 const EMPTY_BUSINESS_DETAILS = {
@@ -626,9 +627,7 @@ const Business = ({ userType, fixedCustomerType, amcEnabled = false }) => {
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>
-        {amcEnabled ? "AMC" : "Business Form"}
-      </Typography>
+      <PageHeader title={amcEnabled ? "AMC" : "Business Form"} />
 
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
@@ -642,7 +641,7 @@ const Business = ({ userType, fixedCustomerType, amcEnabled = false }) => {
         </Alert>
       )}
 
-      <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
+      <Card sx={{ mt: 3 }}>
         <CardContent>
           <Stepper activeStep={activeStep} orientation="vertical">
             {steps.map((step, index) => (
@@ -1275,19 +1274,20 @@ const Business = ({ userType, fixedCustomerType, amcEnabled = false }) => {
                         <Grid item xs={12} sm={6} md={4} key={index}>
                           <Box
                             sx={{
-                              border: "1px solid #d9d9d9",
+                              border: "1px solid",
+                              borderColor: "divider",
                               borderRadius: "12px",
                               px: 2,
                               py: 1.5,
                               display: "flex",
                               flexDirection: "column",
                               gap: 1,
-                              backgroundColor: "#fff",
+                              backgroundColor: "background.paper",
                               minHeight: "90px",
                               transition: "0.3s",
                               "&:hover": {
-                                boxShadow: "0px 4px 14px rgba(0,0,0,0.08)",
-                                borderColor: "#9333ea",
+                                boxShadow: 1,
+                                borderColor: "primary.main",
                               },
                             }}
                           >
@@ -1303,7 +1303,7 @@ const Business = ({ userType, fixedCustomerType, amcEnabled = false }) => {
                                 sx={{
                                   fontSize: "15px",
                                   fontWeight: 500,
-                                  color: "#555",
+                                  color: "text.secondary",
                                 }}
                               >
                                 {item.label}
@@ -1316,14 +1316,14 @@ const Business = ({ userType, fixedCustomerType, amcEnabled = false }) => {
                                 sx={{
                                   borderRadius: "10px",
                                   textTransform: "none",
-                                  borderColor: "#c084fc",
-                                  color: "#9333ea",
+                                  borderColor: "primary.light",
+                                  color: "primary.main",
                                   fontWeight: 600,
                                   px: 2,
                                   minWidth: "100px",
                                   "&:hover": {
-                                    borderColor: "#9333ea",
-                                    backgroundColor: "#faf5ff",
+                                    borderColor: "primary.main",
+                                    backgroundColor: "action.hover",
                                   },
                                 }}
                               >
@@ -1344,7 +1344,7 @@ const Business = ({ userType, fixedCustomerType, amcEnabled = false }) => {
                               <Typography
                                 variant="caption"
                                 sx={{
-                                  color: "green",
+                                  color: "success.main",
                                   fontWeight: 500,
                                   wordBreak: "break-word",
                                 }}
@@ -1400,7 +1400,8 @@ const Business = ({ userType, fixedCustomerType, amcEnabled = false }) => {
                         gutterBottom
                         sx={{
                           pb: 1,
-                          borderBottom: "2px solid #6200ea",
+                          borderBottom: "2px solid",
+                          borderBottomColor: "primary.main",
                           display: "inline-block",
                           mb: 2,
                         }}
@@ -1442,16 +1443,17 @@ const Business = ({ userType, fixedCustomerType, amcEnabled = false }) => {
                                   cursor: "pointer",
                                   border:
                                     selectedPackage?._id === pkg._id
-                                      ? "2px solid #6200ea"
-                                      : "1px solid #e0e0e0",
-                                  borderRadius: "12px",
-                                  boxShadow:
+                                      ? "2px solid"
+                                      : "1px solid",
+                                  borderColor:
                                     selectedPackage?._id === pkg._id
-                                      ? "0 8px 16px rgba(98, 0, 234, 0.2)"
-                                      : "0 2px 8px rgba(0, 0, 0, 0.1)",
+                                      ? "primary.main"
+                                      : "divider",
+                                  boxShadow:
+                                    selectedPackage?._id === pkg._id ? 3 : 1,
                                   transition: "all 0.3s ease",
                                   "&:hover": {
-                                    boxShadow: "0 8px 16px rgba(0, 0, 0, 0.15)",
+                                    boxShadow: 4,
                                     transform: "translateY(-4px)",
                                   },
                                 }}
@@ -1474,7 +1476,7 @@ const Business = ({ userType, fixedCustomerType, amcEnabled = false }) => {
                                         sx={{
                                           color:
                                             selectedPackage?._id === pkg._id
-                                              ? "#6200ea"
+                                              ? "primary.main"
                                               : "text.primary",
                                           mb: 0.5,
                                         }}
@@ -1514,13 +1516,14 @@ const Business = ({ userType, fixedCustomerType, amcEnabled = false }) => {
                                       py: 2,
                                       backgroundColor:
                                         selectedPackage?._id === pkg._id
-                                          ? "rgba(98, 0, 234, 0.05)"
-                                          : "rgba(0, 0, 0, 0.02)",
+                                          ? "action.selected"
+                                          : "action.hover",
                                       borderRadius: "8px",
-                                      border:
+                                      border: "1px solid",
+                                      borderColor:
                                         selectedPackage?._id === pkg._id
-                                          ? "1px solid rgba(98, 0, 234, 0.2)"
-                                          : "1px solid rgba(0, 0, 0, 0.05)",
+                                          ? "primary.light"
+                                          : "divider",
                                     }}
                                   >
                                     <Typography

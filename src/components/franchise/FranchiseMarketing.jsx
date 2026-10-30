@@ -12,8 +12,10 @@ import {
   CardMedia,
   Button,
   Stack,
-  CircularProgress,
 } from "@mui/material";
+import PageHeader from "../ui/PageHeader";
+import { EmptyState, LoadingState } from "../ui/StateViews";
+
 const FranchiseMarketing = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -130,29 +132,12 @@ const FranchiseMarketing = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Typography
-        variant="h4"
-        fontWeight="bold"
-        textAlign="center"
-        gutterBottom
-      >
-        Marketing Material
-      </Typography>
+      <PageHeader title="Marketing Material" />
 
       {loading ? (
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "center",
-            mt: 5,
-          }}
-        >
-          <CircularProgress />
-        </Box>
+        <LoadingState label="Loading marketing material..." />
       ) : items.length === 0 ? (
-        <Typography variant="body1" color="text.secondary">
-          No marketing material found.
-        </Typography>
+        <EmptyState title="No marketing material found." />
       ) : (
         <>
           {Object.entries(groupedItems).map(([language, materials]) => (
@@ -169,18 +154,15 @@ const FranchiseMarketing = () => {
                     <Grid item xs={12} sm={6} md={4} key={item._id}>
                       <Card
                         sx={{
-                          borderRadius: "16px",
-                          boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
-                          border: "none",
                           height: "100%",
-                          p: "16px",
+                          p: 2,
                           display: "flex",
                           flexDirection: "column",
-                          transition: "all 0.3s ease",
+                          transition: "transform 0.3s ease, box-shadow 0.3s ease",
                           "&:hover": {
                             transform: "translateY(-4px)",
-                            boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
-                          }
+                            boxShadow: 2,
+                          },
                         }}
                       >
                         {item.fileType?.includes("image") && (

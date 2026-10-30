@@ -320,7 +320,6 @@ const BusinessForms = ({ status = "paid", customerType }) => {
       <Card
         sx={{
           mt: 2,
-          borderRadius: 2,
           overflow: "visible",
         }}
       >
@@ -396,7 +395,7 @@ const BusinessForms = ({ status = "paid", customerType }) => {
                     "& .MuiTableCell-root": {
                       fontWeight: 700,
                       whiteSpace: "nowrap",
-                      backgroundColor: "#f8f9fa",
+                      backgroundColor: "background.default",
                     },
                   }}
                 >

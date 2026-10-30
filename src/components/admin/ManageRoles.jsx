@@ -142,7 +142,7 @@ const ManageRoles = () => {
         <Typography color="text.secondary">No roles yet. Create one to get started.</Typography>
       ) : (
         roles.map((role) => (
-          <Paper key={role._id} sx={{ p: 2, mb: 2, borderRadius: 2 }}>
+          <Paper key={role._id} sx={{ p: 2, mb: 2, }}>
             <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
               <Box>
                 <Typography variant="h6">{role.name}</Typography>

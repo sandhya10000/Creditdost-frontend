@@ -258,7 +258,7 @@ const Leads = () => {
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>
+      <Typography variant="h4" component="h1" gutterBottom>
         My Leads
       </Typography>
       
@@ -274,7 +274,7 @@ const Leads = () => {
         </Alert>
       )}
       
-      <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
+      <Card sx={{ mt: 3 }}>
         <CardContent>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
             <Box component="form" onSubmit={handleSearch} sx={{ width: '70%' }}>
@@ -310,7 +310,7 @@ const Leads = () => {
               <CircularProgress />
             </Box>
           ) : (
-            <TableContainer component={Paper}>
+            <TableContainer component={Paper} sx={{ overflowX: "auto" }}>
               <Table sx={{ minWidth: 650 }} aria-label="leads table">
                 <TableHead>
                   <TableRow>
@@ -340,21 +340,24 @@ const Leads = () => {
                       </TableCell>
                       <TableCell>{formatDate(lead.createdAt)}</TableCell>
                       <TableCell>
-                        <IconButton 
-                          size="small" 
+                        <IconButton
+                          size="small"
+                          aria-label="View lead"
                           onClick={() => handleOpenUploadDialog(lead)}
                         >
                           <Visibility />
                         </IconButton>
-                        <IconButton 
-                          size="small" 
+                        <IconButton
+                          size="small"
+                          aria-label="Mark lead as qualified"
                           onClick={() => handleUpdateLeadStatus(lead._id, 'qualified')}
                           sx={{ color: 'success.main' }}
                         >
                           <Check />
                         </IconButton>
-                        <IconButton 
-                          size="small" 
+                        <IconButton
+                          size="small"
+                          aria-label="Mark lead as lost"
                           onClick={() => handleUpdateLeadStatus(lead._id, 'lost')}
                           sx={{ color: 'error.main' }}
                         >

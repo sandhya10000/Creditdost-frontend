@@ -15,6 +15,7 @@ import {
 } from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import DescriptionIcon from "@mui/icons-material/Description";
+import { EmptyState } from "../../ui/StateViews";
 
 const FranchiseAITab = ({ aireports = [] }) => {
   const getAnalysisUrl = (report) => {
@@ -34,12 +35,12 @@ const FranchiseAITab = ({ aireports = [] }) => {
     return `${baseUrl}/api/ai-analysis/admin/original/${report._id}`;
   };
   return (
-    <Paper sx={{ p: 3 }}>
+    <Paper sx={{ p: { xs: 2, md: 3 } }}>
       <Box mb={2}>
         <Chip color="primary" label={`Total AI Reports: ${aireports.length}`} />
       </Box>
 
-      <TableContainer>
+      <TableContainer sx={{ overflowX: "auto" }}>
         <Table>
           <TableHead>
             <TableRow>
@@ -128,8 +129,8 @@ const FranchiseAITab = ({ aireports = [] }) => {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={6} align="center">
-                  No AI Reports Found
+                <TableCell colSpan={6}>
+                  <EmptyState title="No AI Reports Found" />
                 </TableCell>
               </TableRow>
             )}

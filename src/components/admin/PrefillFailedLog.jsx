@@ -55,13 +55,13 @@ const PrefillFailedLog = () => {
         Prefill Failed Logs
       </Typography>
 
-      <Paper elevation={3}>
+      <Paper>
         {loading ? (
           <Box display="flex" justifyContent="center" alignItems="center" p={5}>
             <CircularProgress />
           </Box>
         ) : (
-          <TableContainer>
+          <TableContainer sx={{ overflowX: "auto" }}>
             <Table>
               <TableHead>
                 <TableRow>

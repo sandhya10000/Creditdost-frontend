@@ -5,7 +5,6 @@ import {
   CardContent,
   Typography,
   Box,
-  CircularProgress,
   Table,
   TableBody,
   TableCell,
@@ -44,6 +43,8 @@ import {
 import { franchiseAPI } from "../../services/api";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
+import StatCard from "../ui/StatCard";
+import { EmptyState, LoadingState } from "../ui/StateViews";
 
 const DashboardHome = () => {
   const navigate = useNavigate();
@@ -328,29 +329,27 @@ const DashboardHome = () => {
   const statCards = [
     {
       title: "Credits",
-
       value: `${stats.credits?.used ?? 0}`,
-      icon: <CreditScore sx={{ fontSize: 40 }} />,
-      color: "#6200ea",
+      icon: <CreditScore />,
+      color: "primary",
     },
     {
       title: "AI Usage",
       value: `${stats.ai?.used ?? 0}`,
-      icon: <People sx={{ fontSize: 40 }} />,
-      color: "#03dac6",
+      icon: <People />,
+      color: "secondary",
     },
     {
       title: "Total Business",
       value: `₹ ${stats.business?.total ?? 0}`,
-      icon: <TrendingUp sx={{ fontSize: 40 }} />,
-      color: "#00c853",
+      icon: <TrendingUp />,
+      color: "success",
     },
-
     {
       title: "Total Cases",
       value: stats.totalCases ?? 0,
-      icon: <People sx={{ fontSize: 40 }} />,
-      color: "#03dac6",
+      icon: <People />,
+      color: "secondary",
     },
   ];
 
@@ -358,56 +357,42 @@ const DashboardHome = () => {
     {
       title: "Generate Credit Report",
       icon: <Assessment sx={{ fontSize: 30 }} />,
-      color: "#6200ea",
+      color: "primary.main",
       path: "/franchise/credit-check",
       description: "Check customer credit scores",
     },
     {
       title: "Manage Leads",
       icon: <PersonSearch sx={{ fontSize: 30 }} />,
-      color: "#03dac6",
+      color: "secondary.main",
       path: "/franchise/leads",
       description: "View and manage customer leads",
     },
     {
       title: "View Reports",
       icon: <CreditScore sx={{ fontSize: 30 }} />,
-      color: "#ff4081",
+      color: "warning.main",
       path: "/franchise/reports",
       description: "View generated credit reports",
     },
     {
       title: "Refer Franchise",
       icon: <GroupAdd sx={{ fontSize: 30 }} />,
-      color: "#00c853",
+      color: "success.main",
       path: "/franchise/referrals",
       description: "Refer new franchise partners",
     },
   ];
 
   if (loading) {
-    return (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        minHeight="400px"
-      >
-        <CircularProgress />
-      </Box>
-    );
+    return <LoadingState label="Loading dashboard..." />;
   }
 
   if (error) {
     return (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        minHeight="400px"
-      >
-        <Typography color="error">{error}</Typography>
-      </Box>
+      <Alert severity="error" sx={{ mb: 2 }}>
+        {error}
+      </Alert>
     );
   }
   // 👇 return ke just upar
@@ -440,8 +425,9 @@ const DashboardHome = () => {
       >
         <Typography
           variant="h4"
+          component="h2"
           sx={{
-            color: "#ff9800",
+            color: "warning.main",
             fontWeight: "bold",
             mb: 2,
           }}
@@ -457,11 +443,15 @@ const DashboardHome = () => {
   }
   return (
     <Box>
-      <Typography variant="h4" gutterBottom sx={{ mb: 3 }}>
+      <Typography
+        variant="h4"
+        component="h1"
+        sx={{ mb: 3, fontWeight: 600, color: "text.primary" }}
+      >
         Welcome{" "}
-        <span style={{ color: "#6200ea", fontWeight: "bold" }}>
+        <Box component="span" sx={{ color: "primary.main", fontWeight: "bold" }}>
           {user?.name || "User"}
-        </span>
+        </Box>
       </Typography>
 
       {/* Purchased Package Section */}
@@ -469,24 +459,19 @@ const DashboardHome = () => {
         <Card
           sx={{
             mb: 3,
-            boxShadow: 3,
-            borderRadius: 2,
-            background: "linear-gradient(135deg, #6200ea 0%, #03dac6 100%)",
-            color: "white",
+            background: (theme) =>
+              `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+            color: "common.white",
           }}
         >
           <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
-            {" "}
-            {/* MOBILE FIX */}
             <Box
               sx={{
                 display: "flex",
-
                 justifyContent: "space-between",
-
-                alignItems: { xs: "start", md: "center" } /* MOBILE FIX */,
-                flexDirection: { xs: "column", md: "row" } /* MOBILE FIX */,
-                gap: { xs: 2, md: 0 } /* MOBILE FIX */,
+                alignItems: { xs: "start", md: "center" },
+                flexDirection: { xs: "column", md: "row" },
+                gap: { xs: 2, md: 0 },
               }}
             >
               <Box>
@@ -520,9 +505,9 @@ const DashboardHome = () => {
                 sx={{
                   display: "flex",
                   flexDirection: "column",
-                  alignItems: { xs: "start", md: "flex-end" } /* MOBILE FIX */,
+                  alignItems: { xs: "start", md: "flex-end" },
                   gap: 1,
-                  width: { xs: "100%", md: "auto" } /* MOBILE FIX */,
+                  width: { xs: "100%", md: "auto" },
                 }}
               >
                 <Chip
@@ -533,7 +518,7 @@ const DashboardHome = () => {
                     fontWeight: "bold",
                     height: 32,
                     "& .MuiChip-icon": {
-                      color: "white !important",
+                      color: "common.white !important",
                     },
                   }}
                 />
@@ -565,15 +550,12 @@ const DashboardHome = () => {
         <Card
           sx={{
             mb: 3,
-            boxShadow: 3,
-            borderRadius: 2,
-            background: "linear-gradient(135deg, #03dac6 0%, #6200ea 100%)",
-            color: "white",
+            background: (theme) =>
+              `linear-gradient(135deg, ${theme.palette.secondary.main} 0%, ${theme.palette.primary.main} 100%)`,
+            color: "common.white",
           }}
         >
           <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
-            {" "}
-            {/* MOBILE FIX */}
             <Box
               sx={{
                 display: "flex",
@@ -657,64 +639,31 @@ const DashboardHome = () => {
         </Card>
       )}
 
-      <Grid
-        container
-        spacing={3}
-        mt={2}
-        sx={{ flexDirection: { xs: "column", md: "row" } }}
-      >
+      <Grid container spacing={2} sx={{ mb: 3 }}>
         {statCards.map((card, index) => (
           <Grid item xs={12} sm={6} md={3} key={index}>
-            {" "}
-            <Card
-              sx={{
-                height: "100%",
-                display: "flex",
-                flexDirection: "column",
-                boxShadow: 3,
-                borderRadius: 2,
-              }}
-            >
-              <CardContent
-                sx={{ flexGrow: 1, textAlign: "center", p: { xs: 2, sm: 3 } }}
-              >
-                {" "}
-                {/* MOBILE FIX */}
-                <Box sx={{ color: card.color, mb: 2 }}>{card.icon}</Box>
-                <Typography variant="h5" component="div" gutterBottom>
-                  {card.value}
-                </Typography>
-                <Typography color="text.secondary">{card.title}</Typography>
-              </CardContent>
-            </Card>
+            <StatCard
+              label={card.title}
+              value={card.value}
+              icon={card.icon}
+              color={card.color}
+            />
           </Grid>
         ))}
       </Grid>
 
-      <Grid
-        container
-        spacing={3}
-        mt={3}
-        sx={{ flexDirection: { xs: "column", md: "row" } }}
-      >
-        <Grid item xs={12} md={8} style={{ flex: "1" }}>
-          <Card sx={{ height: "100%", boxShadow: 3, borderRadius: 2 }}>
+      <Grid container spacing={3}>
+        <Grid item xs={12} md={8}>
+          <Card sx={{ height: "100%" }}>
             <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
-              {" "}
-              {/* MOBILE FIX */}
-              <Typography variant="h6" gutterBottom>
+              <Typography variant="h6" component="h2" gutterBottom>
                 Recent Credit Reports
               </Typography>
               {recentReports.length === 0 ? (
-                <Box sx={{ minHeight: 200 }}>
-                  <Typography
-                    color="text.secondary"
-                    align="center"
-                    sx={{ mt: 8 }}
-                  >
-                    No credit reports generated yet
-                  </Typography>
-                </Box>
+                <EmptyState
+                  title="No credit reports generated yet"
+                  description="Generated credit reports will appear here."
+                />
               ) : (
                 <TableContainer
                   component={Paper}
@@ -780,22 +729,19 @@ const DashboardHome = () => {
         </Grid>
         {/* Quick Actions Section - Only visible when KYC is approved */}
         {kycStatus === "approved" && (
-          <Grid item xs={12} md={4} style={{ flex: "1" }}>
-            <Card sx={{ height: "100%", boxShadow: 3, borderRadius: 2 }}>
+          <Grid item xs={12} md={4}>
+            <Card sx={{ height: "100%" }}>
               <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
-                {" "}
-                {/* MOBILE FIX */}
-                <Typography variant="h6" gutterBottom>
+                <Typography variant="h6" component="h2" gutterBottom>
                   Quick Actions
                 </Typography>
                 <Box
                   sx={{
                     display: "grid",
-
                     gridTemplateColumns: {
                       xs: "1fr",
                       sm: "repeat(2, 1fr)",
-                    } /* MOBILE FIX */,
+                    },
                     gap: 2,
                     mt: 2,
                   }}
@@ -807,6 +753,7 @@ const DashboardHome = () => {
                       placement="top"
                     >
                       <Card
+                        variant="outlined"
                         sx={{
                           height: "100%",
                           display: "flex",
@@ -815,11 +762,9 @@ const DashboardHome = () => {
                           justifyContent: "center",
                           p: 2,
                           cursor: "pointer",
-                          transition: "all 0.3s ease",
+                          transition: "background-color 0.2s ease",
                           "&:hover": {
-                            transform: "translateY(-5px)",
-                            boxShadow: 3,
-                            bgcolor: "background.default",
+                            bgcolor: "action.hover",
                           },
                         }}
                         onClick={() => navigate(action.path)}
@@ -834,7 +779,7 @@ const DashboardHome = () => {
                             width: 56,
                             height: 56,
                             borderRadius: "50%",
-                            bgcolor: `${action.color}15`,
+                            bgcolor: "action.hover",
                           }}
                         >
                           {action.icon}

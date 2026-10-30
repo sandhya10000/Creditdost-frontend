@@ -92,7 +92,7 @@ const DocumentTab = ({ customerId, documents = {}, onUpdated }) => {
         </Alert>
       )}
 
-      <Paper variant="outlined" sx={{ borderRadius: 3, overflow: "hidden" }}>
+      <Paper variant="outlined" sx={{ overflow: "hidden" }}>
         {uploadingKey && <LinearProgress />}
         <Stack divider={<Divider flexItem />}>
           {documentFields.map((doc) => {

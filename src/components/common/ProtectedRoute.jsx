@@ -16,7 +16,8 @@ const LoadingContainer = styled(Box)(({ theme }) => ({
   justifyContent: "center",
   alignItems: "center",
   minHeight: "100vh",
-  background: `linear-gradient(135deg, ${theme.palette.primary.light} 0%, ${theme.palette.secondary.light} 100%)`,
+  padding: theme.spacing(2),
+  backgroundColor: theme.palette.background.default,
 }));
 
 const LoadingCard = styled(Card)(({ theme }) => ({
@@ -24,8 +25,10 @@ const LoadingCard = styled(Card)(({ theme }) => ({
   width: "100%",
   textAlign: "center",
   padding: theme.spacing(4),
-  borderRadius: theme.shape.borderRadius * 2,
-  boxShadow: theme.shadows[10],
+  borderRadius: theme.shape.borderRadius,
+  border: `1px solid ${theme.palette.divider}`,
+  boxShadow: "none",
+  backgroundColor: theme.palette.background.paper,
 }));
 
 const ProtectedRoute = ({ children, allowedRoles }) => {

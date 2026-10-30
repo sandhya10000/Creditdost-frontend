@@ -66,6 +66,7 @@ import {
 } from "@mui/icons-material";
 import { adminAPI } from "../../services/api";
 import CreditAdjustDialog from "./CreditAdjustDialog";
+import { LoadingState } from "../ui/StateViews";
 
 const DetailItem = ({ label, value }) => (
   <Grid item xs={12} sm={6}>
@@ -81,11 +82,12 @@ const DetailItem = ({ label, value }) => (
 const DetailSection = ({ title, children }) => (
   <Card
     variant="outlined"
-    sx={{ mb: 2, boxShadow: 2, borderRadius: 2, bgcolor: "white" }}
+    sx={{ mb: 2, bgcolor: "background.paper" }}
   >
     <CardContent>
       <Typography
         variant="subtitle1"
+        component="h3"
         sx={{ color: "primary.main", fontWeight: "bold", mb: 1 }}
       >
         {title}
@@ -910,9 +912,9 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            bgcolor: "#fafafa",
+            bgcolor: "background.default",
             borderRadius: 1,
-            border: "1px dashed #ccc",
+            border: "1px dashed", borderColor: "divider",
           }}
         >
           <Typography color="textSecondary" variant="body2">
@@ -933,8 +935,8 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
             justifyContent: "center",
             overflow: "hidden",
             borderRadius: 1,
-            border: "1px solid #ddd",
-            bgcolor: "#fff",
+            border: "1px solid", borderColor: "divider",
+            bgcolor: "background.paper",
           }}
         >
           <img
@@ -959,12 +961,12 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            bgcolor: "#fafafa",
+            bgcolor: "background.default",
             borderRadius: 1,
-            border: "1px solid #ddd",
+            border: "1px solid", borderColor: "divider",
           }}
         >
-          <PictureAsPdfIcon sx={{ fontSize: 40, color: "#d32f2f" }} />
+          <PictureAsPdfIcon sx={{ fontSize: 40, color: "error.main" }} />
           <Typography variant="body2" sx={{ mt: 1, color: "text.secondary" }}>
             PDF Document
           </Typography>
@@ -1165,12 +1167,14 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
       <Box
         sx={{
           display: "flex",
+          flexWrap: "wrap",
+          gap: 2,
           justifyContent: "space-between",
           alignItems: "center",
-          mb: 2,
+          mb: 3,
         }}
       >
-        <Typography variant="h4">
+        <Typography variant="h5" component="h1">
           {tabValue === 1
             ? "Deleted Franchises"
             : kycStatus === "pending"
@@ -1191,7 +1195,7 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
             color="success"
             onClick={handleDownloadCSV}
             disabled={csvExporting}
-            sx={{ color: "#fff", minWidth: 140 }}
+            sx={{ color: "common.white", minWidth: 140 }}
           >
             {csvExporting ? "Exporting..." : "Download CSV"}
           </Button>
@@ -1216,7 +1220,7 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
         </Dialog>
       </Box>
 
-      <AppBar position="static" color="default" sx={{ mb: 3, borderRadius: 1 }}>
+      <AppBar position="static" color="default" sx={{ mb: 3 }}>
         <Tabs
           value={tabValue}
           onChange={(e, newValue) => setTabValue(newValue)}
@@ -1271,7 +1275,7 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
             </Alert>
           )}
 
-          <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
+          <Card sx={{ mt: 3 }}>
             <CardContent>
               <Box component="form" onSubmit={handleSearch} sx={{ mb: 3 }}>
                 <Grid container spacing={2} alignItems="center">
@@ -1312,6 +1316,8 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
               <Box
                 sx={{
                   display: "flex",
+                  flexWrap: "wrap",
+                  gap: 2,
                   justifyContent: "space-between",
                   alignItems: "center",
                   mb: 2,
@@ -1341,7 +1347,7 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
                     size="small"
                     sx={{
                       minWidth: 180,
-                      backgroundColor: "#fff",
+                      backgroundColor: "background.paper",
                     }}
                   >
                     <MenuItem value="all">All</MenuItem>
@@ -1377,11 +1383,9 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
               </Menu>
 
               {loading && filteredFranchises.length === 0 ? (
-                <Box display="flex" justifyContent="center" my={4}>
-                  <CircularProgress />
-                </Box>
+                <LoadingState label="Loading franchises..." />
               ) : (
-                <TableContainer component={Paper}>
+                <TableContainer component={Paper} sx={{ overflowX: "auto" }}>
                   <Table sx={{ minWidth: 650 }} aria-label="franchises table">
                     <TableHead>
                       <TableRow>
@@ -1538,12 +1542,14 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
                           <TableCell>
                             <IconButton
                               size="small"
+                              aria-label="View KYC"
                               onClick={() => handleViewKyc(franchise)}
                             >
                               <Visibility />
                             </IconButton>
                             <IconButton
                               size="small"
+                              aria-label="Edit franchise"
                               onClick={() =>
                                 handleEditFranchiseClick(franchise)
                               }
@@ -1559,7 +1565,7 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
                                     handleViewRegistrationDetails(franchise)
                                   }
                                   sx={{ color: "info.main" }}
-                                  title="View Registration Details"
+                                  title="View Registration Details" aria-label="View Registration Details"
                                 >
                                   <Info />
                                 </IconButton>
@@ -1580,7 +1586,7 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
                                     handleApproveKyc(franchise._id)
                                   }
                                   sx={{ color: "success.main" }}
-                                  title="Approve KYC"
+                                  title="Approve KYC" aria-label="Approve KYC"
                                 >
                                   <Check />
                                 </IconButton>
@@ -1590,7 +1596,7 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
                                     handleRejectKycClick(franchise)
                                   }
                                   sx={{ color: "error.main" }}
-                                  title="Reject KYC"
+                                  title="Reject KYC" aria-label="Reject KYC"
                                 >
                                   <Close />
                                 </IconButton>
@@ -1603,7 +1609,7 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
                                 handleCertificateNameClick(franchise)
                               }
                               sx={{ color: "primary.main" }}
-                              title="Update Certificate Name"
+                              title="Update Certificate Name" aria-label="Update Certificate Name"
                             >
                               <PictureAsPdfIcon />
                             </IconButton>
@@ -1617,7 +1623,7 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
                                       setResendTarget(franchise)
                                     }
                                     sx={{ color: "info.main" }}
-                                    title="Resend invite / credentials"
+                                    title="Resend invite / credentials" aria-label="Resend invite / credentials"
                                   >
                                     <Send />
                                   </IconButton>
@@ -1628,7 +1634,7 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
                                     handleChangeEmailClick(franchise)
                                   }
                                   sx={{ color: "secondary.main" }}
-                                  title="Change email"
+                                  title="Change email" aria-label="Change email"
                                 >
                                   <AlternateEmail />
                                 </IconButton>
@@ -1641,7 +1647,7 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
                                   size="small"
                                   onClick={() => handleCreditClick(franchise, "add")}
                                   sx={{ color: "success.main" }}
-                                  title="Add Funds"
+                                  title="Add Funds" aria-label="Add Funds"
                                 >
                                   <AddCircle />
                                 </IconButton>
@@ -1649,7 +1655,7 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
                                   size="small"
                                   onClick={() => handleCreditClick(franchise, "deduct")}
                                   sx={{ color: "warning.main" }}
-                                  title="Deduct Funds"
+                                  title="Deduct Funds" aria-label="Deduct Funds"
                                 >
                                   <RemoveCircle />
                                 </IconButton>
@@ -1663,7 +1669,7 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
                                   handleRestoreFranchise(franchise._id)
                                 }
                                 sx={{ color: "success.main" }}
-                                title="Restore Franchise"
+                                title="Restore Franchise" aria-label="Restore Franchise"
                               >
                                 <Restore />
                               </IconButton>
@@ -1674,7 +1680,7 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
                                   handleDeleteFranchiseClick(franchise)
                                 }
                                 sx={{ color: "error.main" }}
-                                title="Delete Franchise"
+                                title="Delete Franchise" aria-label="Delete Franchise"
                               >
                                 <Delete />
                               </IconButton>
@@ -1718,7 +1724,7 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
       )}
 
       {tabValue === 2 && (
-        <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
+        <Card sx={{ mt: 3 }}>
           <CardContent>
             <Typography variant="h5" gutterBottom>
               Create New Franchise User
@@ -1868,7 +1874,7 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
         >
           Franchise Details - {selectedFranchise?.businessName}
         </DialogTitle>
-        <DialogContent sx={{ bgcolor: "#f5f5f5" }}>
+        <DialogContent sx={{ bgcolor: "background.default" }}>
           {kycLoading ? (
             <Box display="flex" justifyContent="center" my={4}>
               <CircularProgress />
@@ -2024,7 +2030,7 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
             </Box>
           )}
         </DialogContent>
-        <DialogActions sx={{ bgcolor: "#f5f5f5", p: 2 }}>
+        <DialogActions sx={{ bgcolor: "background.default", p: 2 }}>
           <Button
             onClick={handleCloseKycDialog}
             variant="contained"

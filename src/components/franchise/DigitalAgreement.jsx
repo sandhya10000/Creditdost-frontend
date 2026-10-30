@@ -17,6 +17,8 @@ import {
 } from "@mui/material";
 import { Download } from "@mui/icons-material";
 import { franchiseAPI } from "../../services/api";
+import PageHeader from "../ui/PageHeader";
+import { LoadingState } from "../ui/StateViews";
 
 const DigitalAgreement = () => {
   const [agreement, setAgreement] = useState(null);
@@ -211,23 +213,12 @@ const DigitalAgreement = () => {
   };
 
   if (loading) {
-    return (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        minHeight="200px"
-      >
-        <CircularProgress />
-      </Box>
-    );
+    return <LoadingState label="Loading digital agreement..." />;
   }
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>
-        Digital Agreement
-      </Typography>
+      <PageHeader title="Digital Agreement" />
 
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
@@ -268,7 +259,7 @@ const DigitalAgreement = () => {
         </Alert>
       )}
 
-      <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
+      <Card sx={{ mt: 3 }}>
         <CardContent>
           {agreement ? (
             <>

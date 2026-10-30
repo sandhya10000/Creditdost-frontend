@@ -7,9 +7,9 @@ import {
   TextField,
   Button,
   Stack,
-  CircularProgress,
 } from "@mui/material";
 import { adminAPI } from "../../../services/api";
+import { LoadingState } from "../../ui/StateViews";
 
 const RemarksTab = ({ customerRemark }) => {
   const [remark, setRemark] = useState("");
@@ -52,11 +52,7 @@ const RemarksTab = ({ customerRemark }) => {
     }
   }, [customerRemark]);
   if (loading) {
-    return (
-      <Box textAlign="center" mt={5}>
-        <CircularProgress />
-      </Box>
-    );
+    return <LoadingState label="Loading remarks..." />;
   }
 
   return (
@@ -64,20 +60,19 @@ const RemarksTab = ({ customerRemark }) => {
       {/* ADD REMARK */}
 
       <Paper
-        elevation={0}
+        variant="outlined"
         sx={{
-          p: 3,
-          borderRadius: 4,
-          border: "1px solid #d7dbea",
+          p: { xs: 2, md: 3 },
           mb: 4,
         }}
       >
         <Typography
+          component="h2"
           sx={{
             fontSize: 14,
             fontWeight: 700,
             letterSpacing: 2,
-            color: "#7c84a6",
+            color: "text.secondary",
             mb: 2,
           }}
         >
@@ -91,35 +86,14 @@ const RemarksTab = ({ customerRemark }) => {
           placeholder="Type your remark here..."
           value={remark}
           onChange={(e) => setRemark(e.target.value)}
-          sx={{
-            mb: 3,
-
-            "& .MuiOutlinedInput-root": {
-              borderRadius: 3,
-              fontSize: 18,
-            },
-          }}
+          sx={{ mb: 3 }}
         />
 
         <Box display="flex" justifyContent="flex-end">
           <Button
             variant="contained"
             onClick={handleAddRemark}
-            sx={{
-              px: 4,
-              py: 1.2,
-              borderRadius: 3,
-              textTransform: "none",
-              fontSize: 18,
-              fontWeight: 700,
-              background: "linear-gradient(90deg, #6C3BFF 0%, #7B3FF2 100%)",
-              boxShadow: "none",
-
-              "&:hover": {
-                background: "linear-gradient(90deg, #5d30ea 0%, #6e36de 100%)",
-                boxShadow: "none",
-              },
-            }}
+            sx={{ px: 4, textTransform: "none", fontWeight: 700 }}
           >
             Add Remark
           </Button>
@@ -129,40 +103,41 @@ const RemarksTab = ({ customerRemark }) => {
       {/* REMARK HISTORY */}
 
       <Typography
+        component="h2"
         sx={{
           fontSize: 14,
           fontWeight: 700,
           letterSpacing: 2,
-          color: "#7c84a6",
+          color: "text.secondary",
           mb: 3,
         }}
       >
         REMARK HISTORY
       </Typography>
 
-      <Stack spacing={3}>
+      <Stack spacing={2}>
         {remarks.map((item) => (
           <Paper
             key={item.id}
-            elevation={0}
+            variant="outlined"
             sx={{
-              p: 3,
-              borderRadius: 4,
-              background: "#f5f6fc",
+              p: { xs: 2, md: 3 },
+              bgcolor: "background.default",
               borderLeft: `4px solid ${item.color}`,
             }}
           >
             <Box
               display="flex"
+              flexWrap="wrap"
               justifyContent="space-between"
               alignItems="center"
+              gap={1}
               mb={1.5}
             >
               <Typography
                 sx={{
                   fontWeight: 700,
-                  color: "#6C3BFF",
-                  fontSize: 18,
+                  color: "primary.main",
                 }}
               >
                 {item?.createdBy?.name || "Admin"} (
@@ -170,9 +145,9 @@ const RemarksTab = ({ customerRemark }) => {
               </Typography>
 
               <Typography
+                variant="body2"
                 sx={{
-                  color: "#7c84a6",
-                  fontSize: 14,
+                  color: "text.secondary",
                 }}
               >
                 {new Date(item.createdAt).toLocaleString("en-IN", {
@@ -186,9 +161,9 @@ const RemarksTab = ({ customerRemark }) => {
 
             <Typography
               sx={{
-                fontSize: 18,
-                color: "#2c2f3a",
+                color: "text.primary",
                 lineHeight: 1.7,
+                whiteSpace: "pre-wrap",
               }}
             >
               {item.message}

@@ -162,7 +162,7 @@ const ManageRelationshipManagers = () => {
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
+        <Typography variant="h5" component="h1" gutterBottom>
           Manage Relationship Managers
         </Typography>
         <Button
@@ -174,7 +174,7 @@ const ManageRelationshipManagers = () => {
         </Button>
       </Box>
 
-      <TableContainer component={Paper}>
+      <TableContainer component={Paper} sx={{ overflowX: "auto" }}>
         <Table sx={{ minWidth: 650 }} aria-label="relationship managers table">
           <TableHead>
             <TableRow>
@@ -197,12 +197,14 @@ const ManageRelationshipManagers = () => {
                 <TableCell>
                   <IconButton 
                     color="primary" 
+                    aria-label="Edit relationship manager" 
                     onClick={() => handleOpenDialog(rm)}
                   >
                     <EditIcon />
                   </IconButton>
                   <IconButton 
                     color="error" 
+                    aria-label="Delete relationship manager" 
                     onClick={() => handleDeleteRM(rm._id)}
                   >
                     <DeleteIcon />

@@ -172,7 +172,7 @@ const AdminMarketing = () => {
                   <Card
                     sx={{
                       borderRadius: "12px",
-                      boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+                      
                       border: "1px solid #eaeaea",
                       height: "100%",
                       display: "flex",
@@ -184,7 +184,7 @@ const AdminMarketing = () => {
                       sx={{
                         width: "100%",
                         height: 200,
-                        bgcolor: "#f9f9f9",
+                        bgcolor: "background.default",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",

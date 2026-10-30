@@ -107,13 +107,7 @@ const WhatsAppGroups = () => {
       </Typography>
 
       {/* WhatsApp Groups Section */}
-      <Card
-        sx={{
-          mb: 4,
-          boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.05)",
-          borderRadius: 3,
-        }}
-      >
+      <Card sx={{ mb: 4 }}>
         <CardContent sx={{ p: { xs: 2.5, sm: 3.5 } }}>
           <Typography
             variant="h5"
@@ -142,7 +136,6 @@ const WhatsAppGroups = () => {
                     display: "flex",
                     flexDirection: "column",
                     position: "relative",
-                    borderRadius: 3,
                     border: "1px solid rgba(37, 211, 102, 0.2)",
                     background:
                       "linear-gradient(145deg, #ffffff 0%, #f9fbf9 100%)",
@@ -179,7 +172,6 @@ const WhatsAppGroups = () => {
                         <Box
                           sx={{
                             p: 1,
-                            borderRadius: 2,
                             bgcolor: "rgba(37, 211, 102, 0.1)",
                             display: "flex",
                             alignItems: "center",
@@ -200,7 +192,6 @@ const WhatsAppGroups = () => {
                             bgcolor: "rgba(37, 211, 102, 0.1)",
                             color: "#128C7E",
                             fontWeight: 600,
-                            borderRadius: 1,
                           }}
                         />
                       )}
@@ -221,7 +212,6 @@ const WhatsAppGroups = () => {
                       onClick={() => handleJoinGroup(group.url)}
                       sx={{
                         py: 1.2,
-                        borderRadius: 2,
                         backgroundColor: "#25D366",
                         fontWeight: "bold",
                         textTransform: "none",
@@ -246,7 +236,6 @@ const WhatsAppGroups = () => {
       <Card
         sx={{
           boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.05)",
-          borderRadius: 3,
         }}
       >
         <CardContent sx={{ p: { xs: 2.5, sm: 3.5 } }}>
@@ -276,7 +265,6 @@ const WhatsAppGroups = () => {
                     height: "100%",
                     display: "flex",
                     flexDirection: "column",
-                    borderRadius: 3,
                     border: "1px solid rgba(0,0,0,0.08)",
                     transition:
                       "transform 0.3s, box-shadow 0.3s, border-color 0.3s",
@@ -307,7 +295,6 @@ const WhatsAppGroups = () => {
                       <Box
                         sx={{
                           p: 0.8,
-                          borderRadius: 1.5,
                           bgcolor: `${platform.color}10`,
                           display: "flex",
                           alignItems: "center",
@@ -335,7 +322,6 @@ const WhatsAppGroups = () => {
                       startIcon={<LinkIcon />}
                       onClick={() => handleJoinGroup(platform.url)}
                       sx={{
-                        borderRadius: 2,
                         py: 1,
                         borderColor: "rgba(0,0,0,0.15)",
                         color: "text.primary",
@@ -363,7 +349,6 @@ const WhatsAppGroups = () => {
         sx={{
           mt: 4,
           boxShadow: "0px 8px 30px rgba(2, 136, 209, 0.15)",
-          borderRadius: 4,
           background: "linear-gradient(135deg, #0288d1 0%, #26c6da 100%)",
           color: "white",
           position: "relative",
@@ -439,7 +424,6 @@ const WhatsAppGroups = () => {
                 px: 1,
                 fontSize: "0.95rem",
                 fontWeight: "bold",
-                borderRadius: 3,
                 border: "1px solid rgba(255, 255, 255, 0.2)",
                 transition: "background-color 0.2s, transform 0.2s",
                 "& .MuiChip-icon": { color: "white" },
@@ -464,7 +448,6 @@ const WhatsAppGroups = () => {
                 px: 1,
                 fontSize: "0.95rem",
                 fontWeight: "bold",
-                borderRadius: 3,
                 border: "1px solid rgba(255, 255, 255, 0.2)",
                 transition: "background-color 0.2s, transform 0.2s",
                 "& .MuiChip-icon": { color: "white" },

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import PageHeader from "../ui/PageHeader";
 import {
   Box,
   Typography,
@@ -280,11 +281,9 @@ const ManageAIAnalysis = () => {
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>
-        AI Analysis Documents
-      </Typography>
+      <PageHeader title="AI Analysis Documents" />
 
-      <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
+      <Card sx={{ mt: 3 }}>
         <CardContent>
           <Typography variant="h6" gutterBottom>
             Document Management
@@ -295,7 +294,7 @@ const ManageAIAnalysis = () => {
               <CircularProgress />
             </Box>
           ) : (
-            <TableContainer component={Paper}>
+            <TableContainer component={Paper} sx={{ overflowX: "auto" }}>
               <Table>
                 <TableHead>
                   <TableRow>
@@ -351,6 +350,7 @@ const ManageAIAnalysis = () => {
                             {/* View Details Button */}
                             <Tooltip title="View Details">
                               <IconButton
+                aria-label="Edit document"
                                 size="small"
                                 onClick={() => handleOpenDialog(doc)}
                               >
@@ -362,6 +362,7 @@ const ManageAIAnalysis = () => {
                             {hasAnalysis && doc.claudeAnalysisFileName && (
                               <Tooltip title="Download AI Analysis Report">
                                 <IconButton
+                aria-label="Download AI analysis report"
                                   size="small"
                                   onClick={() =>
                                     handleDownloadAnalysis(
@@ -513,7 +514,7 @@ const ManageAIAnalysis = () => {
               </Box>
 
               {/* AI Analysis Status Section */}
-              <Box sx={{ mb: 3, p: 2, bgcolor: "grey.50", borderRadius: 1 }}>
+              <Box sx={{ mb: 3, p: 2, bgcolor: "background.default", borderRadius: 1 }}>
                 <Typography
                   variant="subtitle2"
                   color="textSecondary"

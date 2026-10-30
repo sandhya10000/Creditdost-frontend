@@ -9,9 +9,9 @@ import {
   Typography,
   Grid,
   Button,
-  CircularProgress,
   Alert,
 } from "@mui/material";
+import { EmptyState, LoadingState } from "../ui/StateViews";
 
 const mapCategory = (title) => {
   const t = (title || "").toLowerCase();
@@ -47,11 +47,7 @@ const FranchiseCaseStudies = () => {
   }, []);
 
   if (loading) {
-    return (
-      <Box textAlign="center" mt={5}>
-        <CircularProgress />
-      </Box>
-    );
+    return <LoadingState label="Loading case studies..." />;
   }
 
   if (!category) {
@@ -73,12 +69,12 @@ const FranchiseCaseStudies = () => {
       {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
 
       {filteredCases.length === 0 && !error ? (
-        <Typography>No case studies found for this category.</Typography>
+        <EmptyState title="No case studies found for this category." />
       ) : (
         <Grid container spacing={3} mt={1}>
           {filteredCases.map((item) => (
             <Grid item xs={12} md={6} key={item._id}>
-              <Card sx={{ boxShadow: 3 }}>
+              <Card>
                 <CardContent>
                   <Typography variant="h6" fontWeight="bold">
                     {item.title}

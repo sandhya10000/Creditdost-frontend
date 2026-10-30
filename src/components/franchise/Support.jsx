@@ -180,7 +180,7 @@ export default function Support() {
   );
 
   return (
-    <Box sx={{ p: 4, backgroundColor: "#f8f9fb", minHeight: "100vh" }}>
+    <Box sx={{ p: { xs: 2, md: 3 }, backgroundColor: "background.default", minHeight: "100vh" }}>
       <Typography variant="h4" fontWeight="bold" gutterBottom>
         Support Tickets
       </Typography>
@@ -193,7 +193,7 @@ export default function Support() {
       <Grid container spacing={3}>
         {/* Left Side - Create Ticket */}
         <Grid item xs={12} md={4}>
-          <Paper elevation={2} sx={{ borderRadius: 3, p: 3 }}>
+          <Paper elevation={0} variant="outlined" sx={{ p: { xs: 2, md: 3 } }}>
             <Box display="flex" alignItems="center" gap={1} mb={3}>
               <AddCircleOutlineIcon color="error" />
               <Typography variant="h6" fontWeight="bold">
@@ -262,7 +262,6 @@ export default function Support() {
               sx={{
                 mt: 3,
                 py: 1.5,
-                borderRadius: 2,
                 backgroundColor: "#ff3b1f",
                 "&:hover": { backgroundColor: "#e63118" },
               }}
@@ -275,7 +274,7 @@ export default function Support() {
 
         {/* Right Side - Ticket List */}
         <Grid item xs={12} md={8}>
-          <Paper elevation={2} sx={{ borderRadius: 3, p: 3, minHeight: 420 }}>
+          <Paper elevation={0} variant="outlined" sx={{ p: { xs: 2, md: 3 }, minHeight: 420 }}>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
               <Typography variant="h6" fontWeight="bold">
                 Your Tickets
@@ -293,7 +292,7 @@ export default function Support() {
               </Box>
             ) : tickets.length === 0 ? (
               <Box display="flex" flexDirection="column" alignItems="center" mt={8}>
-                <ErrorOutlineIcon sx={{ fontSize: 60, color: "#d1d5db", mb: 2 }} />
+                <ErrorOutlineIcon sx={{ fontSize: 60, color: "text.disabled", mb: 2 }} />
                 <Typography variant="h6" color="text.secondary">
                   No support tickets found.
                 </Typography>
@@ -309,7 +308,6 @@ export default function Support() {
                   sx={{
                     p: 2,
                     mb: 2,
-                    borderRadius: 2,
                     cursor: "pointer",
                     "&:hover": { boxShadow: 3 },
                   }}

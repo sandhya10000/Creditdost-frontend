@@ -142,7 +142,7 @@ const ViewReports = () => {
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>
+      <Typography variant="h5" component="h1" gutterBottom>
         Credit Reports
       </Typography>
 
@@ -152,7 +152,7 @@ const ViewReports = () => {
         </Alert>
       )}
 
-      <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
+      <Card sx={{ mt: 3 }}>
         <CardContent>
           <Typography variant="h6" gutterBottom>
             All Credit Reports
@@ -207,7 +207,7 @@ const ViewReports = () => {
             </Typography>
           ) : (
             <>
-              <TableContainer component={Paper}>
+              <TableContainer component={Paper} sx={{ overflowX: "auto" }}>
                 <Table sx={{ minWidth: 650 }} aria-label="credit reports table">
                   <TableHead>
                     <TableRow>

@@ -63,7 +63,7 @@ const SurepassSettings = () => {
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>
+      <Typography variant="h5" component="h1" gutterBottom>
         Surepass Settings
       </Typography>
       
@@ -79,7 +79,7 @@ const SurepassSettings = () => {
         </Alert>
       )}
       
-      <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
+      <Card sx={{ mt: 3 }}>
         <CardContent>
           <Typography variant="h6" gutterBottom>
             API Configuration
@@ -111,7 +111,7 @@ const SurepassSettings = () => {
         </CardContent>
       </Card>
       
-      <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
+      <Card sx={{ mt: 3 }}>
         <CardContent>
           <Typography variant="h6" gutterBottom>
             Integration Information

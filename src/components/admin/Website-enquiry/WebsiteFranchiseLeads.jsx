@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Alert, Typography } from "@mui/material";
 import LeadsTablePage from "./LeadsTablePage";
 import { adminAPI } from "../../../services/api";
+import { LoadingState } from "../../ui/StateViews";
 
 const STATUSES = ["New", "Contacted", "Interested", "Not Interested"];
 
@@ -73,8 +74,8 @@ const WebsiteFranchiseLeads = () => {
     }
   };
 
-  if (error) return <Alert severity="error" sx={{ m: 3 }}>{error}</Alert>;
-  if (loading) return null;
+  if (error) return <Alert severity="error" sx={{ m: { xs: 2, md: 3 }, mb: 2 }}>{error}</Alert>;
+  if (loading) return <LoadingState label="Loading leads..." />;
 
   return (
     <LeadsTablePage

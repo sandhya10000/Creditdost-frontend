@@ -208,7 +208,7 @@ const AdminCaseStudies = () => {
   return (
     <Box sx={{ p: 3 }}>
       {/* ==============FORM card========== */}
-      <Card sx={{ maxWidth: 700, mx: "auto", boxShadow: 3 }}>
+      <Card sx={{ maxWidth: 700, mx: "auto" }}>
         <CardContent>
           <Typography
             variant="h5"

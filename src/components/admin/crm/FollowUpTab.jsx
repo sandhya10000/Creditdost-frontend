@@ -92,8 +92,7 @@ const FollowUpTab = ({ customer, onUpdated }) => {
       <Paper
         variant="outlined"
         sx={{
-          p: 2.5,
-          borderRadius: 3,
+          p: { xs: 2, md: 2.5 },
           display: "flex",
           flexWrap: "wrap",
           alignItems: "center",
@@ -133,10 +132,10 @@ const FollowUpTab = ({ customer, onUpdated }) => {
       </Paper>
 
       {/* Schedule form */}
-      <Paper variant="outlined" sx={{ p: 2.5, borderRadius: 3 }}>
+      <Paper variant="outlined" sx={{ p: { xs: 2, md: 2.5 } }}>
         <Stack direction="row" alignItems="center" spacing={1} mb={2}>
           <EventAvailableIcon color="primary" />
-          <Typography variant="h6" fontWeight={600}>
+          <Typography variant="h6" component="h2" fontWeight={600}>
             Schedule next follow-up
           </Typography>
         </Stack>

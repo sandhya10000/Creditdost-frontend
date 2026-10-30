@@ -3,7 +3,6 @@ import {
   Box,
   Button,
   Chip,
-  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
@@ -15,6 +14,7 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableContainer,
   TableHead,
   TablePagination,
   TableRow,
@@ -24,6 +24,8 @@ import {
 } from "@mui/material";
 import { adminAPI } from "../../../services/api";
 import { useLeadUnreadCounts, notifyLeadCountsChanged } from "../useLeadUnreadCounts";
+import PageHeader from "../../ui/PageHeader";
+import { EmptyState, LoadingState } from "../../ui/StateViews";
 
 const CR_STATUSES = ["New", "Contacted", "In Progress", "Resolved"];
 const FRANCHISE_STATUSES = ["New", "Contacted", "Interested", "Not Interested"];
@@ -334,10 +336,8 @@ const CreditReportLeads = () => {
   };
 
   return (
-    <Box p={3}>
-      <Typography variant="h5" fontWeight="bold" mb={2}>
-        Credit Report Leads
-      </Typography>
+    <Box p={{ xs: 2, md: 3 }}>
+      <PageHeader title="Credit Report Leads" />
 
       <Box>
         <Tabs
@@ -371,7 +371,7 @@ const CreditReportLeads = () => {
           {/* Filters: one wrapping row of fixed-width fields, actions on the right */}
           <Stack direction="row" flexWrap="wrap" useFlexGap gap={1.5} alignItems="center" mb={2}>
             {tab.filters.map((key) => (
-              <Box key={key} sx={{ width: FILTER_FIELDS[key].width }}>
+              <Box key={key} sx={{ width: { xs: "100%", sm: FILTER_FIELDS[key].width } }}>
                 {renderFilter(key)}
               </Box>
             ))}
@@ -400,15 +400,11 @@ const CreditReportLeads = () => {
           )}
 
           {loading ? (
-            <Box display="flex" justifyContent="center" py={6}>
-              <CircularProgress />
-            </Box>
+            <LoadingState label="Loading leads..." />
           ) : rows.length === 0 ? (
-            <Typography color="text.secondary" py={4} textAlign="center">
-              No leads match these filters.
-            </Typography>
+            <EmptyState title="No leads match these filters." />
           ) : (
-            <Box sx={{ overflowX: "auto" }}>
+            <TableContainer sx={{ overflowX: "auto" }}>
               <Table size="small">
                 <TableHead>
                   <TableRow>
@@ -455,7 +451,7 @@ const CreditReportLeads = () => {
                   ))}
                 </TableBody>
               </Table>
-            </Box>
+            </TableContainer>
           )}
 
           <TablePagination

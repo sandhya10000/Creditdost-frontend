@@ -13,6 +13,7 @@ import {
   TableContainer,
 } from "@mui/material";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
+import { EmptyState } from "../../ui/StateViews";
 
 const FranchiseReportsTab = ({ reports = [] }) => {
   const getReportUrl = (report) => {
@@ -28,12 +29,12 @@ const FranchiseReportsTab = ({ reports = [] }) => {
   };
 
   return (
-    <Paper sx={{ p: 3 }}>
+    <Paper sx={{ p: { xs: 2, md: 3 } }}>
       <Box mb={2}>
         <Chip color="primary" label={`Total Reports: ${reports.length}`} />
       </Box>
 
-      <TableContainer>
+      <TableContainer sx={{ overflowX: "auto" }}>
         <Table>
           <TableHead>
             <TableRow>
@@ -113,8 +114,8 @@ const FranchiseReportsTab = ({ reports = [] }) => {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={6} align="center">
-                  No reports found
+                <TableCell colSpan={6}>
+                  <EmptyState title="No reports found" />
                 </TableCell>
               </TableRow>
             )}

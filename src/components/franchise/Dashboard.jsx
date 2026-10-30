@@ -639,7 +639,19 @@ const FranchiseDashboard = () => {
   return (
     <Box sx={{ display: "flex" }}>
       <CssBaseline />
-      <AppBarStyled position="fixed" open={isMobile ? false : open}> {/* MOBILE FIX */}
+      <AppBarStyled
+        position="fixed"
+        open={isMobile ? false : open}
+        elevation={0}
+        color="inherit"
+        sx={{
+          bgcolor: "background.paper",
+          color: "text.primary",
+          borderBottom: 1,
+          borderColor: "divider",
+        }}
+      >
+        {/* MOBILE FIX */}
         <Toolbar>
           <IconButton
             color="inherit"

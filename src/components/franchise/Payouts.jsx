@@ -11,11 +11,11 @@ import {
   TableHead,
   TableRow,
   Paper,
-  CircularProgress,
   Chip,
   Alert,
 } from '@mui/material';
 import { franchiseAPI } from '../../services/api';
+import { EmptyState, LoadingState } from '../ui/StateViews';
 
 const Payouts = () => {
   const [payouts, setPayouts] = useState([]);
@@ -52,7 +52,7 @@ const Payouts = () => {
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>
+      <Typography variant="h4" component="h1" gutterBottom>
         Payouts
       </Typography>
       
@@ -60,18 +60,16 @@ const Payouts = () => {
         <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>
       )}
       
-      <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
+      <Card sx={{ mt: 3 }}>
         <CardContent>
           <Typography variant="h6" gutterBottom>
             Payout History
           </Typography>
           
           {loading ? (
-            <Box display="flex" justifyContent="center" my={3}>
-              <CircularProgress />
-            </Box>
+            <LoadingState label="Loading payouts..." />
           ) : (
-            <TableContainer component={Paper}>
+            <TableContainer component={Paper} sx={{ overflowX: "auto" }}>
               <Table size="small">
                 <TableHead>
                   <TableRow>
@@ -114,7 +112,7 @@ const Payouts = () => {
                   ) : (
                     <TableRow>
                       <TableCell colSpan={9} align="center">
-                        No payouts found
+                        <EmptyState title="No payouts found" />
                       </TableCell>
                     </TableRow>
                   )}
@@ -125,7 +123,7 @@ const Payouts = () => {
         </CardContent>
       </Card>
       
-      <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
+      <Card sx={{ mt: 3 }}>
         <CardContent>
           <Typography variant="h6" gutterBottom>
             Payout Information

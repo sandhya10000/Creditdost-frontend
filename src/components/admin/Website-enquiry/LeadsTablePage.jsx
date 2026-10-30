@@ -26,6 +26,8 @@ import {
   Divider,
 } from "@mui/material";
 import { Visibility, Download as DownloadIcon } from "@mui/icons-material";
+import PageHeader from "../../ui/PageHeader";
+import { EmptyState } from "../../ui/StateViews";
 
 const PAGE_SIZE = 10;
 
@@ -101,32 +103,25 @@ const LeadsTablePage = ({
   const colCount = columns.length + 3;
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: { xs: 2, md: 3 } }}>
       {/* Page Header */}
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          mb: 3,
-        }}
-      >
-        <Typography variant="h4" sx={{ fontWeight: 700 }}>
-          {title}
-        </Typography>
-        <Button
-          variant="contained"
-          color="success"
-          startIcon={<DownloadIcon />}
-          onClick={downloadCSV}
-          sx={{ color: "#fff", minWidth: 160 }}
-        >
-          Download CSV
-        </Button>
-      </Box>
+      <PageHeader
+        title={title}
+        actions={
+          <Button
+            variant="contained"
+            color="success"
+            startIcon={<DownloadIcon />}
+            onClick={downloadCSV}
+            sx={{ minWidth: 160 }}
+          >
+            Download CSV
+          </Button>
+        }
+      />
 
       {/* Filters */}
-      <Paper sx={{ p: 2, mb: 3, borderRadius: 2 }}>
+      <Paper sx={{ p: 2, mb: 3 }}>
         <Grid container spacing={2} alignItems="center">
           <Grid item xs={12} md={6}>
             <TextField
@@ -164,9 +159,9 @@ const LeadsTablePage = ({
       </Paper>
 
       {/* Table */}
-      <TableContainer component={Paper} sx={{ borderRadius: 2 }}>
+      <TableContainer component={Paper} sx={{ overflowX: "auto" }}>
         <Table sx={{ minWidth: 1000 }}>
-          <TableHead sx={{ backgroundColor: "#f5f5f5" }}>
+          <TableHead sx={{ backgroundColor: "background.default" }}>
             <TableRow>
               <TableCell sx={{ fontWeight: 700 }}>Date</TableCell>
               {columns.map((col) => (
@@ -183,8 +178,8 @@ const LeadsTablePage = ({
           <TableBody>
             {pageRows.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={colCount} align="center" sx={{ py: 6 }}>
-                  <Typography color="textSecondary">No leads found</Typography>
+                <TableCell colSpan={colCount} sx={{ p: 0 }}>
+                  <EmptyState title="No leads found" />
                 </TableCell>
               </TableRow>
             ) : (
@@ -222,6 +217,7 @@ const LeadsTablePage = ({
                   <TableCell align="center">
                     <IconButton
                       color="primary"
+                      aria-label="View details"
                       onClick={() => setSelected(row)}
                       title="View Details"
                     >

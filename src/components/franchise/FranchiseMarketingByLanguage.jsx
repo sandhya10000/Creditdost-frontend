@@ -9,9 +9,9 @@ import {
   CardMedia,
   Button,
   Stack,
-  CircularProgress,
   Paper,
 } from "@mui/material";
+import { LoadingState } from "../ui/StateViews";
 import ImageNotSupportedOutlinedIcon from "@mui/icons-material/ImageNotSupportedOutlined";
 
 // Convert URL slug "hindi" → "Hindi" to match DB enum values
@@ -119,11 +119,7 @@ const FranchiseMarketingByLanguage = () => {
       </Typography>
 
       {/* Loading */}
-      {loading && (
-        <Box sx={{ display: "flex", justifyContent: "center", mt: 8 }}>
-          <CircularProgress />
-        </Box>
-      )}
+      {loading && <LoadingState label="Loading marketing materials..." />}
 
       {/* Empty state */}
       {!loading && items.length === 0 && (
@@ -136,7 +132,6 @@ const FranchiseMarketingByLanguage = () => {
             textAlign: "center",
             py: 8,
             px: 4,
-            borderRadius: 4,
             border: "2px dashed",
             borderColor: "divider",
             bgcolor: "background.default",
@@ -167,17 +162,14 @@ const FranchiseMarketingByLanguage = () => {
               <Grid item xs={12} sm={6} md={4} key={item._id}>
                 <Card
                   sx={{
-                    borderRadius: "16px",
-                    boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
-                    border: "none",
                     height: "100%",
-                    p: "16px",
+                    p: 2,
                     display: "flex",
                     flexDirection: "column",
-                    transition: "all 0.3s ease",
+                    transition: "transform 0.3s ease, box-shadow 0.3s ease",
                     "&:hover": {
                       transform: "translateY(-4px)",
-                      boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+                      boxShadow: 2,
                     },
                   }}
                 >

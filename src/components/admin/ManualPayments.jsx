@@ -224,7 +224,7 @@ const ManualPayments = () => {
 
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-      <TableContainer component={Paper}>
+      <TableContainer component={Paper} sx={{ overflowX: "auto" }}>
         <Table size="small">
           <TableHead>
             <TableRow>
@@ -279,21 +279,21 @@ const ManualPayments = () => {
                     <TableCell align="center" sx={{ whiteSpace: "nowrap" }}>
                       <Tooltip title="Copy link">
                         <span>
-                          <IconButton size="small" onClick={() => handleCopy(p.shortUrl)} disabled={!isOpen}>
+                          <IconButton size="small" aria-label="Copy payment link" onClick={() => handleCopy(p.shortUrl)} disabled={!isOpen}>
                             <ContentCopyIcon fontSize="small" />
                           </IconButton>
                         </span>
                       </Tooltip>
                       <Tooltip title="Refresh status from Razorpay">
                         <span>
-                          <IconButton size="small" onClick={() => handleRefresh(p._id)} disabled={busy}>
+                          <IconButton size="small" aria-label="Refresh payment status" onClick={() => handleRefresh(p._id)} disabled={busy}>
                             <RefreshIcon fontSize="small" />
                           </IconButton>
                         </span>
                       </Tooltip>
                       <Tooltip title="Cancel link">
                         <span>
-                          <IconButton size="small" onClick={() => handleCancel(p._id)} disabled={!isOpen || busy}>
+                          <IconButton size="small" aria-label="Cancel payment link" onClick={() => handleCancel(p._id)} disabled={!isOpen || busy}>
                             <CancelIcon fontSize="small" />
                           </IconButton>
                         </span>

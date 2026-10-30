@@ -8,6 +8,8 @@ import FranchiseAITab from "../admin/Franchisecrm/FranchiseAITab";
 import { useParams, useNavigate } from "react-router-dom";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { Button } from "@mui/material";
+import PageHeader from "../ui/PageHeader";
+import { EmptyState, LoadingState } from "../ui/StateViews";
 
 const FranchiseTabs = () => {
   const [tab, setTab] = useState(0);
@@ -72,15 +74,15 @@ const FranchiseTabs = () => {
     }
   };
 
-  if (!loading && !franchiseInfo) {
-    return (
-      <Box textAlign="center" mt={5}>
-        Franchise not found
-      </Box>
-    );
+  if (loading) {
+    return <LoadingState label="Loading franchise..." />;
+  }
+
+  if (!franchiseInfo) {
+    return <EmptyState title="Franchise not found" />;
   }
   return (
-    <Card sx={{ p: 2 }}>
+    <Card sx={{ p: { xs: 2, md: 3 } }}>
       <Box mb={2}>
         <Button
           startIcon={<ArrowBackIcon />}
@@ -90,6 +92,7 @@ const FranchiseTabs = () => {
           Back
         </Button>
       </Box>
+      <PageHeader title="Franchise CRM" />
       {franchiseInfo?.isDeleted && (
         <Box mb={2}>
           <Alert severity="error">
@@ -102,6 +105,8 @@ const FranchiseTabs = () => {
         value={tab}
         onChange={(e, newValue) => setTab(newValue)}
         variant="scrollable"
+        scrollButtons="auto"
+        sx={{ borderBottom: 1, borderColor: "divider" }}
       >
         <Tab label="Franchise Info" />
         <Tab label="Business" />

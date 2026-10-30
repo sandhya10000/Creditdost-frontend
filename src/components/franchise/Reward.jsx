@@ -62,9 +62,7 @@ const FranchiseReward = () => {
                       width: 150,
                       height: 140,
                       objectFit: "cover",
-                      borderRadius: 2,
                       mt: 1,
-                      boxShadow: 2,
                     }}
                   />
                 )}

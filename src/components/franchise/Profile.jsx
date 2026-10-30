@@ -560,13 +560,13 @@ const Profile = () => {
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>
+      <Typography variant="h4" component="h1" gutterBottom>
         Profile
       </Typography>
       {/* Scrollable Content Container */}
       <Box sx={{ maxHeight: "calc(100vh - 200px)", overflowY: "auto", pr: 1 }}>
         {/* Basic Business Information Section */}
-        <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
+        <Card sx={{ mt: 3 }}>
           <CardContent>
             <Box
               sx={{
@@ -633,7 +633,7 @@ const Profile = () => {
         </Card>
 
         {/* Address Details Section */}
-        <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
+        <Card sx={{ mt: 3 }}>
           <CardContent>
             <Typography variant="h6" gutterBottom>
               Address Details
@@ -691,7 +691,7 @@ const Profile = () => {
         </Card>
 
         {/* PAN Details Section */}
-        <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
+        <Card sx={{ mt: 3 }}>
           <CardContent>
             <Accordion defaultExpanded>
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -821,7 +821,7 @@ const Profile = () => {
         </Card>
 
         {/* Bank Details Section */}
-        {/* <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
+        {/* <Card sx={{ mt: 3 }}>
           <CardContent>
             <Accordion defaultExpanded>
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -955,13 +955,7 @@ const Profile = () => {
         </Card> */}
 
         {/* Reset Password Section */}
-        <Card
-          sx={{
-            mt: 3,
-            borderRadius: 3,
-            boxShadow: "0px 4px 20px rgba(0,0,0,0.08)",
-          }}
-        >
+        <Card sx={{ mt: 3 }}>
           <CardContent>
             <Typography variant="h6" fontWeight={600} gutterBottom>
               Reset Password
@@ -991,7 +985,6 @@ const Profile = () => {
               fullWidth
               sx={{
                 py: 1.5,
-                borderRadius: 2,
                 maxWidth: {
                   xs: "100%",
                   sm: "300px",
@@ -1014,10 +1007,10 @@ const Profile = () => {
           }}
         >
           <Paper
-            elevation={8}
+            elevation={0}
+            variant="outlined"
             sx={{
               p: 2,
-              borderRadius: 3,
               display: "flex",
               flexDirection: {
                 xs: "column",
@@ -1053,7 +1046,6 @@ const Profile = () => {
                   md: 220,
                 },
                 py: 1.5,
-                borderRadius: 2,
                 fontWeight: 600,
               }}
             >

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import PageHeader from "../ui/PageHeader";
 import {
   Box,
   Typography,
@@ -413,16 +414,12 @@ const AdminCreditBureau = ({ defaultBureau = "" }) => {
   };
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>
-        Credit Check
-      </Typography>
+      <PageHeader title="Credit Check" />
 
       {/* Credits Display */}
       <Card
         sx={{
           mb: 3,
-          boxShadow: 3,
-          borderRadius: 2,
           bgcolor: "background.default",
         }}
       >
@@ -475,7 +472,7 @@ const AdminCreditBureau = ({ defaultBureau = "" }) => {
       )}
 
       {activeTab === 0 && (
-        <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
+        <Card sx={{ mt: 3 }}>
           <CardContent>
             <Typography variant="h6" gutterBottom>
               Check Customer Credit
@@ -730,7 +727,7 @@ const AdminCreditBureau = ({ defaultBureau = "" }) => {
       )}
 
       {activeTab === 1 && (
-        <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
+        <Card sx={{ mt: 3 }}>
           <CardContent>
             {loading && (
               <Backdrop
@@ -759,7 +756,7 @@ const AdminCreditBureau = ({ defaultBureau = "" }) => {
                 reports here.
               </Typography>
             ) : (
-              <TableContainer component={Paper}>
+              <TableContainer component={Paper} sx={{ overflowX: "auto" }}>
                 <Table sx={{ minWidth: 650 }} aria-label="credit reports table">
                   <TableHead>
                     <TableRow>
@@ -867,7 +864,7 @@ const AdminCreditBureau = ({ defaultBureau = "" }) => {
         </Card>
       )}
 
-      <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
+      <Card sx={{ mt: 3 }}>
         <CardContent>
           <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
             <Info color="info" sx={{ mr: 1 }} />

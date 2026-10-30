@@ -44,6 +44,8 @@ import {
 import { useNavigate } from "react-router-dom";
 import { franchiseAPI } from "../../services/api";
 import LanguageIcon from "@mui/icons-material/Language";
+import { alpha } from "@mui/material/styles";
+import { EmptyState, LoadingState } from "../ui/StateViews";
 
 const SUPPORTED_LANGUAGES = [
   { code: "en", label: "English" },
@@ -379,7 +381,7 @@ const AIAnalysis = () => {
           mb: 2,
         }}
       >
-        <Typography variant="h4">AI Analysis</Typography>
+        <Typography variant="h5" component="h1">AI Analysis</Typography>
         <Button
           variant="outlined"
           color="primary"
@@ -395,16 +397,17 @@ const AIAnalysis = () => {
         sx={{
           mb: 3,
           p: 2.5,
-          borderRadius: 2,
-          boxShadow: 2,
-          border: isLimitReached
-            ? "1px solid #d32f2f"
+          borderWidth: 1,
+          borderStyle: "solid",
+          borderColor: isLimitReached
+            ? "error.main"
             : !usage.hasActivePackage
-            ? "1px solid #ed6c02"
-            : "1px solid #e0e0e0",
-          background: isLimitReached
-            ? "linear-gradient(135deg, #fff5f5 0%, #ffffff 100%)"
-            : "linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%)",
+            ? "warning.main"
+            : "divider",
+          background: (theme) =>
+            isLimitReached
+              ? `linear-gradient(135deg, ${alpha(theme.palette.error.main, 0.06)} 0%, ${theme.palette.background.paper} 100%)`
+              : `linear-gradient(135deg, ${theme.palette.background.default} 0%, ${theme.palette.background.paper} 100%)`,
         }}
       >
         <Box
@@ -502,8 +505,7 @@ const AIAnalysis = () => {
               color={isLimitReached ? "error" : progressPercent > 80 ? "warning" : "primary"}
               sx={{
                 height: 8,
-                borderRadius: 4,
-                bgcolor: "grey.200",
+                bgcolor: "action.hover",
               }}
             />
           </Box>
@@ -554,7 +556,7 @@ const AIAnalysis = () => {
       )}
 
       {/* Upload Section */}
-      <Card sx={{ mt: 2, boxShadow: 3, borderRadius: 2 }}>
+      <Card sx={{ mt: 2 }}>
         <CardContent>
           <Typography variant="h6" gutterBottom>
             Upload Document for AI Analysis
@@ -807,25 +809,16 @@ const AIAnalysis = () => {
       </Snackbar>
 
       {/* Documents List */}
-      <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
+      <Card sx={{ mt: 3 }}>
         <CardContent>
           <Typography variant="h6" gutterBottom>
             Your Documents
           </Typography>
 
           {loadingDocuments ? (
-            <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
-              <CircularProgress />
-            </Box>
+            <LoadingState label="Loading documents..." />
           ) : documents.length === 0 ? (
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              align="center"
-              sx={{ py: 3 }}
-            >
-              No documents uploaded yet
-            </Typography>
+            <EmptyState title="No documents uploaded yet" />
           ) : (
             <List>
               {documents.map((doc) => {
@@ -959,6 +952,7 @@ const AIAnalysis = () => {
                         {hasAnalysis && doc.claudeAnalysisFileName && (
                           <Tooltip title="Download AI Analysis Report">
                             <IconButton
+                              aria-label="Download AI analysis report"
                               onClick={() =>
                                 handleDownloadAnalysis(
                                   doc._id,
@@ -986,6 +980,13 @@ const AIAnalysis = () => {
                           >
                             <span>
                               <IconButton
+                                aria-label={
+                                  isBlocked
+                                    ? "AI analysis locked, upgrade package"
+                                    : analysisFailed
+                                    ? "Retry AI analysis"
+                                    : "Trigger AI analysis"
+                                }
                                 onClick={() => handleAnalyze(doc._id, doc.language)}
                                 disabled={isProcessing || isBlocked}
                                 color={isBlocked ? "default" : "primary"}

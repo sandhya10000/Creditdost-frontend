@@ -167,6 +167,86 @@ const theme = createTheme({
   ],
 });
 
+// Admin + partner (franchise) panel only. Extends the site theme so the
+// public marketing pages keep their current look.
+const portalTheme = createTheme(theme, {
+  typography: {
+    fontFamily: ["Poppins", "Roboto", "Helvetica", "Arial", "sans-serif"].join(
+      ",",
+    ),
+    h4: { fontSize: "1.75rem", lineHeight: 1.25 },
+    h5: { fontSize: "1.375rem", lineHeight: 1.3 },
+    h6: { fontSize: "1.125rem", lineHeight: 1.35 },
+    subtitle2: { fontWeight: 600 },
+    body2: { fontSize: "0.875rem", lineHeight: 1.5 },
+    button: { textTransform: "none", fontWeight: 500, letterSpacing: 0 },
+  },
+  components: {
+    MuiCard: {
+      defaultProps: { elevation: 0 },
+      styleOverrides: {
+        root: { borderRadius: 12, border: "1px solid #e0e0e0" },
+      },
+    },
+    MuiButton: {
+      defaultProps: { disableElevation: true },
+      styleOverrides: {
+        root: { borderRadius: 8, minHeight: 36 },
+      },
+    },
+    MuiTextField: {
+      defaultProps: { variant: "outlined", size: "small" },
+    },
+    MuiOutlinedInput: {
+      styleOverrides: {
+        root: { borderRadius: 8, backgroundColor: "#ffffff" },
+      },
+    },
+    MuiChip: {
+      styleOverrides: {
+        root: { fontWeight: 500, borderRadius: 8 },
+      },
+    },
+    MuiDialog: {
+      styleOverrides: {
+        paper: { borderRadius: 12 },
+      },
+    },
+    MuiDialogTitle: {
+      styleOverrides: {
+        root: { fontWeight: 600, paddingTop: 20 },
+      },
+    },
+    MuiTableCell: {
+      styleOverrides: {
+        head: {
+          fontWeight: 600,
+          color: "#757575",
+          backgroundColor: "#f8f9fa",
+          whiteSpace: "nowrap",
+        },
+      },
+    },
+    MuiTableRow: {
+      styleOverrides: {
+        root: {
+          "&:hover": { backgroundColor: "rgba(98, 0, 234, 0.04)" },
+        },
+      },
+    },
+    MuiTabs: {
+      styleOverrides: {
+        indicator: { height: 3, borderRadius: 3 },
+      },
+    },
+    MuiTab: {
+      styleOverrides: {
+        root: { textTransform: "none", fontWeight: 500 },
+      },
+    },
+  },
+});
+
 function App() {
   return (
     <AuthProvider>
@@ -210,17 +290,21 @@ function App() {
             <Route
               path="/franchise/*"
               element={
-                <ProtectedRoute allowedRoles={["franchise_user", "admin"]}>
-                  <FranchiseRoutes />
-                </ProtectedRoute>
+                <ThemeProvider theme={portalTheme}>
+                  <ProtectedRoute allowedRoles={["franchise_user", "admin"]}>
+                    <FranchiseRoutes />
+                  </ProtectedRoute>
+                </ThemeProvider>
               }
             />
             <Route
               path="/admin/*"
               element={
-                <ProtectedRoute allowedRoles={["admin"]}>
-                  <AdminRoutes />
-                </ProtectedRoute>
+                <ThemeProvider theme={portalTheme}>
+                  <ProtectedRoute allowedRoles={["admin"]}>
+                    <AdminRoutes />
+                  </ProtectedRoute>
+                </ThemeProvider>
               }
             />
             <Route path="*" element={<Navigate to="/" replace />} />

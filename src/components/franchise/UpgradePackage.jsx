@@ -166,7 +166,7 @@ const UpgradePackage = () => {
           packageName: pkg.name,
         },
         theme: {
-          color: "#6200ea",
+          color: "primary.main",
         },
         modal: {
           ondismiss: function () {
@@ -302,19 +302,14 @@ const UpgradePackage = () => {
                         height: "100%",
                         display: "flex",
                         flexDirection: "column",
-                        borderRadius: 4,
-                        border:
+                        border: selectedPackage?._id === pkg._id ? 2 : 1,
+                        borderColor:
                           selectedPackage?._id === pkg._id
-                            ? "2px solid #6200ea"
-                            : "1px solid #e0e0e0",
-                        boxShadow:
-                          selectedPackage?._id === pkg._id
-                            ? "0 8px 20px rgba(98,0,234,0.18)"
-                            : "0 4px 10px rgba(0,0,0,0.08)",
+                            ? "primary.main"
+                            : "divider",
                         transition: "0.3s ease",
                         "&:hover": {
-                          transform: "translateY(-6px)",
-                          boxShadow: "0 12px 24px rgba(0,0,0,0.12)",
+                          transform: "translateY(-4px)",
                         },
                       }}
                       onClick={() => setSelectedPackage(pkg)}
@@ -342,8 +337,8 @@ const UpgradePackage = () => {
                             alignItems: "center",
                             "@keyframes darkPulse": {
                               "0%, 100%": { 
-                                borderColor: "#6200ea",
-                                color: "#6200ea"
+                                borderColor: "primary.main",
+                                color: "primary.main"
                               },
                               "50%": { 
                                 borderColor: "#1a0033",
@@ -374,7 +369,6 @@ const UpgradePackage = () => {
                             textAlign: "center",
                             py: 2,
                             mb: 2,
-                            borderRadius: 3,
                             bgcolor: "#f8f5ff",
                           }}
                         >
@@ -433,7 +427,6 @@ const UpgradePackage = () => {
                           fullWidth
                           size="large"
                           sx={{
-                            borderRadius: 3,
                             py: 1.2,
                             fontWeight: "bold",
                             textTransform: "none",

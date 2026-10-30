@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { LoadingState } from "../ui/StateViews";
+import PageHeader from "../ui/PageHeader";
 import {
   Box,
   Typography,
@@ -195,17 +197,13 @@ const ManageDigitalAgreements = () => {
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
-        <CircularProgress />
-      </Box>
+      <LoadingState label="Loading..." />
     );
   }
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>
-        Manage Digital Agreements
-      </Typography>
+      <PageHeader title="Manage Digital Agreements" />
       
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
@@ -219,7 +217,7 @@ const ManageDigitalAgreements = () => {
         </Alert>
       )}
       
-      <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
+      <Card sx={{ mt: 3 }}>
         <CardContent>
           <Typography variant="h6" gutterBottom>
             Submitted Agreements
@@ -230,7 +228,7 @@ const ManageDigitalAgreements = () => {
               No digital agreements found
             </Typography>
           ) : (
-            <TableContainer component={Paper}>
+            <TableContainer component={Paper} sx={{ overflowX: "auto" }}>
               <Table>
                 <TableHead>
                   <TableRow>
@@ -269,6 +267,7 @@ const ManageDigitalAgreements = () => {
                             <>
                               <Tooltip title="Approve">
                                 <IconButton 
+                aria-label="Approve agreement"
                                   size="small" 
                                   color="success"
                                   onClick={() => handleApproveClick(agreement)}
@@ -278,6 +277,7 @@ const ManageDigitalAgreements = () => {
                               </Tooltip>
                               <Tooltip title="Reject">
                                 <IconButton 
+                aria-label="Reject agreement"
                                   size="small" 
                                   color="error"
                                   onClick={() => handleRejectClick(agreement)}
@@ -291,6 +291,7 @@ const ManageDigitalAgreements = () => {
                           {agreement.status === 'signed' && (
                             <Tooltip title="Download Signed PDF">
                               <IconButton 
+                aria-label="Download signed PDF"
                                 size="small" 
                                 onClick={() => handleDownloadSignedPdf(agreement._id)}
                                 disabled={downloading}
@@ -302,6 +303,7 @@ const ManageDigitalAgreements = () => {
                           
                           <Tooltip title="View Details">
                             <IconButton 
+                aria-label="View agreement details"
                               size="small"
                               onClick={() => {
                                 setSelectedAgreement(agreement);

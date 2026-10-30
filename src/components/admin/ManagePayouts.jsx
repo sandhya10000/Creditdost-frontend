@@ -272,7 +272,7 @@ const ManagePayouts = () => {
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>
+      <Typography variant="h5" component="h1" gutterBottom>
         Manage Payouts
       </Typography>
 
@@ -294,7 +294,7 @@ const ManagePayouts = () => {
       <Grid container spacing={3} style={{ flexDirection: "column" }}>
         {/* Package Payout Settings */}
         <Grid item xs={12}>
-          <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
+          <Card sx={{ mt: 3 }}>
             <CardContent>
               <Typography variant="h6" gutterBottom>
                 Package Payout Settings
@@ -302,7 +302,7 @@ const ManagePayouts = () => {
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 Business payout rule applied to each franchise package.
               </Typography>
-              <TableContainer component={Paper}>
+              <TableContainer component={Paper} sx={{ overflowX: "auto" }}>
                 <Table size="small" aria-label="package payout settings">
                   <TableHead>
                     <TableRow>
@@ -401,7 +401,7 @@ const ManagePayouts = () => {
 
         {/* Payout Calculation Form */}
         <Grid item xs={12}>
-          <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
+          <Card sx={{ mt: 3 }}>
             <CardContent>
               <Typography variant="h6" gutterBottom>
                 Calculate Payout
@@ -471,9 +471,7 @@ const ManagePayouts = () => {
                 <Card
                   sx={{
                     mt: 3,
-                    boxShadow: 3,
-                    borderRadius: 2,
-                    bgcolor: "#f5f5f5",
+                    bgcolor: "background.default",
                   }}
                 >
                   <CardContent>
@@ -515,7 +513,7 @@ const ManagePayouts = () => {
 
         {/* Payouts List */}
         <Grid item xs={12}>
-          <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
+          <Card sx={{ mt: 3 }}>
             <CardContent>
               <Typography variant="h6" gutterBottom>
                 Payout History
@@ -526,7 +524,7 @@ const ManagePayouts = () => {
                   <CircularProgress />
                 </Box>
               ) : (
-                <TableContainer component={Paper}>
+                <TableContainer component={Paper} sx={{ overflowX: "auto" }}>
                   <Table size="small">
                     <TableHead>
                       <TableRow>
@@ -616,8 +614,8 @@ const ManagePayouts = () => {
                   <Box
                     sx={{
                       p: 2,
-                      bgcolor: "#f5f5f5",
-                      borderTop: "1px solid #e0e0e0",
+                      bgcolor: "background.default",
+                      borderTop: "1px solid", borderColor: "divider",
                     }}
                   >
                     <Typography variant="caption" color="text.secondary">

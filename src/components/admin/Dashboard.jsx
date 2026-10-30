@@ -185,19 +185,29 @@ const SidebarTitle = styled(Typography)(({ theme }) => ({
 const NavItem = styled(ListItem)(({ theme, active }) => ({
   borderRadius: theme.shape.borderRadius,
   margin: theme.spacing(0.5, 1),
-  backgroundColor: active ? theme.palette.primary.main : "transparent",
-  color: active
-    ? theme.palette.primary.contrastText
-    : theme.palette.text.primary,
+  position: "relative",
+  backgroundColor: active
+    ? alpha(theme.palette.primary.main, 0.08)
+    : "transparent",
+  color: active ? theme.palette.primary.main : theme.palette.text.primary,
+  fontWeight: active ? 600 : 400,
+  "&::before": {
+    content: '""',
+    position: "absolute",
+    left: 0,
+    top: 8,
+    bottom: 8,
+    width: 3,
+    borderRadius: 3,
+    backgroundColor: active ? theme.palette.primary.main : "transparent",
+  },
   "&:hover": {
     backgroundColor: active
-      ? theme.palette.primary.main
+      ? alpha(theme.palette.primary.main, 0.12)
       : theme.palette.action.hover,
   },
   "& .MuiListItemIcon-root": {
-    color: active
-      ? theme.palette.primary.contrastText
-      : theme.palette.text.secondary,
+    color: active ? theme.palette.primary.main : theme.palette.text.secondary,
   },
 }));
 
@@ -599,7 +609,18 @@ const AdminDashboard = () => {
   return (
     <Box sx={{ display: "flex" }}>
       <CssBaseline />
-      <AppBarStyled position="fixed" open={isMobile ? false : open}>
+      <AppBarStyled
+        position="fixed"
+        open={isMobile ? false : open}
+        elevation={0}
+        color="inherit"
+        sx={{
+          bgcolor: "background.paper",
+          color: "text.primary",
+          borderBottom: 1,
+          borderColor: "divider",
+        }}
+      >
         {" "}
         {/* MOBILE FIX */}
         <Toolbar>

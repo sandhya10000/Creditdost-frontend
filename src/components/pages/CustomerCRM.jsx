@@ -7,7 +7,6 @@ import {
   Card,
   CardContent,
   Grid,
-  CircularProgress,
 } from "@mui/material";
 import { useParams, useNavigate } from "react-router-dom";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
@@ -20,6 +19,8 @@ import DocumentTab from "../../components/admin/crm/DocumentTab";
 import FollowUpTab from "../../components/admin/crm/FollowUpTab";
 
 import { adminAPI } from "../../services/api";
+import PageHeader from "../ui/PageHeader";
+import { LoadingState } from "../ui/StateViews";
 
 const CustomerCRM = () => {
   const [tab, setTab] = useState(0);
@@ -48,15 +49,11 @@ const CustomerCRM = () => {
   };
 
   if (loading) {
-    return (
-      <Box textAlign="center" mt={5}>
-        <CircularProgress />
-      </Box>
-    );
+    return <LoadingState label="Loading customer..." />;
   }
 
   return (
-    <Box p={3}>
+    <Box p={{ xs: 2, md: 3 }}>
       <Box mb={2}>
         <Button
           startIcon={<ArrowBackIcon />}
@@ -66,17 +63,20 @@ const CustomerCRM = () => {
           Back
         </Button>
       </Box>
+      <PageHeader title="Customer CRM" />
       <Grid container spacing={3}>
         <Grid item xs={12} md={12}>
-          <Card
-            sx={{
-              borderRadius: 3,
-            }}
-          >
+          <Card>
             <CardContent>
               {/* TABS */}
 
-              <Tabs value={tab} onChange={(e, newValue) => setTab(newValue)}>
+              <Tabs
+                value={tab}
+                onChange={(e, newValue) => setTab(newValue)}
+                variant="scrollable"
+                scrollButtons="auto"
+                sx={{ borderBottom: 1, borderColor: "divider" }}
+              >
                 <Tab label="Details" />
 
                 <Tab label="Reports" />

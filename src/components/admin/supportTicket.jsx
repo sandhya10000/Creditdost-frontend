@@ -186,7 +186,7 @@ const AdminTickets = () => {
       </Typography>
 
       {/* Filters */}
-      <Paper sx={{ p: 2, mb: 2, borderRadius: 2 }}>
+      <Paper sx={{ p: 2, mb: 2, }}>
         <Stack
           component="form"
           onSubmit={applySearch}
@@ -259,7 +259,7 @@ const AdminTickets = () => {
         <Typography color="text.secondary">No tickets found.</Typography>
       ) : (
         tickets.map((ticket) => (
-          <Paper key={ticket._id} sx={{ p: 2, mb: 2, borderRadius: 2 }}>
+          <Paper key={ticket._id} sx={{ p: 2, mb: 2, }}>
             <Stack direction="row" justifyContent="space-between" spacing={2}>
               <Box>
                 <Typography variant="caption" color="text.secondary">

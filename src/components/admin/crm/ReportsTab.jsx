@@ -28,10 +28,8 @@ const ReportsTab = ({ customerReport }) => {
   };
   return (
     <Paper
-      elevation={3}
       sx={{
-        p: 3,
-        borderRadius: 3,
+        p: { xs: 2, md: 3 },
       }}
     >
       {/* Header */}
@@ -42,7 +40,7 @@ const ReportsTab = ({ customerReport }) => {
         alignItems="center"
         mb={3}
       >
-        <Typography variant="h6" fontWeight="bold">
+        <Typography variant="h6" component="h2" fontWeight="bold">
           Credit Report Details
         </Typography>
 
@@ -54,7 +52,7 @@ const ReportsTab = ({ customerReport }) => {
 
       {/* Table */}
 
-      <TableContainer>
+      <TableContainer sx={{ overflowX: "auto" }}>
         <Table>
           <TableHead>
             <TableRow>

@@ -6,7 +6,6 @@ import {
   Card,
   CardContent,
   Chip,
-  CircularProgress,
   FormControl,
   InputLabel,
   MenuItem,
@@ -32,6 +31,8 @@ import {
   formatDaysLeft,
 } from "../../utils/amc";
 import { AmcPaymentChip, AmcStatusChip } from "../admin/AmcChips";
+import PageHeader from "../ui/PageHeader";
+import { LoadingState } from "../ui/StateViews";
 
 const WORK_STATUS_CONFIG = {
   in_progress: { label: "In Progress", color: "info" },
@@ -137,9 +138,7 @@ const AmcCustomers = () => {
 
   return (
     <Box>
-      <Typography variant="h4" sx={{ mb: 2, fontSize: { xs: "1.5rem", md: "2rem" } }}>
-        AMC Customers
-      </Typography>
+      <PageHeader title="AMC Customers" />
 
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
@@ -147,7 +146,7 @@ const AmcCustomers = () => {
         </Alert>
       )}
 
-      <Stack direction="row" spacing={1} sx={{ mb: 2, flexWrap: "wrap", rowGap: 1 }}>
+      <Stack direction="row" spacing={1} useFlexGap sx={{ mb: 2, flexWrap: "wrap" }}>
         {Object.entries(AMC_STATUS_CONFIG).map(([key, config]) => (
           <Chip
             key={key}
@@ -162,7 +161,7 @@ const AmcCustomers = () => {
         ))}
       </Stack>
 
-      <Card sx={{ borderRadius: 2 }}>
+      <Card>
         <CardContent>
           <Box
             sx={{
@@ -173,7 +172,7 @@ const AmcCustomers = () => {
               mb: 3,
             }}
           >
-            <Box sx={{ display: "flex", gap: 2, flexDirection: { xs: "column", sm: "row" }, flex: 1 }}>
+            <Box sx={{ display: "flex", gap: 2, flexDirection: { xs: "column", sm: "row" }, flex: 1, flexWrap: "wrap" }}>
               <TextField
                 fullWidth
                 placeholder="Search by customer name, email, phone or ID"
@@ -200,15 +199,13 @@ const AmcCustomers = () => {
                 </Select>
               </FormControl>
             </Box>
-            <Button variant="contained" color="success" onClick={handleDownloadCSV} sx={{ color: "#fff" }}>
+            <Button variant="contained" color="success" onClick={handleDownloadCSV}>
               Download CSV
             </Button>
           </Box>
 
           {loading && records.length === 0 ? (
-            <Box display="flex" justifyContent="center" my={4}>
-              <CircularProgress />
-            </Box>
+            <LoadingState label="Loading AMC customers..." />
           ) : (
             <TableContainer component={Paper} sx={{ overflowX: "auto" }}>
               <Table size="small" sx={{ minWidth: 1100 }}>
@@ -217,7 +214,7 @@ const AmcCustomers = () => {
                     "& .MuiTableCell-root": {
                       fontWeight: 700,
                       whiteSpace: "nowrap",
-                      backgroundColor: "#f8f9fa",
+                      backgroundColor: "background.default",
                     },
                   }}
                 >

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import PageHeader from "../ui/PageHeader";
 import {
   Alert,
   Box,
@@ -213,9 +214,7 @@ const AmcCustomers = () => {
 
   return (
     <Box>
-      <Typography variant="h4" sx={{ mb: 2, fontSize: { xs: "1.5rem", md: "2rem" } }}>
-        AMC
-      </Typography>
+      <PageHeader title="AMC" />
 
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
@@ -236,7 +235,7 @@ const AmcCustomers = () => {
         ))}
       </Stack>
 
-      <Card sx={{ mt: 2, borderRadius: 2, overflow: "visible" }}>
+      <Card sx={{ mt: 2, overflow: "visible" }}>
         <CardContent>
           <Box
             sx={{
@@ -311,7 +310,7 @@ const AmcCustomers = () => {
                     "& .MuiTableCell-root": {
                       fontWeight: 700,
                       whiteSpace: "nowrap",
-                      backgroundColor: "#f8f9fa",
+                      backgroundColor: "background.default",
                     },
                   }}
                 >
@@ -342,7 +341,7 @@ const AmcCustomers = () => {
                   {records.map((record) => {
                     const currentWork = record.workStatus || "in_progress";
                     const workColors = WORK_STATUS_COLORS[currentWork] || {
-                      bg: "#757575",
+                      bg: "text.secondary",
                       color: "#fff",
                     };
                     const needsRenewal =
@@ -410,6 +409,7 @@ const AmcCustomers = () => {
                         </TableCell>
                         <TableCell align="center" sx={{ whiteSpace: "nowrap" }}>
                           <IconButton
+                aria-label="Edit AMC"
                             size="small"
                             title="Edit AMC"
                             onClick={() => setDialog({ open: true, mode: "edit", customer: record })}
@@ -418,6 +418,7 @@ const AmcCustomers = () => {
                           </IconButton>
                           {record.amc?.paymentStatus !== "paid" && (
                             <IconButton
+                aria-label="Mark AMC as paid"
                               size="small"
                               title="Mark AMC as paid"
                               sx={{ color: "success.main" }}
@@ -428,6 +429,7 @@ const AmcCustomers = () => {
                             </IconButton>
                           )}
                           <IconButton
+                aria-label="Renew AMC"
                             size="small"
                             title="Renew AMC"
                             sx={{ color: needsRenewal ? "warning.main" : "primary.main" }}
@@ -436,6 +438,7 @@ const AmcCustomers = () => {
                             <Autorenew />
                           </IconButton>
                           <IconButton
+                aria-label="View AMC history"
                             size="small"
                             title="AMC history"
                             onClick={() => setHistoryCustomer(record)}
@@ -443,6 +446,7 @@ const AmcCustomers = () => {
                             <History />
                           </IconButton>
                           <IconButton
+                aria-label="Cancel AMC"
                             size="small"
                             title="Cancel AMC"
                             sx={{ color: "error.main" }}
@@ -523,7 +527,8 @@ const AmcCustomers = () => {
           </Typography>
           <Typography variant="subtitle2">Previous terms</Typography>
           {historyCustomer?.amcHistory?.length ? (
-            <Table size="small">
+            <TableContainer sx={{ overflowX: "auto" }}>
+              <Table size="small">
               <TableHead>
                 <TableRow>
                   <TableCell>From</TableCell>
@@ -559,7 +564,8 @@ const AmcCustomers = () => {
                   </TableRow>
                 ))}
               </TableBody>
-            </Table>
+              </Table>
+            </TableContainer>
           ) : (
             <Typography variant="body2" color="textSecondary">
               No previous terms.

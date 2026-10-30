@@ -35,6 +35,8 @@ import {
   Info,
 } from "@mui/icons-material";
 import { franchiseAPI } from "../../services/api";
+import PageHeader from "../ui/PageHeader";
+import { EmptyState } from "../ui/StateViews";
 
 const CreditCheck = () => {
   // TEMP: prefill unplugged for CIBIL checks. Set true to restore.
@@ -599,16 +601,12 @@ const CreditCheck = () => {
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>
-        Credit Check
-      </Typography>
+      <PageHeader title="Credit Check" />
 
       {/* Credits Display */}
       <Card
         sx={{
           mb: 3,
-          boxShadow: 3,
-          borderRadius: 2,
           bgcolor: "background.default",
         }}
       >
@@ -661,7 +659,7 @@ const CreditCheck = () => {
       )}
 
       {activeTab === 0 && (
-        <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
+        <Card sx={{ mt: 3 }}>
           <CardContent>
             <Typography variant="h6" gutterBottom>
               Check Customer Credit
@@ -683,7 +681,7 @@ const CreditCheck = () => {
                   width: "100%",
                   height: "100%",
                   zIndex: 10,
-                  color: "#fff",
+                  color: "common.white",
                   backgroundColor: "rgba(255,255,255,0.5)",
                 }}
               >
@@ -761,10 +759,11 @@ const CreditCheck = () => {
                     }}
                     sx={{
                       "& .MuiInputBase-root.Mui-disabled": {
-                        backgroundColor: "#f5f5f5", //  grey background
+                        backgroundColor: "action.disabledBackground",
                       },
                       "& .MuiInputBase-input.Mui-disabled": {
-                        WebkitTextFillColor: "#999", //  text grey
+                        color: "text.disabled",
+                        WebkitTextFillColor: (theme) => theme.palette.text.disabled,
                       },
                     }}
                     helperText="PAN number (e.g., ABCDE1234F)"
@@ -954,19 +953,19 @@ const CreditCheck = () => {
       )}
 
       {activeTab === 1 && (
-        <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
+        <Card sx={{ mt: 3 }}>
           <CardContent>
             <Typography variant="h6" gutterBottom>
               Recent Credit Reports
             </Typography>
 
             {creditReports.length === 0 && !loading ? (
-              <Typography variant="body1" sx={{ textAlign: "center", py: 4 }}>
-                No credit reports found. Check a customer's credit to see
-                reports here.
-              </Typography>
+              <EmptyState
+                title="No credit reports found."
+                description="Check a customer's credit to see reports here."
+              />
             ) : (
-              <TableContainer component={Paper}>
+              <TableContainer component={Paper} sx={{ overflowX: "auto" }}>
                 <Table sx={{ minWidth: 650 }} aria-label="credit reports table">
                   <TableHead>
                     <TableRow>
@@ -1092,7 +1091,7 @@ const CreditCheck = () => {
         </Card>
       )}
 
-      <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
+      <Card sx={{ mt: 3 }}>
         <CardContent>
           <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
             <Info color="info" sx={{ mr: 1 }} />

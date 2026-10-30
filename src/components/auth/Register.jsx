@@ -45,52 +45,34 @@ const ToastAlert = React.forwardRef(function Alert(props, ref) {
 
 const GradientBackground = styled(Box)(({ theme }) => ({
   minHeight: "90vh",
-  // background: `linear-gradient(135deg, ${theme.palette.primary.light} 0%, ${theme.palette.secondary.light} 100%)`,
   display: "flex",
-  background:"url('/images/reg.jpg')",
+  flexDirection: "column",
   alignItems: "center",
   justifyContent: "center",
   padding: theme.spacing(2),
-  backgroundSize: "cover",
-  backgroundRepeat: "no-repeat",
-  backgroundPosition: "center center",
+  backgroundColor: theme.palette.background.default,
 }));
 
 const StyledCard = styled(Card)(({ theme }) => ({
   width: "100%",
-  borderRadius: theme.shape.borderRadius * 3,
-  boxShadow: theme.shadows[15],
-  overflow: "visible",
-  position: "relative",
-  "&::before": {
-    content: '""',
-    position: "absolute",
-    top: -2,
-    left: -2,
-    right: -2,
-    bottom: -2,
-    background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-    borderRadius: theme.shape.borderRadius * 3.5,
-    zIndex: -1,
-  },
+  borderRadius: theme.shape.borderRadius,
+  border: `1px solid ${theme.palette.divider}`,
+  boxShadow: "none",
+  overflow: "hidden",
+  backgroundColor: theme.palette.background.paper,
 }));
 
 const IllustrationSection = styled(Box)(({ theme }) => ({
-  background: `linear-gradient(135deg, #ffffff 0%, #03dac6 100%)`,
+  backgroundColor: theme.palette.primary.main,
   minHeight: "100%",
-  borderRadius: `${theme.shape.borderRadius * 3}px 0 0 ${
-    theme.shape.borderRadius * 3
-  }px`,
   display: "flex",
   flexDirection: "column",
   justifyContent: "center",
   alignItems: "center",
   padding: theme.spacing(4),
-  color: "white",
+  color: theme.palette.primary.contrastText,
   [theme.breakpoints.down("md")]: {
-    borderRadius: `${theme.shape.borderRadius * 3}px ${
-      theme.shape.borderRadius * 3
-    }px 0 0`,
+    padding: theme.spacing(3),
   },
 }));
 
@@ -99,19 +81,14 @@ const FormSection = styled(Box)(({ theme }) => ({
   [theme.breakpoints.down("md")]: {
     padding: theme.spacing(3),
   },
+  [theme.breakpoints.down("sm")]: {
+    padding: theme.spacing(2.5),
+  },
 }));
 
 const LogoBox = styled(Box)(({ theme }) => ({
   textAlign: "center",
   marginBottom: theme.spacing(3),
-  "& svg": {
-    width: 80,
-    height: 80,
-    backgroundColor: "rgba(255,255,255,0.2)",
-    borderRadius: "50%",
-    padding: theme.spacing(2),
-    color: "white",
-  },
 }));
 
 // Indian states list
@@ -301,7 +278,6 @@ const Register = () => {
                   fontWeight="700"
                   textAlign="center"
                   mb={2}
-                  color="black"
                 >
                   Welcome to
                 </Typography>
@@ -311,7 +287,6 @@ const Register = () => {
                 <Typography
                   variant="body1"
                   textAlign="center"
-                    color="black"
                   sx={{ maxWidth: 300 }}
                 >
                   Join our franchise network and empower businesses with credit

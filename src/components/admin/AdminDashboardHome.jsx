@@ -20,7 +20,11 @@ import {
   InputLabel,
   MenuItem,
   Select,
+  useTheme,
 } from "@mui/material";
+import { alpha } from "@mui/material/styles";
+import PageHeader from "../ui/PageHeader";
+import { LoadingState } from "../ui/StateViews";
 import PeopleIcon from "@mui/icons-material/People";
 import BusinessIcon from "@mui/icons-material/Business";
 import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
@@ -55,30 +59,33 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
+// Resolves a palette token ("primary.main") or a literal color to a color string
+const resolveColor = (theme, value) => {
+  const resolved = value
+    .split(".")
+    .reduce((acc, key) => (acc ? acc[key] : undefined), theme.palette);
+  return typeof resolved === "string" ? resolved : value;
+};
+const tint = (theme, value) => alpha(resolveColor(theme, value), 0.12);
+
 // Styled components for enhanced UI
 const StatCard = styled(Card)(({ theme }) => ({
   height: "100%",
   display: "flex",
   flexDirection: "column",
-  borderRadius: theme.shape.borderRadius * 2,
-  boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
   border: `1px solid ${theme.palette.divider}`,
-  transition: "transform 0.3s ease, box-shadow 0.3s ease",
-  "&:hover": {
-    transform: "translateY(-5px)",
-    boxShadow: "0 6px 16px rgba(0,0,0,0.1)",
-  },
+  boxShadow: "none",
 }));
 
 const StatIconWrapper = styled(Box)(({ theme, color }) => ({
-  width: 60,
-  height: 60,
+  width: 48,
+  height: 48,
   borderRadius: "50%",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  backgroundColor: `${color}20`,
-  color: color,
+  backgroundColor: tint(theme, color),
+  color: resolveColor(theme, color),
   marginBottom: theme.spacing(2),
 }));
 
@@ -101,20 +108,18 @@ const ActivityItem = styled(Paper)(({ theme }) => ({
 
 const QuickActionCard = styled(Card)(({ theme }) => ({
   height: "100%",
-  borderRadius: theme.shape.borderRadius * 2,
-  boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
   border: `1px solid ${theme.palette.divider}`,
+  boxShadow: "none",
   cursor: "pointer",
-  transition: "all 0.3s ease",
+  transition: "border-color 0.2s ease",
   "&:hover": {
-    transform: "translateY(-3px)",
-    boxShadow: "0 6px 16px rgba(0,0,0,0.1)",
     borderColor: theme.palette.primary.main,
   },
 }));
 
 const AdminDashboardHome = () => {
   const { user } = useAuth();
+  const theme = useTheme();
   const [stats, setStats] = useState({
     totalFranchises: 0,
     activeFranchises: 0,
@@ -326,7 +331,7 @@ const AdminDashboardHome = () => {
       pendingKyc: stats.pendingKycFranchises,
       totalFranchises: stats.totalFranchises,
       icon: <PendingIcon sx={{ fontSize: 30 }} />,
-      color: "#ff9800",
+      color: "warning.main",
       trend: "-2%",
       trendDirection: "down",
     },
@@ -354,7 +359,7 @@ const AdminDashboardHome = () => {
     //   title: "Total Packages",
     //   value: stats.totalPackages,
     //   icon: <CreditScoreIcon sx={{ fontSize: 30 }} />,
-    //   color: "#4caf50",
+    //   color: "success.main",
     //   trend: "0%",
     //   trendDirection: "neutral",
     // },
@@ -370,7 +375,7 @@ const AdminDashboardHome = () => {
     //   title: "Total Revenue",
     //   value: `₹${stats.totalRevenue.toLocaleString()}`,
     //   icon: <AccountBalanceIcon sx={{ fontSize: 30 }} />,
-    //   color: "#6200ea",
+    //   color: "primary.main",
     //   trend: "+15%",
     //   trendDirection: "up",
     // },
@@ -378,7 +383,7 @@ const AdminDashboardHome = () => {
       title: "Revenue from Franchise Packages",
       value: `₹${stats.franchisePackageRevenue.toLocaleString()}`,
       icon: <BusinessIcon sx={{ fontSize: 30 }} />,
-      color: "#6200ea",
+      color: "primary.main",
       trend: "+15%",
       trendDirection: "up",
     },
@@ -386,7 +391,7 @@ const AdminDashboardHome = () => {
       title: "Revenue from Customer Packages",
       value: `₹${stats.customerPackageRevenue.toLocaleString()}`,
       icon: <AccountBalanceIcon sx={{ fontSize: 30 }} />,
-      color: "#03dac6",
+      color: "secondary.main",
       trend: "+15%",
       trendDirection: "up",
     },
@@ -396,7 +401,7 @@ const AdminDashboardHome = () => {
       value: "0 / 0",
       subtext: "Today / Monthly",
       icon: <BusinessIcon sx={{ fontSize: 30 }} />,
-      color: "#4caf50",
+      color: "success.main",
       trend: "+12%",
       trendDirection: "up",
     },
@@ -421,7 +426,7 @@ const AdminDashboardHome = () => {
           ? "--"
           : visitorStats.totalUsers,
       icon: <GroupIcon sx={{ fontSize: 30 }} />,
-      color: "#ff9800",
+      color: "warning.main",
       trend: "+18%",
       trendDirection: "up",
     },
@@ -443,7 +448,7 @@ const AdminDashboardHome = () => {
           ? "--"
           : visitorStats.sessions,
       icon: <TrendingUpIcon sx={{ fontSize: 30 }} />,
-      color: "#4caf50",
+      color: "success.main",
       trend: "+15%",
       trendDirection: "up",
     },
@@ -454,7 +459,7 @@ const AdminDashboardHome = () => {
           ? "--"
           : `${(visitorStats.bounceRate * 100).toFixed(2)}%`,
       icon: <ErrorIcon sx={{ fontSize: 30 }} />,
-      color: "#f44336",
+      color: "error.main",
       trend: "-5%",
       trendDirection: "down",
     },
@@ -513,10 +518,10 @@ const AdminDashboardHome = () => {
   };
 
   const quickActions = [
-    { title: "Add Franchise", icon: <PeopleIcon />, color: "#6200ea" },
-    { title: "Create Package", icon: <BusinessIcon />, color: "#03dac6" },
+    { title: "Add Franchise", icon: <PeopleIcon />, color: "primary.main" },
+    { title: "Create Package", icon: <BusinessIcon />, color: "secondary.main" },
     { title: "View Reports", icon: <AssessmentIcon />, color: "#ff4081" },
-    { title: "Manage Payouts", icon: <AccountBalanceIcon />, color: "#ff9800" },
+    { title: "Manage Payouts", icon: <AccountBalanceIcon />, color: "warning.main" },
   ];
 
   // Format time for display
@@ -535,48 +540,31 @@ const AdminDashboardHome = () => {
   };
 
   if (loading) {
-    return (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        minHeight="600px"
-      >
-        <CircularProgress size={60} thickness={4} />
-      </Box>
-    );
+    return <LoadingState label="Loading dashboard..." />;
   }
 
   if (error) {
     return (
       <Box sx={{ py: 3 }}>
-        <Alert severity="error">{error}</Alert>
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
       </Box>
     );
   }
 
   return (
     <Box sx={{ flexGrow: 1, py: 3 }}>
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          mb: 4,
-        }}
-      >
-        <Box>
-          <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5 }}>
-            Dashboard Overview
-          </Typography>
-          <Typography variant="body1" color="text.secondary">
-            {user?.staffRoleName
-              ? `Welcome back, ${user.name}. Here's what's happening today.`
-              : "Welcome back, Administrator. Here's what's happening today."}
-          </Typography>
-        </Box>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap" }}>
-          <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", }}>
+      <PageHeader
+        title="Dashboard Overview"
+        subtitle={
+          user?.staffRoleName
+            ? `Welcome back, ${user.name}. Here's what's happening today.`
+            : "Welcome back, Administrator. Here's what's happening today."
+        }
+        actions={
+          <>
+          <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
             <FormControl size="small" sx={{ minWidth: 160 }}>
               <InputLabel>Period</InputLabel>
               <Select
@@ -636,8 +624,9 @@ const AdminDashboardHome = () => {
             variant="outlined"
             size="small"
           />
-        </Box>
-      </Box>
+          </>
+        }
+      />
 
       <Box
         sx={{
@@ -648,7 +637,7 @@ const AdminDashboardHome = () => {
             md: "repeat(3, 1fr)",
           },
           gap: 3,
-          mb: 4,
+          mb: 3,
         }}
       >
         {statCards.map((card, index) => (
@@ -693,8 +682,8 @@ const AdminDashboardHome = () => {
                         ".MuiChip-icon": {
                           color:
                             card.trendDirection === "up"
-                              ? "#4caf50"
-                              : "#ff9800",
+                              ? "success.main"
+                              : "warning.main",
                         },
                       }}
                     />
@@ -723,7 +712,7 @@ const AdminDashboardHome = () => {
                           variant="h4"
                           sx={{
                             fontWeight: 700,
-                            color: "#212121",
+                            color: "text.primary",
                             lineHeight: 1,
                           }}
                         >
@@ -744,7 +733,7 @@ const AdminDashboardHome = () => {
                           variant="h4"
                           sx={{
                             fontWeight: 700,
-                            color: "#212121",
+                            color: "text.primary",
                             lineHeight: 1,
                           }}
                         >
@@ -764,7 +753,7 @@ const AdminDashboardHome = () => {
                         sx={{
                           width: "100%",
                           height: 8,
-                          backgroundColor: "#f0f0f0",
+                          backgroundColor: "action.hover",
                           borderRadius: 4,
                           mb: 1,
                           overflow: "hidden",
@@ -774,7 +763,7 @@ const AdminDashboardHome = () => {
                           sx={{
                             width: "4.53%",
                             height: "100%",
-                            backgroundColor: "#ff9800",
+                            backgroundColor: "warning.main",
                             borderRadius: 4,
                           }}
                         />
@@ -835,7 +824,7 @@ const AdminDashboardHome = () => {
           <Grid item xs={12} sm={6} md={4}>
             <StatCard>
               <CardContent sx={{ p: 3 }}>
-                <StatIconWrapper color="#6200ea">
+                <StatIconWrapper color="primary.main">
                   <AccountBalanceIcon sx={{ fontSize: 30 }} />
                 </StatIconWrapper>
 
@@ -874,7 +863,7 @@ const AdminDashboardHome = () => {
           <Grid item xs={12} sm={6} md={4}>
             <StatCard>
               <CardContent sx={{ p: 3 }}>
-                <StatIconWrapper color="#4caf50">
+                <StatIconWrapper color="success.main">
                   <AssessmentIcon sx={{ fontSize: 30 }} />
                 </StatIconWrapper>
 
@@ -899,10 +888,8 @@ const AdminDashboardHome = () => {
             <Card
               sx={{
                 height: "100%",
-                borderRadius: 3,
                 border: "1px solid",
                 borderColor: "divider",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
               }}
             >
               <CardContent sx={{ p: 3 }}>
@@ -950,7 +937,7 @@ const AdminDashboardHome = () => {
                       <Bar
                         dataKey="revenue"
                         name="Revenue"
-                        fill="#6200ea"
+                        fill={theme.palette.primary.main}
                         radius={[6, 6, 0, 0]}
                       />
                     </BarChart>
@@ -969,10 +956,8 @@ const AdminDashboardHome = () => {
             <Card
               sx={{
                 height: "100%",
-                borderRadius: 3,
                 border: "1px solid",
                 borderColor: "divider",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
               }}
             >
               <CardContent sx={{ p: 3 }}>
@@ -1011,7 +996,7 @@ const AdminDashboardHome = () => {
                       <Bar
                         dataKey="revenue"
                         name="Revenue"
-                        fill="#4caf50"
+                        fill={theme.palette.success.main}
                         radius={[6, 6, 0, 0]}
                       />
                     </BarChart>
@@ -1037,9 +1022,8 @@ const AdminDashboardHome = () => {
           <Card
             sx={{
               height: "100%",
-              borderRadius: 3,
-              boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-              border: "1px solid rgba(0,0,0,0.08)",
+              border: "1px solid",
+              borderColor: "divider",
             }}
           >
             <CardContent sx={{ p: 3 }}>
@@ -1071,11 +1055,11 @@ const AdminDashboardHome = () => {
                             sx={{
                               bgcolor:
                                 activity.status === "completed"
-                                  ? "#4caf50"
+                                  ? "success.main"
                                   : activity.status === "pending"
-                                    ? "#ff9800"
+                                    ? "warning.main"
                                     : activity.status === "rejected"
-                                      ? "#f44336"
+                                      ? "error.main"
                                       : "#2196f3",
                             }}
                           >
@@ -1121,9 +1105,8 @@ const AdminDashboardHome = () => {
           <Card
             sx={{
               height: "100%",
-              borderRadius: 3,
-              boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-              border: "1px solid rgba(0,0,0,0.08)",
+              border: "1px solid",
+              borderColor: "divider",
             }}
           >
             <CardContent sx={{ p: 3 }}>
@@ -1138,8 +1121,8 @@ const AdminDashboardHome = () => {
                         <Box sx={{ textAlign: "center" }}>
                           <Avatar
                             sx={{
-                              bgcolor: `${action.color}20`,
-                              color: action.color,
+                              bgcolor: (t) => tint(t, action.color),
+                              color: (t) => resolveColor(t, action.color),
                               mx: "auto",
                               mb: 1,
                             }}
@@ -1167,7 +1150,7 @@ const AdminDashboardHome = () => {
                 </Typography>
                 <Box sx={{ display: "flex", alignItems: "center" }}>
                   <CheckCircleIcon
-                    sx={{ color: "#4caf50", fontSize: 20, mr: 1 }}
+                    sx={{ color: "success.main", fontSize: 20, mr: 1 }}
                   />
                   <Typography variant="body2">
                     All systems operational
@@ -1188,9 +1171,8 @@ const AdminDashboardHome = () => {
         <Grid item xs={12} md={8}>
           <Card
             sx={{
-              borderRadius: 3,
-              boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-              border: "1px solid rgba(0,0,0,0.08)",
+              border: "1px solid",
+              borderColor: "divider",
             }}
           >
             <CardContent sx={{ p: 3 }}>
@@ -1300,7 +1282,7 @@ const AdminDashboardHome = () => {
                         type="monotone"
                         dataKey="revenue"
                         name="Revenue"
-                        stroke="#6200ea"
+                        stroke={theme.palette.primary.main}
                         strokeWidth={2}
                         dot={{ r: 4 }}
                         activeDot={{ r: 6, stroke: "#fff", strokeWidth: 2 }}
@@ -1309,7 +1291,7 @@ const AdminDashboardHome = () => {
                         type="monotone"
                         dataKey="leads"
                         name="Leads"
-                        stroke="#03dac6"
+                        stroke={theme.palette.secondary.main}
                         strokeWidth={2}
                         dot={{ r: 4 }}
                         activeDot={{ r: 6, stroke: "#fff", strokeWidth: 2 }}
@@ -1332,9 +1314,10 @@ const AdminDashboardHome = () => {
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      bgcolor: "grey.50",
+                      bgcolor: "background.default",
                       borderRadius: 2,
-                      border: "1px dashed rgba(0,0,0,0.12)",
+                      border: "1px dashed",
+                      borderColor: "divider",
                     }}
                   >
                     <Typography variant="body1" color="text.secondary">
@@ -1349,9 +1332,8 @@ const AdminDashboardHome = () => {
         <Grid item xs={12} md={4}>
           <Card
             sx={{
-              borderRadius: 3,
-              boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-              border: "1px solid rgba(0,0,0,0.08)",
+              border: "1px solid",
+              borderColor: "divider",
               height: "100%",
             }}
           >
@@ -1432,8 +1414,8 @@ const AdminDashboardHome = () => {
                                     ".MuiChip-icon": {
                                       color:
                                         card.trendDirection === "up"
-                                          ? "#4caf50"
-                                          : "#ff9800",
+                                          ? "success.main"
+                                          : "warning.main",
                                     },
                                   }}
                                 />
@@ -1480,7 +1462,7 @@ const AdminDashboardHome = () => {
                             display: "flex",
                             justifyContent: "space-between",
                             alignItems: "center",
-                            bgcolor: "grey.50",
+                            bgcolor: "background.default",
                           }}
                         >
                           <Box sx={{ display: "flex", alignItems: "center" }}>
@@ -1492,8 +1474,8 @@ const AdminDashboardHome = () => {
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
-                                bgcolor: `${card.color}20`,
-                                color: card.color,
+                                bgcolor: (t) => tint(t, card.color),
+                                color: (t) => resolveColor(t, card.color),
                                 mr: 1.5,
                               }}
                             >

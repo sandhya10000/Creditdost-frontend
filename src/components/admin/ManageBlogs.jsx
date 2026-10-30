@@ -396,7 +396,7 @@ const ManageBlogs = () => {
                   <CircularProgress />
                 </Box>
               ) : (
-                <TableContainer component={Paper}>
+                <TableContainer component={Paper} sx={{ overflowX: "auto" }}>
                   <Table>
                     <TableHead>
                       <TableRow>
@@ -496,6 +496,7 @@ const ManageBlogs = () => {
                           <TableCell align="center">
                             <Tooltip title="Edit">
                               <IconButton
+                aria-label="Edit blog"
                                 size="small"
                                 onClick={() => handleOpenDialog(blog)}
                                 color="primary"
@@ -505,6 +506,7 @@ const ManageBlogs = () => {
                             </Tooltip>
                             <Tooltip title="Delete">
                               <IconButton
+                aria-label="Delete blog"
                                 size="small"
                                 onClick={() => handleDelete(blog._id)}
                                 color="error"

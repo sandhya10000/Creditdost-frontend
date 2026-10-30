@@ -151,7 +151,7 @@ const BureauTab = ({
   };
 
   const renderBureauSection = (title, keyName) => (
-    <Card sx={{ mb: 3, borderRadius: 3 }}>
+    <Card sx={{ mb: 3 }}>
       <CardContent>
         <Typography variant="h6" mb={2}>
           {title}
@@ -285,7 +285,7 @@ const BureauTab = ({
       {/* USER DETAILS */}
       <Card sx={{ mb: 3 }}>
         <CardContent>
-          <Typography variant="h6">User Details</Typography>
+          <Typography variant="h6" component="h2">User Details</Typography>
 
           <Divider sx={{ my: 2 }} />
 

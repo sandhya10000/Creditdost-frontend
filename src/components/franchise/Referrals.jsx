@@ -105,7 +105,7 @@ const Referrals = () => {
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>
+      <Typography variant="h4" component="h1" gutterBottom>
         Referrals
       </Typography>
 
@@ -128,7 +128,7 @@ const Referrals = () => {
         sx={{ flexDirection: { xs: "column", md: "row" } }}
       >
         <Grid item xs={12} md={6} style={{ flex: "1" }}>
-          <Card sx={{ height: "100%", boxShadow: 3, borderRadius: 2 }}>
+          <Card sx={{ height: "100%" }}>
             <CardContent>
               <Typography variant="h6" gutterBottom>
                 Refer a Friend
@@ -195,7 +195,7 @@ const Referrals = () => {
         </Grid>
 
         <Grid item xs={12} md={6} style={{ flex: "1" }}>
-          <Card sx={{ height: "100%", boxShadow: 3, borderRadius: 2 }}>
+          <Card sx={{ height: "100%" }}>
             <CardContent>
               <Typography variant="h6" gutterBottom>
                 Referral Program
@@ -243,7 +243,7 @@ const Referrals = () => {
         </Grid>
       </Grid>
 
-      <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
+      <Card sx={{ mt: 3 }}>
         <CardContent>
           <Typography variant="h6" gutterBottom>
             Your Referrals
@@ -254,7 +254,7 @@ const Referrals = () => {
               <CircularProgress />
             </Box>
           ) : (
-            <TableContainer component={Paper}>
+            <TableContainer component={Paper} sx={{ overflowX: "auto" }}>
               <Table sx={{ minWidth: 650 }} aria-label="referrals table">
                 <TableHead>
                   <TableRow>
@@ -295,6 +295,7 @@ const Referrals = () => {
                       <TableCell>
                         <Tooltip title="Copy referral link">
                           <IconButton
+                            aria-label="Copy referral link"
                             onClick={() => copyReferralLink(referral._id)}
                             size="small"
                           >

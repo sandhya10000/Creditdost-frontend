@@ -35,102 +35,50 @@ import HomePageFooter from "../homepage/HomePageFooter.jsx";
 const GradientBackground = styled(Box)(({ theme }) => ({
   minHeight: "80vh",
   display: "flex",
-  background: "url('/images/reg.jpg')",
+  flexDirection: "column",
   alignItems: "center",
   justifyContent: "center",
   padding: theme.spacing(2),
-  backgroundSize: "cover",
-  backgroundRepeat: "no-repeat",
-  backgroundPosition: "center center",
+  backgroundColor: theme.palette.background.default,
 }));
 
 const StyledCard = styled(Card)(({ theme }) => ({
   width: "100%",
-  borderRadius: theme.shape.borderRadius * 3,
-  boxShadow: theme.shadows[15],
-  overflow: "visible",
-  position: "relative",
-  "&::before": {
-    content: '""',
-    position: "absolute",
-    top: -2,
-    left: -2,
-    right: -2,
-    bottom: -2,
-    background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-    borderRadius: theme.shape.borderRadius * 3.5,
-    zIndex: -1,
-  },
+  borderRadius: theme.shape.borderRadius,
+  border: `1px solid ${theme.palette.divider}`,
+  boxShadow: "none",
+  overflow: "hidden",
+  backgroundColor: theme.palette.background.paper,
 }));
 
 const IllustrationSection = styled(Box)(({ theme }) => ({
-  background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main}, ${theme.palette.primary.dark}, ${theme.palette.secondary.dark})`,
-  backgroundSize: "400% 400%",
-  animation: "gradientShift 8s ease infinite",
+  backgroundColor: theme.palette.primary.main,
   minHeight: "100%",
-  borderRadius: `${theme.shape.borderRadius * 3}px 0 0 ${
-    theme.shape.borderRadius * 3
-  }px`,
   display: "flex",
   flexDirection: "column",
   justifyContent: "center",
   alignItems: "center",
   padding: theme.spacing(4),
-  color: "white",
-  position: "relative",
-  overflow: "hidden",
+  color: theme.palette.primary.contrastText,
   [theme.breakpoints.down("md")]: {
-    borderRadius: `${theme.shape.borderRadius * 3}px ${
-      theme.shape.borderRadius * 3
-    }px 0 0`,
-  },
-  "&::before": {
-    content: '""',
-    position: "absolute",
-    width: "200px",
-    height: "200px",
-    background: "rgba(255, 255, 255, 0.15)",
-    borderRadius: "50%",
-    top: "20%",
-    left: "10%",
-    filter: "blur(20px)",
-    animation: "blobOne 12s ease-in-out infinite",
-    zIndex: 0,
-  },
-  "&::after": {
-    content: '""',
-    position: "absolute",
-    width: "150px",
-    height: "150px",
-    background: "rgba(255, 255, 255, 0.2)",
-    borderRadius: "50%",
-    top: "60%",
-    right: "15%",
-    filter: "blur(20px)",
-    animation: "blobTwo 15s ease-in-out infinite",
-    zIndex: 0,
+    padding: theme.spacing(3),
   },
 }));
 
 const LogoBox = styled(Box)(({ theme }) => ({
   textAlign: "center",
   marginBottom: theme.spacing(3),
-  "& svg": {
-    width: 80,
-    height: 80,
-    backgroundColor: "rgba(255,255,255,0.2)",
-    borderRadius: "50%",
-    padding: theme.spacing(2),
-    color: "white",
-    position: "relative",
-    zIndex: 1,
-  },
 }));
 
 const FormSection = styled(Box)(({ theme }) => ({
   padding: theme.spacing(4),
+  width: "100%",
+  maxWidth: 480,
   [theme.breakpoints.down("md")]: {
     padding: theme.spacing(3),
+  },
+  [theme.breakpoints.down("sm")]: {
+    padding: theme.spacing(2.5),
   },
 }));
 
@@ -422,6 +370,7 @@ const Login = () => {
                                 <IconButton
                                   onClick={() => setShowPassword(!showPassword)}
                                   edge="end"
+                                  aria-label={showPassword ? "Hide password" : "Show password"}
                                 >
                                   {showPassword ? (
                                     <VisibilityOff />

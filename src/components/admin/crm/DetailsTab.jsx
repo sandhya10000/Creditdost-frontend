@@ -79,23 +79,24 @@ const DetailsTab = ({ customer, creditReport, ifscDeatails }) => {
   return (
     <Paper
       sx={{
-        p: 4,
-        borderRadius: 3,
+        p: { xs: 2, md: 3 },
       }}
     >
       {/* HEADER */}
 
       <Box
         display="flex"
+        flexWrap="wrap"
         justifyContent="space-between"
         alignItems="center"
+        gap={2}
         mb={3}
       >
-        <Typography variant="h5" fontWeight="bold">
+        <Typography variant="h5" component="h2" fontWeight="bold">
           Customer Details
         </Typography>
 
-        <Box display="flex" gap={2}>
+        <Box display="flex" flexWrap="wrap" gap={2}>
           <Chip
             label={customer?.workStatus || "Working"}
             color={customer?.workStatus === "Closed" ? "success" : "warning"}
@@ -391,7 +392,7 @@ const DetailsTab = ({ customer, creditReport, ifscDeatails }) => {
         sx={{
           p: 2,
           borderRadius: 2,
-          backgroundColor: "#fafafa",
+          backgroundColor: "background.default",
           border: "1px solid",
           borderColor: "divider",
           minHeight: 64,

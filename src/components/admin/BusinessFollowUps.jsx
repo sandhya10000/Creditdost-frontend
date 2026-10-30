@@ -206,7 +206,7 @@ const BusinessFollowUps = () => {
         </Alert>
       )}
 
-      <Card sx={{ borderRadius: 3, boxShadow: 2, overflow: "visible" }}>
+      <Card sx={{ overflow: "visible" }}>
         <Box sx={{ p: { xs: 2, md: 3 }, borderBottom: "1px solid", borderColor: "divider" }}>
           {/* Quick presets */}
           <Stack direction="row" flexWrap="wrap" gap={1} mb={2}>
@@ -281,7 +281,7 @@ const BusinessFollowUps = () => {
         <TableContainer component={Paper} elevation={0} sx={{ overflowX: "auto", borderRadius: 0 }}>
           <Table size="small" sx={{ minWidth: 1100 }} aria-label="follow-up table">
             <TableHead>
-              <TableRow sx={{ "& th": { fontWeight: 700, backgroundColor: "#f8f9fa", whiteSpace: "nowrap" } }}>
+              <TableRow sx={{ "& th": { fontWeight: 700, backgroundColor: "background.default", whiteSpace: "nowrap" } }}>
                 <TableCell>Follow-up date</TableCell>
                 <TableCell>Customer ID</TableCell>
                 <TableCell>Customer</TableCell>
@@ -373,6 +373,7 @@ const BusinessFollowUps = () => {
                       <Tooltip title="Mark as done (history is kept)">
                         <span>
                           <IconButton
+                aria-label="Mark follow-up as done"
                             color="success"
                             onClick={() => handleMarkDone(form)}
                             disabled={busyId === form._id}

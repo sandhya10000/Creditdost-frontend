@@ -11,7 +11,7 @@ const FranchiseInfoTab = ({ franchise }) => {
   return (
     <Card>
       <CardContent>
-        <Typography variant="h6" gutterBottom>
+        <Typography variant="h6" component="h2" gutterBottom>
           Franchise Information
         </Typography>
 
@@ -101,7 +101,7 @@ const FranchiseInfoTab = ({ franchise }) => {
 
         <Divider sx={{ my: 3 }} />
 
-        <Typography variant="h6" gutterBottom>
+        <Typography variant="h6" component="h2" gutterBottom>
           Package Information
         </Typography>
 

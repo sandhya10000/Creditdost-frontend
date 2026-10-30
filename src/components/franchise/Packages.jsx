@@ -12,7 +12,7 @@ const Packages = () => {
 
   return (
     <Container maxWidth="md" sx={{ py: 8, textAlign: "center" }}>
-      <Typography variant="h4" gutterBottom>
+      <Typography variant="h4" component="h1" gutterBottom>
         Redirecting to Packages Page...
       </Typography>
       <Typography variant="body1" color="text.secondary">

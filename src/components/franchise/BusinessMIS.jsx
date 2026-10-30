@@ -8,7 +8,6 @@ import {
   Button,
   Grid,
   Alert,
-  CircularProgress,
   Table,
   TableBody,
   TableCell,
@@ -20,6 +19,8 @@ import {
   Pagination,
 } from "@mui/material";
 import { franchiseAPI } from "../../services/api";
+import PageHeader from "../ui/PageHeader";
+import { LoadingState } from "../ui/StateViews";
 
 const BusinessMIS = () => {
   const [businessForms, setBusinessForms] = useState([]);
@@ -91,9 +92,9 @@ const BusinessMIS = () => {
   const getWorkStatusChip = (status) => {
     switch (status) {
       case "closed":
-        return <Chip label="Closed" color="success" sx={{ color: "#fff" }} />;
+        return <Chip label="Closed" color="success" />;
       default:
-        return <Chip label="In Progress" color="info" sx={{ color: "#fff" }} />;
+        return <Chip label="In Progress" color="info" />;
     }
   };
 
@@ -155,9 +156,7 @@ const BusinessMIS = () => {
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>
-        Business MIS
-      </Typography>
+      <PageHeader title="Business MIS" />
 
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
@@ -165,7 +164,7 @@ const BusinessMIS = () => {
         </Alert>
       )}
 
-      <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
+      <Card>
         <CardContent>
           {/* Search + Download */}
           <Box
@@ -185,23 +184,16 @@ const BusinessMIS = () => {
               placeholder="Search by customer name, email, or phone"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              sx={{ maxWidth: 400 }}
+              sx={{ maxWidth: { xs: "100%", sm: 400 } }}
             />
 
-            <Button
-              variant="contained"
-              color="success"
-              onClick={handleDownloadCSV}
-              sx={{ color: "#fff" }}
-            >
+            <Button variant="contained" color="success" onClick={handleDownloadCSV}>
               Download CSV
             </Button>
           </Box>
 
           {loading && businessForms.length === 0 ? (
-            <Box display="flex" justifyContent="center" my={4}>
-              <CircularProgress />
-            </Box>
+            <LoadingState label="Loading business forms..." />
           ) : (
             <TableContainer
               component={Paper}
