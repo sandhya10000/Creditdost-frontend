@@ -606,9 +606,13 @@ const DashboardHome = () => {
                     </Typography>
                   </Box>
                 ))}
-                <Typography variant="body1" sx={{ mb: 1 }}>
-                  <strong>Unlimited</strong> reports
-                </Typography>
+                {assignedPackages.some(
+                  (pkg) => pkg.name?.trim().toLowerCase() === "diamond",
+                ) && (
+                  <Typography variant="body1" sx={{ mb: 1 }}>
+                    <strong>Unlimited</strong> reports
+                  </Typography>
+                )}
                 <Typography variant="body2" sx={{ opacity: 0.9 }}>
                   {/* Assigned by admin */}
                 </Typography>
