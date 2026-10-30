@@ -137,10 +137,10 @@ const CreditCheck = () => {
           setRecentReport((prev) =>
             prev && (prev.id === reportId || prev._id === reportId)
               ? {
-                  ...prev,
-                  localPath: doc.localPath || prev.localPath,
-                  pdfStatus: doc.pdfStatus || prev.pdfStatus,
-                }
+                ...prev,
+                localPath: doc.localPath || prev.localPath,
+                pdfStatus: doc.pdfStatus || prev.pdfStatus,
+              }
               : prev,
           );
           await loadCreditReports();
@@ -304,8 +304,7 @@ const CreditCheck = () => {
         }
 
         setSuccess(
-          `Credit check completed successfully from ${formData.bureau.toUpperCase()}! ${
-            response.data.remainingCredits
+          `Credit check completed successfully from ${formData.bureau.toUpperCase()}! ${response.data.remainingCredits
           } credits remaining.`,
         );
         console.log("Credit report response:", response.data);
@@ -582,21 +581,21 @@ const CreditCheck = () => {
 
   const isMobileBlocked = formData.mobile && isCibilBureau(formData.bureau)
     ? (() => {
-        const data = localStorage.getItem(`mobile_blocked_${formData.mobile}`);
+      const data = localStorage.getItem(`mobile_blocked_${formData.mobile}`);
 
-        if (!data) return false;
+      if (!data) return false;
 
-        const { timestamp } = JSON.parse(data);
+      const { timestamp } = JSON.parse(data);
 
-        const diff = Date.now() - timestamp;
+      const diff = Date.now() - timestamp;
 
-        if (diff < 24 * 60 * 60 * 1000) {
-          return true;
-        }
+      if (diff < 24 * 60 * 60 * 1000) {
+        return true;
+      }
 
-        localStorage.removeItem(`mobile_blocked_${formData.mobile}`);
-        return false;
-      })()
+      localStorage.removeItem(`mobile_blocked_${formData.mobile}`);
+      return false;
+    })()
     : false;
 
   return (
@@ -665,7 +664,7 @@ const CreditCheck = () => {
       {activeTab === 0 && CIBIL_MAINTENANCE && (
         <Alert severity="warning" sx={{ mt: 3 }}>
           Due to ongoing maintenance, CIBIL Credit Reports are unavailable for <strong>2
-          Hours</strong>, pls wait till maintenance is done. Thank you
+            Hours</strong>, pls wait till maintenance is done. Thank you
         </Alert>
       )}
 
@@ -745,7 +744,7 @@ const CreditCheck = () => {
                       isMobileBlocked
                         ? "This mobile number is blocked for 24 hours."
                         : prefillError ||
-                          "Enter exactly 10 digits without spaces or dashes"
+                        "Enter exactly 10 digits without spaces or dashes"
                     }
                   />
                 </Grid>
@@ -1013,7 +1012,7 @@ const CreditCheck = () => {
                           </TableCell>
                           <TableCell>
                             {report.score !== null &&
-                            report.score !== undefined ? (
+                              report.score !== undefined ? (
                               <Chip
                                 label={`${report.score} (${getScoreLabel(report.score)})`}
                                 color={getScoreColor(report.score)}
