@@ -302,6 +302,7 @@ export const adminAPI = {
   updateFranchiseLeadStatus: (id, status) =>
     api.put(`/admin/franchise-leads/${id}/status`, { status }),
   markFranchiseLeadRead: (id) => api.put(`/admin/franchise-leads/${id}/read`),
+  deleteFranchiseLead: (id) => api.delete(`/admin/franchise-leads/${id}`),
   // New, unread lead counts (sidebar badge + tabs)
   getLeadUnreadCounts: () => api.get("/admin/leads/unread-counts"),
   // Blogs

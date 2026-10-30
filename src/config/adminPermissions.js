@@ -16,6 +16,8 @@ const PATH_PERMISSIONS = [
   ["/admin/prefill-failed-logs", "credit"],
   ["/admin/reports", "dashboard"],
   ["/admin/business-forms", "business"],
+  // Hyphenated sibling of /admin/business-forms, so the prefix rule above doesn't cover it
+  ["/admin/business-forms-pending", "business"],
   ["/admin/amc-customers", "business"],
   ["/admin/manual-business", "business"],
   ["/admin/digital-agreements", "business"],

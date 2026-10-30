@@ -15,7 +15,6 @@ const EMPTY_FORM = {
   name: "",
   mobile: "",
   email: "",
-  city: "",
   amount: "",
   remarks: "",
 };
@@ -59,7 +58,6 @@ const ManualPaymentDialog = ({ open, onClose, onCreated }) => {
         name: form.name.trim(),
         mobile: form.mobile.trim(),
         email: form.email.trim(),
-        city: form.city.trim(),
         amount: Number(form.amount),
         remarks: form.remarks.trim(),
       });
@@ -98,12 +96,6 @@ const ManualPaymentDialog = ({ open, onClose, onCreated }) => {
             value={form.email}
             onChange={handleChange("email")}
             required
-            fullWidth
-          />
-          <TextField
-            label="City"
-            value={form.city}
-            onChange={handleChange("city")}
             fullWidth
           />
           <TextField

@@ -211,6 +211,8 @@ const CreditReportLeads = () => {
   const [error, setError] = useState("");
   const [refreshKey, setRefreshKey] = useState(0);
   const [detailRow, setDetailRow] = useState(null);
+  const [deleteRow, setDeleteRow] = useState(null);
+  const [deleting, setDeleting] = useState(false);
   const leadCounts = useLeadUnreadCounts();
 
   // Debounce typing so each keystroke doesn't trigger a request
@@ -296,6 +298,26 @@ const CreditReportLeads = () => {
     } catch (err) {
       alert(err.response?.data?.message || "Failed to update status");
       setRefreshKey((k) => k + 1);
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteRow) return;
+    setDeleting(true);
+    try {
+      if (tab.key === "franchise") {
+        await adminAPI.deleteFranchiseLead(deleteRow._id);
+      } else {
+        await adminAPI.deleteCreditRepairEnquiry(deleteRow._id);
+      }
+      setRows((prev) => prev.filter((r) => r._id !== deleteRow._id));
+      setTotal((prev) => Math.max(0, prev - 1));
+      notifyLeadCountsChanged();
+      setDeleteRow(null);
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to delete lead");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -417,7 +439,7 @@ const CreditReportLeads = () => {
                     ))}
                     <TableCell>Status</TableCell>
                     <TableCell>Received</TableCell>
-                    <TableCell align="right">Details</TableCell>
+                    <TableCell align="right">Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -449,6 +471,9 @@ const CreditReportLeads = () => {
                       <TableCell align="right">
                         <Button size="small" onClick={() => openDetails(row)}>
                           View
+                        </Button>
+                        <Button size="small" color="error" onClick={() => setDeleteRow(row)}>
+                          Delete
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -495,6 +520,24 @@ const CreditReportLeads = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDetailRow(null)}>Close</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Delete confirmation */}
+      <Dialog open={Boolean(deleteRow)} onClose={() => !deleting && setDeleteRow(null)}>
+        <DialogTitle>Delete lead?</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Delete <strong>{deleteRow?.fullName}</strong>? This cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteRow(null)} disabled={deleting}>
+            Cancel
+          </Button>
+          <Button color="error" variant="contained" onClick={confirmDelete} disabled={deleting}>
+            {deleting ? "Deleting..." : "Delete"}
+          </Button>
         </DialogActions>
       </Dialog>
     </Box>
