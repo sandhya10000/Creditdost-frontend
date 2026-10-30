@@ -336,7 +336,7 @@ const CreditReportLeads = () => {
   return (
     <Box p={3}>
       <Typography variant="h5" fontWeight="bold" mb={2}>
-        Credit Report Leads
+        Leads
       </Typography>
 
       <Box>

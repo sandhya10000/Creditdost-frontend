@@ -17,7 +17,6 @@ import ReportsTab from "../../components/admin/crm/ReportsTab";
 import BureauTab from "../../components/admin/crm/BureauTab";
 import RemarksTab from "../../components/admin/crm/RemarksTab";
 import DocumentTab from "../../components/admin/crm/DocumentTab";
-import FollowUpTab from "../../components/admin/crm/FollowUpTab";
 
 import { adminAPI } from "../../services/api";
 
@@ -84,7 +83,6 @@ const CustomerCRM = () => {
                 <Tab label="Bureau" />
 
                 <Tab label="Remarks" />
-                <Tab label="Follow Up" />
                 <Tab label="Documents" />
               </Tabs>
 
@@ -127,15 +125,12 @@ const CustomerCRM = () => {
                 )}
 
                 {tab === 3 && (
-                  <RemarksTab customerRemark={customerInfo?.customerData} />
-                )}
-                {tab === 4 && (
-                  <FollowUpTab
-                    customer={customerInfo?.customerData}
+                  <RemarksTab
+                    customerRemark={customerInfo?.customerData}
                     onUpdated={fetchCustomer}
                   />
                 )}
-                {tab === 5 && (
+                {tab === 4 && (
                   <DocumentTab
                     customerId={customerInfo?.customerData?._id}
                     documents={customerInfo?.customerData?.documents}

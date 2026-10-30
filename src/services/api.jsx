@@ -96,6 +96,8 @@ export const franchiseAPI = {
   updateLeadStatus: (leadId, data) => api.put(`/leads/${leadId}/status`, data),
   // Business form functions
   submitBusinessForm: (data) => api.post("/business/submit", data),
+  lookupConsultant: (q) => api.get("/business/consultant-lookup", { params: { q } }),
+  getAssignableRms: () => api.get("/business/rms"),
   verifyBusinessPayment: (data) => api.post("/business/verify-payment", data),
   getBusinessForms: () => api.get("/business/franchise"),
   getAmcCustomers: (params) => api.get("/business/franchise/amc", { params }),
@@ -387,6 +389,8 @@ export const adminAPI = {
   // closeBusinessCaseadmin: (id) => api.post(`/business/close-case/${id}`),
   updateBusinessWorkStatus: (id, data) =>
     api.put(`/admin/business-forms/${id}/work-status`, data),
+  assignBusinessRm: (id, rmId) =>
+    api.patch(`/business/admin/business-forms/${id}/rm`, { rmId }),
   // Staff & roles (full administrators only)
   getPermissionCatalog: () => api.get("/admin/permissions"),
   getStaffRoles: () => api.get("/admin/roles"),
