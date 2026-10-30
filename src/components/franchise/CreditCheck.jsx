@@ -39,6 +39,8 @@ import { franchiseAPI } from "../../services/api";
 const CreditCheck = () => {
   // TEMP: prefill unplugged for CIBIL checks. Set true to restore.
   const PREFILL_ENABLED = false;
+  // TEMP: CIBIL maintenance — hides the Generation form and shows a notice. Set false to restore.
+  const CIBIL_MAINTENANCE = true;
   // CIBIL-only 24h block on "No Bureau Record Found" (same key/mechanism as prefill block)
   const CIBIL_BUREAUS = ["cibil", "cibil-ongrid", "cibil-surepass"];
   const isCibilBureau = (b) => CIBIL_BUREAUS.includes(b);
@@ -660,7 +662,14 @@ const CreditCheck = () => {
         </Alert>
       )}
 
-      {activeTab === 0 && (
+      {activeTab === 0 && CIBIL_MAINTENANCE && (
+        <Alert severity="warning" sx={{ mt: 3 }}>
+          Due to ongoing maintenance, CIBIL Credit Reports are unavailable for <strong>2
+          Hours</strong>, pls wait till maintenance is done. Thank you
+        </Alert>
+      )}
+
+      {activeTab === 0 && !CIBIL_MAINTENANCE && (
         <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
           <CardContent>
             <Typography variant="h6" gutterBottom>
