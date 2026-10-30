@@ -10,8 +10,9 @@ import {
   CircularProgress,
 } from "@mui/material";
 import { adminAPI } from "../../../services/api";
+import FollowUpTab from "./FollowUpTab";
 
-const RemarksTab = ({ customerRemark }) => {
+const RemarksTab = ({ customerRemark, onUpdated }) => {
   const [remark, setRemark] = useState("");
   const [loading, setLoading] = useState(true);
   const [remarks, setRemarks] = useState([]);
@@ -196,6 +197,12 @@ const RemarksTab = ({ customerRemark }) => {
           </Paper>
         ))}
       </Stack>
+
+      {/* FOLLOW UP (moved here from its own tab) */}
+
+      <Box mt={4}>
+        <FollowUpTab customer={customerRemark} onUpdated={onUpdated} />
+      </Box>
     </Box>
   );
 };

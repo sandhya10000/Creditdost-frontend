@@ -1495,15 +1495,15 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
                             <Box display="flex" alignItems="center" gap={0.5}>
                               {franchise.businessManager ? (
                                 currentUser?.scopedToOwnFranchises ? (
-                                  franchise.businessManager.staffCode
+                                  `${franchise.businessManager.name}${franchise.businessManager.staffCode ? ` (${franchise.businessManager.staffCode})` : ""}`
                                 ) : (
                                   <Link
                                     to={`/admin/staff/${franchise.businessManager._id}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                   >
-                                    {franchise.businessManager.staffCode ||
-                                      franchise.businessManager.name}
+                                    {franchise.businessManager.name}
+                                    {franchise.businessManager.staffCode ? ` (${franchise.businessManager.staffCode})` : ""}
                                   </Link>
                                 )
                               ) : (

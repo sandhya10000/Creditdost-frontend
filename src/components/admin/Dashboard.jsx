@@ -255,7 +255,7 @@ const AdminDashboard = () => {
     { text: "Dashboard", icon: <DashboardIcon />, path: "/admin" },
     { text: "Team & Roles", icon: <PeopleIcon />, path: "/admin/staff" },
     {
-      text: "Credit Report Leads",
+      text: "Leads",
       icon: <CreditScoreIcon />,
       path: "/admin/credit-report-leads",
     },

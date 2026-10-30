@@ -344,41 +344,74 @@ const DetailsTab = ({ customer, creditReport, ifscDeatails }) => {
 
       {/* ================= FRANCHISE DETAILS ================= */}
 
-      {renderSectionTitle(
-        "Franchise Details",
-        <DomainAddIcon color="primary" />,
-      )}
+      {/* Franchise shown when linked; consultant shown when entered; N/A when neither */}
+      {(() => {
+        const hasFranchise = Boolean(customer?.franchiseId?._id || customer?.franchiseId?.franchiseCode);
+        const consultant = customer?.consultant || {};
+        const hasConsultant = Boolean(consultant.name || consultant.phone || consultant.email);
+        const showFranchise = hasFranchise || !hasConsultant;
 
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={6}>
-          <Typography fontWeight="medium">Franchise ID</Typography>
-          {customer?.franchiseId?.franchiseCode ? (
-            <Link component={RouterLink} to={`/admin/franchise/${customer.franchiseId.franchiseCode}`}>
-              {customer.franchiseId.franchiseCode}
-            </Link>
-          ) : (
-            <Typography>-</Typography>
-          )}
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <Typography fontWeight="Medium">Business Name</Typography>
+        return (
+          <>
+            {renderSectionTitle(
+              showFranchise ? "Franchise Details" : "Consultant Details",
+              <DomainAddIcon color="primary" />,
+            )}
 
-          {customer?.franchiseId?._id ? (
-            <Link
-              component={RouterLink}
-              to={`/admin/franchise/${customer.franchiseId.franchiseCode || customer.franchiseId._id}`}
-            >
-              {customer.franchiseId.businessName || "-"}
-            </Link>
-          ) : (
-            <Typography>{customer?.franchiseId?.businessName || "-"}</Typography>
-          )}
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <Typography fontWeight="medium">Phone No.</Typography>
-          <Typography>{customer?.franchiseId?.phone || "-"}</Typography>
-        </Grid>
-      </Grid>
+            <Grid container spacing={3}>
+              {showFranchise && (
+                <>
+                  <Grid item xs={12} md={6}>
+                    <Typography fontWeight="medium">Franchise ID</Typography>
+                    {customer?.franchiseId?.franchiseCode ? (
+                      <Link component={RouterLink} to={`/admin/franchise/${customer.franchiseId.franchiseCode}`}>
+                        {customer.franchiseId.franchiseCode}
+                      </Link>
+                    ) : (
+                      <Typography>N/A</Typography>
+                    )}
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Typography fontWeight="Medium">Business Name</Typography>
+
+                    {customer?.franchiseId?._id ? (
+                      <Link
+                        component={RouterLink}
+                        to={`/admin/franchise/${customer.franchiseId.franchiseCode || customer.franchiseId._id}`}
+                      >
+                        {customer.franchiseId.businessName || "N/A"}
+                      </Link>
+                    ) : (
+                      <Typography>{customer?.franchiseId?.businessName || "N/A"}</Typography>
+                    )}
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Typography fontWeight="medium">Phone No.</Typography>
+                    <Typography>{customer?.franchiseId?.phone || "N/A"}</Typography>
+                  </Grid>
+                </>
+              )}
+
+              {hasConsultant && (
+                <>
+                  <Grid item xs={12} md={6}>
+                    <Typography fontWeight="medium">Consultant Name</Typography>
+                    <Typography>{consultant.name || "-"}</Typography>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Typography fontWeight="medium">Consultant Number</Typography>
+                    <Typography>{consultant.phone || "-"}</Typography>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Typography fontWeight="medium">Consultant Email</Typography>
+                    <Typography>{consultant.email || "-"}</Typography>
+                  </Grid>
+                </>
+              )}
+            </Grid>
+          </>
+        );
+      })()}
 
       {/* ================= CLIENT ISSUES ================= */}
 

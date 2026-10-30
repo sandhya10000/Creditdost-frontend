@@ -28,7 +28,8 @@ import {
   DialogContent,
   DialogActions,
 } from "@mui/material";
-import { adminAPI } from "../../services/api";
+import { adminAPI, franchiseAPI } from "../../services/api";
+import { useAuth } from "../../hooks/useAuth.jsx";
 import { formatAmcDate } from "../../utils/amc";
 import { useNavigate, Link as RouterLink } from "react-router-dom";
 import { Link } from "@mui/material";
@@ -56,6 +57,29 @@ const BusinessForms = ({ status = "paid", customerType }) => {
   const [toast, setToast] = useState({ open: false, message: "", severity: "success" });
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [businessToDelete, setBusinessToDelete] = useState(null);
+  // Only full admins can change the RM; BMs see it read-only
+  const { user } = useAuth();
+  const isFullAdmin = !user?.staffRole;
+  const [rmList, setRmList] = useState([]);
+
+  useEffect(() => {
+    if (isBusinessView) return;
+    franchiseAPI
+      .getAssignableRms()
+      .then((res) => setRmList(res.data || []))
+      .catch((err) => console.error("Failed to load RMs:", err));
+  }, [isBusinessView]);
+
+  const assignRm = async (id, rmId) => {
+    try {
+      await adminAPI.assignBusinessRm(id, rmId);
+      setToast({ open: true, message: "RM updated.", severity: "success" });
+      fetchBusinessForms();
+    } catch (err) {
+      console.error(err);
+      setToast({ open: true, message: "Failed to update RM. Please try again.", severity: "error" });
+    }
+  };
 
   const handleCloseToast = (event, reason) => {
     if (reason === "clickaway") return;
@@ -417,6 +441,7 @@ const BusinessForms = ({ status = "paid", customerType }) => {
                     {isBusinessView && <TableCell>GST Number</TableCell>}
                     <TableCell>Email</TableCell>
                     <TableCell>Phone</TableCell>
+                    {!isBusinessView && <TableCell>RM</TableCell>}
                     <TableCell>Franchise</TableCell>
                     <TableCell>Package</TableCell>
                     <TableCell>Amount</TableCell>
@@ -480,6 +505,33 @@ const BusinessForms = ({ status = "paid", customerType }) => {
                         {form.customerEmail}
                       </TableCell>
                       <TableCell>{form.customerPhone}</TableCell>
+                      {!isBusinessView && (
+                        <TableCell sx={{ minWidth: 150 }}>
+                          {isFullAdmin ? (
+                            <FormControl size="small" fullWidth>
+                              <Select
+                                displayEmpty
+                                value={form.assignedRm?._id || ""}
+                                onChange={(e) => assignRm(form._id, e.target.value)}
+                              >
+                                <MenuItem value="">
+                                  <em>Unassigned</em>
+                                </MenuItem>
+                                {rmList.map((rm) => (
+                                  <MenuItem key={rm._id} value={rm._id}>
+                                    {rm.name}
+                                    {rm.staffCode ? ` (${rm.staffCode})` : ""}
+                                  </MenuItem>
+                                ))}
+                              </Select>
+                            </FormControl>
+                          ) : form.assignedRm ? (
+                            `${form.assignedRm.name}${form.assignedRm.staffCode ? ` (${form.assignedRm.staffCode})` : ""}`
+                          ) : (
+                            "Unassigned"
+                          )}
+                        </TableCell>
+                      )}
                       <TableCell sx={{ minWidth: 120 }}>
                         {form.franchiseId?._id ? (
                           <Link

@@ -272,18 +272,19 @@ const AIAnalysis = () => {
     try {
       const res = await franchiseAPI.getAIAnalysisUsage();
       if (res.data && res.data.success) {
-        setUsage({
+        const newUsage = {
           hasActivePackage: res.data.hasActivePackage,
           packageName: res.data.packageName || "Unknown",
-          used: res.data.used || 0,
+          used: res.data.used ?? 0,
           limit: res.data.limit,
           isUnlimited: res.data.isUnlimited || false,
           remaining: res.data.remaining,
           loading: false,
-        });
+        };
+        setUsage(newUsage);
       }
     } catch (err) {
-      console.error("Failed to fetch AI usage:", err);
+      console.error("[AI-CREDITS] Failed to fetch AI usage:", err);
       setUsage((prev) => ({ ...prev, loading: false }));
     }
   };
@@ -356,16 +357,18 @@ const AIAnalysis = () => {
     fetchUsage();
   }, []);
 
-  // Determine if user has reached limit or has no active package
-  const isLimitReached = !usage.isUnlimited && usage.limit !== null && usage.used >= usage.limit;
-  // isBlocked also covers Diamond fair-use cap (hidden from UI)
+  const isDiamond = usage.packageName?.trim().toLowerCase() === 'diamond';
+
+  // Keep these as they are. They still use the real numbers, so the block works at 1000.
+  const isLimitReached =
+    usage.limit !== null && usage.limit !== undefined &&
+    (usage.remaining <= 0 || usage.used >= usage.limit);
   const isBlocked = !usage.hasActivePackage || isLimitReached || fairUseLimitReached;
 
-  const progressPercent = usage.isUnlimited
-    ? 100
-    : usage.limit > 0
+  const progressPercent = usage.limit > 0
     ? Math.min(100, Math.round((usage.used / usage.limit) * 100))
-    : 100;
+    : (usage.hasActivePackage ? 0 : 100);
+
 
   return (
     <Box>
@@ -380,14 +383,6 @@ const AIAnalysis = () => {
         }}
       >
         <Typography variant="h4">AI Analysis</Typography>
-        <Button
-          variant="outlined"
-          color="primary"
-          startIcon={<UpgradeIcon />}
-          onClick={() => navigate("/franchise/upgrade-package")}
-        >
-          View Packages & Upgrades
-        </Button>
       </Box>
 
       {/* Usage Overview Banner */}
@@ -400,8 +395,8 @@ const AIAnalysis = () => {
           border: isLimitReached
             ? "1px solid #d32f2f"
             : !usage.hasActivePackage
-            ? "1px solid #ed6c02"
-            : "1px solid #e0e0e0",
+              ? "1px solid #ed6c02"
+              : "1px solid #e0e0e0",
           background: isLimitReached
             ? "linear-gradient(135deg, #fff5f5 0%, #ffffff 100%)"
             : "linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%)",
@@ -425,22 +420,20 @@ const AIAnalysis = () => {
                 borderRadius: "50%",
                 bgcolor: isLimitReached
                   ? "error.light"
-                  : usage.isUnlimited
-                  ? "success.light"
-                  : "primary.light",
+                  : progressPercent >= 80
+                    ? "warning.light"
+                    : "primary.light",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 color: isLimitReached
                   ? "error.main"
-                  : usage.isUnlimited
-                  ? "success.main"
-                  : "primary.main",
+                  : progressPercent >= 80
+                    ? "warning.main"
+                    : "primary.main",
               }}
             >
-              {usage.isUnlimited ? (
-                <UnlimitedIcon />
-              ) : isLimitReached ? (
+              {isLimitReached ? (
                 <LockIcon />
               ) : (
                 <AnalyticsIcon />
@@ -451,59 +444,44 @@ const AIAnalysis = () => {
                 Active Plan: <strong>{usage.packageName || "No Active Plan"}</strong>
               </Typography>
               <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                {usage.isUnlimited
-                  ? "AI Reports Used: Unlimited"
-                  : `AI Reports Used: ${usage.used}`}
+                {isDiamond
+                  ? 'AI Reports Used: Unlimited'
+                  : `AI Reports Used: ${usage.used} / ${usage.limit ?? 0}`}
               </Typography>
             </Box>
           </Box>
 
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-            {/* {!usage.isUnlimited && (
-              // <Chip
-              //   label={
-              //     isLimitReached
-              //       ? "Limit Reached"
-              //       : `${Math.max(0, (usage.limit ?? 0) - usage.used)} analyses left`
-              //   }
-              //   color={isLimitReached ? "error" : "primary"}
-              //   variant={isLimitReached ? "filled" : "outlined"}
-              //   size="medium"
-              // />
-            )} */}
-            {usage.isUnlimited && (
+            {usage.hasActivePackage && (
               <Chip
-                icon={<UnlimitedIcon />}
-                label="Unlimited Analyses"
-                color="success"
-                variant="outlined"
+                label={isDiamond ? 'Unlimited Analyses' : `${usage.remaining} remaining`}
+                color={isLimitReached ? "error" : progressPercent >= 80 ? "warning" : "primary"}
+                variant={isLimitReached ? "filled" : "outlined"}
                 size="medium"
               />
-            )}
-            {(isLimitReached || !usage.hasActivePackage) && (
-              <Button
-                variant="contained"
-                color="primary"
-                size="small"
-                startIcon={<UpgradeIcon />}
-                onClick={() => navigate("/franchise/upgrade-package")}
-              >
-                Upgrade Package
-              </Button>
             )}
           </Box>
         </Box>
 
-        {!usage.isUnlimited && (
-          <Box sx={{ mt: 1 }}>
+        {!isDiamond && (
+          <Box sx={{ mt: 1.5 }}>
             <LinearProgress
               variant="determinate"
               value={progressPercent}
-              color={isLimitReached ? "error" : progressPercent > 80 ? "warning" : "primary"}
+              color={progressPercent >= 100 ? "error" : progressPercent >= 80 ? "warning" : "primary"}
               sx={{
                 height: 8,
                 borderRadius: 4,
                 bgcolor: "grey.200",
+                "& .MuiLinearProgress-bar": {
+                  borderRadius: 4,
+                  bgcolor:
+                    progressPercent >= 100
+                      ? "#d32f2f"
+                      : progressPercent >= 80
+                        ? "#ed6c02"
+                        : "#1976d2",
+                },
               }}
             />
           </Box>
@@ -537,13 +515,13 @@ const AIAnalysis = () => {
             <Button
               color="inherit"
               size="small"
-              onClick={() => navigate("/franchise/upgrade-package")}
+              onClick={() => navigate("/franchise/business")}
             >
               Upgrade Now
             </Button>
           }
         >
-          You have used all {usage.limit} AI report analyses in your {usage.packageName} package. Please upgrade your package to continue analyzing reports.
+          Your AI Analysis limit has been reached. Please connect with your RM for further assistance.
         </Alert>
       )}
 
@@ -674,8 +652,8 @@ const AIAnalysis = () => {
             {currentStatus === "pending" && <CloudUploadIcon color="primary" />}
             {(currentStatus === "processing" ||
               currentStatus === "completed") && (
-              <AnalyticsIcon color="action" />
-            )}
+                <AnalyticsIcon color="action" />
+              )}
             {currentStatus === "email_sent" && (
               <CheckCircleIcon color="success" />
             )}
@@ -848,7 +826,7 @@ const AIAnalysis = () => {
                         gap: { xs: 1, sm: 0 },
                       }}
                     >
-                      <ListItemText
+                      <ListItemText component="div"
                         sx={{ pr: { sm: 2 } }}
                         primary={
                           <Box
@@ -980,8 +958,8 @@ const AIAnalysis = () => {
                               isBlocked
                                 ? "AI report limit reached. Upgrade package to analyze."
                                 : analysisFailed
-                                ? "Retry AI Analysis"
-                                : "Trigger AI Analysis"
+                                  ? "Retry AI Analysis"
+                                  : "Trigger AI Analysis"
                             }
                           >
                             <span>
