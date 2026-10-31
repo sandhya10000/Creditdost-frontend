@@ -19,6 +19,7 @@ import RemarksTab from "../../components/admin/crm/RemarksTab";
 import DocumentTab from "../../components/admin/crm/DocumentTab";
 
 import { adminAPI } from "../../services/api";
+import { notifyInboxCountsChanged } from "../admin/useInboxUnreadCounts";
 
 const CustomerCRM = () => {
   const [tab, setTab] = useState(0);
@@ -39,6 +40,10 @@ const CustomerCRM = () => {
       const res = await adminAPI.getSinglebusinessform(customerId);
       console.log(res, "response-----crm");
       setCustomerInfo(res.data.data);
+      // Opening a customer clears its Business MIS unread badge
+      if (res.data.data?._id) {
+        adminAPI.markBusinessFormRead(res.data.data._id).then(notifyInboxCountsChanged).catch(() => {});
+      }
     } catch (err) {
       console.log(err);
     } finally {

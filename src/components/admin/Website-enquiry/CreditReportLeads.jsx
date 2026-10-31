@@ -181,6 +181,19 @@ const buildParams = (tab, filters, page, rowsPerPage) => {
   return params;
 };
 
+// Fetches one page for the tab and maps the response to { rows, total }
+const fetchLeadPage = async (tab, params) => {
+  const res =
+    tab.key === "franchise"
+      ? await adminAPI.getFranchiseLeads(params)
+      : await adminAPI.getCreditRepairEnquiries(params);
+  const data = res.data;
+  return {
+    rows: tab.key === "franchise" ? data.leads || [] : data.enquiries || [],
+    total: data.total || 0,
+  };
+};
+
 const downloadCsv = (tab, rows) => {
   const headers = tab.detail.map((d) => d.label);
   const lines = rows.map((r) =>
@@ -227,15 +240,10 @@ const CreditReportLeads = () => {
       setLoading(true);
       setError("");
       try {
-        const params = buildParams(tab, appliedFilters, page, rowsPerPage);
-        const res =
-          tab.key === "franchise"
-            ? await adminAPI.getFranchiseLeads(params)
-            : await adminAPI.getCreditRepairEnquiries(params);
+        const data = await fetchLeadPage(tab, buildParams(tab, appliedFilters, page, rowsPerPage));
         if (ignore) return;
-        const data = res.data;
-        setRows(tab.key === "franchise" ? data.leads || [] : data.enquiries || []);
-        setTotal(data.total || 0);
+        setRows(data.rows);
+        setTotal(data.total);
       } catch (err) {
         if (!ignore) setError(err.response?.data?.message || "Failed to load leads");
       } finally {
@@ -247,6 +255,21 @@ const CreditReportLeads = () => {
       ignore = true;
     };
   }, [tab, appliedFilters, page, rowsPerPage, refreshKey]);
+
+  // Silent refresh so new leads appear without a reload (no spinner, skipped while the tab is hidden)
+  useEffect(() => {
+    const timer = setInterval(async () => {
+      if (document.hidden) return;
+      try {
+        const data = await fetchLeadPage(tab, buildParams(tab, appliedFilters, page, rowsPerPage));
+        setRows(data.rows);
+        setTotal(data.total);
+      } catch {
+        // Keep the current list if a background refresh fails
+      }
+    }, 30000);
+    return () => clearInterval(timer);
+  }, [tab, appliedFilters, page, rowsPerPage]);
 
   const handleTabChange = (_, value) => {
     setTabIndex(value);
@@ -377,7 +400,9 @@ const CreditReportLeads = () => {
                 label={
                   <Stack direction="row" alignItems="center" spacing={1}>
                     {t.label}
-                    {count > 0 && <Chip size="small" color="error" label={count} />}
+                    {count > 0 && (
+                      <Chip size="small" label={count} sx={{ bgcolor: "#9b7cf6", color: "#fff" }} />
+                    )}
                   </Stack>
                 }
               />

@@ -18,6 +18,7 @@ import {
   Typography,
 } from "@mui/material";
 import { adminAPI, getAttachmentUrl } from "../../services/api";
+import { notifyInboxCountsChanged } from "./useInboxUnreadCounts";
 
 const STATUS_OPTIONS = ["Pending", "In Progress", "Resolved", "Closed"];
 const PRIORITY_OPTIONS = ["Low", "Medium", "High"];
@@ -125,18 +126,6 @@ const AdminTickets = () => {
     }
   };
 
-  const handleMetaChange = async (ticketId, data) => {
-    try {
-      setUpdatingId(ticketId);
-      const res = await adminAPI.updateTicketMeta(ticketId, data);
-      replaceTicketInList(res.data.data);
-    } catch (err) {
-      alert(err.response?.data?.message || "Failed to update ticket");
-    } finally {
-      setUpdatingId(null);
-    }
-  };
-
   const openTicket = async (ticket) => {
     try {
       setDetailLoading(true);
@@ -147,6 +136,8 @@ const AdminTickets = () => {
       const res = await adminAPI.getTicket(ticket._id);
       setSelected(res.data.data.ticket);
       setReplies(res.data.data.replies);
+      // Opening a ticket clears its unread badge
+      adminAPI.markTicketRead(ticket._id).then(notifyInboxCountsChanged).catch(() => {});
     } catch (err) {
       alert(err.response?.data?.message || "Failed to load ticket");
       setSelected(null);
@@ -297,39 +288,6 @@ const AdminTickets = () => {
                   </MenuItem>
                 ))}
               </TextField>
-
-              <TextField
-                select
-                size="small"
-                label="Priority"
-                value={ticket.priority || "Medium"}
-                disabled={updatingId === ticket._id}
-                onChange={(e) =>
-                  handleMetaChange(ticket._id, { priority: e.target.value })
-                }
-                sx={{ minWidth: 130 }}
-              >
-                {PRIORITY_OPTIONS.map((p) => (
-                  <MenuItem key={p} value={p}>
-                    {p}
-                  </MenuItem>
-                ))}
-              </TextField>
-
-              <Button
-                size="small"
-                variant="outlined"
-                disabled={updatingId === ticket._id}
-                onClick={() =>
-                  handleMetaChange(ticket._id, {
-                    assignment: ticket.assignedTo ? "none" : "me",
-                  })
-                }
-              >
-                {ticket.assignedTo
-                  ? `Assigned: ${ticket.assignedTo.name} (unassign)`
-                  : "Assign to me"}
-              </Button>
 
               <Button size="small" onClick={() => openTicket(ticket)}>
                 View & reply

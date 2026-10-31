@@ -68,6 +68,7 @@ import ExpandLess from "@mui/icons-material/ExpandLess";
 import ExpandMore from "@mui/icons-material/ExpandMore";
 import CASE_STUDY_CATEGORIES from "../../config/caseStudyCategories";
 import { useLeadUnreadCounts } from "./useLeadUnreadCounts";
+import { useInboxUnreadCounts } from "./useInboxUnreadCounts";
 
 // Styled components for enhanced UI
 const drawerWidth = 260;
@@ -220,7 +221,34 @@ const AdminDashboard = () => {
   const location = useLocation();
   const { user, logout } = useAuth();
   const leadCounts = useLeadUnreadCounts();
+  const inboxCounts = useInboxUnreadCounts();
   const [openMenu, setOpenMenu] = useState({});
+
+  // Unread count shown beside a sidebar entry (0 = no badge)
+  const badgeCountFor = (item) => {
+    if (item.path === "/admin/credit-report-leads") return leadCounts.total;
+    if (item.path === "/admin/admin-tickets") return inboxCounts.support;
+    if (item.path === "/admin/business-forms/individual") return inboxCounts.business.individual;
+    if (item.path === "/admin/business-forms/business") return inboxCounts.business.business;
+    if (item.text === "Business MIS") return inboxCounts.business.total;
+    return 0;
+  };
+
+  const withUnreadBadge = (item) => {
+    const count = badgeCountFor(item);
+    return count > 0 ? (
+      <>
+        {item.text}
+        <Chip
+          size="small"
+          label={count}
+          sx={{ ml: 1, height: 20, bgcolor: "#9b7cf6", color: "#fff" }}
+        />
+      </>
+    ) : (
+      item.text
+    );
+  };
 
   // Redirect non-admin users to appropriate dashboard
   useEffect(() => {
@@ -494,21 +522,7 @@ const AdminDashboard = () => {
               >
                 <ListItemIcon>{item.icon}</ListItemIcon>
                 <ListItemText
-                  primary={
-                    item.path === "/admin/credit-report-leads" && leadCounts.total > 0 ? (
-                      <>
-                        {item.text}
-                        <Chip
-                          size="small"
-                          color="error"
-                          label={leadCounts.total}
-                          sx={{ ml: 1, height: 20 }}
-                        />
-                      </>
-                    ) : (
-                      item.text
-                    )
-                  }
+                  primary={withUnreadBadge(item)}
                   sx={{ opacity: open || isMobile ? 1 : 0 }} /* MOBILE FIX */
                   primaryTypographyProps={{
                     noWrap: true,
@@ -555,7 +569,7 @@ const AdminDashboard = () => {
                           </ListItemIcon>
                         )}
                         <ListItemText
-                          primary={child.text}
+                          primary={withUnreadBadge(child)}
                           primaryTypographyProps={{
                             fontSize: { xs: "0.8rem", sm: "0.875rem" },
                             noWrap: true,

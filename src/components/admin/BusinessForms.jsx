@@ -29,6 +29,7 @@ import {
   DialogActions,
 } from "@mui/material";
 import { adminAPI, franchiseAPI } from "../../services/api";
+import { notifyInboxCountsChanged } from "./useInboxUnreadCounts";
 import { useAuth } from "../../hooks/useAuth.jsx";
 import { formatAmcDate } from "../../utils/amc";
 import { useNavigate, Link as RouterLink } from "react-router-dom";
@@ -50,6 +51,8 @@ const BusinessForms = ({ status = "paid", customerType }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  // The term the list is actually filtered by (typed text is applied after a short pause or on submit)
+  const [appliedSearch, setAppliedSearch] = useState("");
 
   const [totalRecords, setTotalRecords] = useState(0);
   const [page, setPage] = useState(1);
@@ -91,10 +94,28 @@ const BusinessForms = ({ status = "paid", customerType }) => {
     setPage(1);
   }, [status, customerType]);
 
+  // Search as you type: apply the term after a short pause, back to page 1
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setAppliedSearch(searchTerm.trim());
+      setPage(1);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
   // Fetch all business forms on component mount or dependency change
   useEffect(() => {
     fetchBusinessForms();
-  }, [status, customerType, page, searchTerm]);
+  }, [status, customerType, page, appliedSearch]);
+
+  // Opening a paid Individual / Business list clears that type's unread badge
+  useEffect(() => {
+    if (status !== "paid" || !customerType) return;
+    adminAPI
+      .markBusinessFormsListRead(customerType)
+      .then(notifyInboxCountsChanged)
+      .catch(() => {});
+  }, [status, customerType]);
 
   const fetchBusinessForms = async () => {
     try {
@@ -103,7 +124,7 @@ const BusinessForms = ({ status = "paid", customerType }) => {
       const response = await adminAPI.getAllBusinessForms({
         page: page,
         limit: rowsPerPage,
-        search: searchTerm,
+        search: appliedSearch,
         paymentStatus: status,
         ...(customerType && { customerType }),
       });
@@ -122,8 +143,8 @@ const BusinessForms = ({ status = "paid", customerType }) => {
   };
   const handleSearch = (e) => {
     e.preventDefault();
+    setAppliedSearch(searchTerm.trim());
     setPage(1);
-    fetchBusinessForms();
   };
   //function for case close update from admin api
   const closeCase = async (id) => {
@@ -188,7 +209,7 @@ const BusinessForms = ({ status = "paid", customerType }) => {
       const response = await adminAPI.getAllBusinessForms({
         page: 1,
         limit: 1000000, // Large number to fetch all records
-        search: searchTerm,
+        search: appliedSearch,
         paymentStatus: status,
         ...(customerType && { customerType }),
       });

@@ -100,6 +100,8 @@ const DetailSection = ({ title, children }) => (
 
 const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPage = false }) => {
   const [searchTerm, setSearchTerm] = useState("");
+  // The term the list is actually filtered by (typed text is applied after a short pause or on submit)
+  const [appliedSearch, setAppliedSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -182,11 +184,20 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
     setKycStatus(initialKycStatus);
   }, [initialKycStatus]);
 
+  // Search as you type: apply the term after a short pause, back to page 1
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setAppliedSearch(searchTerm.trim());
+      setPage(1);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
   // Reload data when page, search or bureau filter changes
   // tabValue 1 = Deleted Franchises tab
   useEffect(() => {
     fetchFranchises();
-  }, [page, kycStatus, tabValue]);
+  }, [page, kycStatus, tabValue, appliedSearch]);
 
   // Fetch all franchises and packages on component mount
   useEffect(() => {
@@ -240,7 +251,7 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
       const queryParams = {
         page: page,
         limit: rowsPerPage,
-        search: searchTerm,
+        search: appliedSearch,
         kycStatus: kycStatus !== "all" ? kycStatus : "",
         // Deleted tab (tabValue 1) shows only soft-deleted franchises
         showDeleted: tabValue === 1 ? "true" : undefined,
@@ -274,8 +285,8 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
 
   const handleSearch = (e) => {
     e.preventDefault();
+    setAppliedSearch(searchTerm.trim());
     setPage(1);
-    fetchFranchises();
   };
 
   // const handleSearch = (e) => {
@@ -1124,7 +1135,7 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
 
       // Pass the same search/kycStatus filters that are active in the list view
       const params = {
-        search: searchTerm,
+        search: appliedSearch,
         kycStatus: kycStatus !== "all" ? kycStatus : "",
       };
       
@@ -1278,7 +1289,7 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
                   <Grid item xs={12} sm={10}>
                     <TextField
                       fullWidth
-                      placeholder="Search franchises by business name, owner name, or email"
+                      placeholder="Search franchises by partner ID, business name, owner name, or email"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       InputProps={{

@@ -270,6 +270,10 @@ export const adminAPI = {
   },
   // Business forms
   getAllBusinessForms: (params) => api.get("/business/all", { params }),
+  getBusinessUnreadCounts: () => api.get("/business/unread-counts"),
+  markBusinessFormRead: (id) => api.put(`/business/admin/business-forms/${id}/read`),
+  markBusinessFormsListRead: (customerType) =>
+    api.put("/business/admin/business-forms/mark-read", null, { params: { customerType } }),
   //business form close case
   closeBusinessCase: (id) =>
     api.put(`/admin/business/${id}/close`, {
@@ -420,6 +424,8 @@ export const adminAPI = {
     api.patch(`/admin/support/tickets/${id}/status`, { status }),
   updateTicketMeta: (id, data) =>
     api.patch(`/admin/support/tickets/${id}/meta`, data),
+  getSupportUnreadCount: () => api.get("/admin/support/unread-count"),
+  markTicketRead: (id) => api.patch(`/admin/support/tickets/${id}/read`),
   deleteBusinessForm: (id) => api.delete(`/admin/business-forms/${id}`),
   // AMC (Annual Maintenance Contract)
   getAmcCustomers: (params) => api.get("/business/amc", { params }),
