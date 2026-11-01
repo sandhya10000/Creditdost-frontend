@@ -28,6 +28,7 @@ import CRIF from "./creditBureau/CRIF";
 import Experian from "./creditBureau/Experian";
 import Equifax from "./creditBureau/Equifax";
 import UpgradePackage from "./UpgradePackage";
+import BrandedReportPage from "./brandedReport/BrandedReportPage";
 
 const FranchiseRoutes = () => {
   return (
@@ -48,6 +49,7 @@ const FranchiseRoutes = () => {
         <Route path="business-mis" element={<BusinessMIS />} />
         <Route path="amc-customers" element={<AmcCustomers />} />
         <Route path="ai-analysis" element={<AIAnalysis />} />
+        <Route path="ai-custom-branded-report" element={<BrandedReportPage />} />
         <Route path="certificate" element={<Certificate />} />
         <Route path="agreement" element={<DigitalAgreement />} />
         <Route path="payouts" element={<Payouts />} />
