@@ -96,6 +96,8 @@ export const franchiseAPI = {
   updateLeadStatus: (leadId, data) => api.put(`/leads/${leadId}/status`, data),
   // Business form functions
   submitBusinessForm: (data) => api.post("/business/submit", data),
+  lookupConsultant: (q) => api.get("/business/consultant-lookup", { params: { q } }),
+  getAssignableRms: () => api.get("/business/rms"),
   verifyBusinessPayment: (data) => api.post("/business/verify-payment", data),
   getBusinessForms: () => api.get("/business/franchise"),
   getAmcCustomers: (params) => api.get("/business/franchise/amc", { params }),
@@ -268,6 +270,10 @@ export const adminAPI = {
   },
   // Business forms
   getAllBusinessForms: (params) => api.get("/business/all", { params }),
+  getBusinessUnreadCounts: () => api.get("/business/unread-counts"),
+  markBusinessFormRead: (id) => api.put(`/business/admin/business-forms/${id}/read`),
+  markBusinessFormsListRead: (customerType) =>
+    api.put("/business/admin/business-forms/mark-read", null, { params: { customerType } }),
   //business form close case
   closeBusinessCase: (id) =>
     api.put(`/admin/business/${id}/close`, {
@@ -294,10 +300,15 @@ export const adminAPI = {
   updateCreditRepairEnquiryStatus: (id, status) =>
     api.put(`/admin/credit-repair/${id}/status`, { status }),
   deleteCreditRepairEnquiry: (id) => api.delete(`/admin/credit-repair/${id}`),
+  markCreditRepairRead: (id) => api.put(`/admin/credit-repair/${id}/read`),
   // Website Franchise Leads
   getFranchiseLeads: (params) => api.get("/admin/franchise-leads", { params }),
   updateFranchiseLeadStatus: (id, status) =>
     api.put(`/admin/franchise-leads/${id}/status`, { status }),
+  markFranchiseLeadRead: (id) => api.put(`/admin/franchise-leads/${id}/read`),
+  deleteFranchiseLead: (id) => api.delete(`/admin/franchise-leads/${id}`),
+  // New, unread lead counts (sidebar badge + tabs)
+  getLeadUnreadCounts: () => api.get("/admin/leads/unread-counts"),
   // Blogs
   getAllBlogs: (params) => api.get("/blogs/admin", { params }),
   createBlog: (blogData) => api.post("/blogs/admin", blogData),
@@ -383,6 +394,8 @@ export const adminAPI = {
   // closeBusinessCaseadmin: (id) => api.post(`/business/close-case/${id}`),
   updateBusinessWorkStatus: (id, data) =>
     api.put(`/admin/business-forms/${id}/work-status`, data),
+  assignBusinessRm: (id, rmId) =>
+    api.patch(`/business/admin/business-forms/${id}/rm`, { rmId }),
   // Staff & roles (full administrators only)
   getPermissionCatalog: () => api.get("/admin/permissions"),
   getStaffRoles: () => api.get("/admin/roles"),
@@ -411,6 +424,8 @@ export const adminAPI = {
     api.patch(`/admin/support/tickets/${id}/status`, { status }),
   updateTicketMeta: (id, data) =>
     api.patch(`/admin/support/tickets/${id}/meta`, data),
+  getSupportUnreadCount: () => api.get("/admin/support/unread-count"),
+  markTicketRead: (id) => api.patch(`/admin/support/tickets/${id}/read`),
   deleteBusinessForm: (id) => api.delete(`/admin/business-forms/${id}`),
   // AMC (Annual Maintenance Contract)
   getAmcCustomers: (params) => api.get("/business/amc", { params }),

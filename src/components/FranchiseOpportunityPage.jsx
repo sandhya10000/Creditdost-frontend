@@ -34,7 +34,6 @@ import Header from "./homepage/Header";
 import HomePageFooter from "./homepage/HomePageFooter";
 import api from "../services/api";
 import RegistrationForm from "./common/RegistrationForm";
-import { useAuth } from "../hooks/useAuth.jsx";
 import { useNavigate } from "react-router-dom";
 import FranchiseSuccessStories from "./franchise/FranchiseSuccessStories.jsx";
 
@@ -290,7 +289,6 @@ const FranchiseOpportunityPage = () => {
   });
 
   const [submitted, setSubmitted] = useState(false);
-  const { register } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -1483,18 +1481,9 @@ const FranchiseOpportunityPage = () => {
                         <RegistrationForm
                           onSubmit={async (registrationData) => {
                             try {
-                              // Call the actual registration function
-                              await register({
-                                name: registrationData.name,
-                                email: registrationData.email,
-                                phone: registrationData.phone,
-                                state: registrationData.state,
-                                pincode: registrationData.pincode,
-                                language: registrationData.language,
-                                password: registrationData.password,
-                              });
-
-                              // After successful registration, submit franchise inquiry
+                              // Submit as a lead only. Calling register() here created a
+                              // franchise_user + Franchise record (kycStatus "pending"), which
+                              // made every inquiry show up in the Pending Franchises page.
                               const franchiseData = {
                                 fullName: registrationData.name || "",
                                 mobileNumber: registrationData.phone || "",

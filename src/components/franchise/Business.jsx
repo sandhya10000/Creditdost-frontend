@@ -32,6 +32,7 @@ import {
 } from "@mui/material";
 import { Check as CheckIcon, Close as CloseIcon } from "@mui/icons-material";
 import api, { franchiseAPI } from "../../services/api";
+import { useAuth } from "../../hooks/useAuth.jsx";
 import { ensureRazorpay } from "../../utils/razorpay";
 import IconButton from "@mui/material/IconButton";
 //import FileUploadField from "./FileUploadField";
@@ -59,7 +60,12 @@ const GSTIN_REGEX = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
 
 // fixedCustomerType ("individual" | "business") locks the form to one customer type
 // and hides the Customer Type dropdown. Omit it to let the user pick.
-const Business = ({ userType, fixedCustomerType, amcEnabled = false }) => {
+const Business = ({
+  userType,
+  fixedCustomerType,
+  amcEnabled = false,
+  showConsultantFields = false,
+}) => {
   // console.log("userType", userType);
   const [customerPackages, setCustomerPackages] = useState([]);
   const [filteredPackages, setFilteredPackages] = useState([]);
@@ -118,6 +124,93 @@ const Business = ({ userType, fixedCustomerType, amcEnabled = false }) => {
   });
 
   const [franchises, setFranchises] = useState([]);
+
+  // Individual Consultant (optional referral). autoPhone/autoEmail remember what was prefilled
+  // from staff so a later prefill never overwrites something the user typed themselves.
+  const [consultant, setConsultant] = useState({
+    name: "",
+    phone: "",
+    email: "",
+    autoPhone: "",
+    autoEmail: "",
+  });
+  const [assignedRm, setAssignedRm] = useState("");
+  const [rms, setRms] = useState([]);
+
+  // A Business Manager logging their own customer is pre-selected as the RM.
+  // The field stays editable so they can pick someone else when filling on another's behalf.
+  const { user: currentUser } = useAuth();
+  const currentBmId = currentUser?.scopedToOwnFranchises
+    ? currentUser?.id || currentUser?._id
+    : null;
+  useEffect(() => {
+    if (showConsultantFields && currentBmId) {
+      setAssignedRm((prev) => prev || currentBmId);
+    }
+  }, [showConsultantFields, currentBmId]);
+
+  useEffect(() => {
+    if (!showConsultantFields) return;
+    const loadRms = async () => {
+      try {
+        const res = await franchiseAPI.getAssignableRms();
+        setRms(res.data || []);
+      } catch (err) {
+        console.error("Failed to load RMs:", err);
+      }
+    };
+    loadRms();
+  }, [showConsultantFields]);
+
+  // Debounced staff lookup: runs 600ms after the user stops typing, never per keystroke
+  useEffect(() => {
+    if (!showConsultantFields) return;
+    const q = consultant.name.trim();
+    if (q.length < 3) return;
+
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      try {
+        const res = await franchiseAPI.lookupConsultant(q);
+        if (cancelled) return;
+        const matches = res.data || [];
+        const exact = matches.find(
+          (m) => m.name?.toLowerCase() === q.toLowerCase(),
+        );
+        const staff = exact || (matches.length === 1 ? matches[0] : null);
+        if (!staff) return;
+
+        setConsultant((prev) => {
+          const canSet = (current, auto) => !current || current === auto;
+          return {
+            ...prev,
+            phone:
+              staff.phone && canSet(prev.phone, prev.autoPhone)
+                ? staff.phone
+                : prev.phone,
+            email:
+              staff.email && canSet(prev.email, prev.autoEmail)
+                ? staff.email
+                : prev.email,
+            autoPhone: staff.phone || prev.autoPhone,
+            autoEmail: staff.email || prev.autoEmail,
+          };
+        });
+      } catch (err) {
+        console.error("Consultant lookup failed:", err);
+      }
+    }, 600);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [consultant.name, showConsultantFields]);
+
+  const handleConsultantChange = (e) => {
+    const { name, value } = e.target;
+    setConsultant((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -296,6 +389,14 @@ const Business = ({ userType, fixedCustomerType, amcEnabled = false }) => {
           franchiseId: franchiseData1.franchiseId,
           manualAmount: Number(formData.manualAmount),
         }),
+
+        ...(showConsultantFields &&
+          formData.customerType === "individual" && {
+            consultantName: consultant.name,
+            consultantPhone: consultant.phone,
+            consultantEmail: consultant.email,
+            assignedRm: assignedRm || null,
+          }),
 
         ...(amcEnabled && {
           amc: {
@@ -721,6 +822,76 @@ const Business = ({ userType, fixedCustomerType, amcEnabled = false }) => {
                               </Select>
                             </FormControl>
                           </Grid>
+                        )}
+                        {showConsultantFields && (
+                          <>
+                            <Grid
+                              item
+                              xs={12}
+                              sm={6}
+                              sx={{ minWidth: { xs: "0px", md: "350px" } }}
+                            >
+                              <TextField
+                                fullWidth
+                                label="Individual Consultant Name (Optional)"
+                                name="name"
+                                value={consultant.name}
+                                onChange={handleConsultantChange}
+                                helperText="Type 3+ letters to search staff"
+                              />
+                            </Grid>
+                            <Grid
+                              item
+                              xs={12}
+                              sm={6}
+                              sx={{ minWidth: { xs: "0px", md: "350px" } }}
+                            >
+                              <TextField
+                                fullWidth
+                                label="Individual Consultant Number (Optional)"
+                                name="phone"
+                                value={consultant.phone}
+                                onChange={handleConsultantChange}
+                              />
+                            </Grid>
+                            <Grid
+                              item
+                              xs={12}
+                              sm={6}
+                              sx={{ minWidth: { xs: "0px", md: "350px" } }}
+                            >
+                              <TextField
+                                fullWidth
+                                label="Individual Consultant Email (Optional)"
+                                name="email"
+                                value={consultant.email}
+                                onChange={handleConsultantChange}
+                              />
+                            </Grid>
+                            <Grid
+                              item
+                              xs={12}
+                              sm={6}
+                              sx={{ minWidth: { xs: "0px", md: "350px" } }}
+                            >
+                              <FormControl fullWidth>
+                                <InputLabel>Assign to RM (Optional)</InputLabel>
+                                <Select
+                                  label="Assign to RM (Optional)"
+                                  value={assignedRm}
+                                  onChange={(e) => setAssignedRm(e.target.value)}
+                                >
+                                  <MenuItem value="">None</MenuItem>
+                                  {rms.map((rm) => (
+                                    <MenuItem key={rm._id} value={rm._id}>
+                                      {rm.name}
+                                      {rm.staffCode ? ` (${rm.staffCode})` : ""}
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+                              </FormControl>
+                            </Grid>
+                          </>
                         )}
                         <Grid
                           item

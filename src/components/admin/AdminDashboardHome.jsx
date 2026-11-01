@@ -39,6 +39,7 @@ import EqualizerIcon from "@mui/icons-material/Equalizer";
 import InsightsIcon from "@mui/icons-material/Insights";
 import { styled } from "@mui/material/styles";
 import { adminAPI } from "../../services/api"; // Import the admin API
+import { useAuth } from "../../hooks/useAuth.jsx";
 
 // Recharts imports
 import {
@@ -113,6 +114,7 @@ const QuickActionCard = styled(Card)(({ theme }) => ({
 }));
 
 const AdminDashboardHome = () => {
+  const { user } = useAuth();
   const [stats, setStats] = useState({
     totalFranchises: 0,
     activeFranchises: 0,
@@ -331,7 +333,7 @@ const AdminDashboardHome = () => {
     {
       type: "static",
       title: "Report Section",
-      value: "0 / 0",
+      value: `${stats.reportCounts?.bureau?.today ?? 0} / ${stats.reportCounts?.bureau?.monthly ?? 0}`,
       subtext: "Today / Monthly",
       icon: <AssessmentIcon sx={{ fontSize: 30 }} />,
       color: "#2196f3",
@@ -341,7 +343,7 @@ const AdminDashboardHome = () => {
     {
       type: "static",
       title: "AI Report",
-      value: "0 / 0",
+      value: `${stats.reportCounts?.ai?.today ?? 0} / ${stats.reportCounts?.ai?.monthly ?? 0}`,
       subtext: "Today / Monthly",
       icon: <InsightsIcon sx={{ fontSize: 30 }} />,
       color: "#9c27b0",
@@ -568,7 +570,9 @@ const AdminDashboardHome = () => {
             Dashboard Overview
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            Welcome back, Administrator. Here's what's happening today.
+            {user?.staffRoleName
+              ? `Welcome back, ${user.name}. Here's what's happening today.`
+              : "Welcome back, Administrator. Here's what's happening today."}
           </Typography>
         </Box>
         <Box sx={{ display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap" }}>

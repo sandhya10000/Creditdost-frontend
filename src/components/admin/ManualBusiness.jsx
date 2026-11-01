@@ -19,7 +19,12 @@ const ManualBusiness = () => {
 
       {/* key remounts the form so each tab starts with its own clean state */}
       {tabValue === 0 && (
-        <Business key="individual" userType="admin" fixedCustomerType="individual" />
+        <Business
+          key="individual"
+          userType="admin"
+          fixedCustomerType="individual"
+          showConsultantFields
+        />
       )}
       {tabValue === 1 && (
         <Business key="business" userType="admin" fixedCustomerType="business" />

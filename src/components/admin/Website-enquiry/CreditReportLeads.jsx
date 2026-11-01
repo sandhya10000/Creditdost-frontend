@@ -23,6 +23,7 @@ import {
   Typography,
 } from "@mui/material";
 import { adminAPI } from "../../../services/api";
+import { useLeadUnreadCounts, notifyLeadCountsChanged } from "../useLeadUnreadCounts";
 
 const CR_STATUSES = ["New", "Contacted", "In Progress", "Resolved"];
 const FRANCHISE_STATUSES = ["New", "Contacted", "Interested", "Not Interested"];
@@ -80,6 +81,7 @@ const TABS = [
   {
     key: "credit-repair",
     label: "Credit Repair Enquiry",
+    countKey: "creditRepair",
     description: "Enquiries from the website Credit Repair form.",
     source: "website",
     statuses: CR_STATUSES,
@@ -105,6 +107,7 @@ const TABS = [
   {
     key: "franchise",
     label: "Franchise Leads",
+    countKey: "franchise",
     description: "Enquiries from the Franchise Opportunity form.",
     statuses: FRANCHISE_STATUSES,
     filters: [...COMMON_FILTERS, "profession"],
@@ -123,6 +126,7 @@ const TABS = [
   {
     key: "whatsapp",
     label: "WhatsApp Credit Repair Leads",
+    countKey: "whatsapp",
     description: "Customers with a credit score below 700 who tapped Contact Support on WhatsApp.",
     source: "whatsapp",
     statuses: CR_STATUSES,
@@ -177,6 +181,19 @@ const buildParams = (tab, filters, page, rowsPerPage) => {
   return params;
 };
 
+// Fetches one page for the tab and maps the response to { rows, total }
+const fetchLeadPage = async (tab, params) => {
+  const res =
+    tab.key === "franchise"
+      ? await adminAPI.getFranchiseLeads(params)
+      : await adminAPI.getCreditRepairEnquiries(params);
+  const data = res.data;
+  return {
+    rows: tab.key === "franchise" ? data.leads || [] : data.enquiries || [],
+    total: data.total || 0,
+  };
+};
+
 const downloadCsv = (tab, rows) => {
   const headers = tab.detail.map((d) => d.label);
   const lines = rows.map((r) =>
@@ -207,6 +224,9 @@ const CreditReportLeads = () => {
   const [error, setError] = useState("");
   const [refreshKey, setRefreshKey] = useState(0);
   const [detailRow, setDetailRow] = useState(null);
+  const [deleteRow, setDeleteRow] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+  const leadCounts = useLeadUnreadCounts();
 
   // Debounce typing so each keystroke doesn't trigger a request
   useEffect(() => {
@@ -220,15 +240,10 @@ const CreditReportLeads = () => {
       setLoading(true);
       setError("");
       try {
-        const params = buildParams(tab, appliedFilters, page, rowsPerPage);
-        const res =
-          tab.key === "franchise"
-            ? await adminAPI.getFranchiseLeads(params)
-            : await adminAPI.getCreditRepairEnquiries(params);
+        const data = await fetchLeadPage(tab, buildParams(tab, appliedFilters, page, rowsPerPage));
         if (ignore) return;
-        const data = res.data;
-        setRows(tab.key === "franchise" ? data.leads || [] : data.enquiries || []);
-        setTotal(data.total || 0);
+        setRows(data.rows);
+        setTotal(data.total);
       } catch (err) {
         if (!ignore) setError(err.response?.data?.message || "Failed to load leads");
       } finally {
@@ -240,6 +255,21 @@ const CreditReportLeads = () => {
       ignore = true;
     };
   }, [tab, appliedFilters, page, rowsPerPage, refreshKey]);
+
+  // Silent refresh so new leads appear without a reload (no spinner, skipped while the tab is hidden)
+  useEffect(() => {
+    const timer = setInterval(async () => {
+      if (document.hidden) return;
+      try {
+        const data = await fetchLeadPage(tab, buildParams(tab, appliedFilters, page, rowsPerPage));
+        setRows(data.rows);
+        setTotal(data.total);
+      } catch {
+        // Keep the current list if a background refresh fails
+      }
+    }, 30000);
+    return () => clearInterval(timer);
+  }, [tab, appliedFilters, page, rowsPerPage]);
 
   const handleTabChange = (_, value) => {
     setTabIndex(value);
@@ -258,6 +288,27 @@ const CreditReportLeads = () => {
     setPage(0);
   };
 
+  // Opening or acting on a lead marks it read; the list and sidebar counts update
+  const markRead = async (row) => {
+    if (row.isRead) return;
+    try {
+      if (tab.key === "franchise") {
+        await adminAPI.markFranchiseLeadRead(row._id);
+      } else {
+        await adminAPI.markCreditRepairRead(row._id);
+      }
+      setRows((prev) => prev.map((r) => (r._id === row._id ? { ...r, isRead: true } : r)));
+      notifyLeadCountsChanged();
+    } catch {
+      // Not fatal: the lead stays unread and is retried on the next action
+    }
+  };
+
+  const openDetails = (row) => {
+    setDetailRow(row);
+    markRead(row);
+  };
+
   const changeStatus = async (row, status) => {
     try {
       if (tab.key === "franchise") {
@@ -266,9 +317,30 @@ const CreditReportLeads = () => {
         await adminAPI.updateCreditRepairEnquiryStatus(row._id, status);
       }
       setRows((prev) => prev.map((r) => (r._id === row._id ? { ...r, status } : r)));
+      markRead(row);
     } catch (err) {
       alert(err.response?.data?.message || "Failed to update status");
       setRefreshKey((k) => k + 1);
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteRow) return;
+    setDeleting(true);
+    try {
+      if (tab.key === "franchise") {
+        await adminAPI.deleteFranchiseLead(deleteRow._id);
+      } else {
+        await adminAPI.deleteCreditRepairEnquiry(deleteRow._id);
+      }
+      setRows((prev) => prev.filter((r) => r._id !== deleteRow._id));
+      setTotal((prev) => Math.max(0, prev - 1));
+      notifyLeadCountsChanged();
+      setDeleteRow(null);
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to delete lead");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -309,7 +381,7 @@ const CreditReportLeads = () => {
   return (
     <Box p={3}>
       <Typography variant="h5" fontWeight="bold" mb={2}>
-        Credit Report Leads
+        Leads
       </Typography>
 
       <Box>
@@ -320,9 +392,22 @@ const CreditReportLeads = () => {
           scrollButtons="auto"
           sx={{ borderBottom: 1, borderColor: "divider", px: 2 }}
         >
-          {TABS.map((t) => (
-            <Tab key={t.key} label={t.label} />
-          ))}
+          {TABS.map((t) => {
+            const count = leadCounts[t.countKey] || 0;
+            return (
+              <Tab
+                key={t.key}
+                label={
+                  <Stack direction="row" alignItems="center" spacing={1}>
+                    {t.label}
+                    {count > 0 && (
+                      <Chip size="small" label={count} sx={{ bgcolor: "#9b7cf6", color: "#fff" }} />
+                    )}
+                  </Stack>
+                }
+              />
+            );
+          })}
         </Tabs>
 
         <Box p={2}>
@@ -379,12 +464,16 @@ const CreditReportLeads = () => {
                     ))}
                     <TableCell>Status</TableCell>
                     <TableCell>Received</TableCell>
-                    <TableCell align="right">Details</TableCell>
+                    <TableCell align="right">Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {rows.map((row) => (
-                    <TableRow key={row._id} hover>
+                    <TableRow
+                      key={row._id}
+                      hover
+                      sx={{ "& td": { fontWeight: row.isRead ? "normal" : 600 } }}
+                    >
                       {tab.columns.map((c) => (
                         <TableCell key={c.label}>{c.render(row)}</TableCell>
                       ))}
@@ -405,8 +494,11 @@ const CreditReportLeads = () => {
                       </TableCell>
                       <TableCell>{formatDate(row.createdAt)}</TableCell>
                       <TableCell align="right">
-                        <Button size="small" onClick={() => setDetailRow(row)}>
+                        <Button size="small" onClick={() => openDetails(row)}>
                           View
+                        </Button>
+                        <Button size="small" color="error" onClick={() => setDeleteRow(row)}>
+                          Delete
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -453,6 +545,24 @@ const CreditReportLeads = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDetailRow(null)}>Close</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Delete confirmation */}
+      <Dialog open={Boolean(deleteRow)} onClose={() => !deleting && setDeleteRow(null)}>
+        <DialogTitle>Delete lead?</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Delete <strong>{deleteRow?.fullName}</strong>? This cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteRow(null)} disabled={deleting}>
+            Cancel
+          </Button>
+          <Button color="error" variant="contained" onClick={confirmDelete} disabled={deleting}>
+            {deleting ? "Deleting..." : "Delete"}
+          </Button>
         </DialogActions>
       </Dialog>
     </Box>

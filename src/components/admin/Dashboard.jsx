@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import {
   Box,
+  Chip,
   CssBaseline,
   AppBar,
   Toolbar,
@@ -66,6 +67,8 @@ import Collapse from "@mui/material/Collapse";
 import ExpandLess from "@mui/icons-material/ExpandLess";
 import ExpandMore from "@mui/icons-material/ExpandMore";
 import CASE_STUDY_CATEGORIES from "../../config/caseStudyCategories";
+import { useLeadUnreadCounts } from "./useLeadUnreadCounts";
+import { useInboxUnreadCounts } from "./useInboxUnreadCounts";
 
 // Styled components for enhanced UI
 const drawerWidth = 260;
@@ -217,7 +220,35 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
+  const leadCounts = useLeadUnreadCounts();
+  const inboxCounts = useInboxUnreadCounts();
   const [openMenu, setOpenMenu] = useState({});
+
+  // Unread count shown beside a sidebar entry (0 = no badge)
+  const badgeCountFor = (item) => {
+    if (item.path === "/admin/credit-report-leads") return leadCounts.total;
+    if (item.path === "/admin/admin-tickets") return inboxCounts.support;
+    if (item.path === "/admin/business-forms/individual") return inboxCounts.business.individual;
+    if (item.path === "/admin/business-forms/business") return inboxCounts.business.business;
+    if (item.text === "Business MIS") return inboxCounts.business.total;
+    return 0;
+  };
+
+  const withUnreadBadge = (item) => {
+    const count = badgeCountFor(item);
+    return count > 0 ? (
+      <>
+        {item.text}
+        <Chip
+          size="small"
+          label={count}
+          sx={{ ml: 1, height: 20, bgcolor: "#9b7cf6", color: "#fff" }}
+        />
+      </>
+    ) : (
+      item.text
+    );
+  };
 
   // Redirect non-admin users to appropriate dashboard
   useEffect(() => {
@@ -252,7 +283,7 @@ const AdminDashboard = () => {
     { text: "Dashboard", icon: <DashboardIcon />, path: "/admin" },
     { text: "Team & Roles", icon: <PeopleIcon />, path: "/admin/staff" },
     {
-      text: "Credit Report Leads",
+      text: "Leads",
       icon: <CreditScoreIcon />,
       path: "/admin/credit-report-leads",
     },
@@ -346,11 +377,6 @@ const AdminDashboard = () => {
       text: "Google Sheets",
       icon: <DescriptionIcon />,
       path: "/admin/google-sheets",
-    },
-    {
-      text: "Digital Agreements",
-      icon: <DescriptionIcon />,
-      path: "/admin/digital-agreements",
     },
     {
       text: "Marketing Materials",
@@ -496,7 +522,7 @@ const AdminDashboard = () => {
               >
                 <ListItemIcon>{item.icon}</ListItemIcon>
                 <ListItemText
-                  primary={item.text}
+                  primary={withUnreadBadge(item)}
                   sx={{ opacity: open || isMobile ? 1 : 0 }} /* MOBILE FIX */
                   primaryTypographyProps={{
                     noWrap: true,
@@ -543,7 +569,7 @@ const AdminDashboard = () => {
                           </ListItemIcon>
                         )}
                         <ListItemText
-                          primary={child.text}
+                          primary={withUnreadBadge(child)}
                           primaryTypographyProps={{
                             fontSize: { xs: "0.8rem", sm: "0.875rem" },
                             noWrap: true,
@@ -606,7 +632,7 @@ const AdminDashboard = () => {
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-            Admin Dashboard
+            {user?.staffRoleName ? `Welcome, ${user.name}` : "Admin Dashboard"}
           </Typography>
           <Box sx={{ display: "flex", alignItems: "center" }}>
             <Tooltip title="Account settings">
