@@ -48,11 +48,13 @@ import {
   LibraryBooks as CaseStudiesIcon,
   Summarize as SummarizeIcon,
   ArrowUpward as ArrowUpwardIcon,
+  AutoAwesome as AutoAwesomeIcon,
 } from "@mui/icons-material";
 import { ExpandLess, ExpandMore } from "@mui/icons-material";
 
 import { useAuth } from "../../hooks/useAuth.jsx";
 import { franchiseAPI } from "../../services/api";
+import { isEligibleForBrandedReport } from "../../constants/brandedReport";
 
 // Styled components for enhanced UI
 const drawerWidth = 260;
@@ -174,6 +176,7 @@ const FranchiseDashboard = () => {
   const [openMenu, setOpenMenu] = useState(null);
   // Dynamic language list for Marketing Materials sidebar sub-items
   const [marketingLanguages, setMarketingLanguages] = useState([]);
+  const [franchisePackage, setFranchisePackage] = useState("");
   // True when the partner already holds the top (₹1 lakh) package
   const [hasTopPackage, setHasTopPackage] = useState(false);
 
@@ -209,6 +212,14 @@ const FranchiseDashboard = () => {
 
     if (user && user.role === "franchise_user") {
       fetchKycStatus();
+      franchiseAPI
+        .getAIAnalysisUsage()
+        .then((res) => {
+          if (res?.data?.packageName) {
+            setFranchisePackage(res.data.packageName);
+          }
+        })
+        .catch(() => {});
     }
   }, [user]);
 
@@ -382,6 +393,16 @@ const FranchiseDashboard = () => {
       icon: <AutoGraphIcon />,
       path: "/franchise/ai-analysis",
     },
+    // AI Custom Branded Report: Visible only for Platinum and Diamond partners
+    ...(isEligibleForBrandedReport(franchisePackage)
+      ? [
+          {
+            text: "AI Custom Branded Report",
+            icon: <AutoAwesomeIcon />,
+            path: "/franchise/ai-custom-branded-report",
+          },
+        ]
+      : []),
     {
       text: "Contact RM",
       icon: <PersonIcon />,
