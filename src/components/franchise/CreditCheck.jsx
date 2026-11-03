@@ -361,9 +361,7 @@ const CreditCheck = () => {
           err.response?.data?.error === "NETWORK_ERROR" ||
           err.response?.status === 502
         ) {
-          setError(
-            "The request is taking longer than expected. Check your reports list before trying again. The report may already have been generated and charged.",
-          );
+          setError("No Data Found");
         } else if (err.response?.data?.message) {
           // Show specific error message from backend
           let errorMessage = err.response.data.message;
