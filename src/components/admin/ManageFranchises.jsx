@@ -133,7 +133,6 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
     name: "",
     email: "",
     phone: "",
-    alternatePhone: "",
     state: "",
     pincode: "",
     language: "english",
@@ -786,7 +785,6 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
       name: "",
       email: "",
       phone: "",
-      alternatePhone: "",
       state: "",
       pincode: "",
       language: "english",
@@ -822,12 +820,6 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
         return;
       }
 
-      // Alternate mobile is optional, but must be 10 digits when given
-      if (newFranchise.alternatePhone && !/^\d{10}$/.test(newFranchise.alternatePhone)) {
-        setError("Please enter a valid 10-digit alternate mobile number.");
-        return;
-      }
-
       // Email validation
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(newFranchise.email)) {
@@ -842,7 +834,6 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
         name: newFranchise.name,
         email: newFranchise.email,
         phone: newFranchise.phone,
-        alternatePhone: newFranchise.alternatePhone || undefined,
         role: isFranchiseUser ? "franchise_user" : "admin",
         subRole: isFranchiseUser ? "franchise" : createUserRole,
         assignedPackages: isFranchiseUser ? selectedPackages : null,
@@ -1784,18 +1775,6 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
                     onChange={handleCreateFranchiseChange}
                     inputProps={{ maxLength: 10, inputMode: "numeric" }}
                     helperText="10-digit mobile number (used for WhatsApp messages)"
-                    margin="normal"
-                  />
-                </Grid>
-
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Alternate Mobile Number (Optional)"
-                    name="alternatePhone"
-                    value={newFranchise.alternatePhone}
-                    onChange={handleCreateFranchiseChange}
-                    inputProps={{ maxLength: 10, inputMode: "numeric" }}
                     margin="normal"
                   />
                 </Grid>

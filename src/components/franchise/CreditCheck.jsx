@@ -40,7 +40,7 @@ const CreditCheck = () => {
   // TEMP: prefill unplugged for CIBIL checks. Set true to restore.
   const PREFILL_ENABLED = false;
   // TEMP: CIBIL maintenance — hides the Generation form and shows a notice. Set false to restore.
-  const CIBIL_MAINTENANCE = true;
+  const CIBIL_MAINTENANCE = false;
   // CIBIL-only 24h block on "No Bureau Record Found" (same key/mechanism as prefill block)
   const CIBIL_BUREAUS = ["cibil", "cibil-ongrid", "cibil-surepass"];
   const isCibilBureau = (b) => CIBIL_BUREAUS.includes(b);
