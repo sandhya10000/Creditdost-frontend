@@ -308,6 +308,27 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
   //   setFilteredFranchises(filtered);
   // };
 
+  const handleToggleCreditHold = async (franchise) => {
+    const hold = !franchise.creditHold;
+    const confirmed = window.confirm(
+      hold
+        ? `Put credits on hold for ${franchise.businessName}? They cannot use bureau or AI credits until released.`
+        : `Release credit hold for ${franchise.businessName}?`,
+    );
+    if (!confirmed) return;
+
+    try {
+      setError("");
+      setSuccess("");
+      await adminAPI.setFranchiseCreditHold(franchise._id, hold);
+      setSuccess(hold ? "Credits are now on hold." : "Credit hold released.");
+      fetchFranchises();
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to update credit hold.");
+      console.error("Error updating credit hold:", err);
+    }
+  };
+
   const handleApproveKyc = async (franchiseId) => {
     try {
       setLoading(true);
@@ -1492,7 +1513,23 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
                               labelPlacement="end"
                             />
                           </TableCell>
-                          <TableCell>{franchise.credits}</TableCell>
+                          <TableCell>
+                            <Box display="flex" alignItems="center" gap={0.5} flexWrap="wrap">
+                              {franchise.credits}
+                              {franchise.creditHold && (
+                                <Chip label="On hold" color="warning" size="small" />
+                              )}
+                              {!currentUser?.scopedToOwnFranchises && (
+                                <Button
+                                  size="small"
+                                  color={franchise.creditHold ? "success" : "warning"}
+                                  onClick={() => handleToggleCreditHold(franchise)}
+                                >
+                                  {franchise.creditHold ? "Release" : "Hold"}
+                                </Button>
+                              )}
+                            </Box>
+                          </TableCell>
                           <TableCell>
                             <Box display="flex" alignItems="center" gap={0.5}>
                               {franchise.businessManager ? (

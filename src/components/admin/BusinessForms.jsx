@@ -225,10 +225,8 @@ const BusinessForms = ({ status = "paid", customerType }) => {
         "Email",
         "Phone",
         "Franchise",
-        "Package",
         "Amount",
         "Payment Status",
-        "Role",
         "Document",
         "Date",
         "Work Status",
@@ -250,10 +248,8 @@ const BusinessForms = ({ status = "paid", customerType }) => {
         form.customerEmail || "",
         form.customerPhone || "",
         form.franchiseId?.businessName || "N/A",
-        form.selectedPackage?.name || "N/A",
         form.manualAmount ? form.manualAmount : form.selectedPackage?.price || "N/A",
         form.paymentStatus || "",
-        form.createdByRole || "franchise",
         Object.values(form.documents || {}).some(Boolean) ? "Yes" : "No",
         formatDate(form.createdAt),
         form.workStatus || "",
@@ -464,10 +460,8 @@ const BusinessForms = ({ status = "paid", customerType }) => {
                     <TableCell>Phone</TableCell>
                     {!isBusinessView && <TableCell>RM</TableCell>}
                     <TableCell>Franchise</TableCell>
-                    <TableCell>Package</TableCell>
                     <TableCell>Amount</TableCell>
                     <TableCell>Payment Status</TableCell>
-                    <TableCell>Role</TableCell>
                     <TableCell>Document</TableCell>
 
                     <TableCell>Date</TableCell>
@@ -565,9 +559,6 @@ const BusinessForms = ({ status = "paid", customerType }) => {
                           "N/A"
                         )}
                       </TableCell>
-                      <TableCell sx={{ minWidth: 100 }}>
-                        {form.selectedPackage?.name || "N/A"}
-                      </TableCell>
                       {/* <TableCell>
                         ₹{form.selectedPackage?.price || "N/A"}
                       </TableCell> */}
@@ -580,7 +571,6 @@ const BusinessForms = ({ status = "paid", customerType }) => {
                       <TableCell>
                         {getPaymentStatusChip(form.paymentStatus)}
                       </TableCell>
-                      <TableCell>{form.createdByRole || "franchise"}</TableCell>
                       <TableCell
                         sx={{
                           width: 60,

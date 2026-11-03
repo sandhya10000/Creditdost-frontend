@@ -405,6 +405,8 @@ export const adminAPI = {
   getStaffMembers: () => api.get("/admin/staff"),
   getStaffProfile: (id) => api.get(`/admin/staff/${id}`),
   assignBusinessManagersToPartners: () => api.post("/franchises/assign-business-managers"),
+  setFranchiseCreditHold: (franchiseId, hold) =>
+    api.put(`/franchises/${franchiseId}/credit-hold`, { hold }),
   reassignFranchiseManager: (franchiseId, businessManagerId) =>
     api.put(`/franchises/${franchiseId}/business-manager`, { businessManagerId }),
   assignStaffMember: (data) => api.post("/admin/staff", data),
