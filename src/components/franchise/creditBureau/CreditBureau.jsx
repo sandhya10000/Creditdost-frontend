@@ -57,34 +57,9 @@ const CreditBureau = ({ bureauOptions = [], defaultBureau }) => {
   const [totalRecords, setTotalRecords] = useState(0);
   const [page, setPage] = useState(1);
   const rowsPerPage = 10;
-  // CIBIL-only 24h block on "No Bureau Record Found" (same key/mechanism as prefill block)
-  const CIBIL_BUREAUS = ["cibil", "cibil-ongrid", "cibil-surepass"];
-  const isCibilBureau = (b) => CIBIL_BUREAUS.includes(b);
+  // No-record text from the bureau (CIBIL/Equifax). The backend locks the PAN for 48h.
   const isNoBureauRecordMessage = (msg) =>
-    /no\s*(bureau|cibil)?\s*record\s*found/i.test(msg || "");
-  const getBlockedMobileData = (mobile) => {
-    try {
-      const raw = localStorage.getItem(`mobile_blocked_${mobile}`);
-      if (!raw) return null;
-      const parsed = JSON.parse(raw);
-      if (Date.now() - parsed.timestamp < 24 * 60 * 60 * 1000) return parsed;
-      localStorage.removeItem(`mobile_blocked_${mobile}`);
-      return null;
-    } catch {
-      return null;
-    }
-  };
-  const blockMobileFor24h = (mobile, message) => {
-    localStorage.setItem(
-      `mobile_blocked_${mobile}`,
-      JSON.stringify({ timestamp: Date.now(), message }),
-    );
-  };
-  const isMobileBlocked =
-    formData.mobile && isCibilBureau(formData.bureau)
-      ? Boolean(getBlockedMobileData(formData.mobile))
-      : false;
-
+    /no\s*(bureau|cibil|equifax)?\s*record\s*found|no\s*data\s*found/i.test(msg || "");
   // const [showCreditButton, setShowCreditButton] = useState(true);
 
   // Load recent credit reports and available credits on component mount
@@ -216,13 +191,6 @@ const CreditBureau = ({ bureauOptions = [], defaultBureau }) => {
       return;
     }
 
-    // CIBIL-only: stop blocked numbers before hitting the API
-    if (isCibilBureau(formData.bureau) && getBlockedMobileData(formData.mobile)) {
-      setError("This mobile number is blocked for 24 hours.");
-      setSaving(false);
-      return;
-    }
-
     // Validate PAN if provided (alphanumeric, 10 characters)
     if (formData.pan && !/^[A-Za-z0-9]{10}$/.test(formData.pan)) {
       setError("Please enter a valid PAN number (10 alphanumeric characters)");
@@ -332,15 +300,8 @@ const CreditBureau = ({ bureauOptions = [], defaultBureau }) => {
         // Call the API to check credit
         const response = await franchiseAPI.getCreditReport(requestData);
 
-        // CIBIL-only: backend returns HTTP 200 for no-record — block the number
-        // like the Surepass prefill flow (covers both the raw provider message
-        // "No Bureau Record Found For The Provided Inputs." and the mapped
-        // "No CIBIL record found for these details").
-        if (
-          isCibilBureau(formData.bureau) &&
-          isNoBureauRecordMessage(response.data?.message)
-        ) {
-          blockMobileFor24h(formData.mobile.trim(), response.data.message);
+        // No-record: backend has already locked the PAN for 48h (CIBIL/Equifax).
+        if (isNoBureauRecordMessage(response.data?.message)) {
           setRecentReport(null);
           setError(response.data.message);
           await loadCreditReports();
@@ -385,14 +346,7 @@ const CreditBureau = ({ bureauOptions = [], defaultBureau }) => {
         ]
           .filter(Boolean)
           .join(" ");
-        if (
-          isCibilBureau(formData.bureau) &&
-          isNoBureauRecordMessage(noRecordText)
-        ) {
-          blockMobileFor24h(
-            formData.mobile.trim(),
-            err.response.data.message || noRecordText,
-          );
+        if (isNoBureauRecordMessage(noRecordText)) {
           setError(err.response.data.message || noRecordText);
           return;
         }
@@ -418,13 +372,6 @@ const CreditBureau = ({ bureauOptions = [], defaultBureau }) => {
             Array.isArray(err.response.data.details)
           ) {
             errorMessage += ": " + err.response.data.details.join(", ");
-          }
-          // CIBIL-only: block the number on no-record errors (same as prefill)
-          if (
-            isCibilBureau(formData.bureau) &&
-            isNoBureauRecordMessage(err.response.data.message)
-          ) {
-            blockMobileFor24h(formData.mobile.trim(), errorMessage);
           }
           // setError(errorMessage);
           setError(errorMessage || "Something went wrong");
@@ -610,16 +557,11 @@ const CreditBureau = ({ bureauOptions = [], defaultBureau }) => {
                     fullWidth
                     value={formData.mobile}
                     onChange={handleMobileChange}
-                    disabled={isMobileBlocked}
                     inputProps={{
                       maxLength: 10,
                       pattern: "[0-9]{10}",
                     }}
-                    helperText={
-                      isMobileBlocked
-                        ? "This mobile number is blocked for 24 hours."
-                        : "Enter exactly 10 digits without spaces or dashes"
-                    }
+                    helperText="Enter exactly 10 digits without spaces or dashes"
                   />
                 </Grid>
                 <Grid

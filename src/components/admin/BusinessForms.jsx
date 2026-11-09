@@ -23,6 +23,7 @@ import {
   Select,
   MenuItem,
   FormControl,
+  InputLabel,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -53,7 +54,18 @@ const BusinessForms = ({ status = "paid", customerType }) => {
 
   const [totalRecords, setTotalRecords] = useState(0);
   const [page, setPage] = useState(1);
+  const [sortKey, setSortKey] = useState("createdAt-desc");
   const rowsPerPage = 20;
+
+  const SORT_OPTIONS = [
+    { value: "createdAt-desc", label: "Newest first", sortBy: "createdAt", sortOrder: "desc" },
+    { value: "createdAt-asc", label: "Oldest first", sortBy: "createdAt", sortOrder: "asc" },
+    { value: "customerId-asc", label: "Customer ID (A → Z)", sortBy: "customerId", sortOrder: "asc" },
+    { value: "customerId-desc", label: "Customer ID (Z → A)", sortBy: "customerId", sortOrder: "desc" },
+    { value: "customerName-asc", label: "Name (A → Z)", sortBy: "customerName", sortOrder: "asc" },
+    { value: "customerName-desc", label: "Name (Z → A)", sortBy: "customerName", sortOrder: "desc" },
+  ];
+  const activeSort = SORT_OPTIONS.find((o) => o.value === sortKey) || SORT_OPTIONS[0];
   const [toast, setToast] = useState({ open: false, message: "", severity: "success" });
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [businessToDelete, setBusinessToDelete] = useState(null);
@@ -94,7 +106,7 @@ const BusinessForms = ({ status = "paid", customerType }) => {
   // Fetch all business forms on component mount or dependency change
   useEffect(() => {
     fetchBusinessForms();
-  }, [status, customerType, page, searchTerm]);
+  }, [status, customerType, page, searchTerm, sortKey]);
 
   const fetchBusinessForms = async () => {
     try {
@@ -105,6 +117,8 @@ const BusinessForms = ({ status = "paid", customerType }) => {
         limit: rowsPerPage,
         search: searchTerm,
         paymentStatus: status,
+        sortBy: activeSort.sortBy,
+        sortOrder: activeSort.sortOrder,
         ...(customerType && { customerType }),
       });
       // console.log("fetch all documents with details----", response);
@@ -368,6 +382,24 @@ const BusinessForms = ({ status = "paid", customerType }) => {
                 maxWidth: { xs: "100%", sm: 400 },
               }}
             />
+            <FormControl sx={{ minWidth: { xs: "100%", sm: 200 } }}>
+              <InputLabel id="business-sort-label">Sort by</InputLabel>
+              <Select
+                labelId="business-sort-label"
+                label="Sort by"
+                value={sortKey}
+                onChange={(e) => {
+                  setSortKey(e.target.value);
+                  setPage(1);
+                }}
+              >
+                {SORT_OPTIONS.map((opt) => (
+                  <MenuItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
             <Stack
               direction={{ xs: "column", sm: "row" }}
               spacing={1.5}

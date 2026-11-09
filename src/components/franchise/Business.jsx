@@ -29,6 +29,7 @@ import {
   Snackbar,
   Paper,
   Autocomplete,
+  createFilterOptions,
 } from "@mui/material";
 import { Check as CheckIcon, Close as CloseIcon } from "@mui/icons-material";
 import api, { franchiseAPI } from "../../services/api";
@@ -78,6 +79,7 @@ const Business = ({
   const [formData, setFormData] = useState({
     customerType: fixedCustomerType || "individual",
     customerName: "",
+    fatherName: "",
     customerEmail: "",
     customerPhone: "",
     panNumber: "",
@@ -576,6 +578,7 @@ const Business = ({
     setFormData({
       customerType: fixedCustomerType || "individual",
       customerName: "",
+      fatherName: "",
       customerEmail: "",
       customerPhone: "",
       panNumber: "",
@@ -785,11 +788,63 @@ const Business = ({
                                   (f) => f._id === franchiseData1.franchiseId,
                                 ) || null
                               }
+                              filterOptions={createFilterOptions({
+                                stringify: (option) =>
+                                  [
+                                    option.businessName,
+                                    option.franchiseCode,
+                                    option.ownerName,
+                                    option.email,
+                                    option.phone,
+                                    option.panNumber,
+                                  ]
+                                    .filter(Boolean)
+                                    .join(" "),
+                              })}
+                              renderOption={(props, option) => (
+                                <li {...props} key={option._id}>
+                                  {option.businessName}
+                                  {option.franchiseCode && (
+                                    <Typography
+                                      component="span"
+                                      variant="body2"
+                                      color="text.secondary"
+                                      sx={{ ml: 1 }}
+                                    >
+                                      ({option.franchiseCode})
+                                    </Typography>
+                                  )}
+                                </li>
+                              )}
                               onChange={(event, newValue) => {
                                 setFranchiseData1((prev) => ({
                                   ...prev,
                                   franchiseId: newValue?._id || "",
                                 }));
+                                // Fill customer address fields from the franchise,
+                                // but never overwrite something already typed
+                                if (newValue) {
+                                  const addr = newValue.address || {};
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    customerName: prev.customerName || newValue.ownerName || "",
+                                    customerEmail: prev.customerEmail || newValue.email || "",
+                                    customerPhone: prev.customerPhone || newValue.phone || "",
+                                    panNumber: prev.panNumber || newValue.panNumber || "",
+                                    fullAddress: prev.fullAddress || addr.street || "",
+                                    city: prev.city || addr.city || "",
+                                    // State is a dropdown: only fill it with a real option
+                                    state:
+                                      prev.state ||
+                                      states.find(
+                                        (s) =>
+                                          s.toLowerCase() ===
+                                          (addr.state || "").trim().toLowerCase(),
+                                      ) ||
+                                      "",
+                                    pincode: prev.pincode || addr.pincode || "",
+                                  }));
+                                }
                               }}
                               renderInput={(params) => (
                                 <TextField
@@ -905,6 +960,20 @@ const Business = ({
                             label="Customer Name"
                             name="customerName"
                             value={formData.customerName}
+                            onChange={handleInputChange}
+                          />
+                        </Grid>
+                        <Grid
+                          item
+                          xs={12}
+                          sm={6}
+                          sx={{ minWidth: { xs: "0px", md: "350px" } }}
+                        >
+                          <TextField
+                            fullWidth
+                            label="Father's Name"
+                            name="fatherName"
+                            value={formData.fatherName}
                             onChange={handleInputChange}
                           />
                         </Grid>
