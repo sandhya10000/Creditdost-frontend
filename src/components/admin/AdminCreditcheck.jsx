@@ -38,17 +38,16 @@ import { franchiseAPI, adminAPI } from "../../services/api";
 
 const AdminCreditBureau = ({ defaultBureau = "" }) => {
   const bureauOptions = [
+    { value: "cibil-finpass", label: "CIBIL (Finpass)" },
     { value: "cibil-indiconnect", label: "CIBIL (IndiConnect)" },
     { value: "cibil-digi", label: "CIBIL (Digi)" },
-    { value: "cibil-surepass", label: "CIBIL (Surepass)" },
-    { value: "crif-indiconnect", label: "CRIF (IndiConnect)" },
-    { value: "crif-surepass", label: "CRIF (Surepass)" },
     { value: "experian-indiconnect", label: "Experian (IndiConnect)" },
-    { value: "experian-surepass", label: "Experian (Surepass)" },
+    { value: "crif-indiconnect", label: "CRIF (IndiConnect)" },
     { value: "equifax", label: "Equifax" },
   ];
   // CIBIL standalone options route through /credit/credit-check-v2
   const CIBIL_V2_MAP = {
+    "cibil-finpass": "finpass",
     "cibil-indiconnect": "indiconnect",
     "cibil-digi": "digi",
     "cibil-surepass": "surepass",
