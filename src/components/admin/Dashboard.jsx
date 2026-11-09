@@ -57,7 +57,6 @@ import {
   AutoGraph as AutoGraphIcon,
 } from "@mui/icons-material";
 import CampaignIcon from "@mui/icons-material/Campaign";
-import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
 import EventRepeatIcon from "@mui/icons-material/EventRepeat";
 import { useAuth } from "../../hooks/useAuth.jsx";
@@ -68,6 +67,7 @@ import ExpandLess from "@mui/icons-material/ExpandLess";
 import ExpandMore from "@mui/icons-material/ExpandMore";
 import CASE_STUDY_CATEGORIES from "../../config/caseStudyCategories";
 import { useLeadUnreadCounts } from "./useLeadUnreadCounts";
+import { useSupportUnreadCount } from "./useSupportUnreadCount";
 
 // Styled components for enhanced UI
 const drawerWidth = 260;
@@ -220,6 +220,7 @@ const AdminDashboard = () => {
   const location = useLocation();
   const { user, logout } = useAuth();
   const leadCounts = useLeadUnreadCounts();
+  const supportUnread = useSupportUnreadCount();
   const [openMenu, setOpenMenu] = useState({});
 
   // Redirect non-admin users to appropriate dashboard
@@ -354,11 +355,6 @@ const AdminDashboard = () => {
       text: "Marketing Materials",
       icon: <CampaignIcon />,
       path: "/admin/marketing-materials",
-    },
-    {
-      text: "Reward",
-      icon: <EmojiEventsIcon />,
-      path: "/admin/reward",
     },
     {
       text: "Case Studies",
@@ -502,6 +498,16 @@ const AdminDashboard = () => {
                           size="small"
                           color="error"
                           label={leadCounts.total}
+                          sx={{ ml: 1, height: 20 }}
+                        />
+                      </>
+                    ) : item.path === "/admin/admin-tickets" && supportUnread > 0 ? (
+                      <>
+                        {item.text}
+                        <Chip
+                          size="small"
+                          color="error"
+                          label={supportUnread}
                           sx={{ ml: 1, height: 20 }}
                         />
                       </>

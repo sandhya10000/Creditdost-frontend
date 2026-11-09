@@ -414,6 +414,8 @@ export const adminAPI = {
   getAllTickets: (params) =>
     api.get("/admin/support/all-tickets", { params }),
   getTicket: (id) => api.get(`/admin/support/tickets/${id}`),
+  getSupportUnreadCount: () => api.get("/admin/support/unread-count"),
+  markTicketRead: (id) => api.patch(`/admin/support/tickets/${id}/read`),
   replyTicket: (id, formData) =>
     api.post(`/admin/support/tickets/${id}/reply`, formData),
   updateTicketStatus: (id, status) =>

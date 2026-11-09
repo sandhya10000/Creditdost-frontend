@@ -25,8 +25,9 @@ import {
   Pagination,
 } from "@mui/material";
 import TablePagination from "@mui/material/TablePagination";
-import { Download, PictureAsPdf, Search } from "@mui/icons-material";
+import { PictureAsPdf, Search } from "@mui/icons-material";
 import { adminAPI } from "../../services/api";
+import FranchiseDetailsDialog from "./FranchiseDetailsDialog";
 
 const ViewReports = () => {
   const [creditReports, setCreditReports] = useState([]);
@@ -34,6 +35,7 @@ const ViewReports = () => {
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [downloadingId, setDownloadingId] = useState("");
+  const [franchiseCode, setFranchiseCode] = useState(null);
 
   // Error responses come back as blobs when responseType is "blob"; read the JSON message out of them
   const readErrorMessage = async (err) => {
@@ -212,6 +214,7 @@ const ViewReports = () => {
                   <TableHead>
                     <TableRow>
                       <TableCell>Franchise</TableCell>
+                      <TableCell>Created from</TableCell>
                       <TableCell>Name</TableCell>
                       <TableCell>Mobile</TableCell>
                       <TableCell>PAN</TableCell>
@@ -230,8 +233,28 @@ const ViewReports = () => {
                         }}
                       >
                         <TableCell>
-                          {report?.franchiseId?.businessName ||
-                            report?.userId?.name}
+                          {report?.franchiseId?.businessName || "N/A"}
+                        </TableCell>
+                        <TableCell>
+                          {report.franchiseId?.franchiseCode ? (
+                            <Link
+                              component="button"
+                              variant="body2"
+                              underline="hover"
+                              sx={{ fontFamily: "monospace", fontWeight: 700 }}
+                              onClick={() =>
+                                setFranchiseCode(report.franchiseId.franchiseCode)
+                              }
+                            >
+                              {report.franchiseId.franchiseCode}
+                            </Link>
+                          ) : (
+                            <Chip
+                              label={report.createdFrom || "N/A"}
+                              size="small"
+                              variant="outlined"
+                            />
+                          )}
                         </TableCell>
                         <TableCell component="th" scope="row">
                           {report.name}
@@ -275,23 +298,6 @@ const ViewReports = () => {
                               PDF
                             </Button>
                           )}
-                          <Button
-                            size="small"
-                            startIcon={<Download />}
-                            onClick={() => handleDownload(report)}
-                            disabled={
-                              downloadingId === report._id ||
-                              report.pdfStatus === "pending" ||
-                              (!report.localPath && !report.reportUrl)
-                            }
-                            title={
-                              report.pdfStatus === "pending"
-                                ? "PDF is still being generated"
-                                : undefined
-                            }
-                          >
-                            {downloadingId === report._id ? "..." : "Download"}
-                          </Button>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -328,6 +334,11 @@ const ViewReports = () => {
           )}
         </CardContent>
       </Card>
+
+      <FranchiseDetailsDialog
+        franchiseCode={franchiseCode}
+        onClose={() => setFranchiseCode(null)}
+      />
     </Box>
   );
 };

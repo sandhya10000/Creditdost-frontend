@@ -11,9 +11,31 @@ import {
   TableRow,
   CircularProgress,
   Pagination,
+  Chip,
 } from "@mui/material";
 
 import { franchiseAPI } from "../../services/api";
+
+const formatDateTime = (value) => {
+  const d = new Date(value);
+  const date = d.toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+  const time = d.toLocaleTimeString("en-IN", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  return { date, time };
+};
+
+const getType = (log) => {
+  if (log.source === "credit-report") {
+    return `Credit · ${(log.bureau || "").toUpperCase()}`;
+  }
+  return "Prefill";
+};
 
 const PrefillFailedLog = () => {
   const [logs, setLogs] = useState([]);
@@ -33,7 +55,6 @@ const PrefillFailedLog = () => {
 
       setLogs(response.data.reports || []);
       setTotalRecords(response.data.total || 0);
-      console.log(response, "prefill failed logs----");
     } catch (error) {
       console.log(error);
     } finally {
@@ -48,6 +69,16 @@ const PrefillFailedLog = () => {
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
+
+  const headers = [
+    "Date & Time",
+    "Partner ID",
+    "Type",
+    "Name",
+    "Phone",
+    "PAN",
+    "Reason",
+  ];
 
   return (
     <Box p={3}>
@@ -65,57 +96,60 @@ const PrefillFailedLog = () => {
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell>
-                    <strong>Mobile</strong>
-                  </TableCell>
-
-                  <TableCell>
-                    <strong>Message</strong>
-                  </TableCell>
-
-                  <TableCell>
-                    <strong>Franchise</strong>
-                  </TableCell>
-                  <TableCell>
-                    <strong>CutomerName</strong>
-                  </TableCell>
-
-                  <TableCell>
-                    <strong>Date</strong>
-                  </TableCell>
+                  {headers.map((h) => (
+                    <TableCell key={h}>
+                      <strong>{h}</strong>
+                    </TableCell>
+                  ))}
                 </TableRow>
               </TableHead>
 
               <TableBody>
                 {logs.length > 0 ? (
-                  logs.map((log) => (
-                    <TableRow key={log._id}>
-                      <TableCell>{log.mobile}</TableCell>
+                  logs.map((log) => {
+                    const { date, time } = formatDateTime(log.createdAt);
+                    return (
+                      <TableRow key={log._id}>
+                        <TableCell>
+                          {date}
+                          <br />
+                          <span style={{ color: "#666", fontSize: "12px" }}>
+                            {time}
+                          </span>
+                        </TableCell>
 
-                      <TableCell>{log.message}</TableCell>
+                        <TableCell>
+                          {log.franchiseId?.franchiseCode || "—"}
+                        </TableCell>
 
-                      <TableCell>{log.userId?.name}</TableCell>
-                      <TableCell>{log.customerName}</TableCell>
+                        <TableCell>{getType(log)}</TableCell>
 
-                      <TableCell>
-                        {new Date(log.createdAt).toLocaleDateString("en-IN", {
-                          day: "2-digit",
-                          month: "short",
-                          year: "numeric",
-                        })}
-                        <br />
-                        <span style={{ color: "#666", fontSize: "12px" }}>
-                          {new Date(log.createdAt).toLocaleTimeString("en-IN", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </span>
-                      </TableCell>
-                    </TableRow>
-                  ))
+                        <TableCell>
+                          {log.name || log.customerName || "—"}
+                        </TableCell>
+
+                        <TableCell>{log.mobile || "—"}</TableCell>
+
+                        <TableCell>{log.pan || "—"}</TableCell>
+
+                        <TableCell>
+                          {log.statusCode && (
+                            <Chip
+                              label={log.statusCode}
+                              size="small"
+                              color="error"
+                              variant="outlined"
+                              sx={{ mr: 1 }}
+                            />
+                          )}
+                          {log.message || "—"}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={4} align="center">
+                    <TableCell colSpan={headers.length} align="center">
                       No Logs Found
                     </TableCell>
                   </TableRow>
@@ -125,7 +159,7 @@ const PrefillFailedLog = () => {
             <Box
               sx={{
                 display: "flex",
-                flexDirection: { xs: "column", sm: "row" }, // Stacks on mobile, side-by-side on desktop
+                flexDirection: { xs: "column", sm: "row" },
                 justifyContent: "space-between",
                 alignItems: "center",
                 gap: 2,
@@ -146,7 +180,7 @@ const PrefillFailedLog = () => {
                 showFirstButton
                 showLastButton
               />
-              <Typography></Typography>
+              <Box />
             </Box>
           </TableContainer>
         )}

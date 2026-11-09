@@ -332,6 +332,21 @@ const CreditBureau = ({ bureauOptions = [], defaultBureau }) => {
       } catch (err) {
         console.error("Credit check error:", err);
 
+        // Record the failure in the failed-reports log (never blocks the UI)
+        try {
+          await franchiseAPI.savePrefillFailure({
+            source: "credit-report",
+            bureau: formData.bureau,
+            name: formData.name,
+            pan: formData.pan,
+            mobile: formData.mobile,
+            message: err.response?.data?.message || err.message,
+            statusCode: err.response?.status,
+          });
+        } catch (logErr) {
+          console.error("Failed-report log save failed:", logErr);
+        }
+
         // CIBIL-only: no-record must fail fast on FIRST attempt — never retry,
         // block the number like the Surepass prefill flow. Backend sends this
         // as 502 { message: "No Bureau Record Found ..." } (empty result
