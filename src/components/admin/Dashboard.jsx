@@ -292,7 +292,22 @@ const AdminDashboard = () => {
       path: "/admin/credit-check",
     },
 
-    { text: "View Reports", icon: <AssessmentIcon />, path: "/admin/reports" },
+    {
+      text: "View Reports",
+      icon: <AssessmentIcon />,
+      children: [
+        {
+          text: "Credit Reports",
+          path: "/admin/reports",
+          icon: <AssessmentIcon />,
+        },
+        {
+          text: "White-Labeled Reports",
+          path: "/admin/white-label-reports",
+          icon: <DescriptionIcon />,
+        },
+      ],
+    },
     {
       text: "Prefill Failed Logs",
       icon: <AssessmentIcon />,

@@ -310,6 +310,16 @@ const FranchiseDashboard = () => {
   // Define all menu items
   const allMenuItems = [
     { text: "Dashboard", icon: <DashboardIcon />, path: "/franchise" },
+    {
+      text: "Important Updates",
+      icon: <WhatsAppIcon />,
+      path: "/franchise/whatsapp-groups",
+    },
+    {
+      text: "Relationship Manager",
+      icon: <PersonIcon />,
+      path: "/franchise/relationship-manager",
+    },
     { text: "My Profile", icon: <PersonIcon />, path: "/franchise/profile" },
     // {
     //   text: "KYC Verification",
@@ -363,6 +373,11 @@ const FranchiseDashboard = () => {
       path: "/franchise/business",
     },
     {
+      text: "White Label Reports",
+      icon: <DescriptionIcon />,
+      path: "/franchise/white-label-reports",
+    },
+    {
       text: "Business MIS",
       icon: <AssessmentIcon />,
       path: "/franchise/business-mis",
@@ -381,11 +396,6 @@ const FranchiseDashboard = () => {
       text: "AI Analysis",
       icon: <AutoGraphIcon />,
       path: "/franchise/ai-analysis",
-    },
-    {
-      text: "Contact RM",
-      icon: <PersonIcon />,
-      path: "/franchise/relationship-manager",
     },
     //Contact support need to check here sandhya
     {
@@ -408,11 +418,6 @@ const FranchiseDashboard = () => {
       ],
     },
     {
-      text: "Reward",
-      icon: <CaseStudiesIcon />,
-      path: "/franchise/reward",
-    },
-    {
       text: "Marketing Materials",
       icon: <DescriptionIcon />,
       // Children are built dynamically from the language master list fetched
@@ -424,37 +429,36 @@ const FranchiseDashboard = () => {
         icon: <DescriptionIcon />,
       })),
     },
-    {
-      text: "Join Now",
-      icon: <WhatsAppIcon />,
-      path: "/franchise/whatsapp-groups",
-    },
   ];
 
   // Filter menu items based on KYC status
+  const basicMenuItems = allMenuItems.filter((item) =>
+    ["Dashboard", "My Profile"].includes(item.text),
+  );
+
   const getMenuItems = () => {
     // If KYC is approved, show all items
     if (kycStatus === "approved") {
       return allMenuItems;
     }
 
-    // If KYC is rejected, show only Dashboard and KYC Verification
+    // If KYC is rejected, show only Dashboard and My Profile
     if (kycStatus === "rejected") {
-      return allMenuItems.slice(0, 2); // Dashboard, My Profile, KYC Verification
+      return basicMenuItems;
     }
     if (kycStatus === "pending") {
-      return allMenuItems.slice(0, 2);
+      return basicMenuItems;
     }
 
-    // // If KYC is pending or submitted, show Dashboard, My Profile, KYC Verification, and Digital Agreement
+    // // If KYC is pending or submitted, show Dashboard, My Profile, and Digital Agreement
     if (kycStatus === "submitted") {
       // Find the index of Digital Agreement in the menu items
       const digitalAgreementIndex = allMenuItems.findIndex(
         (item) => item.text === "Digital Agreement",
       );
 
-      // Return Dashboard, My Profile, KYC Verification, and Digital Agreement
-      const baseItems = allMenuItems.slice(0, 2); // Dashboard, My Profile, KYC Verification
+      // Return Dashboard, My Profile, and Digital Agreement
+      const baseItems = [...basicMenuItems];
 
       if (digitalAgreementIndex !== -1) {
         baseItems.push(allMenuItems[digitalAgreementIndex]); // Add Digital Agreement
@@ -464,8 +468,8 @@ const FranchiseDashboard = () => {
       // return allMenuItems;
     }
 
-    // Default: show only Dashboard and KYC Verification
-    return allMenuItems.slice(0, 2);
+    // Default: show only Dashboard and My Profile
+    return basicMenuItems;
   };
 
   const menuItems = getMenuItems().filter(

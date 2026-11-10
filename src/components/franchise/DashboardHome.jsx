@@ -363,25 +363,11 @@ const DashboardHome = () => {
       description: "Check customer credit scores",
     },
     {
-      title: "Manage Leads",
-      icon: <PersonSearch sx={{ fontSize: 30 }} />,
-      color: "#03dac6",
-      path: "/franchise/leads",
-      description: "View and manage customer leads",
-    },
-    {
       title: "View Reports",
       icon: <CreditScore sx={{ fontSize: 30 }} />,
       color: "#ff4081",
       path: "/franchise/reports",
       description: "View generated credit reports",
-    },
-    {
-      title: "Refer Franchise",
-      icon: <GroupAdd sx={{ fontSize: 30 }} />,
-      color: "#00c853",
-      path: "/franchise/referrals",
-      description: "Refer new franchise partners",
     },
   ];
 
@@ -507,8 +493,14 @@ const DashboardHome = () => {
                   {purchasedPackage.name}
                 </Typography>
                 {franchiseCode && (
-                  <Typography variant="body1" sx={{ mb: 1 }}>
-                    Franchise ID: <strong>{franchiseCode}</strong>
+                  <Typography
+                    variant="h5"
+                    sx={{ mb: 1, fontWeight: 500, letterSpacing: 0.5 }}
+                  >
+                    Franchise ID:{" "}
+                    <strong style={{ fontSize: "1.6em", letterSpacing: 1 }}>
+                      {franchiseCode}
+                    </strong>
                   </Typography>
                 )}
                 <Typography variant="body2" sx={{ opacity: 0.9 }}>
@@ -631,8 +623,12 @@ const DashboardHome = () => {
                     label={`Franchise ID: ${franchiseCode}`}
                     sx={{
                       fontWeight: "bold",
+                      fontSize: { xs: "1rem", sm: "1.2rem" },
+                      letterSpacing: 0.5,
+                      px: 1.5,
                       marginTop: { xs: "0px", md: "0" } /* MOBILE FIX */,
-                      height: 32,
+                      height: 44,
+                      borderRadius: 3,
                       backgroundColor: "rgba(255, 255, 255, 0.2)",
                       color: "white",
                     }}

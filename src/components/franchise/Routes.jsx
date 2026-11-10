@@ -21,11 +21,11 @@ import Support from "./Support";
 import FranchiseMarketing from "./FranchiseMarketing"; // legacy page (all languages)
 import FranchiseMarketingByLanguage from "./FranchiseMarketingByLanguage"; // per-language page
 import FranchiseCaseStudies from "./FranchiseCaseStudies";
-import FranchiseReward from "./Reward";
 import CRIF from "./creditBureau/CRIF";
 import Experian from "./creditBureau/Experian";
 import Equifax from "./creditBureau/Equifax";
 import UpgradePackage from "./UpgradePackage";
+import WhiteLabelReports from "./WhiteLabelReports";
 
 const FranchiseRoutes = () => {
   return (
@@ -42,8 +42,9 @@ const FranchiseRoutes = () => {
         <Route path="leads" element={<Leads />} />
         <Route path="reports" element={<ViewReports />} />
         <Route path="referrals" element={<Referrals />} />
-        <Route path="business" element={<Business />} />
+        <Route path="business" element={<Business fixedCustomerType="individual" />} />
         <Route path="business-mis" element={<BusinessMIS />} />
+        <Route path="white-label-reports" element={<WhiteLabelReports />} />
         <Route path="ai-analysis" element={<AIAnalysis />} />
         <Route path="certificate" element={<Certificate />} />
         <Route path="agreement" element={<DigitalAgreement />} />
@@ -56,7 +57,6 @@ const FranchiseRoutes = () => {
         <Route path="/marketing/:language" element={<FranchiseMarketingByLanguage />} />
         {/* Legacy all-in-one view kept for backward compat */}
         <Route path="/franchise-marketing" element={<FranchiseMarketing />} />
-        <Route path="/reward" element={<FranchiseReward />} />{" "}
         <Route
           path="relationship-manager"
           element={<RelationshipManagerInfo />}

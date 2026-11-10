@@ -104,6 +104,10 @@ export const franchiseAPI = {
 
   // Transactions
   getTransactions: () => api.get("/dashboard/transactions"),
+  // White Label Reports (Platinum/Diamond only)
+  getWhiteLabelStatus: () => api.get("/dashboard/white-label/status"),
+  createWhiteLabelOrder: (data) => api.post("/dashboard/white-label/order", data),
+  verifyWhiteLabelPayment: (data) => api.post("/dashboard/white-label/verify", data),
   // Referrals
   getReferrals: () => api.get("/dashboard/referrals"),
   createReferral: (data) => api.post("/dashboard/referrals", data),
@@ -185,6 +189,10 @@ export const blogAPI = {
 
 // Admin API functions
 export const adminAPI = {
+  getWhiteLabelPartners: (params) =>
+    api.get("/admin/white-label/partners", { params }),
+  getWhiteLabelPartnerReports: (partnerId) =>
+    api.get(`/admin/white-label/partners/${partnerId}/reports`),
   getDashboardStats: (params) => api.get("/admin/dashboard", { params }),
   getRecentActivities: () => api.get("/admin/dashboard/activities"),
   getPerformanceOverview: (params) =>

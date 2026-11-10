@@ -1,36 +1,46 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Box,
   Typography,
   Card,
-  CardContent,
-  CardActions,
   Button,
   Grid,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
   CircularProgress,
   Alert,
-  IconButton,
+  Chip,
 } from "@mui/material";
 import {
   CheckCircle,
-  ArrowBack,
+  Star,
+  WorkspacePremium,
+  Diamond,
+  EmojiEvents,
+  ArrowForward,
+  TrendingUp,
 } from "@mui/icons-material";
 import { franchiseAPI } from "../../services/api";
 import { useNavigate } from "react-router-dom";
+
+const PURPLE = "#6200ea";
+const DEEP_PURPLE = "#2d0a6e";
+const RECOMMENDED_NAME = "Platinum";
+
+// Icon per tier name; falls back to a generic badge for unknown tiers
+const TIER_ICONS = {
+  Silver: EmojiEvents,
+  Platinum: WorkspacePremium,
+  Diamond: Diamond,
+};
 
 const UpgradePackage = () => {
   const navigate = useNavigate();
   const [purchasedPackage, setPurchasedPackage] = useState(null);
   const [assignedPackages, setAssignedPackages] = useState([]);
   const [availablePackages, setAvailablePackages] = useState([]);
-  const [selectedPackage, setSelectedPackage] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [upgradeLoading, setUpgradeLoading] = useState(false);
+  const [processingId, setProcessingId] = useState(null);
 
   // Load Razorpay script
   useEffect(() => {
@@ -135,6 +145,7 @@ const UpgradePackage = () => {
   const handlePackageSelection = async (pkg) => {
     try {
       setUpgradeLoading(true);
+      setProcessingId(pkg._id);
       setError("");
 
       // Check if Razorpay is loaded
@@ -166,11 +177,12 @@ const UpgradePackage = () => {
           packageName: pkg.name,
         },
         theme: {
-          color: "#6200ea",
+          color: PURPLE,
         },
         modal: {
           ondismiss: function () {
             setUpgradeLoading(false);
+            setProcessingId(null);
             setError("Payment cancelled by user.");
           },
         },
@@ -180,6 +192,7 @@ const UpgradePackage = () => {
       rzp.on("payment.failed", function (response) {
         console.error("Payment failed:", response.error);
         setUpgradeLoading(false);
+        setProcessingId(null);
         setError(`Payment failed: ${response.error.description}`);
       });
 
@@ -190,6 +203,7 @@ const UpgradePackage = () => {
         err.message || "Failed to initiate payment. Please try again.",
       );
       setUpgradeLoading(false);
+      setProcessingId(null);
     }
   };
 
@@ -213,44 +227,101 @@ const UpgradePackage = () => {
       setError("Payment verification failed. Please contact support.");
     } finally {
       setUpgradeLoading(false);
+      setProcessingId(null);
     }
   };
 
+  // Gold is temporarily hidden from the UI
+  const visiblePackages = useMemo(
+    () => availablePackages.filter((pkg) => pkg.name !== "Gold"),
+    [availablePackages],
+  );
+
+  const currentName =
+    purchasedPackage?.name ||
+    assignedPackages
+      .map((p) => p.name)
+      .filter(Boolean)
+      .join(", ");
+
   return (
-    <Box sx={{ px: { xs: 1, sm: 2 }, py: { xs: 2, sm: 3 } }}>
+    <Box
+      sx={{
+        minHeight: "100%",
+        px: { xs: 1.5, sm: 3 },
+        py: { xs: 2.5, sm: 4 },
+        borderRadius: 4,
+        background:
+          "linear-gradient(160deg, #f7f4ff 0%, #ffffff 55%, #efe9ff 100%)",
+      }}
+    >
+      {/* Header */}
       <Box
         sx={{
           display: "flex",
-          alignItems: "center",
+          flexDirection: { xs: "column", md: "row" },
+          justifyContent: "space-between",
+          alignItems: { xs: "flex-start", md: "center" },
           gap: 2,
-          mb: 3,
-        }}
-      >
-        {/* <IconButton onClick={() => navigate("/franchise")} sx={{ bgcolor: "background.paper", boxShadow: 1 }}>
-          <ArrowBack />
-        </IconButton> */}
-        <Typography
-          variant="h4"
-          sx={{
-            fontSize: { xs: "1.75rem", sm: "2.25rem" },
-            fontWeight: 800,
-            color: "primary.main",
-          }}
-        >
-          Upgrade Your Package
-        </Typography>
-      </Box>
-
-      <Typography
-        variant="body1"
-        sx={{
           mb: 4,
-          color: "text.secondary",
-          fontSize: { xs: "0.95rem", sm: "1rem" },
         }}
       >
-        Choose a plan below to upgrade your credit package and access premium features.
-      </Typography>
+        <Box>
+          <Chip
+            icon={<WorkspacePremium sx={{ fontSize: 18, color: "#fff !important" }} />}
+            label="Choose Your Plan"
+            sx={{
+              mb: 2,
+              bgcolor: PURPLE,
+              color: "#fff",
+              fontWeight: 700,
+              px: 0.5,
+              boxShadow: "0 6px 16px rgba(98,0,234,0.25)",
+            }}
+          />
+          <Typography
+            variant="h3"
+            sx={{
+              fontSize: { xs: "1.9rem", sm: "2.6rem" },
+              fontWeight: 800,
+              color: DEEP_PURPLE,
+              lineHeight: 1.15,
+            }}
+          >
+            Upgrade Your Package
+          </Typography>
+          <Typography
+            variant="body1"
+            sx={{ mt: 1, color: "text.secondary", fontSize: { xs: "0.95rem", sm: "1.05rem" } }}
+          >
+            Unlock more features and take your business to the next level.
+          </Typography>
+        </Box>
+
+        {currentName && (
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1.2,
+              px: 2,
+              py: 1,
+              borderRadius: 10,
+              bgcolor: "#fff",
+              boxShadow: "0 6px 20px rgba(0,0,0,0.08)",
+            }}
+          >
+            <Typography variant="body2" fontWeight={600} color="text.secondary">
+              Current Plan:
+            </Typography>
+            <Chip
+              label={currentName}
+              size="small"
+              sx={{ bgcolor: PURPLE, color: "#fff", fontWeight: 700 }}
+            />
+          </Box>
+        )}
+      </Box>
 
       {error && (
         <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
@@ -269,202 +340,226 @@ const UpgradePackage = () => {
           }}
         >
           <CircularProgress size={45} />
-          <Typography sx={{ mt: 2, color: "text.secondary" }}>Loading upgrade packages...</Typography>
+          <Typography sx={{ mt: 2, color: "text.secondary" }}>
+            Loading upgrade packages...
+          </Typography>
+        </Box>
+      ) : visiblePackages.length === 0 ? (
+        <Box
+          sx={{
+            textAlign: "center",
+            py: 6,
+            bgcolor: "#fff",
+            borderRadius: 3,
+            boxShadow: 1,
+          }}
+        >
+          <Typography color="text.secondary">
+            No upgrade packages available at this time.
+          </Typography>
         </Box>
       ) : (
-        <>
-          {availablePackages.length === 0 ? (
-            <Box sx={{ textAlign: "center", py: 6, bgcolor: "background.paper", borderRadius: 3, boxShadow: 1 }}>
-              <Typography color="text.secondary">
-                No upgrade packages available at this time.
-              </Typography>
-            </Box>
-          ) : (
-            <Grid container spacing={3}>
-              {availablePackages.map((pkg) => {
-                // Gold card is temporarily disabled in UI (see commented-out block above)
-                if (pkg.name === "Gold") return null;
+        <Grid container spacing={3} justifyContent="center">
+          {visiblePackages.map((pkg) => {
+            const isRecommended = pkg.name === RECOMMENDED_NAME;
+            const isCurrent = purchasedPackage?.name === pkg.name;
+            const gst = pkg.gstPercentage || 0;
+            const gstAmount = (pkg.price * gst) / 100;
+            const totalAmount = pkg.price + gstAmount;
+            const isProcessing = upgradeLoading && processingId === pkg._id;
+            const TierIcon = TIER_ICONS[pkg.name] || TrendingUp;
+            const savings =
+              pkg.originalPrice && pkg.originalPrice > pkg.price
+                ? Math.round(
+                    ((pkg.originalPrice - pkg.price) / pkg.originalPrice) * 100,
+                  )
+                : null;
+            const description = pkg.description
+              ? pkg.description.replace(
+                  new RegExp(`^${pkg.name}\\s+Package\\s*[-–—]\\s*`, "i"),
+                  "",
+                )
+              : "";
 
-                const basePrice = pkg.price;
-                const gst = pkg.gstPercentage || 0;
-                const gstAmount = (basePrice * gst) / 100;
-                const totalAmount = basePrice + gstAmount;
-                return (
-                  <Grid
-                    item
-                    xs={12}
-                    sm={6}
-                    md={4}
-                    key={pkg._id}
-                  >
-                    <Card
+            return (
+              <Grid item xs={12} sm={6} md={5} lg={4} key={pkg._id}>
+                <Card
+                  sx={{
+                    position: "relative",
+                    height: "100%",
+                    display: "flex",
+                    flexDirection: "column",
+                    borderRadius: 4,
+                    overflow: "visible",
+                    bgcolor: "#fff",
+                    border: isRecommended
+                      ? `2px solid ${PURPLE}`
+                      : "1px solid rgba(98,0,234,0.12)",
+                    boxShadow: isRecommended
+                      ? "0 16px 40px rgba(98,0,234,0.2)"
+                      : "0 8px 24px rgba(0,0,0,0.06)",
+                    transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                    "&:hover": {
+                      transform: "translateY(-6px)",
+                      boxShadow: "0 18px 40px rgba(98,0,234,0.16)",
+                    },
+                  }}
+                >
+                  {isRecommended && (
+                    <Box
                       sx={{
-                        height: "100%",
+                        position: "absolute",
+                        top: 14,
+                        left: 14,
+                        zIndex: 2,
                         display: "flex",
-                        flexDirection: "column",
-                        borderRadius: 4,
-                        border:
-                          selectedPackage?._id === pkg._id
-                            ? "2px solid #6200ea"
-                            : "1px solid #e0e0e0",
-                        boxShadow:
-                          selectedPackage?._id === pkg._id
-                            ? "0 8px 20px rgba(98,0,234,0.18)"
-                            : "0 4px 10px rgba(0,0,0,0.08)",
-                        transition: "0.3s ease",
-                        "&:hover": {
-                          transform: "translateY(-6px)",
-                          boxShadow: "0 12px 24px rgba(0,0,0,0.12)",
-                        },
+                        alignItems: "center",
+                        gap: 0.6,
+                        px: 1.4,
+                        py: 0.5,
+                        borderRadius: 10,
+                        bgcolor: PURPLE,
+                        color: "#fff",
+                        fontSize: "0.8rem",
+                        fontWeight: 700,
                       }}
-                      onClick={() => setSelectedPackage(pkg)}
                     >
-                      <CardContent
+                      <Star sx={{ fontSize: 15 }} /> Recommended
+                    </Box>
+                  )}
+
+                  <Box sx={{ p: { xs: 2.5, sm: 3.5 }, pb: 2 }}>
+                    <Box sx={{ display: "flex", gap: 2.5, alignItems: "center", mb: 2.5, pt: isRecommended ? 3 : 0 }}>
+                      <Box
                         sx={{
-                          flexGrow: 1,
-                          p: { xs: 2.5, sm: 3.5 },
+                          width: 92,
+                          height: 92,
+                          flexShrink: 0,
+                          borderRadius: "50%",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          background:
+                            "radial-gradient(circle at 30% 30%, #ffffff 0%, #ece6ff 60%, #d9ccff 100%)",
+                          boxShadow: "inset 0 -6px 14px rgba(98,0,234,0.12)",
                         }}
                       >
-                        <Typography
-                          variant="h6"
-                          fontWeight="bold"
-                          gutterBottom
-                        >
+                        <TierIcon sx={{ fontSize: 46, color: PURPLE }} />
+                      </Box>
+                      <Box sx={{ minWidth: 0 }}>
+                        <Typography variant="h5" fontWeight={800} color={DEEP_PURPLE}>
                           {pkg.name}
                         </Typography>
-                        <Box 
-                          sx={{ 
-                            mb: 2, 
-                            minHeight: 45,
-                            pl: 1.5,
-                            borderLeft: "3px solid",
-                            display: "flex",
-                            alignItems: "center",
-                            "@keyframes darkPulse": {
-                              "0%, 100%": { 
-                                borderColor: "#6200ea",
-                                color: "#6200ea"
-                              },
-                              "50%": { 
-                                borderColor: "#1a0033",
-                                color: "#1a0033"
-                              }
-                            },
-                            animation: "darkPulse 1.5s ease-in-out infinite",
-                            "@media (prefers-reduced-motion: reduce)": {
-                              animation: "none",
-                              borderColor: "primary.main",
-                              color: "primary.main"
+                        {description && (
+                          <Typography
+                            variant="body2"
+                            sx={{ color: "text.secondary", lineHeight: 1.45, mt: 0.5 }}
+                          >
+                            {description}
+                          </Typography>
+                        )}
+                      </Box>
+                    </Box>
+
+                    <Box sx={{ display: "flex", alignItems: "baseline", flexWrap: "wrap", gap: 1.2 }}>
+                      <Typography
+                        sx={{ fontSize: { xs: "2rem", sm: "2.3rem" }, fontWeight: 800, color: DEEP_PURPLE, lineHeight: 1 }}
+                      >
+                        ₹{pkg.price.toLocaleString("en-IN")}
+                      </Typography>
+                      {pkg.originalPrice > pkg.price && (
+                        <Typography
+                          sx={{ color: "text.disabled", textDecoration: "line-through", fontWeight: 600 }}
+                        >
+                          ₹{pkg.originalPrice.toLocaleString("en-IN")}
+                        </Typography>
+                      )}
+                    </Box>
+
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 0.8 }}>
+                      + GST ({gst}%) = ₹{totalAmount.toLocaleString("en-IN")} total
+                    </Typography>
+
+                    {savings !== null && (
+                      <Chip
+                        icon={<TrendingUp sx={{ fontSize: 16, color: "#2e7d32 !important" }} />}
+                        label={`${savings}% Savings`}
+                        size="small"
+                        sx={{ mt: 1.5, bgcolor: "#e8f5e9", color: "#2e7d32", fontWeight: 700 }}
+                      />
+                    )}
+                  </Box>
+
+                  <Box sx={{ borderTop: "1px solid #eee", mx: { xs: 2.5, sm: 3.5 } }} />
+
+                  <Box sx={{ p: { xs: 2.5, sm: 3.5 }, pt: 2.5, flexGrow: 1 }}>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1.2, mb: 1.5 }}>
+                      <CheckCircle sx={{ fontSize: 20, color: PURPLE }} />
+                      <Typography variant="body2" fontWeight={600}>
+                        {Number(pkg.creditsIncluded) === 1000000 ||
+                        pkg.creditsIncluded === "Unlimited"
+                          ? "Unlimited Credits"
+                          : `${pkg.creditsIncluded} credits included`}
+                      </Typography>
+                    </Box>
+                    {pkg.features?.map((feature, index) => (
+                      <Box
+                        key={index}
+                        sx={{ display: "flex", alignItems: "flex-start", gap: 1.2, mb: 1.1 }}
+                      >
+                        <CheckCircle sx={{ fontSize: 20, color: PURPLE, mt: "1px" }} />
+                        <Typography variant="body2" sx={{ lineHeight: 1.45 }}>
+                          {feature}
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Box>
+
+                  <Box sx={{ p: { xs: 2.5, sm: 3.5 }, pt: 0 }}>
+                    <Button
+                      fullWidth
+                      size="large"
+                      disabled={upgradeLoading || isCurrent}
+                      onClick={() => handlePackageSelection(pkg)}
+                      endIcon={!isProcessing && !isCurrent ? <ArrowForward /> : null}
+                      variant={isRecommended ? "contained" : "outlined"}
+                      sx={{
+                        py: 1.4,
+                        borderRadius: 3,
+                        fontWeight: 700,
+                        textTransform: "none",
+                        fontSize: "1rem",
+                        ...(isRecommended
+                          ? {
+                              background: `linear-gradient(90deg, ${PURPLE} 0%, #8e2de2 100%)`,
+                              boxShadow: "0 10px 24px rgba(98,0,234,0.3)",
+                              "&:hover": { background: "linear-gradient(90deg, #5000c8 0%, #7b1fd1 100%)" },
                             }
-                          }}
-                        >
-                          <Typography
-                            variant="body2"
-                            sx={{
-                              color: "inherit",
-                              fontWeight: "600",
-                              lineHeight: 1.4
-                            }}
-                          >
-                            {pkg.description ? pkg.description.replace(new RegExp(`^${pkg.name}\\s+Package\\s*[-–—]\\s*`, 'i'), '') : ""}
-                          </Typography>
-                        </Box>
-                        <Box
-                          sx={{
-                            textAlign: "center",
-                            py: 2,
-                            mb: 2,
-                            borderRadius: 3,
-                            bgcolor: "#f8f5ff",
-                          }}
-                        >
-                          <Typography
-                            variant="h5"
-                            fontWeight="bold"
-                            color="primary.main"
-                          >
-                            ₹{basePrice}
-                          </Typography>
-
-                          <Typography
-                            variant="body2"
-                            color="text.secondary"
-                          >
-                            + GST ({gst}%) = ₹{gstAmount}
-                          </Typography>
-
-                          <Typography
-                            variant="h6"
-                            fontWeight="bold"
-                            color="success.main"
-                          >
-                            Total: ₹{totalAmount}
-                          </Typography>
-
-                          <Typography
-                            variant="body2"
-                            color="text.secondary"
-                          >
-                            {pkg.creditsIncluded} credits included
-                          </Typography>
-                        </Box>
-                        <List dense>
-                          {pkg.features?.map((feature, index) => (
-                            <ListItem key={index} sx={{ py: 0.5, px: 0 }}>
-                              <ListItemIcon sx={{ minWidth: 26 }}>
-                                <CheckCircle
-                                  sx={{ fontSize: 18 }}
-                                  color="success"
-                                />
-                              </ListItemIcon>
-                              <ListItemText
-                                primary={feature}
-                                primaryTypographyProps={{
-                                  variant: "body2",
-                                }}
-                              />
-                            </ListItem>
-                          ))}
-                        </List>
-                      </CardContent>
-                      <CardActions sx={{ p: 3, pt: 0 }}>
-                        <Button
-                          variant="contained"
-                          fullWidth
-                          size="large"
-                          sx={{
-                            borderRadius: 3,
-                            py: 1.2,
-                            fontWeight: "bold",
-                            textTransform: "none",
-                          }}
-                          disabled={upgradeLoading}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handlePackageSelection(pkg);
-                          }}
-                        >
-                          {upgradeLoading &&
-                          selectedPackage?._id === pkg._id ? (
-                            <>
-                              <CircularProgress
-                                size={20}
-                                sx={{ mr: 1, color: "#fff" }}
-                              />
-                              Processing...
-                            </>
-                          ) : (
-                            "Select Package"
-                          )}
-                        </Button>
-                      </CardActions>
-                    </Card>
-                  </Grid>
-                );
-              })}
-            </Grid>
-          )}
-        </>
+                          : {
+                              borderWidth: 2,
+                              borderColor: PURPLE,
+                              color: PURPLE,
+                              "&:hover": { borderWidth: 2, borderColor: PURPLE, bgcolor: "#f3e8ff" },
+                            }),
+                      }}
+                    >
+                      {isProcessing ? (
+                        <>
+                          <CircularProgress size={20} sx={{ mr: 1, color: "inherit" }} />
+                          Processing...
+                        </>
+                      ) : isCurrent ? (
+                        "Current Plan"
+                      ) : (
+                        `Upgrade to ${pkg.name}`
+                      )}
+                    </Button>
+                  </Box>
+                </Card>
+              </Grid>
+            );
+          })}
+        </Grid>
       )}
     </Box>
   );
