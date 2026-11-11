@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Credit Analysis Report – Rohan Mehta – GreenLeaf Loans</title>
+<style>
+:root{
+  --g1:#0f766e; --g2:#14b8a6; --accent:#14b8a6;
+  --ink:#2d3036; --muted:#6b7280; --line:#e5e7eb; --bg:#f4f5f7; --card:#fff;
+  --ok:#28a745; --d1:#ffc107; --d30:#fd7e14; --d90:#dc3545;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5;font-size:14px}
+.page{max-width:960px;margin:0 auto;background:#fff;box-shadow:0 2px 24px rgba(0,0,0,.08)}
+.grad{background:linear-gradient(135deg,var(--g1),var(--g2));color:#fff}
+/* header */
+.top{padding:24px 24px 28px;border-radius:0 0 22px 22px;display:flex;flex-wrap:wrap;gap:12px 20px;align-items:flex-start;justify-content:space-between;position:relative}
+.brand{display:flex;align-items:center;gap:20px}
+.logo{width:58px;height:58px;border-radius:12px;background:#fff;color:var(--g1);font-weight:800;font-size:24px;display:grid;place-items:center;flex:none}
+.top h1{font-size:19px;letter-spacing:.8px;font-weight:700}
+.tag{flex-basis:100%;font-size:12.5px;opacity:.9}
+.tag:before{content:"✦";color:#fbbf24;margin-right:8px}
+.badge{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);border-radius:8px;padding:10px 14px}
+.badge b{display:block;font-size:13px}
+.badge small{font-size:11px;opacity:.85}
+.wrap{padding:0 14px 24px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:22px}
+/* overview */
+.overview{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:-1px;border-top:0;border-radius:0 0 14px 14px}
+.ov-h{font-size:11.5px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--g1);margin-bottom:12px}
+.info{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+.f{display:flex;gap:10px;align-items:center;padding:12px 4px;border-bottom:1px dotted #d6d9de}
+.f .ic{width:28px;height:28px;border-radius:50%;background:#eef3ff;flex:none;display:grid;place-items:center;font-size:13px}
+.f span{display:block;font-size:10.5px;font-weight:600;letter-spacing:.5px;color:var(--muted);text-transform:uppercase}
+.f b{font-size:13.5px}
+.f b.good{color:#1e7a34}
+.note{margin-top:14px;background:#f1f4f9;border-left:3px solid #3b82f6;padding:12px 14px;border-radius:4px;font-size:13.5px}
+.gauge{text-align:center}
+.gauge svg{width:100%;max-width:260px}
+.gauge .big{font-size:34px;font-weight:700;fill:#333}
+.gauge .sub{font-size:11px;fill:var(--muted)}
+.gauge h3{font-size:19px;margin-top:8px}
+.score-pill{display:inline-block;margin-top:10px;background:linear-gradient(135deg,#28a745,#1e7a34);color:#fff;font-weight:700;padding:6px 16px;border-radius:999px;box-shadow:0 3px 8px rgba(40,167,69,.35)}
+/* exec */
+.exec{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:8px;padding:18px 20px;margin-bottom:12px}
+.exec h5{font-size:11.5px;letter-spacing:.8px;color:var(--accent);margin-bottom:6px}
+.exec p{font-size:15px}
+.three{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:30px}
+.mini{border-radius:10px;padding:14px;border:1px solid;font-size:12.5px;display:flex;gap:10px}
+.mini .dot{width:24px;height:24px;border-radius:50%;flex:none;display:grid;place-items:center;color:#fff;font-size:12px}
+.mini h6{font-size:13.5px;margin-bottom:4px}
+.m-green{background:#e9f8ee;border-color:#c5ebd0}.m-green h6{color:#1e7a34}.m-green .dot{background:#28a745}
+.m-red{background:#fdecee;border-color:#f7c9ce}.m-red h6{color:#b4232f}.m-red .dot{background:#dc3545}
+.m-blue{background:#eef4fe;border-color:#cfdffa}.m-blue h6{color:#1d4ed8}.m-blue .dot{background:#3b82f6}
+/* section headings */
+.sec{display:flex;align-items:center;gap:10px;margin:8px 0 12px;border-left:5px solid var(--accent);padding-left:10px}
+.sec h2{font-size:19px}.sec h2 em{font-style:normal;color:var(--accent);margin-right:4px}
+.sec-sub{color:var(--muted);font-size:13px;margin:-6px 0 14px 15px}
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px}
+.stat{border-radius:10px;text-align:center;padding:16px 8px}
+.stat b{display:block;font-size:22px}.stat small{font-size:11.5px;opacity:.9}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{background:linear-gradient(135deg,var(--g1),var(--g2));color:#fff;text-align:left;padding:10px 12px;font-weight:600}
+tbody td,tbody th{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;font-weight:400}
+.tw{overflow-x:auto}
+/* risks */
+.risk{display:flex;gap:14px;background:#f8f8fe;border-left:4px solid;border-radius:8px;padding:12px 14px;margin-bottom:8px}
+.risk .n{font-size:18px;font-weight:700;color:var(--accent);min-width:16px}
+.risk h4{font-size:14px;margin:4px 0}.risk p{font-size:12.5px;color:#444}
+.r-high{border-color:#fd7e14}.r-medium{border-color:#ffc107}.r-low{border-color:#28a745}
+/* pills */
+.pill{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.5px;padding:3px 10px;border-radius:999px;color:#fff;box-shadow:0 2px 5px rgba(0,0,0,.18)}
+.pill-low{background:linear-gradient(135deg,#28a745,#1e7a34)}
+.pill-medium{background:linear-gradient(135deg,#ffc107,#e0a800);color:#5a4300}
+.pill-high{background:linear-gradient(135deg,#fd7e14,#e8590c)}
+/* portfolio mix */
+.two{display:grid;grid-template-columns:1fr 1.4fr;gap:20px;margin-top:20px}
+.two h4{font-size:14px;margin-bottom:12px}
+.donut{display:flex;align-items:center;gap:16px}
+.donut svg{width:140px;height:140px;flex:none}
+.donut .pc{font-size:26px;font-weight:700;fill:#333}
+.donut small{color:var(--muted);font-size:12.5px}
+.ub{margin-bottom:12px}.ub-top{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:4px}
+.bar{height:12px;background:#eee;border-radius:999px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:999px}
+i.ok{background:var(--ok)}i.d1{background:var(--d1)}i.d30{background:var(--d30)}
+/* accounts */
+.legend{font-size:12px;margin-bottom:14px;display:flex;gap:14px;flex-wrap:wrap}
+.legend span:before{content:"■ ";}
+.l-ok:before{color:var(--ok)}.l-d1:before{color:var(--d1)}.l-d30:before{color:var(--d30)}.l-d90:before{color:var(--d90)}
+.acct{border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:16px;break-inside:avoid}
+.acct-head{background:linear-gradient(135deg,var(--g1),var(--g2));color:#fff;padding:12px 14px;display:flex;justify-content:space-between;align-items:center}
+.acct-head h4{font-size:14px}
+.acct-body{display:grid;grid-template-columns:1fr 1fr;gap:0 40px;padding:6px 14px}
+.kv{display:flex;gap:12px;align-items:baseline;padding:12px 0;border-bottom:1px dotted #d6d9de}
+.kv span{font-size:10.5px;font-weight:600;letter-spacing:.5px;color:var(--muted)}
+.kv b{font-size:13.5px}
+.acct-foot{padding:4px 14px 16px}
+.lbl{font-size:12.5px;font-weight:700;margin:10px 0 6px}
+.chips{display:flex;flex-wrap:wrap;gap:3px}
+.chip{width:26px;border-radius:4px;color:#fff;text-align:center;padding:3px 0;font-size:11px;line-height:1.15}
+.chip .cm{display:block;font-size:6.5px;opacity:.85;margin-bottom:3px}
+.chip.ok{background:var(--ok)}.chip.d1{background:var(--d1)}.chip.d30{background:var(--d30)}.chip.d90{background:var(--d90)}
+.chip b{font-weight:600}
+/* heatmap */
+.hm{text-align:center;color:#fff;font-weight:600;border:1px solid #fff}
+td.hm.ok{background:var(--ok)}td.hm.d1{background:var(--d1)}td.hm.d30{background:var(--d30)}td.hm.d90{background:var(--d90)}
+.heat tbody th{font-weight:600;font-size:12px}
+.sub-h{font-size:14px;margin:22px 0 10px}
+/* plan */
+.plan{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:22px}
+.pm{border-radius:8px;padding:16px;border-left:4px solid;font-size:13px}
+.pm h5{font-size:14px;margin-bottom:8px}
+.p1{background:#fdecee;border-color:#dc3545}.p2{background:#fefae7;border-color:#ffc107}.p3{background:#e9f8ee;border-color:#28a745}
+.chart svg{width:100%;max-width:600px;display:block;margin:0 auto}
+.cv{font-size:11.5px;font-weight:700;fill:#333}.cl{font-size:11px;fill:var(--muted)}
+.fine{font-size:11.5px;color:var(--muted);margin:10px 0 14px}
+.reco{border-radius:8px;padding:16px 20px;text-align:center}
+.reco h4{margin-bottom:6px;font-size:14.5px}.reco p{font-size:13px}
+/* footer */
+footer{background:#052e2b;color:#fff;text-align:center;padding:28px 24px;border-radius:12px 12px 0 0;margin:30px 14px 0}
+footer h3{font-size:16px;margin-bottom:4px}
+footer .ft{opacity:.8;margin-bottom:10px}
+footer a{color:#86efac;text-decoration:none}
+footer .fol{font-weight:700;font-size:13px;margin:16px 0 8px}
+.soc{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.soc a{color:#fff;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.06);border-radius:6px;padding:6px 12px;font-size:11.5px;font-weight:600}
+footer .disc{font-size:11px;opacity:.7;margin-top:18px}
+.endpad{height:24px;background:#052e2b;margin:0 14px}
+@media (max-width:760px){
+  .overview,.three,.plan,.two{grid-template-columns:1fr}
+  .info{grid-template-columns:1fr}
+  .stats{grid-template-columns:1fr 1fr}
+  .acct-body{grid-template-columns:1fr;gap:0}
+  .top{padding:18px}
+}
+@media print{
+  body{background:#fff}.page{box-shadow:none;max-width:none}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .card,.risk,.pm,.mini{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+<header class="top grad">
+  <div class="brand"><div class="logo">GL</div><h1>CREDIT ANALYSIS REPORT</h1></div>
+  <div class="badge"><b>✓ AI-Verified Analysis</b><small>Trusted. Secure. Confidential.</small></div>
+  <div class="tag">Grow your credit, grow your future</div>
+</header>
+
+<div class="wrap">
+<section class="card overview">
+  <div>
+    <div class="ov-h">👤 Client Information</div>
+    <div class="info">
+      <div class="f"><div class="ic">👤</div><div><span>Client Name</span><b>Rohan Mehta</b></div></div>
+      <div class="f"><div class="ic">📅</div><div><span>Report Date</span><b>2026-10-07</b></div></div>
+      <div class="f"><div class="ic">🪪</div><div><span>PAN</span><b>ABCPM1234K</b></div></div>
+      <div class="f"><div class="ic">🎂</div><div><span>Date of Birth</span><b>1990-05-14</b></div></div>
+      <div class="f"><div class="ic">#</div><div><span>Bureau Control No</span><b>CR-2026-0098765</b></div></div>
+      <div class="f"><div class="ic">🏷</div><div><span>Score Band</span><b class="good">Good</b></div></div>
+    </div>
+    <div class="note">This report is an educational analysis of the credit data provided. It highlights what is helping and hurting the score, and gives a 90-day plan to improve it.</div>
+  </div>
+  <div class="gauge">
+    <div class="ov-h">↗ Credit Score Overview</div>
+    <svg viewBox="0 0 200 120" role="img" aria-label="Credit score 742 out of 900">
+      <path d="M 10 105 A 90 90 0 0 1 190 105" fill="none" stroke="#e5e8ec" stroke-width="14" stroke-linecap="round"/>
+      <path d="M 10 105 A 90 90 0 0 1 190 105" fill="none" stroke="#28a745" stroke-width="14" stroke-linecap="round" stroke-dasharray="233.1 287.7"/>
+      <text x="100" y="92" text-anchor="middle" class="big">742</text>
+      <text x="100" y="108" text-anchor="middle" class="sub">out of 900</text>
+    </svg>
+    <h3>Current Score: 742 /900</h3>
+    <span class="score-pill">⌄ Good</span>
+  </div>
+</section>
+
+<section class="exec">
+  <h5>EXECUTIVE SUMMARY</h5>
+  <p>Rohan shows a healthy repayment record across 6 credit accounts, with no overdue amount today and a 12-year-old credit file. The score of 742 sits in the Good band. Two short late payments in the last year are the only blemishes, and card usage is moderate.</p>
+</section>
+<div class="three">
+  <div class="mini m-green"><div class="dot">👍</div><div><h6>What's Helping</h6>No overdue balance, no write-offs, and 10 of 12 recent months paid on time on every active account. A long credit history (since 2016) adds strength.</div></div>
+  <div class="mini m-red"><div class="dot">👎</div><div><h6>What's Hurting</h6>One 32-day delay on the Axis Bank personal loan and one 12-day delay on a Bajaj Finance loan. Most of the debt sits in a single home loan, and there were 3 enquiries in 12 months.</div></div>
+  <div class="mini m-blue"><div class="dot">◎</div><div><h6>Top Priority</h6>Keep every EMI on auto-debit for the next 3 months so no new delay is reported, and avoid new credit applications.</div></div>
+</div>
+
+<!-- 01 -->
+<div class="sec"><h2><em>01</em> Profile Snapshot</h2></div>
+<section class="card">
+  <div class="stats">
+    <div class="stat grad"><b>6</b><small>Total Accounts</small></div>
+    <div class="stat grad"><b>₹33,40,500</b><small>Outstanding</small></div>
+    <div class="stat grad"><b>₹0</b><small>Amount Overdue</small></div>
+    <div class="stat grad"><b>25%</b><small>Utilization</small></div>
+    <div class="stat grad"><b>2016</b><small>Oldest Vintage</small></div>
+    <div class="stat grad"><b>3</b><small>Enquiries (12m)</small></div>
+  </div>
+  <div class="tw"><table>
+    <thead><tr><th>Metric</th><th>Value</th><th>Read</th></tr></thead>
+    <tbody>
+      <tr><td>Total sanctioned (lifetime)</td><td>₹52,45,000</td><td>Across all closed and active lines</td></tr>
+      <tr><td>Total written-off / loss</td><td>₹0</td><td>None</td></tr>
+      <tr><td>Secured exposure</td><td>₹31,40,000</td><td>Home, vehicle, gold, property loans</td></tr>
+      <tr><td>Unsecured exposure</td><td>₹2,00,500</td><td>Credit cards, personal loans, consumer credit</td></tr>
+      <tr><td>Active accounts</td><td>4</td><td>Currently open and reporting</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- 02 -->
+<div class="sec"><h2><em>02</em> Top Risk Factors</h2></div>
+<p class="sec-sub">The negative items below are, in order, pulling the score down the most.</p>
+<section class="card">
+  <div class="risk r-high"><div class="n">1</div><div><span class="pill pill-high">HIGH</span><h4>32-day delay on Axis Bank personal loan</h4><p>A 32-day delay was reported in March 2026 on the Axis Bank personal loan. Lenders look closely at delays of 30 days or more, even when later payments are on time.</p></div></div>
+  <div class="risk r-medium"><div class="n">2</div><div><span class="pill pill-medium">MEDIUM</span><h4>Short delay on Bajaj Finance consumer loan</h4><p>A 12-day delay was reported in June 2026. It is small, but it is recent and shows up in the last 12 months.</p></div></div>
+  <div class="risk r-low"><div class="n">3</div><div><span class="pill pill-low">LOW</span><h4>Exposure concentrated in one home loan</h4><p>About 94% of total outstanding debt is the ICICI Bank home loan. This is normal for a home buyer, but leaves little spread across lenders.</p></div></div>
+</section>
+
+<!-- 03 -->
+<div class="sec"><h2><em>03</em> Portfolio Analysis — All Accounts</h2></div>
+<section class="card">
+  <div class="tw"><table>
+    <thead><tr><th>Lender</th><th>Type</th><th>Sanctioned</th><th>Balance</th><th>Util %</th><th>Max DPD</th><th>Status</th><th>Risk</th></tr></thead>
+    <tbody>
+<tr><td>HDFC BANK</td><td>Credit Card</td><td>₹2,50,000</td><td>₹62,500</td><td>25%</td><td>0</td><td>Active</td><td><span class="pill pill-low">LOW</span></td></tr>
+<tr><td>ICICI BANK</td><td>Home Loan</td><td>₹38,00,000</td><td>₹31,40,000</td><td>83%</td><td>0</td><td>Active</td><td><span class="pill pill-low">LOW</span></td></tr>
+<tr><td>BAJAJ FINANCE</td><td>Consumer Loan</td><td>₹60,000</td><td>₹18,000</td><td>30%</td><td>12</td><td>Active</td><td><span class="pill pill-medium">MEDIUM</span></td></tr>
+<tr><td>AXIS BANK</td><td>Personal Loan</td><td>₹3,00,000</td><td>₹1,20,000</td><td>40%</td><td>32</td><td>Active</td><td><span class="pill pill-high">HIGH</span></td></tr>
+<tr><td>SBI</td><td>Auto Loan</td><td>₹7,50,000</td><td>₹0</td><td>0%</td><td>0</td><td>Closed</td><td><span class="pill pill-low">LOW</span></td></tr>
+<tr><td>KOTAK PRIME</td><td>Two-wheeler Loan</td><td>₹85,000</td><td>₹0</td><td>0%</td><td>0</td><td>Closed</td><td><span class="pill pill-low">LOW</span></td></tr>
+    </tbody>
+  </table></div>
+  <div class="two">
+    <div>
+      <h4>Portfolio Mix (Secured vs Unsecured)</h4>
+      <div class="donut">
+        <svg viewBox="0 0 140 140" role="img" aria-label="94% secured">
+          <circle cx="70" cy="70" r="54" fill="none" stroke="#fd7e14" stroke-width="18"/>
+          <circle cx="70" cy="70" r="54" fill="none" stroke="#28a745" stroke-width="18" stroke-dasharray="318.9 339.3" transform="rotate(-90 70 70)"/>
+          <text x="70" y="78" text-anchor="middle" class="pc">94%</text>
+        </svg>
+        <small>Secured vs unsecured outstanding<br><span style="color:#28a745">■</span> Secured &nbsp; <span style="color:#fd7e14">■</span> Unsecured</small>
+      </div>
+    </div>
+    <div>
+      <h4>Utilization by Account</h4>
+<div class="ub"><div class="ub-top"><span>HDFC BANK · Credit Card</span><b>25%</b></div><div class="bar"><i class="ok" style="width:25%"></i></div></div>
+<div class="ub"><div class="ub-top"><span>ICICI BANK · Home Loan</span><b>83%</b></div><div class="bar"><i class="d30" style="width:83%"></i></div></div>
+<div class="ub"><div class="ub-top"><span>BAJAJ FINANCE · Consumer Loan</span><b>30%</b></div><div class="bar"><i class="ok" style="width:30%"></i></div></div>
+<div class="ub"><div class="ub-top"><span>AXIS BANK · Personal Loan</span><b>40%</b></div><div class="bar"><i class="ok" style="width:40%"></i></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 04 -->
+<div class="sec"><h2><em>04</em> Detailed Account Breakdown</h2></div>
+<p class="sec-sub">Every account on the report, with health score and month-by-month payment history.</p>
+<section class="card">
+  <div class="legend"><span class="l-ok">On-time (OK)</span><span class="l-d1">1–29 DPD</span><span class="l-d30">30–89 DPD</span><span class="l-d90">90+ / SUB / SMA</span></div>
+
+<article class="acct">
+  <header class="acct-head"><h4>HDFC BANK &nbsp;·&nbsp; Credit Card</h4><span class="pill pill-low">LOW</span></header>
+  <div class="acct-body">
+    <div class="kv"><span>ACCOUNT NO</span><b>4375XXXXXXXX2210</b></div>
+    <div class="kv"><span>OWNERSHIP</span><b>Individual</b></div>
+    <div class="kv"><span>OPENED</span><b>21/03/2016</b></div>
+    <div class="kv"><span>CLOSED</span><b>Active</b></div>
+    <div class="kv"><span>SANCTIONED</span><b>₹2,50,000</b></div>
+    <div class="kv"><span>BALANCE</span><b>₹62,500</b></div>
+    <div class="kv"><span>OVERDUE</span><b>₹0</b></div>
+    <div class="kv"><span>MAX DPD</span><b>0 days</b></div>
+  </div>
+  <div class="acct-foot">
+    <p class="lbl">Account Health: 100/100</p>
+    <div class="bar"><i class="ok" style="width:100%"></i></div>
+    <p class="lbl">Payment history (most recent first)</p>
+    <div class="chips"><div class="chip ok"><span class="cm">Sep<br>2026</span><b>0</b></div><div class="chip ok"><span class="cm">Aug<br>2026</span><b>0</b></div><div class="chip ok"><span class="cm">Jul<br>2026</span><b>0</b></div><div class="chip ok"><span class="cm">Jun<br>2026</span><b>0</b></div><div class="chip ok"><span class="cm">May<br>2026</span><b>0</b></div><div class="chip ok"><span class="cm">Apr<br>2026</span><b>0</b></div><div class="chip ok"><span class="cm">Mar<br>2026</span><b>0</b></div><div class="chip ok"><span class="cm">Feb<br>2026</span><b>0</b></div><div class="chip ok"><span class="cm">Jan<br>2026</span><b>0</b></div><div class="chip ok"><span class="cm">Dec<br>2025</span><b>0</b></div><div class="chip ok"><span class="cm">Nov<br>2025</span><b>0</b></div><div class="chip ok"><span class="cm">Oct<br>2025</span><b>0</b></div></div>
+  </div>
+</article>
+
+<article class="acct">
+  <header class="acct-head"><h4>ICICI BANK &nbsp;·&nbsp; Home Loan</h4><span class="pill pill-low">LOW</span></header>
+  <div class="acct-body">
+    <div class="kv"><span>ACCOUNT NO</span><b>LHSUR00041256</b></div>
+    <div class="kv"><span>OWNERSHIP</span><b>Joint</b></div>
+    <div class="kv"><span>OPENED</span><b>10/08/2021</b></div>
+    <div class="kv"><span>CLOSED</span><b>Active</b></div>
+    <div class="kv"><span>SANCTIONED</span><b>₹38,00,000</b></div>
+    <div class="kv"><span>BALANCE</span><b>₹31,40,000</b></div>
+    <div class="kv"><span>OVERDUE</span><b>₹0</b></div>
+    <div class="kv"><span>MAX DPD</span><b>0 days</b></div>
+  </div>
+  <div class="acct-foot">
+    <p class="lbl">Account Health: 100/100</p>
+    <div class="bar"><i class="ok" style="width:100%"></i></div>
+    <p class="lbl">Payment history (most recent first)</p>
+    <div class="chips"><div class="chip ok"><span class="cm">Sep<br>2026</span><b>0</b></div><div class="chip ok"><span class="cm">Aug<br>2026</span><b>0</b></div><div class="chip ok"><span class="cm">Jul<br>2026</span><b>0</b></div><div class="chip ok"><span class="cm">Jun<br>2026</span><b>0</b></div><div class="chip ok"><span class="cm">May<br>2026</span><b>0</b></div><div class="chip ok"><span class="cm">Apr<br>2026</span><b>0</b></div><div class="chip ok"><span class="cm">Mar<br>2026</span><b>0</b></div><div class="chip ok"><span class="cm">Feb<br>2026</span><b>0</b></div><div class="chip ok"><span class="cm">Jan<br>2026</span><b>0</b></div><div class="chip ok"><span class="cm">Dec<br>2025</span><b>0</b></div><div class="chip ok"><span class="cm">Nov<br>2025</span><b>0</b></div><div class="chip ok"><span class="cm">Oct<br>2025</span><b>0</b></div></div>
+  </div>
+</article>
+
+<article class="acct">
+  <header class="acct-head"><h4>BAJAJ FINANCE &nbsp;·&nbsp; Consumer Loan</h4><span class="pill pill-medium">MEDIUM</span></header>
+  <div class="acct-body">
+    <div class="kv"><span>ACCOUNT NO</span><b>P82RDDKT204411</b></div>
+    <div class="kv"><span>OWNERSHIP</span><b>Individual</b></div>
+    <div class="kv"><span>OPENED</span><b>14/01/2026</b></div>
+    <div class="kv"><span>CLOSED</span><b>Active</b></div>
+    <div class="kv"><span>SANCTIONED</span><b>₹60,000</b></div>
+    <div class="kv"><span>BALANCE</span><b>₹18,000</b></div>
+    <div class="kv"><span>OVERDUE</span><b>₹0</b></div>
+    <div class="kv"><span>MAX DPD</span><b>12 days</b></div>
+  </div>
+  <div class="acct-foot">
+    <p class="lbl">Account Health: 85/100</p>
+    <div class="bar"><i class="ok" style="width:85%"></i></div>
+    <p class="lbl">Payment history (most recent first)</p>
+    <div class="chips"><div class="chip ok"><span class="cm">Sep<br>2026</span><b>0</b></div><div class="chip ok"><span class="cm">Aug<br>2026</span><b>0</b></div><div class="chip ok"><span class="cm">Jul<br>2026</span><b>0</b></div><div class="chip d1"><span class="cm">Jun<br>2026</span><b>12</b></div><div class="chip ok"><span class="cm">May<br>2026</span><b>0</b></div><div class="chip ok"><span class="cm">Apr<br>2026</span><b>0</b></div><div class="chip ok"><span class="cm">Mar<br>2026</span><b>0</b></div><div class="chip ok"><span class="cm">Feb<br>2026</span><b>0</b></div><div class="chip ok"><span class="cm">Jan<br>2026</span><b>0</b></div></div>
+  </div>
+</article>
+
+<article class="acct">
+  <header class="acct-head"><h4>AXIS BANK &nbsp;·&nbsp; Personal Loan</h4><span class="pill pill-high">HIGH</span></header>
+  <div class="acct-body">
+    <div class="kv"><span>ACCOUNT NO</span><b>PL0098123344</b></div>
+    <div class="kv"><span>OWNERSHIP</span><b>Individual</b></div>
+    <div class="kv"><span>OPENED</span><b>05/05/2025</b></div>
+    <div class="kv"><span>CLOSED</span><b>Active</b></div>
+    <div class="kv"><span>SANCTIONED</span><b>₹3,00,000</b></div>
+    <div class="kv"><span>BALANCE</span><b>₹1,20,000</b></div>
+    <div class="kv"><span>OVERDUE</span><b>₹0</b></div>
+    <div class="kv"><span>MAX DPD</span><b>32 days</b></div>
+  </div>
+  <div class="acct-foot">
+    <p class="lbl">Account Health: 70/100</p>
+    <div class="bar"><i class="d1" style="width:70%"></i></div>
+    <p class="lbl">Payment history (most recent first)</p>
+    <div class="chips"><div class="chip ok"><span class="cm">Sep<br>2026</span><b>0</b></div><div class="chip ok"><span class="cm">Aug<br>2026</span><b>0</b></div><div class="chip ok"><span class="cm">Jul<br>2026</span><b>0</b></div><div class="chip ok"><span class="cm">Jun<br>2026</span><b>0</b></div><div class="chip ok"><span class="cm">May<br>2026</span><b>0</b></div><div class="chip ok"><span class="cm">Apr<br>2026</span><b>0</b></div><div class="chip d30"><span class="cm">Mar<br>2026</span><b>32</b></div><div class="chip ok"><span class="cm">Feb<br>2026</span><b>0</b></div><div class="chip ok"><span class="cm">Jan<br>2026</span><b>0</b></div><div class="chip ok"><span class="cm">Dec<br>2025</span><b>0</b></div><div class="chip ok"><span class="cm">Nov<br>2025</span><b>0</b></div><div class="chip ok"><span class="cm">Oct<br>2025</span><b>0</b></div></div>
+  </div>
+</article>
+
+<article class="acct">
+  <header class="acct-head"><h4>SBI &nbsp;·&nbsp; Auto Loan</h4><span class="pill pill-low">LOW</span></header>
+  <div class="acct-body">
+    <div class="kv"><span>ACCOUNT NO</span><b>0065181262896</b></div>
+    <div class="kv"><span>OWNERSHIP</span><b>Individual</b></div>
+    <div class="kv"><span>OPENED</span><b>18/11/2019</b></div>
+    <div class="kv"><span>CLOSED</span><b>Closed</b></div>
+    <div class="kv"><span>SANCTIONED</span><b>₹7,50,000</b></div>
+    <div class="kv"><span>BALANCE</span><b>₹0</b></div>
+    <div class="kv"><span>OVERDUE</span><b>₹0</b></div>
+    <div class="kv"><span>MAX DPD</span><b>0 days</b></div>
+  </div>
+  <div class="acct-foot">
+    <p class="lbl">Account Health: 100/100</p>
+    <div class="bar"><i class="ok" style="width:100%"></i></div>
+    <p class="lbl">Payment history (most recent first)</p>
+    <div class="chips"><div class="chip ok"><span class="cm">Sep<br>2026</span><b>0</b></div><div class="chip ok"><span class="cm">Aug<br>2026</span><b>0</b></div><div class="chip ok"><span class="cm">Jul<br>2026</span><b>0</b></div><div class="chip ok"><span class="cm">Jun<br>2026</span><b>0</b></div><div class="chip ok"><span class="cm">May<br>2026</span><b>0</b></div><div class="chip ok"><span class="cm">Apr<br>2026</span><b>0</b></div></div>
+  </div>
+</article>
+
+<article class="acct">
+  <header class="acct-head"><h4>KOTAK PRIME &nbsp;·&nbsp; Two-wheeler Loan</h4><span class="pill pill-low">LOW</span></header>
+  <div class="acct-body">
+    <div class="kv"><span>ACCOUNT NO</span><b>CF22804610</b></div>
+    <div class="kv"><span>OWNERSHIP</span><b>Individual</b></div>
+    <div class="kv"><span>OPENED</span><b>02/02/2018</b></div>
+    <div class="kv"><span>CLOSED</span><b>Closed</b></div>
+    <div class="kv"><span>SANCTIONED</span><b>₹85,000</b></div>
+    <div class="kv"><span>BALANCE</span><b>₹0</b></div>
+    <div class="kv"><span>OVERDUE</span><b>₹0</b></div>
+    <div class="kv"><span>MAX DPD</span><b>0 days</b></div>
+  </div>
+  <div class="acct-foot">
+    <p class="lbl">Account Health: 100/100</p>
+    <div class="bar"><i class="ok" style="width:100%"></i></div>
+    <p class="lbl">Payment history (most recent first)</p>
+    <div class="chips"><div class="chip ok"><span class="cm">Sep<br>2026</span><b>0</b></div><div class="chip ok"><span class="cm">Aug<br>2026</span><b>0</b></div><div class="chip ok"><span class="cm">Jul<br>2026</span><b>0</b></div><div class="chip ok"><span class="cm">Jun<br>2026</span><b>0</b></div><div class="chip ok"><span class="cm">May<br>2026</span><b>0</b></div><div class="chip ok"><span class="cm">Apr<br>2026</span><b>0</b></div></div>
+  </div>
+</article>
+</section>
+
+<!-- 05 -->
+<div class="sec"><h2><em>05</em> Strategic Analysis</h2></div>
+<section class="card">
+  <h4 class="sub-h" style="margin-top:0">Health Heatmap</h4>
+  <div class="tw"><table class="heat">
+    <thead><tr><th>Account</th><th>Max DPD</th><th>Health</th><th>Written Off</th><th>Overdue</th></tr></thead>
+    <tbody>
+<tr><th scope="row">HDFC BANK · Credit Card</th><td class="hm ok">0</td><td class="hm ok">100</td><td class="hm ok">₹0</td><td class="hm ok">₹0</td></tr>
+<tr><th scope="row">ICICI BANK · Home Loan</th><td class="hm ok">0</td><td class="hm ok">100</td><td class="hm ok">₹0</td><td class="hm ok">₹0</td></tr>
+<tr><th scope="row">BAJAJ FINANCE · Consumer Loan</th><td class="hm d1">12</td><td class="hm ok">85</td><td class="hm ok">₹0</td><td class="hm ok">₹0</td></tr>
+<tr><th scope="row">AXIS BANK · Personal Loan</th><td class="hm d30">32</td><td class="hm d1">70</td><td class="hm ok">₹0</td><td class="hm ok">₹0</td></tr>
+<tr><th scope="row">SBI · Auto Loan</th><td class="hm ok">0</td><td class="hm ok">100</td><td class="hm ok">₹0</td><td class="hm ok">₹0</td></tr>
+<tr><th scope="row">KOTAK PRIME · Two-wheeler Loan</th><td class="hm ok">0</td><td class="hm ok">100</td><td class="hm ok">₹0</td><td class="hm ok">₹0</td></tr>
+    </tbody>
+  </table></div>
+  <h4 class="sub-h">Risk Concentration</h4>
+  <p>Roughly 94% of the outstanding balance is the ICICI Bank home loan, a secured and well-conducted account. The unsecured exposure is small at ₹2,00,500, and the only delays sit in the Axis Bank and Bajaj Finance loans.</p>
+  <h4 class="sub-h">Enquiry Activity</h4>
+  <div class="tw"><table>
+    <thead><tr><th>Member</th><th>Date</th><th>Purpose</th><th>Amount</th></tr></thead>
+    <tbody>
+      <tr><td>BAJAJ FINANCE</td><td>2026-01-13</td><td>Consumer Loan</td><td>₹60,000</td></tr>
+      <tr><td>AXIS BANK</td><td>2025-05-02</td><td>Personal Loan</td><td>₹3,00,000</td></tr>
+      <tr><td>HDFC BANK</td><td>2025-02-11</td><td>Credit Card</td><td>₹2,50,000</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- 06 -->
+<div class="sec"><h2><em>06</em> 90-Day Action Plan</h2></div>
+<section class="card">
+  <div class="plan">
+    <div class="pm p1"><h5>Month 1 — Immediate</h5>Set up auto-debit for the Axis Bank personal loan and the Bajaj Finance loan so no further delay is reported. Keep the HDFC card balance below 30% of its limit.</div>
+    <div class="pm p2"><h5>Month 2 — Stabilize</h5>Pay the Bajaj Finance loan down further if cash allows, and avoid any new loan or card application so enquiries stay at three or fewer.</div>
+    <div class="pm p3"><h5>Month 3 — Accelerate</h5>With three clean months behind, the two late marks begin to fade. Check the credit report again and consider a prepayment on the Axis loan.</div>
+  </div>
+  <h4 class="sub-h" style="margin-top:0">Projected Score Trajectory</h4>
+  <div class="chart">
+    <svg viewBox="0 0 600 180" role="img" aria-label="Projected score 742, 748, 758, 770">
+      <polygon points="70.0,150 70.0,114.8 223.3,102.2 376.7,81.2 530.0,56.0 530.0,150" fill="#dff0e0"/>
+      <polyline points="70.0,114.8 223.3,102.2 376.7,81.2 530.0,56.0" fill="none" stroke="#22a447" stroke-width="2.5"/>
+      <circle cx="70.0" cy="114.8" r="4" fill="#22a447"/><text x="70.0" y="102.8" text-anchor="middle" class="cv">742</text><text x="70.0" y="170" text-anchor="middle" class="cl">Now</text><circle cx="223.3" cy="102.2" r="4" fill="#22a447"/><text x="223.3" y="90.2" text-anchor="middle" class="cv">748</text><text x="223.3" y="170" text-anchor="middle" class="cl">Month 1</text><circle cx="376.7" cy="81.2" r="4" fill="#22a447"/><text x="376.7" y="69.2" text-anchor="middle" class="cv">758</text><text x="376.7" y="170" text-anchor="middle" class="cl">Month 2</text><circle cx="530.0" cy="56.0" r="4" fill="#22a447"/><text x="530.0" y="44.0" text-anchor="middle" class="cv">770</text><text x="530.0" y="170" text-anchor="middle" class="cl">Month 3</text>
+    </svg>
+  </div>
+  <p class="fine">Projection assumes on-time payments on every account and no new credit applications. Scores are estimates, not guarantees.</p>
+  <div class="reco grad"><h4>📋 Overall Recommendation</h4><p>Suitable for a moderate unsecured limit or a secured loan at standard terms, with monitoring of the Axis Bank repayment pattern. Strong history and low overdue support approval; the recent short delays should be checked at the next review.</p></div>
+</section>
+</div>
+
+<footer>
+  <h3>Report Generated by GreenLeaf Loans</h3>
+  <p class="ft">Honest lending, rooted in trust</p>
+  <p>Website: <a href="https://greenleafloans.example">greenleafloans.example</a> &nbsp;|&nbsp; Email: <a href="mailto:hello@greenleafloans.example">hello@greenleafloans.example</a></p>
+  <p class="fol">Follow GreenLeaf Loans</p>
+  <div class="soc"><a href="#">Facebook</a><a href="#">YouTube</a><a href="#">Website</a></div>
+  <p class="disc">Disclaimer: This report is an educational analysis based on provided data. GreenLeaf Loans is not a credit bureau. Score improvements are estimates and depend on lender reporting accuracy.</p>
+</footer>
+<div class="endpad"></div>
+</div>
+</body>
+</html>

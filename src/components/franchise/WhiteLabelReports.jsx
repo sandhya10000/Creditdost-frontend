@@ -225,34 +225,77 @@ const WhiteLabelReports = () => {
   const paid = status?.request;
   const eligible = status?.eligible;
 
-  // ── Paid: active view ──
-  if (paid) {
-    return (
-      <Box sx={{ maxWidth: 900, mx: "auto", p: { xs: 1, sm: 2 } }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: { xs: 2, sm: 4 }, flexDirection: { xs: "column", sm: "row" }, p: { xs: 3, sm: 4 }, borderRadius: 4, bgcolor: "#fff", boxShadow: "0 8px 30px rgba(15,23,42,0.08)", textAlign: { xs: "center", sm: "left" } }}>
-          <Box sx={{ width: 110, height: 110, borderRadius: "50%", bgcolor: "#d1fae5", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            <Box sx={{ width: 64, height: 64, borderRadius: "50%", bgcolor: GREEN, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <CheckCircle sx={{ fontSize: 40, color: "#fff" }} />
-            </Box>
+  // ── Paid: active card replaces the payment section ──
+  const paidOn = paid
+    ? new Date(paid.updatedAt || paid.createdAt).toLocaleDateString("en-IN")
+    : "";
+  const activeCard = paid ? (
+    <Box
+      sx={{
+        mt: 10,
+        borderRadius: 5,
+        bgcolor: "#fff",
+        border: "1px solid #bbf7d0",
+        boxShadow: "0 16px 40px rgba(5,150,105,0.12)",
+        overflow: "hidden",
+      }}
+    >
+      <Box sx={{ height: 6, background: "linear-gradient(90deg, #059669, #34d399)" }} />
+      <Box
+        sx={{
+          p: { xs: 3, md: 4.5 },
+          display: "flex",
+          alignItems: "center",
+          gap: { xs: 2.5, md: 4 },
+          flexDirection: { xs: "column", md: "row" },
+          textAlign: { xs: "center", md: "left" },
+        }}
+      >
+        <Box sx={{ position: "relative", width: 120, height: 120, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <Box sx={{ position: "absolute", inset: 0, borderRadius: "50%", bgcolor: "#ecfdf5" }} />
+          <Box sx={{ position: "absolute", inset: 14, borderRadius: "50%", bgcolor: "#d1fae5" }} />
+          <Box sx={{ position: "relative", width: 64, height: 64, borderRadius: "50%", bgcolor: GREEN, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 8px 20px rgba(5,150,105,0.35)" }}>
+            <CheckCircle sx={{ fontSize: 38, color: "#fff" }} />
           </Box>
-          <Box>
+        </Box>
+
+        <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, flexWrap: "wrap", justifyContent: { xs: "center", md: "flex-start" } }}>
             <Typography variant="h5" fontWeight={800} color={INK}>
               White Label Reports Active
             </Typography>
-            <Typography variant="body1" sx={{ mt: 1 }} color={MUTED}>
-              Request ID: <strong style={{ color: BLUE }}>{paid.requestId}</strong>
-            </Typography>
-            <Typography variant="body2" sx={{ mt: 1 }} color={MUTED}>
-              Paid on {new Date(paid.updatedAt || paid.createdAt).toLocaleDateString("en-IN")} · {money(paid.amount || total)} incl. GST
-            </Typography>
+            <Box sx={{ display: "inline-flex", alignItems: "center", gap: 0.8, px: 1.4, py: 0.3, borderRadius: 10, bgcolor: "#dcfce7", color: "#166534", fontWeight: 700, fontSize: 13 }}>
+              <Box sx={{ width: 7, height: 7, borderRadius: "50%", bgcolor: "#16a34a" }} />
+              Active
+            </Box>
+          </Box>
+          <Typography sx={{ mt: 1, color: MUTED }}>
+            Your branded reports carry your logo, colours and contact details.
+          </Typography>
+
+          <Box sx={{ mt: 2.5, display: "grid", gridTemplateColumns: { xs: "1fr", sm: "repeat(3, 1fr)" }, gap: 1.5 }}>
+            {[
+              { label: "Request ID", value: paid.requestId, color: BLUE },
+              { label: "Paid on", value: paidOn, color: INK },
+              { label: "Amount", value: `${money(paid.amount || total)} incl. GST`, color: INK },
+            ].map((item) => (
+              <Box key={item.label} sx={{ px: 2, py: 1.5, borderRadius: 3, bgcolor: "#f8fafc", border: "1px solid #e2e8f0" }}>
+                <Typography fontSize={12} fontWeight={700} color="#94a3b8" letterSpacing={0.5}>
+                  {item.label.toUpperCase()}
+                </Typography>
+                <Typography fontWeight={800} color={item.color} sx={{ mt: 0.3 }}>
+                  {item.value}
+                </Typography>
+              </Box>
+            ))}
           </Box>
         </Box>
       </Box>
-    );
-  }
+    </Box>
+  ) : null;
 
-  // ── Not eligible: upgrade gate ──
-  if (!eligible) {
+  // ── Not eligible: upgrade gate (paid partners always see their page) ──
+  if (!eligible && !paid) {
     return (
       <Box sx={{ maxWidth: 860, mx: "auto", p: { xs: 1, sm: 2 } }}>
         <Box
@@ -335,14 +378,16 @@ const WhiteLabelReports = () => {
           </Typography>
           <Typography sx={{ color: "#fbbf24", fontSize: 14 }}>Setup delivered in 1–2 working days</Typography>
         </Box>
-        <Button
-          variant="contained"
-          onClick={scrollToPayment}
-          endIcon={<ArrowForward />}
-          sx={{ borderRadius: 10, px: 2.5, textTransform: "none", fontWeight: 700, bgcolor: BLUE }}
-        >
-          Pay &amp; Activate
-        </Button>
+        {!paid && (
+          <Button
+            variant="contained"
+            onClick={scrollToPayment}
+            endIcon={<ArrowForward />}
+            sx={{ borderRadius: 10, px: 2.5, textTransform: "none", fontWeight: 700, bgcolor: BLUE }}
+          >
+            Pay &amp; Activate
+          </Button>
+        )}
       </Box>
 
       {/* Hero */}
@@ -373,13 +418,15 @@ const WhiteLabelReports = () => {
             ))}
           </Box>
           <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, mt: 4 }}>
-            <Button
-              variant="contained"
-              onClick={scrollToPayment}
-              sx={{ borderRadius: 10, px: 4, py: 1.5, fontSize: "1.05rem", fontWeight: 700, textTransform: "none", bgcolor: BLUE, boxShadow: "0 10px 24px rgba(37,99,235,0.3)" }}
-            >
-              Get my branded AI report {money(total)}
-            </Button>
+            {!paid && (
+              <Button
+                variant="contained"
+                onClick={scrollToPayment}
+                sx={{ borderRadius: 10, px: 4, py: 1.5, fontSize: "1.05rem", fontWeight: 700, textTransform: "none", bgcolor: BLUE, boxShadow: "0 10px 24px rgba(37,99,235,0.3)" }}
+              >
+                Get my branded AI report {money(total)}
+              </Button>
+            )}
             <Button
               variant="outlined"
               endIcon={<ArrowForward sx={{ transform: "rotate(90deg)" }} />}
@@ -546,7 +593,8 @@ const WhiteLabelReports = () => {
         </Box>
       </Box>
 
-      {/* Pricing + payment */}
+      {/* Pricing + payment (replaced by the active card once paid) */}
+      {activeCard ?? (
       <Box id="wl-payment" sx={{ mt: 10 }}>
         <Box sx={{ borderRadius: 5, bgcolor: "#0f172a", color: "#fff", p: { xs: 3, md: 5 }, display: "grid", gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" }, gap: 4 }}>
           <Box>
@@ -633,6 +681,7 @@ const WhiteLabelReports = () => {
           </Typography>
         </Box>
       </Box>
+      )}
     </Box>
   );
 };

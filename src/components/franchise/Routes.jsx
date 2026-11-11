@@ -26,6 +26,7 @@ import Experian from "./creditBureau/Experian";
 import Equifax from "./creditBureau/Equifax";
 import UpgradePackage from "./UpgradePackage";
 import WhiteLabelReports from "./WhiteLabelReports";
+import BrandedReportPage from "./brandedReport/BrandedReportPage";
 
 const FranchiseRoutes = () => {
   return (
@@ -46,6 +47,7 @@ const FranchiseRoutes = () => {
         <Route path="business-mis" element={<BusinessMIS />} />
         <Route path="white-label-reports" element={<WhiteLabelReports />} />
         <Route path="ai-analysis" element={<AIAnalysis />} />
+        <Route path="ai-custom-branded-report" element={<BrandedReportPage />} />
         <Route path="certificate" element={<Certificate />} />
         <Route path="agreement" element={<DigitalAgreement />} />
         <Route path="/support" element={<Support />} />

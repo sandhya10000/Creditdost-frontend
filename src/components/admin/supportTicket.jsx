@@ -276,6 +276,8 @@ const AdminTickets = () => {
       setDraftStatus(full.status);
       setDraftNotes(full.internalNotes || "");
       setReplies(res.data.data.replies);
+      // Opening a ticket clears its unread badge
+      adminAPI.markTicketRead(ticket._id).then(notifyInboxCountsChanged).catch(() => {});
     } catch (err) {
       alert(err.response?.data?.message || "Failed to load ticket");
       setSelected(null);

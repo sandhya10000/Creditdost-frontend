@@ -23,6 +23,7 @@ const Profile = () => {
     ownerName: "",
     email: "",
     phone: "",
+    alternatePhone: "",
     address: {
       street: "",
       city: "",
@@ -66,6 +67,8 @@ const Profile = () => {
       formData.ownerName.trim() !== "" &&
       formData.email.trim() !== "" &&
       formData.phone.trim().length === 10 &&
+      // Alternate mobile is optional, but must be 10 digits when given
+      (formData.alternatePhone === "" || /^\d{10}$/.test(formData.alternatePhone)) &&
       // Address
       formData.address.street.trim() !== "" &&
       formData.address.city.trim() !== "" &&
@@ -99,6 +102,7 @@ const Profile = () => {
           ownerName: profileData.ownerName || "",
           email: profileData.email || "",
           phone: profileData.phone || "",
+        alternatePhone: profileData.alternatePhone || "",
           address: {
             street: profileData.address?.street || "",
             city: profileData.address?.city || "",
@@ -226,6 +230,7 @@ const Profile = () => {
         ownerName: updatedProfile.ownerName || "",
         email: updatedProfile.email || "",
         phone: updatedProfile.phone || "",
+        alternatePhone: updatedProfile.alternatePhone || "",
         address: {
           street: updatedProfile.address?.street || "",
           city: updatedProfile.address?.city || "",
@@ -328,6 +333,7 @@ const Profile = () => {
         ownerName: updatedProfile.ownerName || "",
         email: updatedProfile.email || "",
         phone: updatedProfile.phone || "",
+        alternatePhone: updatedProfile.alternatePhone || "",
         address: {
           street: updatedProfile.address?.street || "",
           city: updatedProfile.address?.city || "",
@@ -625,6 +631,22 @@ const Profile = () => {
                     fullWidth
                     value={formData.phone}
                     onChange={handleInputChange}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    id="alternatePhone"
+                    name="alternatePhone"
+                    label="Alternate Mobile Number (Optional)"
+                    fullWidth
+                    value={formData.alternatePhone}
+                    onChange={handleInputChange}
+                    inputProps={{ maxLength: 10, inputMode: "numeric" }}
+                    error={
+                      formData.alternatePhone !== "" &&
+                      !/^\d{10}$/.test(formData.alternatePhone)
+                    }
+                    helperText="10-digit mobile number"
                   />
                 </Grid>
               </Grid>

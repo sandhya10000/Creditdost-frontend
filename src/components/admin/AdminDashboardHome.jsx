@@ -333,7 +333,7 @@ const AdminDashboardHome = () => {
     {
       type: "static",
       title: "Report Section",
-      value: "0 / 0",
+      value: `${stats.reportCounts?.bureau?.today ?? 0} / ${stats.reportCounts?.bureau?.monthly ?? 0}`,
       subtext: "Today / Monthly",
       icon: <AssessmentIcon sx={{ fontSize: 30 }} />,
       color: "#2196f3",
@@ -343,7 +343,7 @@ const AdminDashboardHome = () => {
     {
       type: "static",
       title: "AI Report",
-      value: "0 / 0",
+      value: `${stats.reportCounts?.ai?.today ?? 0} / ${stats.reportCounts?.ai?.monthly ?? 0}`,
       subtext: "Today / Monthly",
       icon: <InsightsIcon sx={{ fontSize: 30 }} />,
       color: "#9c27b0",

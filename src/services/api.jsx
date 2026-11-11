@@ -278,6 +278,10 @@ export const adminAPI = {
   },
   // Business forms
   getAllBusinessForms: (params) => api.get("/business/all", { params }),
+  getBusinessUnreadCounts: () => api.get("/business/unread-counts"),
+  markBusinessFormRead: (id) => api.put(`/business/admin/business-forms/${id}/read`),
+  markBusinessFormsListRead: (customerType) =>
+    api.put("/business/admin/business-forms/mark-read", null, { params: { customerType } }),
   //business form close case
   closeBusinessCase: (id) =>
     api.put(`/admin/business/${id}/close`, {
@@ -409,6 +413,8 @@ export const adminAPI = {
   getStaffMembers: () => api.get("/admin/staff"),
   getStaffProfile: (id) => api.get(`/admin/staff/${id}`),
   assignBusinessManagersToPartners: () => api.post("/franchises/assign-business-managers"),
+  setFranchiseCreditHold: (franchiseId, hold) =>
+    api.put(`/franchises/${franchiseId}/credit-hold`, { hold }),
   reassignFranchiseManager: (franchiseId, businessManagerId) =>
     api.put(`/franchises/${franchiseId}/business-manager`, { businessManagerId }),
   assignStaffMember: (data) => api.post("/admin/staff", data),

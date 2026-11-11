@@ -257,6 +257,11 @@ const DetailsTab = ({ customer, creditReport, ifscDeatails }) => {
         </Grid>
 
         <Grid item xs={12} md={4}>
+          <Typography fontWeight="Medium">City</Typography>
+          <Typography>{customer?.city || "-"}</Typography>
+        </Grid>
+
+        <Grid item xs={12} md={4}>
           <Typography fontWeight="Medium">State</Typography>
           <Typography>{customer?.state || "-"}</Typography>
         </Grid>
