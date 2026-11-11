@@ -40,7 +40,7 @@ const CreditCheck = () => {
   // TEMP: prefill unplugged for CIBIL checks. Set true to restore.
   const PREFILL_ENABLED = false;
   // TEMP: CIBIL maintenance — hides the Generation form and shows a notice. Set false to restore.
-  const CIBIL_MAINTENANCE = true;
+  const CIBIL_MAINTENANCE = false;
   // No-record text from the bureau (CIBIL/Equifax). The backend locks the PAN for 48h.
   const isNoBureauRecordMessage = (msg) =>
     /no\s*(bureau|cibil|equifax)?\s*record\s*found|no\s*data\s*found/i.test(msg || "");
@@ -218,6 +218,13 @@ const CreditCheck = () => {
     // Validate Aadhaar if provided (exactly 12 digits)
     if (formData.aadhaar && !/^[0-9]{12}$/.test(formData.aadhaar)) {
       setError("Please enter a valid 12-digit Aadhaar number");
+      setSaving(false);
+      return;
+    }
+
+    // CIBIL (Finpass) needs gender male/female
+    if (formData.bureau === "cibil" && !["Male", "Female"].includes(formData.gender)) {
+      setError("Please select Male or Female for CIBIL credit check");
       setSaving(false);
       return;
     }
@@ -722,7 +729,11 @@ const CreditCheck = () => {
                       id="gender"
                       name="gender"
                       value={formData.gender}
-                      label="Gender (Optional)"
+                      label={
+                        formData.bureau === "cibil"
+                          ? "Gender (required for CIBIL)"
+                          : "Gender (Optional)"
+                      }
                       onChange={handleInputChange}
                     >
                       <MenuItem value="">

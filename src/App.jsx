@@ -180,7 +180,8 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
+            {/* Registration is closed for now: send everyone to login */}
+            <Route path="/register" element={<Navigate to="/login" replace />} />
             <Route path="/reset-password/:token" element={<ResetPassword />} />
             <Route path="/packages" element={<PackagesPage />} />
             <Route path="/blogs" element={<BlogsPage />} />

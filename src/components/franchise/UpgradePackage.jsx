@@ -493,15 +493,6 @@ const UpgradePackage = () => {
                   <Box sx={{ borderTop: "1px solid #eee", mx: { xs: 2.5, sm: 3.5 } }} />
 
                   <Box sx={{ p: { xs: 2.5, sm: 3.5 }, pt: 2.5, flexGrow: 1 }}>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1.2, mb: 1.5 }}>
-                      <CheckCircle sx={{ fontSize: 20, color: PURPLE }} />
-                      <Typography variant="body2" fontWeight={600}>
-                        {Number(pkg.creditsIncluded) === 1000000 ||
-                        pkg.creditsIncluded === "Unlimited"
-                          ? "Unlimited Credits"
-                          : `${pkg.creditsIncluded} credits included`}
-                      </Typography>
-                    </Box>
                     {pkg.features?.map((feature, index) => (
                       <Box
                         key={index}

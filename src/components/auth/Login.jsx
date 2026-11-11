@@ -468,17 +468,7 @@ const Login = () => {
                       </Button>
                     </Box>
 
-                    <Box textAlign="center">
-                      <Link to="/register" style={{ textDecoration: "none" }}>
-                        <Typography
-                          variant="body2"
-                          color="primary.main"
-                          fontWeight="500"
-                        >
-                          {"Don't have an account? Register"}
-                        </Typography>
-                      </Link>
-                    </Box>
+                    {/* Registration is closed for now; link hidden */}
                   </Box>
                 </FormSection>
               </Grid>
