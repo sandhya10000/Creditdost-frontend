@@ -1222,7 +1222,7 @@ const Business = ({
                             multiline
                             rows={3}
                             inputProps={{ maxLength: 1000 }}
-                            helperText={`What the client is facing and wants help with · ${formData.clientIssues.length}/1000`}
+                            helperText={`What the client is facing and wants help with · ${formData?.clientIssues?.length}/1000`}
                             sx={{ minWidth: { xs: "0px", md: "280px" } }}
                           />
                         </Grid>
