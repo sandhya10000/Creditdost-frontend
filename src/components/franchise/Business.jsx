@@ -252,7 +252,9 @@ const Business = ({
 
       // Fetch customer packages
       const packagesResponse = await api.get("/customer-packages");
-      const allPackages = packagesResponse.data;
+      const allPackages = Array.isArray(packagesResponse?.data)
+        ? packagesResponse.data
+        : [];
       // ADMIN CASE
       if (userType === "admin") {
         setCustomerPackages(allPackages);
@@ -314,8 +316,9 @@ const Business = ({
       // Fallback to original behavior
       try {
         const response = await api.get("/customer-packages");
-        setCustomerPackages(response.data);
-        setFilteredPackages(response.data); // Show all if filtering fails
+        const fallbackPackages = Array.isArray(response?.data) ? response.data : [];
+        setCustomerPackages(fallbackPackages);
+        setFilteredPackages(fallbackPackages); // Show all if filtering fails
       } catch (fallbackErr) {
         console.error("Error in fallback fetch:", fallbackErr);
       }
@@ -1656,13 +1659,13 @@ const Business = ({
                         Choose the best package for your customer's credit needs
                       </Typography>
 
-                      {filteredPackages.length === 0 ? (
+                      {(filteredPackages || []).length === 0 ? (
                         <Alert severity="info">
                           No packages available at the moment.
                         </Alert>
                       ) : (
                         <Grid container spacing={3}>
-                          {filteredPackages.map((pkg) => (
+                          {(filteredPackages || []).map((pkg) => (
                             <Grid
                               item
                               xs={12}
