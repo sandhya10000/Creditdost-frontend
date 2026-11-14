@@ -300,6 +300,11 @@ const AdminDashboard = () => {
           path: "/admin/franchises",
           icon: <PeopleIcon />,
         },
+        {
+          text: "White Labeled Partners",
+          path: "/admin/white-label-partners",
+          icon: <BusinessIcon />,
+        },
       ],
     },
     {
@@ -321,18 +326,7 @@ const AdminDashboard = () => {
     {
       text: "View Reports",
       icon: <AssessmentIcon />,
-      children: [
-        {
-          text: "Credit Reports",
-          path: "/admin/reports",
-          icon: <AssessmentIcon />,
-        },
-        {
-          text: "White-Labeled Reports",
-          path: "/admin/white-label-reports",
-          icon: <DescriptionIcon />,
-        },
-      ],
+      path: "/admin/reports",
     },
     {
       text: "Prefill Failed Logs",
@@ -410,6 +404,11 @@ const AdminDashboard = () => {
       text: "AI Analysis",
       icon: <AutoGraphIcon />,
       path: "/admin/ai-analysis",
+    },
+    {
+      text: "White Labeled Reports",
+      icon: <DescriptionIcon />,
+      path: "/admin/white-label-reports",
     },
     {
       text: "Manual Business",

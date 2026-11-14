@@ -191,6 +191,8 @@ export const blogAPI = {
 export const adminAPI = {
   getWhiteLabelPartners: (params) =>
     api.get("/admin/white-label/partners", { params }),
+  getWhiteLabelReports: (params) =>
+    api.get("/admin/white-label/reports", { params }),
   getWhiteLabelPartnerReports: (partnerId) =>
     api.get(`/admin/white-label/partners/${partnerId}/reports`),
   getDashboardStats: (params) => api.get("/admin/dashboard", { params }),

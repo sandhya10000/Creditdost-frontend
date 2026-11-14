@@ -60,7 +60,7 @@ const WhiteLabelPartners = () => {
         setTotal(res.data.total || 0);
       } catch (err) {
         console.error("Failed to load White Label partners:", err);
-        setError("Failed to load White-Labeled Reports.");
+        setError("Failed to load White Labeled Partners.");
       } finally {
         setLoading(false);
       }
@@ -86,7 +86,7 @@ const WhiteLabelPartners = () => {
   return (
     <Box>
       <Typography variant="h4" gutterBottom>
-        White-Labeled Reports
+        White Labeled Partners
       </Typography>
 
       {error && (
@@ -98,7 +98,7 @@ const WhiteLabelPartners = () => {
       <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
         <CardContent>
           <Typography variant="h6" gutterBottom>
-            Partners who purchased White Label Reports
+            Franchises who enrolled in White Labeled services
           </Typography>
 
           <TextField

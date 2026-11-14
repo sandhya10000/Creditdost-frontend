@@ -74,6 +74,11 @@ const BusinessForms = ({ status = "paid", customerType }) => {
   const [businessToDelete, setBusinessToDelete] = useState(null);
   // Only full admins can change the RM; BMs see it read-only
   const { user } = useAuth();
+  // Credit analysts don't see amount / payment status
+  // Staff carry a Role (staffRoleName, e.g. "Credit Analyst"); subRole is a fallback
+  const hideAmountAndPayment =
+    user?.subRole === "credit_analyst" ||
+    /credit\s*analyst/i.test(user?.staffRoleName || "");
   const isFullAdmin = !user?.staffRole;
   const [rmList, setRmList] = useState([]);
 
@@ -239,8 +244,7 @@ const BusinessForms = ({ status = "paid", customerType }) => {
         "Email",
         "Phone",
         "Franchise",
-        "Amount",
-        "Payment Status",
+        ...(hideAmountAndPayment ? [] : ["Amount", "Payment Status"]),
         "Document",
         "Date",
         "Work Status",
@@ -262,8 +266,12 @@ const BusinessForms = ({ status = "paid", customerType }) => {
         form.customerEmail || "",
         form.customerPhone || "",
         form.franchiseId?.businessName || "N/A",
-        form.manualAmount ? form.manualAmount : form.selectedPackage?.price || "N/A",
-        form.paymentStatus || "",
+        ...(hideAmountAndPayment
+          ? []
+          : [
+              form.manualAmount ? form.manualAmount : form.selectedPackage?.price || "N/A",
+              form.paymentStatus || "",
+            ]),
         Object.values(form.documents || {}).some(Boolean) ? "Yes" : "No",
         formatDate(form.createdAt),
         form.workStatus || "",
@@ -492,8 +500,8 @@ const BusinessForms = ({ status = "paid", customerType }) => {
                     <TableCell>Phone</TableCell>
                     {!isBusinessView && <TableCell>RM</TableCell>}
                     <TableCell>Franchise</TableCell>
-                    <TableCell>Amount</TableCell>
-                    <TableCell>Payment Status</TableCell>
+                    {!hideAmountAndPayment && <TableCell>Amount</TableCell>}
+                    {!hideAmountAndPayment && <TableCell>Payment Status</TableCell>}
                     <TableCell>Document</TableCell>
 
                     <TableCell>Date</TableCell>
@@ -594,15 +602,19 @@ const BusinessForms = ({ status = "paid", customerType }) => {
                       {/* <TableCell>
                         ₹{form.selectedPackage?.price || "N/A"}
                       </TableCell> */}
-                      <TableCell>
-                        ₹
-                        {form.manualAmount
-                          ? form.manualAmount
-                          : form.selectedPackage?.price || "N/A"}
-                      </TableCell>
-                      <TableCell>
-                        {getPaymentStatusChip(form.paymentStatus)}
-                      </TableCell>
+                      {!hideAmountAndPayment && (
+                        <TableCell>
+                          ₹
+                          {form.manualAmount
+                            ? form.manualAmount
+                            : form.selectedPackage?.price || "N/A"}
+                        </TableCell>
+                      )}
+                      {!hideAmountAndPayment && (
+                        <TableCell>
+                          {getPaymentStatusChip(form.paymentStatus)}
+                        </TableCell>
+                      )}
                       <TableCell
                         sx={{
                           width: 60,

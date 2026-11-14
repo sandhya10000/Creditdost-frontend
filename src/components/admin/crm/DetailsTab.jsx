@@ -19,41 +19,44 @@ import DomainAddIcon from "@mui/icons-material/DomainAdd";
 import StyleIcon from "@mui/icons-material/Style";
 import ReportProblemOutlinedIcon from "@mui/icons-material/ReportProblemOutlined";
 
-const DetailsTab = ({ customer, creditReport, ifscDeatails }) => {
+const toFormData = (c) => ({
+  customerName: c?.customerName || "",
+  customerEmail: c?.customerEmail || "",
+  customerPhone: c?.customerPhone || "",
+  panNumber: c?.panNumber || "",
+  aadharNumber: c?.aadharNumber || "",
+  dob: c?.dob || "",
+  gender: c?.gender || "",
+  fullAddress: c?.fullAddress || "",
+  city: c?.city || "",
+  state: c?.state || "",
+  pincode: c?.pincode || "",
+});
+
+const DetailsTab = ({ customer, creditReport, ifscDeatails, onUpdated }) => {
   const [editMode, setEditMode] = useState(false);
-  const [formData, setFormData] = useState({
-    customerName: customer?.customerName || "",
-    customerEmail: customer?.customerEmail || "",
-    customerPhone: customer?.customerPhone || "",
-    panNumber: customer?.panNumber || "",
-    aadharNumber: customer?.aadharNumber || "",
-    dob: customer?.dob || "",
-    gender: customer?.gender || "",
-  });
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
+  const [formData, setFormData] = useState(() => toFormData(customer));
   useEffect(() => {
     if (customer) {
-      setFormData({
-        customerName: customer.customerName || "",
-        customerEmail: customer.customerEmail || "",
-        customerPhone: customer.customerPhone || "",
-        panNumber: customer.panNumber || "",
-        aadharNumber: customer.aadharNumber || "",
-        dob: customer.dob || "",
-        gender: customer.gender || "",
-      });
+      setFormData(toFormData(customer));
     }
   }, [customer]);
   const handleUpdate = async () => {
+    setSaving(true);
+    setSaveError("");
     try {
-      const res = await franchiseAPI.updateCustomer(
-        customer.customerId,
-        formData,
-      );
-
-      console.log(res);
+      await franchiseAPI.updateCustomer(customer.customerId, formData);
       setEditMode(false);
+      // Re-fetch so the view shows the saved values
+      if (onUpdated) await onUpdated();
     } catch (error) {
-      console.log(error);
+      setSaveError(
+        error?.response?.data?.message || "Failed to update customer details.",
+      );
+    } finally {
+      setSaving(false);
     }
   };
   const renderSectionTitle = (title, icon) => (
@@ -106,12 +109,36 @@ const DetailsTab = ({ customer, creditReport, ifscDeatails }) => {
               Edit
             </Button>
           ) : (
-            <Button variant="contained" color="success" onClick={handleUpdate}>
-              Update
-            </Button>
+            <>
+              <Button
+                variant="outlined"
+                disabled={saving}
+                onClick={() => {
+                  setFormData(toFormData(customer));
+                  setSaveError("");
+                  setEditMode(false);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="contained"
+                color="success"
+                disabled={saving}
+                onClick={handleUpdate}
+              >
+                {saving ? "Saving..." : "Update"}
+              </Button>
+            </>
           )}
         </Box>
       </Box>
+
+      {saveError && (
+        <Typography color="error" sx={{ mb: 2 }}>
+          {saveError}
+        </Typography>
+      )}
 
       {/* ================= PERSONAL DETAILS ================= */}
 
@@ -253,22 +280,58 @@ const DetailsTab = ({ customer, creditReport, ifscDeatails }) => {
       <Grid container spacing={3}>
         <Grid item xs={12}>
           <Typography fontWeight="Medium">Full Address</Typography>
-          <Typography>{customer?.fullAddress || "-"}</Typography>
+          {editMode ? (
+            <TextField
+              fullWidth
+              multiline
+              minRows={2}
+              value={formData.fullAddress}
+              onChange={(e) =>
+                setFormData({ ...formData, fullAddress: e.target.value })
+              }
+            />
+          ) : (
+            <Typography>{customer?.fullAddress || "-"}</Typography>
+          )}
         </Grid>
 
         <Grid item xs={12} md={4}>
           <Typography fontWeight="Medium">City</Typography>
-          <Typography>{customer?.city || "-"}</Typography>
+          {editMode ? (
+            <TextField
+              fullWidth
+              value={formData.city}
+              onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+            />
+          ) : (
+            <Typography>{customer?.city || "-"}</Typography>
+          )}
         </Grid>
 
         <Grid item xs={12} md={4}>
           <Typography fontWeight="Medium">State</Typography>
-          <Typography>{customer?.state || "-"}</Typography>
+          {editMode ? (
+            <TextField
+              fullWidth
+              value={formData.state}
+              onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+            />
+          ) : (
+            <Typography>{customer?.state || "-"}</Typography>
+          )}
         </Grid>
 
         <Grid item xs={12} md={4}>
           <Typography fontWeight="Medium">Pincode</Typography>
-          <Typography>{customer?.pincode || "-"}</Typography>
+          {editMode ? (
+            <TextField
+              fullWidth
+              value={formData.pincode}
+              onChange={(e) => setFormData({ ...formData, pincode: e.target.value })}
+            />
+          ) : (
+            <Typography>{customer?.pincode || "-"}</Typography>
+          )}
         </Grid>
       </Grid>
 

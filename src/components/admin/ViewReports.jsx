@@ -233,7 +233,13 @@ const ViewReports = () => {
                         }}
                       >
                         <TableCell>
-                          {report?.franchiseId?.businessName || "N/A"}
+                          {report.createdByEmployee
+                            ? `${report.createdByEmployee.name}${
+                                report.createdByEmployee.staffCode
+                                  ? ` (${report.createdByEmployee.staffCode})`
+                                  : ""
+                              }`
+                            : report?.franchiseId?.businessName || "N/A"}
                         </TableCell>
                         <TableCell>
                           {report.franchiseId?.franchiseCode ? (
@@ -250,7 +256,11 @@ const ViewReports = () => {
                             </Link>
                           ) : (
                             <Chip
-                              label={report.createdFrom || "N/A"}
+                              label={
+                                report.createdByEmployee
+                                  ? report.createdByEmployee.roleName || "Staff"
+                                  : report.createdFrom || "N/A"
+                              }
                               size="small"
                               variant="outlined"
                             />

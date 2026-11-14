@@ -22,9 +22,10 @@ const BureauTab = ({
 }) => {
   const fullName = customerBureau?.customerName || "";
   const pan = customerBureau?.panNumber || "";
-  const [cibilApiType, setCibilApiType] = useState("indiconnect");
-  const [crifApiType, setCrifApiType] = useState("indiconnect");
-  const [experianApiType, setExperianApiType] = useState("indiconnect");
+  const [cibilApiType, setCibilApiType] = useState("finpass");
+  const [crifApiType, setCrifApiType] = useState("finpass");
+  const [experianApiType, setExperianApiType] = useState("finpass");
+  const [equifaxApiType] = useState("finpass");
   const [expPincode, setExpPincode] = useState("");
   const [bureauData, setBureauData] = useState({
     cibil: {
@@ -93,7 +94,7 @@ const BureauTab = ({
         gender: customer?.gender?.toLowerCase(),
         dob,
         bureau: "equifax",
-        cibilApiType: "surepass",
+        equifaxApiType,
       };
     }
 
@@ -105,6 +106,7 @@ const BureauTab = ({
       cibilApiType,
       crifApiType,
       experianApiType,
+      gender: customer?.gender?.toLowerCase(),
       ...(dob ? { dob } : {}),
       ...(bureau === "experian" &&
       experianApiType === "indiconnect" &&
@@ -211,11 +213,11 @@ const BureauTab = ({
                 value={cibilApiType}
                 onChange={(e) => setCibilApiType(e.target.value)}
               >
+                <MenuItem value="finpass">Finpass</MenuItem>
+
                 <MenuItem value="indiconnect">IndiConnect</MenuItem>
 
                 <MenuItem value="digi">Digi</MenuItem>
-
-                <MenuItem value="surepass">Surepass</MenuItem>
               </TextField>
             </Grid>
           )}
@@ -232,9 +234,9 @@ const BureauTab = ({
                     : setExperianApiType(e.target.value)
                 }
               >
-                <MenuItem value="indiconnect">IndiConnect</MenuItem>
+                <MenuItem value="finpass">Finpass</MenuItem>
 
-                <MenuItem value="surepass">Surepass</MenuItem>
+                <MenuItem value="indiconnect">IndiConnect</MenuItem>
               </TextField>
             </Grid>
           )}
@@ -244,10 +246,10 @@ const BureauTab = ({
                 select
                 fullWidth
                 label="Select API"
-                value="surepass"
+                value={equifaxApiType}
                 disabled
               >
-                <MenuItem value="surepass">Surepass</MenuItem>
+                <MenuItem value="finpass">Finpass</MenuItem>
               </TextField>
             </Grid>
           )}

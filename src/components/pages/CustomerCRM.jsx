@@ -97,6 +97,7 @@ const CustomerCRM = () => {
                     customer={customerInfo?.customerData}
                     creditReport={customerInfo?.report[0]?.score || "NA"}
                     ifscDeatails={customerInfo?.bankInfo?.ifsc_details}
+                    onUpdated={fetchCustomer}
                   />
                 )}
 
@@ -123,7 +124,7 @@ const CustomerCRM = () => {
                     customerBureau={customerInfo?.customerData}
                     setCreditReports={setCreditReports}
                     onSearchSucess={() => {
-                      fetchCustomer;
+                      fetchCustomer();
                     }}
                     customer={customerInfo?.customerData}
                   />
