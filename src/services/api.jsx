@@ -439,6 +439,8 @@ export const adminAPI = {
   updateTicketMeta: (id, data) =>
     api.patch(`/admin/support/tickets/${id}/meta`, data),
   deleteBusinessForm: (id) => api.delete(`/admin/business-forms/${id}`),
+  // Credit analyst dashboard: logged today / this month, pending / closed
+  getBusinessMisCounts: () => api.get("/business/mis-counts"),
   // AMC (Annual Maintenance Contract)
   getAmcCustomers: (params) => api.get("/business/amc", { params }),
   upsertAmc: (id, data) => api.put(`/admin/business-forms/${id}/amc`, data),

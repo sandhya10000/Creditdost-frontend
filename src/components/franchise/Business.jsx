@@ -106,7 +106,7 @@ const Business = ({
     endDate: "",
     amount: "",
     paymentStatus: "pending",
-    workStatus: "in_progress",
+    workStatus: "newly_logged",
   });
   const [businessDetails, setBusinessDetails] = useState(
     EMPTY_BUSINESS_DETAILS,
@@ -599,7 +599,7 @@ const Business = ({
     });
     setBusinessDetails(EMPTY_BUSINESS_DETAILS);
     setSelectedPackage(null);
-    setAmcData({ startDate: "", endDate: "", amount: "", paymentStatus: "pending", workStatus: "in_progress" });
+    setAmcData({ startDate: "", endDate: "", amount: "", paymentStatus: "pending", workStatus: "newly_logged" });
   };
 
   const states = [
@@ -824,30 +824,6 @@ const Business = ({
                                   ...prev,
                                   franchiseId: newValue?._id || "",
                                 }));
-                                // Fill customer address fields from the franchise,
-                                // but never overwrite something already typed
-                                if (newValue) {
-                                  const addr = newValue.address || {};
-                                  setFormData((prev) => ({
-                                    ...prev,
-                                    customerName: prev.customerName || newValue.ownerName || "",
-                                    customerEmail: prev.customerEmail || newValue.email || "",
-                                    customerPhone: prev.customerPhone || newValue.phone || "",
-                                    panNumber: prev.panNumber || newValue.panNumber || "",
-                                    fullAddress: prev.fullAddress || addr.street || "",
-                                    city: prev.city || addr.city || "",
-                                    // State is a dropdown: only fill it with a real option
-                                    state:
-                                      prev.state ||
-                                      states.find(
-                                        (s) =>
-                                          s.toLowerCase() ===
-                                          (addr.state || "").trim().toLowerCase(),
-                                      ) ||
-                                      "",
-                                    pincode: prev.pincode || addr.pincode || "",
-                                  }));
-                                }
                               }}
                               renderInput={(params) => (
                                 <TextField
@@ -1477,6 +1453,7 @@ const Business = ({
                                   setAmcData((prev) => ({ ...prev, workStatus: e.target.value }))
                                 }
                               >
+                                <MenuItem value="newly_logged">Newly Logged</MenuItem>
                                 <MenuItem value="in_progress">In Progress</MenuItem>
                                 <MenuItem value="pending">Pending</MenuItem>
                                 <MenuItem value="closed">Closed</MenuItem>

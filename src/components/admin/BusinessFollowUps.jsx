@@ -163,9 +163,17 @@ const BusinessFollowUps = () => {
     const map = {
       closed: { label: "Closed", color: "success" },
       pending: { label: "Pending", color: "secondary" },
+      newly_logged: { label: "Newly Logged", color: "warning", bg: "#ef6c00" },
     };
     const config = map[status] || { label: "In Progress", color: "info" };
-    return <Chip size="small" label={config.label} color={config.color} sx={{ color: "#fff" }} />;
+    return (
+      <Chip
+        size="small"
+        label={config.label}
+        color={config.color}
+        sx={{ color: "#fff", ...(config.bg && { backgroundColor: config.bg }) }}
+      />
+    );
   };
 
   return (

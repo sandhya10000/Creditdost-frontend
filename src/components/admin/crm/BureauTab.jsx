@@ -52,7 +52,8 @@ const BureauTab = ({
       mobile: "",
     },
   });
-  const [loading, setLoading] = useState(false);
+  // Which bureau is currently being checked (null = none). Each card tracks only its own request
+  const [loadingBureau, setLoadingBureau] = useState(null);
   const [success, setSuccess] = useState("");
 
   const [error, setError] = useState("");
@@ -119,7 +120,7 @@ const BureauTab = ({
   //COMMON CIBIL CHECK
   const handleCheckCibil = async (bureau) => {
     try {
-      setLoading(true);
+      setLoadingBureau(bureau);
       setError("");
       setSuccess("");
       const payload = getPayload(bureau);
@@ -148,7 +149,7 @@ const BureauTab = ({
 
       setError(error?.response?.data?.message || "CIBIL Check Failed");
     } finally {
-      setLoading(false);
+      setLoadingBureau(null);
     }
   };
 
@@ -261,9 +262,9 @@ const BureauTab = ({
             onClick={() => {
               handleCheckCibil(keyName);
             }}
-            disabled={loading}
+            disabled={loadingBureau === keyName}
           >
-            {loading ? "Checking..." : `Check ${title}`}
+            {loadingBureau === keyName ? "Checking..." : `Check ${title}`}
           </Button>
         </Box>
       </CardContent>

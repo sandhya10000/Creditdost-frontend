@@ -34,6 +34,7 @@ import {
 import { AmcPaymentChip, AmcStatusChip } from "../admin/AmcChips";
 
 const WORK_STATUS_CONFIG = {
+  newly_logged: { label: "Newly Logged", color: "warning" },
   in_progress: { label: "In Progress", color: "info" },
   closed: { label: "Closed", color: "success" },
   on_hold: { label: "On Hold", color: "warning" },

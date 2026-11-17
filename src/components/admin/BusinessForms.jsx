@@ -39,11 +39,12 @@ import EventAvailableIcon from "@mui/icons-material/EventAvailable";
 
 // Work status: label, select/chip background, and the Customer ID text color
 const WORK_STATUS = {
+  newly_logged: { label: "Newly Logged", bg: "#ef6c00", text: "#ef6c00" },
   in_progress: { label: "In Progress", bg: "#0288d1", text: "#1565c0" },
   pending: { label: "Pending", bg: "#7b1fa2", text: "#7b1fa2" },
   closed: { label: "Closed", bg: "#2e7d32", text: "#2e7d32" },
 };
-const getWorkStatus = (status) => WORK_STATUS[status] || WORK_STATUS.in_progress;
+const getWorkStatus = (status) => WORK_STATUS[status] || WORK_STATUS.newly_logged;
 
 const BusinessForms = ({ status = "paid", customerType }) => {
   const isBusinessView = customerType === "business";
@@ -639,7 +640,7 @@ const BusinessForms = ({ status = "paid", customerType }) => {
                       <TableCell align="center" sx={{ whiteSpace: "nowrap" }}>
                         <Stack direction="row" spacing={1} justifyContent="center" alignItems="center">
                           {status !== "pending" && (() => {
-                            const current = form.workStatus || "in_progress";
+                            const current = form.workStatus || "newly_logged";
                             const { bg } = getWorkStatus(current);
                             const color = "#fff";
                             return (
@@ -659,6 +660,7 @@ const BusinessForms = ({ status = "paid", customerType }) => {
                                     "&.Mui-focused .MuiOutlinedInput-notchedOutline": { border: "1px solid rgba(255,255,255,0.5)" },
                                   }}
                                 >
+                                  <MenuItem value="newly_logged">Newly Logged</MenuItem>
                                   <MenuItem value="in_progress">In Progress</MenuItem>
                                   <MenuItem value="pending">Pending</MenuItem>
                                   <MenuItem value="closed">Closed</MenuItem>

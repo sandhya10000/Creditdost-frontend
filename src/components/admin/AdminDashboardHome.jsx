@@ -37,6 +37,7 @@ import AssessmentIcon from "@mui/icons-material/Assessment";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import EqualizerIcon from "@mui/icons-material/Equalizer";
 import InsightsIcon from "@mui/icons-material/Insights";
+import EventAvailableIcon from "@mui/icons-material/EventAvailable";
 import { styled } from "@mui/material/styles";
 import { adminAPI } from "../../services/api"; // Import the admin API
 import { useAuth } from "../../hooks/useAuth.jsx";
@@ -113,8 +114,74 @@ const QuickActionCard = styled(Card)(({ theme }) => ({
   },
 }));
 
+// Count tile used inside the Business MIS widgets: tinted panel with an accent bar
+const MisCountItem = ({ label, value, color }) => (
+  <Box
+    sx={{
+      flex: 1,
+      minWidth: 0,
+      p: 2,
+      borderRadius: 2,
+      bgcolor: `${color}12`,
+      borderLeft: `4px solid ${color}`,
+    }}
+  >
+    <Typography variant="h3" sx={{ fontWeight: 700, color, lineHeight: 1.1 }}>
+      {value}
+    </Typography>
+    <Typography
+      variant="body2"
+      sx={{ mt: 1, color: "text.secondary", fontWeight: 500, textTransform: "uppercase", letterSpacing: 0.5, fontSize: "0.72rem" }}
+    >
+      {label}
+    </Typography>
+  </Box>
+);
+
+// Header row for a Business MIS widget card
+const MisWidgetHeader = ({ icon, color, title, subtitle }) => (
+  <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
+    <Box
+      sx={{
+        width: 48,
+        height: 48,
+        borderRadius: 2,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        bgcolor: `${color}1A`,
+        color,
+      }}
+    >
+      {icon}
+    </Box>
+    <Box>
+      <Typography variant="h6" sx={{ fontWeight: 600, lineHeight: 1.3 }}>
+        {title}
+      </Typography>
+      <Typography variant="body2" color="text.secondary">
+        {subtitle}
+      </Typography>
+    </Box>
+  </Box>
+);
+
 const AdminDashboardHome = () => {
   const { user } = useAuth();
+  // Staff carry a Role (staffRoleName, e.g. "Credit Analyst"); subRole is a fallback
+  const isCreditAnalyst =
+    user?.subRole === "credit_analyst" ||
+    /credit\s*analyst/i.test(user?.staffRoleName || "");
+  const [misCounts, setMisCounts] = useState(null);
+
+  useEffect(() => {
+    if (!isCreditAnalyst) return;
+    adminAPI
+      .getBusinessMisCounts()
+      .then((res) => setMisCounts(res.data))
+      .catch((err) => console.error("Failed to load Business MIS counts:", err));
+  }, [isCreditAnalyst]);
+
   const [stats, setStats] = useState({
     totalFranchises: 0,
     activeFranchises: 0,
@@ -169,6 +236,7 @@ const AdminDashboardHome = () => {
   });
 
   useEffect(() => {
+    if (isCreditAnalyst) return; // credit analysts only see Business MIS widgets
     const params =
       revenueFilter.period === "month"
         ? { period: "month", month: revenueFilter.month, year: revenueFilter.year }
@@ -185,12 +253,16 @@ const AdminDashboardHome = () => {
         })),
       )
       .catch((err) => console.error("Error fetching package revenue:", err));
-  }, [revenueFilter]);
+  }, [revenueFilter, isCreditAnalyst]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
+      if (isCreditAnalyst) {
+        setLoading(false);
+        return;
+      }
       try {
         setLoading(true);
         setError(null);
@@ -274,10 +346,11 @@ const AdminDashboardHome = () => {
     };
 
     fetchData();
-  }, [selectedPeriod]);
+  }, [selectedPeriod, isCreditAnalyst]);
 
   // Auto-refresh visitor statistics every 30 seconds
   useEffect(() => {
+    if (isCreditAnalyst) return;
     const refreshVisitorStats = async () => {
       if (!visitorStats.error) {
         // Only refresh if there's no error
@@ -543,6 +616,133 @@ const AdminDashboardHome = () => {
         minHeight="600px"
       >
         <CircularProgress size={60} thickness={4} />
+      </Box>
+    );
+  }
+
+  // Credit analysts: only the Business MIS widgets
+  if (isCreditAnalyst) {
+    return (
+      <Box sx={{ flexGrow: 1, py: 3 }}>
+        <Box sx={{ mb: 4 }}>
+          <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5 }}>
+            Business MIS Dashboard
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            Welcome back, {user?.name}. Here's your Business MIS summary.
+          </Typography>
+        </Box>
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={6}>
+            <Card
+              sx={{
+                height: "100%",
+                borderRadius: 3,
+                border: "1px solid",
+                borderColor: "divider",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+              }}
+            >
+              <CardContent sx={{ p: 3 }}>
+                <MisWidgetHeader
+                  icon={<AssessmentIcon />}
+                  color="#ef6c00"
+                  title="Business MIS Logged"
+                  subtitle="New entries by day and month"
+                />
+                <Grid container spacing={2}>
+                  <Grid item xs={6}>
+                    <MisCountItem
+                      label="Logged today"
+                      value={misCounts ? misCounts.loggedToday : "--"}
+                      color="#ef6c00"
+                    />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <MisCountItem
+                      label="Logged this month"
+                      value={misCounts ? misCounts.loggedThisMonth : "--"}
+                      color="#1976d2"
+                    />
+                  </Grid>
+                </Grid>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <Card
+              sx={{
+                height: "100%",
+                borderRadius: 3,
+                border: "1px solid",
+                borderColor: "divider",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+              }}
+            >
+              <CardContent sx={{ p: 3 }}>
+                <MisWidgetHeader
+                  icon={<CheckCircleIcon />}
+                  color="#2e7d32"
+                  title="Business MIS Status"
+                  subtitle="Work status of all entries"
+                />
+                <Grid container spacing={2}>
+                  <Grid item xs={6}>
+                    <MisCountItem
+                      label="Pending"
+                      value={misCounts ? misCounts.pending : "--"}
+                      color="#7b1fa2"
+                    />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <MisCountItem
+                      label="Closed"
+                      value={misCounts ? misCounts.closed : "--"}
+                      color="#2e7d32"
+                    />
+                  </Grid>
+                </Grid>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          <Grid item xs={12}>
+            <Card
+              sx={{
+                borderRadius: 3,
+                border: "1px solid",
+                borderColor: "divider",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+              }}
+            >
+              <CardContent sx={{ p: 3 }}>
+                <MisWidgetHeader
+                  icon={<EventAvailableIcon />}
+                  color="#0288d1"
+                  title="Follow-ups"
+                  subtitle="Customers scheduled to be contacted"
+                />
+                <Grid container spacing={2}>
+                  <Grid item xs={6}>
+                    <MisCountItem
+                      label="Follow-up today"
+                      value={misCounts ? misCounts.followUpToday : "--"}
+                      color="#0288d1"
+                    />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <MisCountItem
+                      label="Follow-ups this week"
+                      value={misCounts ? misCounts.followUpThisWeek : "--"}
+                      color="#5e35b1"
+                    />
+                  </Grid>
+                </Grid>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
       </Box>
     );
   }

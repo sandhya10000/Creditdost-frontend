@@ -92,6 +92,13 @@ const BusinessMIS = () => {
     switch (status) {
       case "closed":
         return <Chip label="Closed" color="success" sx={{ color: "#fff" }} />;
+      case "pending":
+        return <Chip label="Pending" color="secondary" sx={{ color: "#fff" }} />;
+      case "newly_logged":
+      case undefined:
+      case null:
+      case "":
+        return <Chip label="Newly Logged" sx={{ color: "#fff", backgroundColor: "#ef6c00" }} />;
       default:
         return <Chip label="In Progress" color="info" sx={{ color: "#fff" }} />;
     }
