@@ -678,16 +678,14 @@ const BusinessForms = ({ status = "paid", customerType }) => {
                               clickable
                             />
                           )}
-                          {status !== "paid" && (
-                            <Button
-                              variant="contained"
-                              color="error"
-                              size="small"
-                              onClick={() => handleDeleteClick(form)}
-                            >
-                              Delete
-                            </Button>
-                          )}
+                          <Button
+                            variant="contained"
+                            color="error"
+                            size="small"
+                            onClick={() => handleDeleteClick(form)}
+                          >
+                            Delete
+                          </Button>
                         </Stack>
                       </TableCell>
                     </TableRow>
@@ -725,7 +723,7 @@ const BusinessForms = ({ status = "paid", customerType }) => {
         </CardContent>
       </Card>
 
-      {/* Delete Business Confirmation Dialog (pending MIS only) */}
+      {/* Delete Business Confirmation Dialog (paid and pending MIS) */}
       <Dialog
         open={deleteDialogOpen}
         onClose={handleCloseDeleteDialog}
@@ -735,8 +733,8 @@ const BusinessForms = ({ status = "paid", customerType }) => {
         <DialogTitle>Confirm Delete</DialogTitle>
         <DialogContent>
           <Typography sx={{ mb: 2 }}>
-            <strong>{businessToDelete?.customerName || "This business"}</strong> — business
-            will be deleted.
+            <strong>{businessToDelete?.customerName || "This business"}</strong> — this
+            Business MIS entry will be permanently deleted.
           </Typography>
         </DialogContent>
         <DialogActions>
