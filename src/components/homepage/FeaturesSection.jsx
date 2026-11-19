@@ -1,404 +1,422 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
+import { ShieldCheck, Handshake, Store, ArrowUpRight } from "lucide-react";
+import { Box, Typography, styled } from "@mui/material";
+
+// BRAND DESIGN TOKENS
+const COLORS = {
+  cyan600: "#0891b2",
+  cyan500: "#06b6d4",
+  cyan300: "#22d3ee",
+  sky500: "#0ea5e9",
+  navy950: "#0a1929",
+  navy900: "#0d2847",
+  navy800: "#1a2744",
+  textLight: "#0f172a",
+  textMuted: "#475569",
+  bgLight: "#f8fafc",
+};
 
 const services = [
   {
     title: "Credit Score Repair",
     description:
-      "Expert credit repair services that fix errors, improve your score, and restore your financial credibility",
-    icon: "👥",
+      "Expert credit repair services that fix errors, improve your score, and restore your financial credibility.",
     image: "/images/IMG 2-01.jpg",
+    link: "/credit-score-repair",
+    icon: ShieldCheck,
   },
-
   {
     title: "Franchise Opportunity",
     description:
       "Partner with Credit Dost and build a rewarding business helping people improve their credit scores and financial confidence.",
-    icon: "📈",
     image: "/images/franchise-new.jpeg",
-  },
-  {
-    title: "Credit Dost Suvidha Centre",
-    description:
-      "Start a profitable credit repair business with Credit Dost Suvidha Centre and help people improve their credit scores.",
-    icon: "📈",
-    image: "/images/Suvidha-centre.jpg",
-  },
+    link: "/franchise-opportunity",
+    icon: Handshake,
+  }
 ];
 
+const SectionRoot = styled("section")(() => ({
+  position: "relative",
+  zIndex: 0,
+  backgroundColor: COLORS.bgLight,
+  marginTop: "calc(-1 * clamp(28px, 5vw, 64px))",
+  paddingTop: "clamp(56px, 6vw, 88px)",
+  paddingBottom: "clamp(64px, 8vw, 112px)",
+  overflowX: "clip",
+  width: "100%",
+  boxSizing: "border-box",
+
+  // Soft cyan glow behind cards - fades to nothing within 120px of top edge
+  "&::before": {
+    content: '""',
+    position: "absolute",
+    top: "35%",
+    left: "50%",
+    transform: "translate(-50%, -50%)",
+    width: "clamp(350px, 60vw, 850px)",
+    height: "clamp(300px, 45vw, 650px)",
+    background: "radial-gradient(circle, rgba(6, 182, 212, 0.12) 0%, transparent 70%)",
+    filter: "blur(100px)",
+    pointerEvents: "none",
+    zIndex: 0,
+    maskImage: "linear-gradient(to bottom, transparent 0px, transparent 120px, black 180px)",
+    WebkitMaskImage: "linear-gradient(to bottom, transparent 0px, transparent 120px, black 180px)",
+  },
+}));
+
+// Faint dot-grid overlay masked with radial fade and top fade
+const GridOverlay = styled(Box)(() => ({
+  position: "absolute",
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+  backgroundImage:
+    "radial-gradient(rgba(15, 23, 42, 0.08) 1.2px, transparent 1.2px)",
+  backgroundSize: "28px 28px",
+  maskImage:
+    "linear-gradient(to bottom, transparent 0px, transparent 120px, black 180px), radial-gradient(circle at 50% 40%, black 20%, transparent 75%)",
+  WebkitMaskImage:
+    "linear-gradient(to bottom, transparent 0px, transparent 120px, black 180px), radial-gradient(circle at 50% 40%, black 20%, transparent 75%)",
+  maskComposite: "intersect",
+  WebkitMaskComposite: "source-in",
+  pointerEvents: "none",
+  zIndex: 1,
+}));
+
+// Pill chip in the same style as hero eyebrow on light background
+const EyebrowChip = styled(Box)(() => ({
+  display: "inline-flex",
+  alignItems: "center",
+  gap: "8px",
+  padding: "6px 14px",
+  borderRadius: "999px",
+  backgroundColor: "rgba(8, 145, 178, 0.08)",
+  border: "1px solid rgba(8, 145, 178, 0.25)",
+  color: "#0e7490",
+  fontFamily: "'Poppins', sans-serif",
+  fontSize: "12px",
+  fontWeight: 600,
+  letterSpacing: "0.12em",
+  textTransform: "uppercase",
+  marginBottom: "16px",
+}));
+
+const PulsingDot = styled(Box)(() => ({
+  width: "8px",
+  height: "8px",
+  borderRadius: "50%",
+  backgroundColor: COLORS.cyan600,
+  boxShadow: `0 0 8px ${COLORS.cyan500}`,
+  animation: "dotPulse 2s ease-in-out infinite",
+  "@keyframes dotPulse": {
+    "0%, 100%": { opacity: 1, transform: "scale(1)" },
+    "50%": { opacity: 0.35, transform: "scale(0.85)" },
+  },
+}));
+
+const CardsGrid = styled("div")(() => ({
+  display: "grid",
+  gridTemplateColumns: "1fr",
+  gap: "clamp(24px, 3vw, 36px)",
+  alignItems: "stretch",
+  marginTop: "48px",
+  "@media (min-width: 768px)": {
+    gridTemplateColumns: "repeat(2, 1fr)",
+  },
+}));
+
+const ServiceCard = styled("article")(() => ({
+  position: "relative",
+  backgroundColor: "#ffffff",
+  borderRadius: "24px",
+  border: "1px solid rgba(15, 23, 42, 0.06)",
+  boxShadow: "0 10px 30px rgba(10, 25, 41, 0.07)",
+  padding: "12px",
+  display: "flex",
+  flexDirection: "column",
+  boxSizing: "border-box",
+  transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+
+  "@media (prefers-reduced-motion: no-preference)": {
+    "&:hover": {
+      transform: "translateY(-6px)",
+      boxShadow: "0 22px 50px rgba(8, 145, 178, 0.18)",
+      borderColor: "rgba(8, 145, 178, 0.35)",
+      "& .service-img": {
+        transform: "scale(1.05)",
+      },
+      "& .arrow-btn": {
+        background: `linear-gradient(135deg, ${COLORS.cyan600} 0%, ${COLORS.sky500} 100%)`,
+        color: "#ffffff",
+        transform: "rotate(45deg)",
+      },
+    },
+  },
+
+  "&:focus-within": {
+    outline: `2px solid ${COLORS.cyan600}`,
+    outlineOffset: "3px",
+  },
+}));
+
+const ImageContainer = styled(Box)(() => ({
+  position: "relative",
+  width: "100%",
+  aspectRatio: "16 / 10",
+  borderRadius: "16px",
+  overflow: "hidden",
+  backgroundColor: COLORS.navy900,
+}));
+
+const StyledImage = styled("img")(() => ({
+  width: "100%",
+  height: "100%",
+  objectFit: "cover",
+  display: "block",
+  transition: "transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
+}));
+
+// 52px rounded-14px icon chip overlapping bottom-left edge of the image
+const FloatingIconChip = styled(Box)(() => ({
+  position: "absolute",
+  bottom: "-16px",
+  left: "20px",
+  width: "52px",
+  height: "52px",
+  borderRadius: "14px",
+  background: `linear-gradient(135deg, ${COLORS.cyan600} 0%, ${COLORS.cyan500} 100%)`,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  color: "#ffffff",
+  border: "3px solid #ffffff",
+  boxShadow: "0 8px 20px rgba(8, 145, 178, 0.3)",
+  zIndex: 3,
+}));
+
+const CardBody = styled(Box)(() => ({
+  padding: "28px 20px 20px",
+  display: "flex",
+  flexDirection: "column",
+  flexGrow: 1,
+}));
+
+const CardFooter = styled(Box)(() => ({
+  marginTop: "auto",
+  display: "flex",
+  justifyContent: "flex-end",
+  paddingTop: "16px",
+}));
+
+const ArrowButton = styled(Box)(() => ({
+  width: "44px",
+  height: "44px",
+  minWidth: "44px",
+  borderRadius: "50%",
+  backgroundColor: "rgba(8, 145, 178, 0.1)",
+  color: COLORS.navy950,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  transition: "all 0.35s cubic-bezier(0.4, 0, 0.2, 1)",
+}));
+
+const StaggerWrapper = styled(Box, {
+  shouldForwardProp: (prop) => prop !== "isVisible",
+})(({ isVisible }) => ({
+  opacity: isVisible ? 1 : 0,
+  transition: "opacity 0.6s ease",
+  "@media (prefers-reduced-motion: no-preference)": {
+    "& .anim-header": {
+      opacity: isVisible ? 1 : 0,
+      transform: isVisible ? "translateY(0)" : "translateY(24px)",
+      transition: "opacity 0.6s ease, transform 0.6s ease",
+    },
+    "& .anim-card-0": {
+      opacity: isVisible ? 1 : 0,
+      transform: isVisible ? "translateY(0)" : "translateY(24px)",
+      transition: "opacity 0.6s ease 0.08s, transform 0.6s ease 0.08s",
+    },
+    "& .anim-card-1": {
+      opacity: isVisible ? 1 : 0,
+      transform: isVisible ? "translateY(0)" : "translateY(24px)",
+      transition: "opacity 0.6s ease 0.16s, transform 0.6s ease 0.16s",
+    },
+    "& .anim-card-2": {
+      opacity: isVisible ? 1 : 0,
+      transform: isVisible ? "translateY(0)" : "translateY(24px)",
+      transition: "opacity 0.6s ease 0.24s, transform 0.6s ease 0.24s",
+    },
+  },
+}));
+
 const FeaturesSection = () => {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isAnimating, setIsAnimating] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+  const sectionRef = useRef(null);
 
-  const handlePrevious = () => {
-    if (isAnimating) return;
-    setIsAnimating(true);
-    setCurrentIndex((prev) => (prev === 0 ? services.length - 1 : prev - 1));
-    setTimeout(() => setIsAnimating(false), 500);
-  };
-
-  const handleNext = () => {
-    if (isAnimating) return;
-    setIsAnimating(true);
-    setCurrentIndex((prev) => (prev === services.length - 1 ? 0 : prev + 1));
-    setTimeout(() => setIsAnimating(false), 500);
-  };
-
-  const getVisibleCards = () => {
-    const cards = [];
-    for (let i = 0; i < 3; i++) {
-      const index = (currentIndex + i) % services.length;
-      cards.push({ ...services[index], position: i });
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") {
+      setIsVisible(true);
+      return;
     }
-    return cards;
-  };
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "0px 0px -60px 0px" }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   return (
-    <div
-      className="features-container"
-      style={{
-        position: "relative",
-        background: "#f5f7fa",
-        padding: "56px 20px",
-        overflow: "hidden",
-      }}
-    >
-      <style>{`
-        @keyframes float {
-          0%, 100% { transform: translate(0, 0) scale(1); }
-          50% { transform: translate(30px, -30px) scale(1.1); }
-        }
-        @keyframes float2 {
-          0%, 100% { transform: translate(0, 0) rotate(0deg); }
-          50% { transform: translate(-40px, 60px) rotate(180deg); }
-        }
-        @keyframes morph {
-          0%, 100% { border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%; }
-          50% { border-radius: 70% 30% 30% 70% / 70% 70% 30% 30%; }
-        }
-        @keyframes slideIn {
-          from {
-            opacity: 0;
-            transform: translateX(50px);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
-        }
-        @keyframes pulse {
-          0%, 100% { transform: scale(1); opacity: 1; }
-          50% { transform: scale(1.1); opacity: 0.8; }
-        }
-        .service-card {
-          height: 100%;
-          border-radius: 16px;
-          box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-          border: none;
-          transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-          background: white;
-          overflow: hidden;
-        }
-        .service-card:hover {
-          transform: translateY(-8px);
-          box-shadow: 0 12px 40px rgba(0,0,0,0.15);
-        }
-        .nav-buttonz {
-          background: #d4e8f0;
-          width: 56px;
-          height: 56px;
-          border-radius: 50%;
-          border: none;
-          cursor: pointer;
-          transition: all 0.3s ease;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 24px;
-          color: #007ba7;
-        }
-        .nav-buttonz:hover:not(:disabled) {
-          background: #b8dae8;
-          transform: scale(1.05);
-        }
-        .nav-buttonz:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-        /* Mobile responsiveness */
-        @media (max-width: 768px) {
-          .service-card {
-            max-width: 100%;
-            margin-bottom: 20px;
-          }
-          
-          .features-container {
-            padding: 40px 16px !important;
-          }
-          
-          .features-header {
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            gap: 20px;
-          }
-          
-          .features-title {
-            font-size: 2rem !important;
-          }
-          
-          .features-subtitle {
-            font-size: 0.85rem !important;
-          }
-          
-          .nav-buttons {
-            order: -1;
-            margin-bottom: 20px;
-          }
-          
-          .service-grid {
-            grid-template-columns: 1fr !important;
-            gap: 24px !important;
-          }
-          
-          .service-card-content {
-            padding: 24px !important;
-          }
-          
-          .service-card-image {
-            height: 160px !important;
-          }
-          
-          .service-card-icon {
-            font-size: 40px !important;
-            height: 100px !important;
-          }
-          
-          .animated-bg-elements {
-            display: none;
-          }
-        }
-        
-        @media (max-width: 480px) {
-          .features-container {
-            padding: 32px 12px !important;
-          }
-          
-          .features-title {
-            font-size: 1.75rem !important;
-          }
-          
-          .service-card-icon {
-            height: 80px !important;
-          }
-          
-          .service-card-content {
-            padding: 20px !important;
-          }
-          
-          .nav-buttonz {
-            width: 48px !important;
-            height: 48px !important;
-            font-size: 20px !important;
-          }
-        }
-      `}</style>
+    <SectionRoot ref={sectionRef} aria-labelledby="services-section-heading">
+      <GridOverlay />
 
-      {/* Animated Background Elements */}
-      <div
-        className="animated-bg-elements"
-        style={{
-          position: "absolute",
-          top: "10%",
-          left: "5%",
-          width: "300px",
-          height: "300px",
-          borderRadius: "50%",
-          background:
-            "radial-gradient(circle, rgba(0, 123, 255, 0.08) 0%, transparent 70%)",
-          animation: "float 8s ease-in-out infinite",
+      <Box
+        sx={{
+          position: "relative",
+          zIndex: 2,
+          width: "100%",
+          maxWidth: "1440px",
+          mx: "auto",
+          px: "clamp(16px, 4vw, 48px)",
+          boxSizing: "border-box",
         }}
-      />
-      <div
-        className="animated-bg-elements"
-        style={{
-          position: "absolute",
-          bottom: "72%",
-          right: "8%",
-          width: "250px",
-          height: "250px",
-          borderRadius: "50%",
-          background:
-            "radial-gradient(circle, rgba(0, 188, 212, 0.09) 0%, transparent 70%)",
-          animation: "float2 10s ease-in-out infinite",
-        }}
-      />
-      <div
-        className="animated-bg-elements"
-        style={{
-          position: "absolute",
-          top: "50%",
-          right: "-3%",
-          width: "200px",
-          height: "200px",
-          borderRadius: "30% 70% 70% 30% / 30% 30% 70% 70%",
-          background:
-            "linear-gradient(45deg, rgba(156, 39, 176, 0.1) 0%, transparent 100%)",
-          animation: "morph 12s ease-in-out infinite",
-        }}
-      />
-
-      <div style={{ maxWidth: "1400px", margin: "0 auto" }}>
-        <div
-          className="features-header"
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "flex-start",
-            marginBottom: "60px",
-            flexWrap: "wrap",
-            gap: "20px",
-          }}
-        >
-          <div>
-            <div
-              style={{
-                color: "#007ba7",
-                fontSize: "0.95rem",
-                fontWeight: 700,
-                letterSpacing: "0.15em",
-                textTransform: "uppercase",
-                marginBottom: "12px",
-              }}
-            >
+      >
+        <StaggerWrapper isVisible={isVisible}>
+          {/* Header left-aligned like hero */}
+          <Box className="anim-header">
+            <EyebrowChip>
+              <PulsingDot />
               OUR SERVICES
-            </div>
-            <h2
-              className="features-title"
-              style={{
-                fontSize: "2.5rem",
-                fontWeight: 800,
-                color: "#1a2332",
-                lineHeight: 1.2,
+            </EyebrowChip>
 
+            <Typography
+              id="services-section-heading"
+              component="h2"
+              sx={{
+                fontFamily: "'Poppins', sans-serif",
+                fontSize: "clamp(1.75rem, 1.1rem + 2.6vw, 3rem)",
+                fontWeight: 700,
+                lineHeight: 1.15,
+                color: COLORS.navy950,
                 margin: 0,
               }}
             >
-              Innovate to dominate with us
-            </h2>
-          </div>
-
-          <div className="nav-buttons" style={{ display: "flex", gap: "16px" }}>
-            <button
-              onClick={handlePrevious}
-              disabled={isAnimating}
-              className="nav-buttonz"
-            >
-              ←
-            </button>
-            <button
-              onClick={handleNext}
-              disabled={isAnimating}
-              className="nav-buttonz"
-            >
-              →
-            </button>
-          </div>
-        </div>
-
-        <div
-          className="service-grid"
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-            gap: "32px",
-            marginTop: "48px",
-          }}
-        >
-          {getVisibleCards().map((service, idx) => (
-            <div
-              key={`${service.title}-${idx}`}
-              className="service-card"
-              style={{
-                animation: `slideIn 0.5s ease-out ${idx * 0.1}s both`,
-              }}
-            >
-              <div
-                className="service-card-icon"
-                style={{
-                  background: "#007ba7",
-                  height: "120px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  position: "relative",
-                  overflow: "hidden",
+              Innovate to{" "}
+              <Box
+                component="span"
+                sx={{
+                  background: `linear-gradient(90deg, ${COLORS.cyan600} 0%, ${COLORS.sky500} 100%)`,
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
                 }}
               >
-                <div
-                  style={{
-                    position: "absolute",
-                    top: "-50%",
-                    left: "-50%",
-                    width: "200%",
-                    height: "200%",
-                    background:
-                      "radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)",
-                    animation: "pulse 3s ease-in-out infinite",
-                  }}
-                />
-                <div
-                  style={{
-                    fontSize: "50px",
-                    zIndex: 1,
-                  }}
-                >
-                  {service.icon}
-                </div>
-              </div>
+                dominate
+              </Box>{" "}
+              with us
+            </Typography>
+          </Box>
 
-              <div className="service-card-content" style={{ padding: "32px" }}>
-                <h3
-                  style={{
-                    fontWeight: 700,
-                    color: "#1a2332",
-                    marginBottom: "16px",
-                    fontSize: "1.5rem",
-                    marginTop: 0,
-                  }}
+          {/* Cards Grid: 2 equal columns, responsive for all screens */}
+          <CardsGrid>
+            {services.map((service, index) => {
+              const IconComponent = service.icon;
+              return (
+                <ServiceCard
+                  key={service.title}
+                  className={`anim-card-${index}`}
                 >
-                  {service.title}
-                </h3>
-                <p
-                  style={{
-                    color: "#6b7280",
-                    lineHeight: 1.7,
-                    fontSize: "0.95rem",
-                    marginBottom: "24px",
-                  }}
-                >
-                  {service.description}
-                </p>
+                  {/* Image with overlapping icon chip */}
+                  <ImageContainer>
+                    <StyledImage
+                      className="service-img"
+                      src={service.image}
+                      alt={service.title}
+                      loading="lazy"
+                      decoding="async"
+                      width="600"
+                      height="375"
+                    />
+                    <FloatingIconChip aria-hidden="true">
+                      <IconComponent size={24} />
+                    </FloatingIconChip>
+                  </ImageContainer>
 
-                <img
-                  className="service-card-image"
-                  src={service.image}
-                  alt={service.title}
-                  loading="lazy"
-                  decoding="async"
-                  style={{
-                    width: "100%",
-                    height: "245px",
+                  {/* Body Content */}
+                  <CardBody>
+                    <Typography
+                      component="h3"
+                      sx={{
+                        fontFamily: "'Poppins', sans-serif",
+                        fontWeight: 600,
+                        fontSize: "22px",
+                        lineHeight: 1.3,
+                        color: COLORS.navy950,
+                        mb: 1.5,
+                        mt: 1,
+                      }}
+                    >
+                      <Link
+                        to={service.link}
+                        style={{
+                          textDecoration: "none",
+                          color: "inherit",
+                          outline: "none",
+                        }}
+                      >
+                        {/* Stretched link pattern across entire card */}
+                        <Box
+                          component="span"
+                          sx={{
+                            position: "absolute",
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            zIndex: 1,
+                          }}
+                          aria-hidden="true"
+                        />
+                        {service.title}
+                      </Link>
+                    </Typography>
 
-                    borderRadius: "12px",
-                    display: "block",
-                  }}
-                />
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Inter', sans-serif",
+                        fontWeight: 400,
+                        fontSize: "16px",
+                        lineHeight: 1.65,
+                        color: COLORS.textMuted,
+                      }}
+                    >
+                      {service.description}
+                    </Typography>
+
+                    {/* Footer Arrow Button (Decorative indicator) */}
+                    <CardFooter>
+                      <ArrowButton className="arrow-btn" aria-hidden="true">
+                        <ArrowUpRight size={22} />
+                      </ArrowButton>
+                    </CardFooter>
+                  </CardBody>
+                </ServiceCard>
+              );
+            })}
+          </CardsGrid>
+        </StaggerWrapper>
+      </Box>
+    </SectionRoot>
   );
 };
 

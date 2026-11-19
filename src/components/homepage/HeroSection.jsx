@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import {
-  Container,
   Typography,
   Button,
   Box,
@@ -8,306 +7,387 @@ import {
   Grid,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { Phone, Add } from "@mui/icons-material";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import StarIcon from "@mui/icons-material/Star";
+import VerifiedIcon from "@mui/icons-material/Verified";
+import TrendingUpIcon from "@mui/icons-material/TrendingUp";
+import PhotoCubeCard from "../PhotoCubeCard";
 
-const HeroBackground = styled(Box)(({ theme }) => ({
-  background: "linear-gradient(135deg, #0a1929 0%, #1a2744 50%, #0d2847 100%)",
-  minHeight: "91vh",
+// CUSTOMER PHOTOS ARRAY
+const CUSTOMER_PHOTOS = [
+  {
+    src: "/images/hero-new.png",
+    alt: "Happy Credit Dost customer",
+    name: "Customer name",
+    city: "City",
+  },
+  {
+    src: "/customers/customer-2.jpg",
+    alt: "Happy Credit Dost customer",
+    name: "Customer name",
+    city: "City",
+  },
+  {
+    src: "/customers/customer-3.jpg",
+    alt: "Happy Credit Dost customer",
+    name: "Customer name",
+    city: "City",
+  },
+  {
+    src: "/customers/customer-4.jpg",
+    alt: "Happy Credit Dost customer",
+    name: "Customer name",
+    city: "City",
+  },
+];
+
+// BRAND DESIGN TOKENS
+const COLORS = {
+  cyan600: "#0891b2",
+  cyan500: "#06b6d4",
+  cyan300: "#67e8f9",
+  sky500: "#0ea5e9",
+  navy950: "#0a1929",
+  navy900: "#0d2847",
+  navy800: "#1a2744",
+  textLight: "#0f172a",
+  textMuted: "#475569",
+};
+
+const HeroSectionRoot = styled("section")(({ theme }) => ({
   position: "relative",
-  overflow: "hidden",
+  zIndex: 1,
+  background: `linear-gradient(160deg, ${COLORS.navy950} 0%, ${COLORS.navy900} 55%, ${COLORS.navy950} 100%)`,
+  borderRadius: "0 0 clamp(28px, 5vw, 64px) clamp(28px, 5vw, 64px)",
+  overflowX: "clip",
+  overflowY: "visible",
+  width: "100%",
+  boxSizing: "border-box",
+
+  // Uses --nav-h variable with safe-area and responsive vertical padding
+  // Never a fixed height; caps gracefully at 820px or 100svh
+  minHeight: "min(100svh, 820px)",
   display: "flex",
-  alignItems: "center",
-  padding: theme.spacing(8, 0),
-  [theme.breakpoints.down("md")]: {
-    padding: theme.spacing(4, 0),
-    minHeight: "auto",
-  },
-  [theme.breakpoints.down("sm")]: {
-    padding: theme.spacing(3, 0),
-  },
+  flexDirection: "column",
+  justifyContent: "center",
+  paddingTop: "calc(var(--nav-h, 72px) + 16px + clamp(32px, 6vw, 72px))",
+  paddingBottom: "clamp(72px, 9vw, 120px)",
+
+  // Mesh glow 1 (Cyan top right)
   "&::before": {
     content: '""',
     position: "absolute",
-    bottom: "10%",
+    top: "-10%",
+    right: "-5%",
+    width: "clamp(300px, 45vw, 650px)",
+    height: "clamp(300px, 45vw, 650px)",
+    background: "radial-gradient(circle, rgba(6, 182, 212, 0.35) 0%, transparent 70%)",
+    filter: "blur(120px)",
+    pointerEvents: "none",
+    zIndex: 0,
+  },
+
+  // Mesh glow 2 (Sky bottom left)
+  "&::after": {
+    content: '""',
+    position: "absolute",
+    bottom: "5%",
     left: "-10%",
-    width: "600px",
-    height: "600px",
-    background:
-      "radial-gradient(circle, rgba(14, 165, 233, 0.15) 0%, transparent 70%)",
-    borderRadius: "50%",
-    animation: "pulse 8s ease-in-out infinite",
-    [theme.breakpoints.down("md")]: {
-      width: "300px",
-      height: "300px",
-      left: "-5%",
-    },
-    [theme.breakpoints.down("sm")]: {
-      width: "200px",
-      height: "200px",
-      bottom: "5%",
-    },
+    width: "clamp(250px, 40vw, 600px)",
+    height: "clamp(250px, 40vw, 600px)",
+    background: "radial-gradient(circle, rgba(14, 165, 233, 0.25) 0%, transparent 70%)",
+    filter: "blur(120px)",
+    pointerEvents: "none",
+    zIndex: 0,
+  },
+}));
+
+// Faint background dot/line grid with radial fade
+const GridOverlay = styled(Box)(() => ({
+  position: "absolute",
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+  backgroundImage:
+    "linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px)",
+  backgroundSize: "44px 44px",
+  maskImage: "radial-gradient(circle at 50% 45%, black 25%, transparent 75%)",
+  WebkitMaskImage: "radial-gradient(circle at 50% 45%, black 25%, transparent 75%)",
+  pointerEvents: "none",
+  zIndex: 1,
+}));
+
+// Eyebrow glass chip with small pulsing dot
+const EyebrowChip = styled(Box)(() => ({
+  display: "inline-flex",
+  alignItems: "center",
+  gap: "8px",
+  padding: "6px 14px",
+  borderRadius: "999px",
+  background: "rgba(255, 255, 255, 0.08)",
+  border: "1px solid rgba(255, 255, 255, 0.18)",
+  backdropFilter: "blur(8px)",
+  WebkitBackdropFilter: "blur(8px)",
+  color: COLORS.cyan300,
+  fontFamily: "'Poppins', sans-serif",
+  fontSize: "12px",
+  fontWeight: 600,
+  letterSpacing: "0.12em",
+  textTransform: "uppercase",
+  marginBottom: "clamp(14px, 2vw, 24px)",
+}));
+
+const PulsingDot = styled(Box)(() => ({
+  width: "8px",
+  height: "8px",
+  borderRadius: "50%",
+  backgroundColor: COLORS.cyan300,
+  boxShadow: `0 0 10px ${COLORS.cyan300}`,
+  animation: "dotPulse 2s ease-in-out infinite",
+  "@keyframes dotPulse": {
+    "0%, 100%": { opacity: 1, transform: "scale(1)" },
+    "50%": { opacity: 0.4, transform: "scale(0.85)" },
+  },
+}));
+
+// Primary CTA button with dark navy text on bright cyan and 40px circle arrow
+const HeroCTAButton = styled(Button)(() => ({
+  minHeight: "52px",
+  height: "56px",
+  borderRadius: "14px",
+  padding: "0 8px 0 24px",
+  background: "linear-gradient(135deg, #22d3ee 0%, #06b6d4 100%)",
+  color: COLORS.navy950,
+  fontFamily: "'Poppins', sans-serif",
+  fontWeight: 600,
+  fontSize: "16px",
+  textTransform: "none",
+  whiteSpace: "nowrap",
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  gap: "16px",
+  boxShadow: "0 10px 30px rgba(6, 182, 212, 0.45)",
+  position: "relative",
+  overflow: "hidden",
+  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+  width: "auto",
+  "@media (max-width: 600px)": {
+    width: "100%",
+    maxWidth: "420px",
   },
   "&::after": {
     content: '""',
     position: "absolute",
-    top: "20%",
-    right: "-5%",
-    width: "400px",
-    height: "400px",
-    background:
-      "radial-gradient(circle, rgba(6, 182, 212, 0.1) 0%, transparent 70%)",
-    borderRadius: "50%",
-    animation: "float 6s ease-in-out infinite",
-    [theme.breakpoints.down("md")]: {
-      width: "250px",
-      height: "250px",
-      top: "15%",
-      right: "-3%",
-    },
-    [theme.breakpoints.down("sm")]: {
-      width: "150px",
-      height: "150px",
-      top: "10%",
-    },
+    top: 0,
+    left: "-100%",
+    width: "60%",
+    height: "100%",
+    background: "linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent)",
+    transform: "skewX(-20deg)",
+    transition: "left 0.75s ease",
   },
-  "@keyframes pulse": {
-    "0%, 100%": { transform: "scale(1)", opacity: 1 },
-    "50%": { transform: "scale(1.1)", opacity: 0.8 },
-  },
-  "@keyframes float": {
-    "0%, 100%": { transform: "translateY(0px)" },
-    "50%": { transform: "translateY(-30px)" },
-  },
-  // Adding new unique animations
-  "@keyframes rotatePulse": {
-    "0%": { transform: "rotate(0deg) scale(1)", opacity: 0.4 },
-    "50%": { transform: "rotate(180deg) scale(1.05)", opacity: 0.8 },
-    "100%": { transform: "rotate(360deg) scale(1)", opacity: 0.4 },
-  },
-  "@keyframes slideAndGlow": {
-    "0%": {
-      transform: "translate(0, 0)",
-      boxShadow: "0 0 0 rgba(6, 182, 212, 0.4)",
-    },
-    "50%": {
-      transform: "translate(10px, 10px)",
-      boxShadow: "0 0 20px rgba(6, 182, 212, 0.8)",
-    },
-    "100%": {
-      transform: "translate(0, 0)",
-      boxShadow: "0 0 0 rgba(6, 182, 212, 0.4)",
-    },
-  },
-  "@keyframes gradientShift": {
-    "0%": {
-      backgroundPosition: "0% 50%",
-    },
-    "50%": {
-      backgroundPosition: "100% 50%",
-    },
-    "100%": {
-      backgroundPosition: "0% 50%",
-    },
-  },
-}));
-
-const FloatingShape = styled(Box)(({ delay = 0, theme }) => ({
-  position: "absolute",
-  borderRadius: "50%",
-  background: "rgba(14, 165, 233, 0.1)",
-  animation: `float 6s ease-in-out ${delay}s infinite`,
-  [theme.breakpoints.down("md")]: {
-    width: "40px !important",
-    height: "40px !important",
-  },
-  [theme.breakpoints.down("sm")]: {
-    width: "30px !important",
-    height: "30px !important",
-  },
-}));
-
-const ContentWrapper = styled(Box)(({ isVisible, theme }) => ({
-  opacity: isVisible ? 1 : 0,
-  transform: isVisible ? "translateY(0)" : "translateY(30px)",
-  transition: "all 0.8s ease-out",
-  [theme.breakpoints.down("md")]: {
-    textAlign: "center",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-  },
-}));
-
-const StyledButton = styled(Button)(({ theme }) => ({
-  padding: theme.spacing(1.5, 3.5),
-  borderRadius: "8px",
-  fontWeight: 600,
-  fontSize: "1rem",
-  textTransform: "none",
-  transition: "all 0.3s ease",
-  background: "linear-gradient(90deg, #0ea5e9, #06b6d4, #0ea5e9)",
-  backgroundSize: "200% 200%",
-  animation: "gradientShift 3s ease infinite", // Added gradient animation
   "&:hover": {
     transform: "translateY(-2px)",
-    boxShadow: "0 8px 20px rgba(14, 165, 233, 0.4)",
+    background: "linear-gradient(135deg, #22d3ee 0%, #06b6d4 100%)",
+    boxShadow: "0 14px 38px rgba(6, 182, 212, 0.6)",
+    "&::after": {
+      left: "150%",
+    },
+    "& .cta-arrow-circle": {
+      transform: "translateX(4px)",
+    },
   },
-  [theme.breakpoints.down("md")]: {
-    padding: theme.spacing(1.2, 3),
-    fontSize: "0.9rem",
+  "&:active": {
+    transform: "scale(0.98)",
   },
-  [theme.breakpoints.down("sm")]: {
-    width: "100%",
-    maxWidth: "250px",
-    margin: "0 auto",
-  },
-}));
-
-const ImageWrapper = styled(Box)(({ isVisible, theme }) => ({
-  position: "relative",
-  opacity: isVisible ? 1 : 0,
-  transform: isVisible ? "translateX(0)" : "translateX(50px)",
-  transition: "all 1s ease-out 0.3s",
-  [theme.breakpoints.down("md")]: {
-    transform: isVisible ? "translateX(0)" : "translateX(30px)",
-    marginTop: theme.spacing(4),
-  },
-  [theme.breakpoints.down("sm")]: {
-    marginTop: theme.spacing(3),
-  },
-  "& img": {
-    width: "100%",
-    height: "auto",
-    borderRadius: "20px",
-    boxShadow: "0 20px 60px rgba(0, 0, 0, 0.3)",
+  "&:focus-visible": {
+    outline: `2px solid ${COLORS.cyan300}`,
+    outlineOffset: "3px",
   },
 }));
 
-const AccentCircle = styled(Box)(({ top, right, size, theme }) => ({
-  position: "absolute",
-  top: top || "auto",
-  right: right || "auto",
-  width: size || "150px",
-  height: size || "150px",
+const ArrowCircle = styled(Box)(() => ({
+  width: "40px",
+  height: "40px",
+  minWidth: "40px",
   borderRadius: "50%",
-  border: "2px solid rgba(14, 165, 233, 0.3)",
-  zIndex: 0,
-  [theme.breakpoints.down("md")]: {
-    width: size ? `${parseInt(size) * 0.7}px` : "100px",
-    height: size ? `${parseInt(size) * 0.7}px` : "100px",
+  backgroundColor: "#ffffff",
+  color: COLORS.navy950,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  transition: "transform 0.25s ease",
+}));
+
+// Floating Glass Cards - Higher z-index than the cube (zIndex: 20), do not rotate with cube
+const GlassCard = styled(Box, {
+  shouldForwardProp: (prop) => prop !== "positionTop" && prop !== "delay",
+})(({ positionTop, delay }) => ({
+  position: "absolute",
+  pointerEvents: "none",
+  ...(positionTop
+    ? { top: "20px", right: "-12px" }
+    : { bottom: "40px", left: "-12px" }),
+  background: "rgba(255, 255, 255, 0.16)",
+  backdropFilter: "blur(16px)",
+  WebkitBackdropFilter: "blur(16px)",
+  border: "1px solid rgba(255, 255, 255, 0.3)",
+  borderRadius: "16px",
+  padding: "10px 16px",
+  display: "flex",
+  alignItems: "center",
+  gap: "10px",
+  boxShadow: "0 20px 40px rgba(0, 0, 0, 0.35)",
+  zIndex: 20,
+  animation: `floatSlow 6s ease-in-out ${delay || "0s"} infinite`,
+  "@keyframes floatSlow": {
+    "0%, 100%": { transform: "translateY(0)" },
+    "50%": { transform: "translateY(-10px)" },
   },
-  [theme.breakpoints.down("sm")]: {
-    width: size ? `${parseInt(size) * 0.5}px` : "70px",
-    height: size ? `${parseInt(size) * 0.5}px` : "70px",
+  "@media (min-width: 1024px)": {
+    ...(positionTop
+      ? { top: "24px", right: "-24px" }
+      : { bottom: "52px", left: "-24px" }),
+  },
+  "@media (max-width: 600px)": {
+    display: "none",
+  },
+}));
+
+const IconChip = styled(Box)(() => ({
+  width: "36px",
+  height: "36px",
+  borderRadius: "10px",
+  background: `linear-gradient(135deg, ${COLORS.cyan600}, ${COLORS.cyan500})`,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  color: "#ffffff",
+  flexShrink: 0,
+}));
+
+const StaggerWrapper = styled(Box)(() => ({
+  "@media (prefers-reduced-motion: no-preference)": {
+    "& .stagger-1": { animation: "fadeUp 0.6s ease forwards 0.08s" },
+    "& .stagger-2": { animation: "fadeUp 0.6s ease forwards 0.16s" },
+    "& .stagger-3": { animation: "fadeUp 0.6s ease forwards 0.24s" },
+    "& .stagger-4": { animation: "fadeUp 0.6s ease forwards 0.32s" },
+    "& .stagger-5": { animation: "fadeUp 0.6s ease forwards 0.40s" },
+    "& .hero-cube-scale": { animation: "scaleIn 0.8s ease forwards 0.15s" },
+  },
+  "@keyframes fadeUp": {
+    from: { opacity: 0, transform: "translateY(24px)" },
+    to: { opacity: 1, transform: "translateY(0)" },
+  },
+  "@keyframes scaleIn": {
+    from: { opacity: 0, transform: "scale(0.96)" },
+    to: { opacity: 1, transform: "scale(1)" },
   },
 }));
 
 const HeroSection = () => {
   const navigate = useNavigate();
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    setIsVisible(true);
-  }, []);
 
   return (
-    <HeroBackground>
-      <FloatingShape
-        sx={{ width: 80, height: 80, top: "15%", left: "10%" }}
-        delay={0}
-      />
-      <FloatingShape
-        sx={{ width: 120, height: 120, bottom: "25%", left: "5%" }}
-        delay={2}
-      />
-      <FloatingShape
-        sx={{ width: 60, height: 60, top: "60%", right: "15%" }}
-        delay={4}
-      />
+    <HeroSectionRoot>
+      <GridOverlay />
 
-      <Container
-        sx={{ position: "relative", zIndex: 1 }}
-        style={{ maxWidth: "1400px" }}
+      <Box
+        sx={{
+          position: "relative",
+          zIndex: 3,
+          width: "100%",
+          maxWidth: "1440px",
+          mx: "auto",
+          px: "clamp(16px, 4vw, 48px)",
+          boxSizing: "border-box",
+        }}
       >
-        <Grid
-          container
-          spacing={6}
-          alignItems="center"
-          sx={{
-            display: "flex",
-            flexDirection: {
-              xs: "column", // mobile
-              md: "row", // laptop & desktop
-            },
-          }}
-        >
-          <Grid item xs={12} md={6} style={{ flex: "1" }}>
-            <ContentWrapper isVisible={isVisible}>
-              <Typography
-                sx={{
-                  color: "#0ea5e9",
-                  fontSize: "0.875rem",
-                  fontWeight: 600,
-                  letterSpacing: "0.1em",
-                  textTransform: "uppercase",
-                  mb: 2,
-                }}
-              >
-                BE INVEST
-              </Typography>
+        <StaggerWrapper>
+          <Grid
+            container
+            spacing={{ xs: 5, md: 5, lg: 6 }}
+            alignItems="center"
+            sx={{
+              display: "flex",
+              flexDirection: { xs: "column", md: "column", lg: "row" },
+            }}
+          >
+            {/* Left Column (55% desktop, centered on mobile/tablet) */}
+            <Grid
+              item
+              xs={12}
+              lg={6.5}
+              sx={{
+                width: "100%",
+                maxWidth: { xs: "560px", lg: "none" },
+                mx: { xs: "auto", lg: "0" },
+                textAlign: { xs: "center", lg: "left" },
+              }}
+            >
+              {/* Eyebrow */}
+              <Box className="stagger-1">
+                <EyebrowChip>
+                  <PulsingDot />
+                  BE INVEST
+                </EyebrowChip>
+              </Box>
 
+              {/* Headline */}
               <Typography
                 variant="h1"
                 component="h1"
+                className="stagger-2"
                 sx={{
-                  fontSize: {
-                    xs: "2rem",
-                    sm: "2.5rem",
-                    md: "3.5rem",
-                    lg: "3.7rem",
-                  },
+                  fontFamily: "'Poppins', sans-serif",
+                  fontSize: "clamp(2rem, 1.2rem + 3.6vw, 4rem)",
                   fontWeight: 700,
-                  color: "white",
-                  lineHeight: 1.2,
+                  lineHeight: 1.08,
+                  letterSpacing: "-0.02em",
+                  color: "#ffffff",
                   mb: 3,
-                  "& span": {
-                    display: "block",
-                  },
+                  maxWidth: "36em",
+                  mx: { xs: "auto", lg: "0" },
                 }}
               >
-                Download Your Credit Report
+                Download Your{" "}
+                <Box
+                  component="span"
+                  sx={{
+                    position: "relative",
+                    display: "inline-block",
+                    background: "linear-gradient(90deg, #67e8f9 0%, #38bdf8 50%, #ffffff 100%)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    "&::after": {
+                      content: '""',
+                      position: "absolute",
+                      bottom: "-4px",
+                      left: 0,
+                      width: "100%",
+                      height: "6px",
+                      borderRadius: "6px",
+                      background: `linear-gradient(90deg, ${COLORS.cyan500}, ${COLORS.cyan300})`,
+                    },
+                  }}
+                >
+                  Credit Report
+                </Box>
               </Typography>
 
-              {/* <Typography
-                sx={{
-                  color: "rgba(255, 255, 255, 0.8)",
-                  fontSize: { xs: "0.9rem", sm: "1.1rem" },
-                  fontWeight: 600,
-                  lineHeight: 1.6,
-                  fontStyle: "italic",
-                  mb: 1.5,
-                  maxWidth: "600px",
-                  [(theme) => theme.breakpoints.down("md")]: {
-                    marginLeft: "auto",
-                    marginRight: "auto",
-                  },
-                }}
-              >
-                India’s Trusted Platform for Credit Score Repair, CIBIL Report
-                Correction & Loan Approval Support
-              </Typography> */}
-
+              {/* Paragraph */}
               <Typography
+                className="stagger-3"
                 sx={{
-                  color: "rgba(255, 255, 255, 0.8)",
-                  fontSize: { xs: "0.9rem", sm: "1rem" },
-                  lineHeight: 1.6,
-                  mb: 1.5,
-                  maxWidth: "600px",
-                  [(theme) => theme.breakpoints.down("md")]: {
-                    marginLeft: "auto",
-                    marginRight: "auto",
-                  },
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: "clamp(1rem, 0.95rem + 0.3vw, 1.125rem)",
+                  lineHeight: 1.7,
+                  color: "rgba(255, 255, 255, 0.78)",
+                  maxWidth: "36em",
+                  mx: { xs: "auto", lg: "0" },
+                  mb: 4,
                 }}
               >
                 Your credit score shapes your financial opportunities. At Credit
@@ -316,270 +396,222 @@ const HeroSection = () => {
                 faster.
               </Typography>
 
-              <Typography
-                sx={{
-                  color: "rgba(255, 255, 255, 0.8)",
-                  fontSize: { xs: "0.9rem", sm: "1rem" },
-                  lineHeight: 1.6,
-                  mb: 5,
-                  maxWidth: "600px",
-                  [(theme) => theme.breakpoints.down("md")]: {
-                    marginLeft: "auto",
-                    marginRight: "auto",
-                  },
-                }}
-              ></Typography>
-
+              {/* Primary CTA */}
               <Box
+                className="stagger-4"
+                sx={{
+                  mb: 4,
+                  display: "flex",
+                  justifyContent: { xs: "center", lg: "flex-start" },
+                }}
+              >
+                <HeroCTAButton onClick={() => navigate("/credit-check")}>
+                  <span>Download Free Credit Report</span>
+                  <ArrowCircle className="cta-arrow-circle">
+                    <ArrowForwardIcon sx={{ fontSize: "1.2rem" }} />
+                  </ArrowCircle>
+                </HeroCTAButton>
+              </Box>
+
+              {/* Trust Row */}
+              <Box
+                className="stagger-5"
                 sx={{
                   display: "flex",
                   alignItems: "center",
-                  gap: 3,
+                  justifyContent: { xs: "center", lg: "flex-start" },
                   flexWrap: "wrap",
-                  [(theme) => theme.breakpoints.down("md")]: {
-                    justifyContent: "center",
-                  },
-                  [(theme) => theme.breakpoints.down("sm")]: {
-                    flexDirection: "column",
-                    gap: 2,
-                  },
+                  gap: { xs: 2, sm: 3 },
+                  pt: 1.5,
+                  borderTop: "1px solid rgba(255, 255, 255, 0.12)",
+                  maxWidth: "36em",
+                  mx: { xs: "auto", lg: "0" },
                 }}
               >
-                <StyledButton
-                  variant="contained"
-                  endIcon={<Add />}
-                  onClick={() => navigate("/credit-check")}
-                  sx={{
-                    backgroundColor: "#0ea5e9",
-                    color: "white",
-                    "&:hover": {
-                      backgroundColor: "#0284c7",
-                    },
-                    [(theme) => theme.breakpoints.down("sm")]: {
-                      marginBottom: 2,
-                    },
-                  }}
-                >
-                  Download Free Credit Report
-                </StyledButton>
+                {/* Overlapping Initials Avatars */}
+                <Box sx={{ display: "flex", alignItems: "center" }}>
+                  {["AK", "PS", "RV", "MK"].map((initials, index) => (
+                    <Box
+                      key={initials}
+                      sx={{
+                        width: "34px",
+                        height: "34px",
+                        borderRadius: "50%",
+                        backgroundColor: index % 2 === 0 ? COLORS.navy800 : COLORS.cyan600,
+                        border: "2px solid #ffffff",
+                        color: "#ffffff",
+                        fontSize: "11px",
+                        fontWeight: 700,
+                        fontFamily: "'Poppins', sans-serif",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        marginLeft: index === 0 ? 0 : "-10px",
+                        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.25)",
+                      }}
+                    >
+                      {initials}
+                    </Box>
+                  ))}
+                </Box>
 
-               
+                <Box sx={{ textAlign: "left" }}>
+                  <Typography
+                    sx={{
+                      fontFamily: "'Inter', sans-serif",
+                      fontSize: "14px",
+                      fontWeight: 600,
+                      color: "#ffffff",
+                      lineHeight: 1.2,
+                    }}
+                  >
+                    640+ Happy Customers
+                  </Typography>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mt: 0.3 }}>
+                    {[...Array(5)].map((_, i) => (
+                      <StarIcon key={i} sx={{ color: "#facc15", fontSize: "15px" }} />
+                    ))}
+                    <Typography
+                      sx={{
+                        fontFamily: "'Inter', sans-serif",
+                        fontSize: "12px",
+                        color: "rgba(255, 255, 255, 0.7)",
+                        ml: 0.5,
+                      }}
+                    >
+                      11 Years of experience
+                    </Typography>
+                  </Box>
+                </Box>
               </Box>
-            </ContentWrapper>
-          </Grid>
+            </Grid>
 
-          <Grid item xs={12} md={6} style={{ flex: "1" }}>
-            <ImageWrapper isVisible={isVisible}>
+            {/* Right Column: 3D Photo Cube (max 440px desktop, min(80vw, 440px) mobile) */}
+            <Grid
+              item
+              xs={12}
+              lg={5.5}
+              sx={{
+                width: "100%",
+                maxWidth: { xs: "min(80vw, 440px)", lg: "440px" },
+                mx: "auto",
+              }}
+            >
               <Box
                 sx={{
                   position: "relative",
-                  paddingTop: "20px",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  mx: "auto",
+                  width: "100%",
                 }}
               >
-                {/* Top right cyan quarter circle */}
+                {/* Soft cyan blurred ring */}
                 <Box
                   sx={{
                     position: "absolute",
-                    top: { xs: "-66px", md: "-89px" },
-                    right: "-65px",
-                    width: { xs: "219px", md: "280px" },
-
-                    height: { xs: "180px", md: "280px" },
-                    background: "#06b6d4",
-                    borderRadius: "0 0 0 100%",
-                    zIndex: 2,
-                    [(theme) => theme.breakpoints.down("md")]: {
-                      width: "180px",
-                      height: "180px",
-                      top: "-20px",
-                      right: "-20px",
-                    },
-                    [(theme) => theme.breakpoints.down("sm")]: {
-                      width: "120px",
-                      height: "120px",
-                      top: "-15px",
-                      right: "-15px",
-                    },
-                  }}
-                />
-
-                {/* Bottom left cyan triangle/quarter circle */}
-                <Box
-                  sx={{
-                    position: "absolute",
-                    bottom: "-40px",
-                    left: "-40px",
-                    width: "180px",
-                    height: "180px",
-                    background: "#06b6d4",
-                    clipPath: "polygon(0 0, 0 100%, 100% 100%)",
-                    zIndex: 2,
-                    [(theme) => theme.breakpoints.down("md")]: {
-                      width: "120px",
-                      height: "120px",
-                      bottom: "-20px",
-                      left: "-20px",
-                    },
-                    [(theme) => theme.breakpoints.down("sm")]: {
-                      width: "80px",
-                      height: "80px",
-                      bottom: "-15px",
-                      left: "-15px",
-                    },
-                  }}
-                />
-
-                {/* Large circle outline - top right area */}
-                <Box
-                  sx={{
-                    position: "absolute",
-                    top: "-60px",
-                    right: "40%",
-                    width: "220px",
-                    height: "220px",
-                    border: "2px solid rgba(6, 182, 212, 0.4)",
-                    borderRadius: "50%",
+                    top: "50%",
+                    left: "50%",
+                    transform: "translate(-50%, -50%)",
+                    width: "100%",
+                    height: "100%",
+                    background: "radial-gradient(circle, rgba(6, 182, 212, 0.3) 0%, transparent 65%)",
+                    filter: "blur(50px)",
                     zIndex: 0,
-                    animation: "rotatePulse 8s linear infinite", // Changed to rotatePulse animation
-                    [(theme) => theme.breakpoints.down("md")]: {
-                      width: "140px",
-                      height: "140px",
-                      top: "-30px",
-                    },
-                    [(theme) => theme.breakpoints.down("sm")]: {
-                      width: "90px",
-                      height: "90px",
-                      top: "-20px",
-                    },
+                    pointerEvents: "none",
                   }}
                 />
 
-                {/* Large circle outline - bottom right */}
+                {/* Thin orbit ring outline */}
                 <Box
                   sx={{
                     position: "absolute",
-                    bottom: "10%",
-                    right: "-80px",
-                    width: "280px",
-                    height: "280px",
-                    border: "2px solid rgba(6, 182, 212, 0.4)",
+                    top: "-20px",
+                    right: "-20px",
+                    width: "clamp(120px, 20vw, 180px)",
+                    height: "clamp(120px, 20vw, 180px)",
                     borderRadius: "50%",
-                    zIndex: 0,
-                    animation: "slideAndGlow 4s ease-in-out infinite", // Changed to slideAndGlow animation
-                    [(theme) => theme.breakpoints.down("md")]: {
-                      width: "180px",
-                      height: "180px",
-                      right: "-40px",
-                    },
-                    [(theme) => theme.breakpoints.down("sm")]: {
-                      width: "120px",
-                      height: "120px",
-                      right: "-25px",
-                      bottom: "5%",
-                    },
+                    border: "1px solid rgba(103, 232, 249, 0.25)",
+                    pointerEvents: "none",
+                    zIndex: 1,
                   }}
                 />
 
-                {/* Main image with custom mask */}
-                <Box
-                  sx={{
-                    position: "relative",
-                    zIndex: 8,
-                    borderRadius: {
-                      xs: "120px 120px 15px",
-                      sm: "160px 160px 15px",
-                      md: "170px 170px 20px",
-                    },
-                    overflow: "hidden",
-                    boxShadow: "0 30px 60px rgba(0, 0, 0, 0.4)",
-                    "&::before": {
-                      content: '""',
-                      position: "absolute",
-                      top: "-30px",
-                      right: "-30px",
-                      width: "250px",
-                      height: "250px",
-                      background: "rgba(6, 182, 212, 0.3)",
-                      borderRadius: "50%",
-                      filter: "blur(60px)",
-                      zIndex: -1,
-                      [(theme) => theme.breakpoints.down("md")]: {
-                        width: "150px",
-                        height: "150px",
-                        top: "-20px",
-                        right: "-20px",
-                      },
-                      [(theme) => theme.breakpoints.down("sm")]: {
-                        width: "100px",
-                        height: "100px",
-                        top: "-15px",
-                        right: "-15px",
-                      },
-                    },
-                  }}
-                >
-                  <img
-                    src="/images/hero-new.png"
-                    alt="Business team collaboration"
-                    fetchpriority="high"
-                    decoding="async"
-                    width="900"
-                    height="700"
-                    style={{
-                      width: "100%",
-                      height: "auto",
-                      display: "block",
-                    }}
-                  />
+                {/* 3D Rotating Photo Cube Card */}
+                <Box className="hero-cube-scale" sx={{ width: "100%", zIndex: 2 }}>
+                  <PhotoCubeCard photos={CUSTOMER_PHOTOS} />
                 </Box>
 
-                {/* Small cyan dots */}
-                <Box
-                  sx={{
-                    position: "absolute",
-                    top: "30%",
-                    left: "15%",
-                    width: "12px",
-                    height: "12px",
-                    background: "#06b6d4",
-                    borderRadius: "50%",
-                    zIndex: 3,
-                    [(theme) => theme.breakpoints.down("md")]: {
-                      width: "8px",
-                      height: "8px",
-                    },
-                    [(theme) => theme.breakpoints.down("sm")]: {
-                      width: "6px",
-                      height: "6px",
-                    },
-                  }}
-                />
-                <Box
-                  sx={{
-                    position: "absolute",
-                    top: "15%",
-                    right: "35%",
-                    width: "8px",
-                    height: "8px",
-                    background: "#06b6d4",
-                    borderRadius: "50%",
-                    zIndex: 3,
-                    [(theme) => theme.breakpoints.down("md")]: {
-                      width: "6px",
-                      height: "6px",
-                    },
-                    [(theme) => theme.breakpoints.down("sm")]: {
-                      width: "4px",
-                      height: "4px",
-                    },
-                  }}
-                />
+                {/* Floating Glass Card 1 (Top-Right) - Over corners, does not rotate */}
+                <GlassCard positionTop={1} delay="0s">
+                  <IconChip>
+                    <VerifiedIcon sx={{ fontSize: "1.2rem" }} />
+                  </IconChip>
+                  <Box>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Poppins', sans-serif",
+                        fontSize: "14px",
+                        fontWeight: 600,
+                        color: "#ffffff",
+                        lineHeight: 1.2,
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      640+
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Inter', sans-serif",
+                        fontSize: "12px",
+                        color: "rgba(255, 255, 255, 0.75)",
+                        lineHeight: 1.2,
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      Happy Customers
+                    </Typography>
+                  </Box>
+                </GlassCard>
+
+                {/* Floating Glass Card 2 (Bottom-Left) - Over corners, does not rotate */}
+                <GlassCard positionTop={0} delay="3s">
+                  <IconChip>
+                    <TrendingUpIcon sx={{ fontSize: "1.2rem" }} />
+                  </IconChip>
+                  <Box>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Poppins', sans-serif",
+                        fontSize: "14px",
+                        fontWeight: 600,
+                        color: "#ffffff",
+                        lineHeight: 1.2,
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      11 Years
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontFamily: "'Inter', sans-serif",
+                        fontSize: "12px",
+                        color: "rgba(255, 255, 255, 0.75)",
+                        lineHeight: 1.2,
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      of Experience
+                    </Typography>
+                  </Box>
+                </GlassCard>
               </Box>
-            </ImageWrapper>
+            </Grid>
           </Grid>
-        </Grid>
-      </Container>
-    </HeroBackground>
+        </StaggerWrapper>
+      </Box>
+    </HeroSectionRoot>
   );
 };
 
