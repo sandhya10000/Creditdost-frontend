@@ -43,7 +43,8 @@ const DisclaimerPage = lazy(() => import("./components/DisclaimerPage"));
 const RefundPolicyPage = lazy(() => import("./components/RefundPolicyPage"));
 const ApplyForLoanPage = lazy(() => import("./components/ApplyForLoanPage"));
 const SuvidhaCentrePage = lazy(() => import("./components/SuvidhaCentrePage"));
-const CareersPage = lazy(() => import("./components/CareersPage"));
+const CareersPage = lazy(() => import(./components/CareersPage));
+const BankStatementAnalyzer = lazy(() => import("./components/bsa/BankStatementAnalyzer"));
 
 const RouteFallback = () => (
   <div
@@ -189,6 +190,7 @@ function App() {
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/credit-check" element={<CreditCheckPage />} />
             <Route path="/emi-calculator" element={<EmiCalculatorPage />} />
+            <Route path="/bank-statement-analyzer" element={<BankStatementAnalyzer />} />
             <Route path="/ifsc-finder" element={<IfscFinder />} />
             <Route
               path="/credit-score-repair"
