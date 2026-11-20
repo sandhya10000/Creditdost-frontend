@@ -1,27 +1,53 @@
 ﻿import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import {
-  FileText,
-  UploadCloud,
-  CheckCircle,
-  AlertCircle,
-  Download,
-  Eye,
-  RefreshCw,
-  Lock,
-  Calendar,
-  Building,
-  User,
-  ShieldCheck,
-  TrendingUp,
-  Percent,
-} from "lucide-react";
+  Box,
+  Typography,
+  Card,
+  CardContent,
+  Button,
+  Alert,
+  CircularProgress,
+  List,
+  ListItem,
+  ListItemText,
+  Divider,
+  Chip,
+  IconButton,
+  Tooltip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Snackbar,
+  Checkbox,
+  FormControlLabel,
+  TextField,
+  InputAdornment,
+  Grid,
+} from "@mui/material";
+import {
+  CloudUpload as CloudUploadIcon,
+  Download as DownloadIcon,
+  Refresh as RefreshIcon,
+  CheckCircle as CheckCircleIcon,
+  Error as ErrorIcon,
+  HourglassEmpty as HourglassIcon,
+  AccountBalance as AccountBalanceIcon,
+  Lock as LockIcon,
+  Visibility as VisibilityIcon,
+  VisibilityOff as VisibilityOffIcon,
+  PictureAsPdf as PdfIcon,
+  Check as CheckIcon,
+  Assessment as AssessmentIcon,
+} from "@mui/icons-material";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 const BankStatementAnalyzer = () => {
   const [file, setFile] = useState(null);
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [requiresPassword, setRequiresPassword] = useState(false);
   const [consent, setConsent] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -31,15 +57,31 @@ const BankStatementAnalyzer = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [analyses, setAnalyses] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
-  
+  const [isDragOver, setIsDragOver] = useState(false);
+
+  // Snackbar notifications
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "info",
+  });
+
   const pollTimerRef = useRef(null);
+
+  const showSnackbar = (message, severity = "info") => {
+    setSnackbar({ open: true, message, severity });
+  };
+
+  const handleCloseSnackbar = () => {
+    setSnackbar((prev) => ({ ...prev, open: false }));
+  };
 
   // Fetch past analyses
   const fetchHistory = async () => {
     try {
       setLoadingHistory(true);
       const token = localStorage.getItem("token");
-      const res = await axios.get(`${API_BASE_URL}/bsa/my-analyses?limit=10`, {
+      const res = await axios.get(`${API_BASE_URL}/bsa/my-analyses?limit=25`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.data && res.data.success) {
@@ -78,11 +120,13 @@ const BankStatementAnalyzer = () => {
           if (doc.status === "Success") {
             setStatus("success");
             setUploading(false);
+            showSnackbar("Bank statement analyzed and reconciled successfully!", "success");
             fetchHistory();
           } else if (doc.status === "Failed") {
             setStatus("error");
             setErrorMessage(doc.failureReason || "Analysis failed. Please check the statement file.");
             setUploading(false);
+            showSnackbar(doc.failureReason || "Analysis failed.", "error");
           } else if (doc.status === "Finalizing") {
             setStatus("finalizing");
           } else {
@@ -94,8 +138,8 @@ const BankStatementAnalyzer = () => {
       }
     };
 
-    pollTimerRef.current = setInterval(poll, 4000);
-    poll(); // Initial call
+    pollTimerRef.current = setInterval(poll, 3500);
+    poll();
 
     return () => {
       if (pollTimerRef.current) clearInterval(pollTimerRef.current);
@@ -104,13 +148,19 @@ const BankStatementAnalyzer = () => {
 
   const handleFileChange = (e) => {
     const selected = e.target.files?.[0];
+    validateAndSetFile(selected);
+  };
+
+  const validateAndSetFile = (selected) => {
     if (selected) {
       if (selected.type !== "application/pdf" && !selected.name.toLowerCase().endsWith(".pdf")) {
-        setErrorMessage("Please select a valid PDF file.");
+        setErrorMessage("Please select a valid PDF bank statement file.");
+        showSnackbar("Invalid file type. Only PDF statements are supported.", "error");
         return;
       }
       if (selected.size > 15 * 1024 * 1024) {
         setErrorMessage("File size exceeds 15 MB limit.");
+        showSnackbar("File size exceeds 15 MB limit.", "error");
         return;
       }
       setFile(selected);
@@ -120,14 +170,22 @@ const BankStatementAnalyzer = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleDrop = (e) => {
     e.preventDefault();
+    setIsDragOver(false);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      validateAndSetFile(e.dataTransfer.files[0]);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    if (e) e.preventDefault();
     if (!file) {
       setErrorMessage("Please select a bank statement PDF.");
       return;
     }
     if (!consent) {
-      setErrorMessage("Please give consent to proceed with statement analysis.");
+      setErrorMessage("Please confirm customer consent to proceed with credit underwriting.");
       return;
     }
 
@@ -153,6 +211,7 @@ const BankStatementAnalyzer = () => {
       if (res.data && res.data.success) {
         setCurrentJobId(res.data.id);
         setStatus("processing");
+        showSnackbar("Statement uploaded! Processing mathematical reconciliation...", "info");
       }
     } catch (err) {
       setUploading(false);
@@ -190,309 +249,500 @@ const BankStatementAnalyzer = () => {
       setTimeout(() => window.URL.revokeObjectURL(url), 10000);
     } catch (err) {
       console.error("Failed to fetch report PDF", err);
-      alert("Could not load report PDF. Please try again.");
+      showSnackbar("Could not load report PDF. Please try again.", "error");
     }
   };
 
   return (
-    <div style={{ maxWidth: "1100px", margin: "40px auto", padding: "0 20px", fontFamily: "sans-serif" }}>
-      {/* Header */}
-      <div style={{ marginBottom: "32px", textAlign: "center" }}>
-        <h1 style={{ fontSize: "28px", fontWeight: "700", color: "#1e293b", margin: "0 0 8px 0" }}>
+    <Box sx={{ maxWidth: 1200, mx: "auto", p: { xs: 2, md: 3 } }}>
+      {/* Page Title */}
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="h4" sx={{ fontWeight: 700, color: "text.primary" }}>
           Bank Statement Analyzer
-        </h1>
-        <p style={{ color: "#64748b", fontSize: "15px", margin: 0 }}>
-          Extract, reconcile, and generate comprehensive Credit Intelligence Reports with automated underwriting KPIs.
-        </p>
-      </div>
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+          Extract, mathematically reconcile, and generate comprehensive Credit Intelligence Reports with automated underwriting KPIs.
+        </Typography>
+      </Box>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px", marginBottom: "40px" }}>
-        {/* Upload Form Card */}
-        <div style={{ background: "#ffffff", padding: "28px", borderRadius: "12px", border: "1px solid #e2e8f0", boxShadow: "0 4px 6px -1px rgba(0,0,0,0.05)" }}>
-          <h2 style={{ fontSize: "18px", fontWeight: "600", color: "#0f172a", marginBottom: "18px" }}>
-            Upload Bank Statement
-          </h2>
+      {/* Main Grid: Upload & Live Analysis */}
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        {/* Upload Card */}
+        <Grid item xs={12} md={7}>
+          <Card
+            sx={{
+              height: "100%",
+              display: "flex",
+              flexDirection: "column",
+              boxShadow: 2,
+              borderRadius: 2,
+              border: "1px solid",
+              borderColor: "divider",
+            }}
+          >
+            <CardContent sx={{ p: 3, flex: 1, display: "flex", flexDirection: "column" }}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1 }}>
+                <CloudUploadIcon color="primary" />
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                  Upload Bank Statement
+                </Typography>
+              </Box>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2.5 }}>
+                Upload customer bank statement in PDF format (up to 15 MB). Password-protected statements are automatically supported.
+              </Typography>
 
-          <form onSubmit={handleSubmit}>
-            {/* Drop Zone */}
-            <label
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                padding: "32px 20px",
-                border: "2px dashed #cbd5e1",
-                borderRadius: "8px",
-                cursor: "pointer",
-                background: "#f8fafc",
-                marginBottom: "20px",
-                transition: "all 0.2s",
-              }}
-            >
-              <UploadCloud style={{ width: "40px", height: "40px", color: "#3b82f6", marginBottom: "12px" }} />
-              <span style={{ fontSize: "14px", fontWeight: "500", color: "#334155", marginBottom: "4px" }}>
-                {file ? file.name : "Click to browse or drop your bank statement PDF"}
-              </span>
-              <span style={{ fontSize: "12px", color: "#94a3b8" }}>Max 15 MB • PDF files only</span>
-              <input type="file" accept=".pdf,application/pdf" onChange={handleFileChange} style={{ display: "none" }} />
-            </label>
+              {/* Drag & Drop Zone */}
+              <Box
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setIsDragOver(true);
+                }}
+                onDragLeave={() => setIsDragOver(false)}
+                onDrop={handleDrop}
+                component="label"
+                htmlFor="statement-pdf-upload"
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  py: 4,
+                  px: 2,
+                  borderRadius: 2,
+                  border: "2px dashed",
+                  borderColor: isDragOver ? "primary.main" : file ? "success.main" : "grey.300",
+                  bgcolor: isDragOver ? "primary.50" : file ? "success.50" : "grey.50",
+                  cursor: "pointer",
+                  transition: "all 0.2s ease-in-out",
+                  "&:hover": {
+                    borderColor: "primary.main",
+                    bgcolor: "action.hover",
+                  },
+                  mb: 2,
+                }}
+              >
+                <input
+                  id="statement-pdf-upload"
+                  type="file"
+                  accept=".pdf,application/pdf"
+                  onChange={handleFileChange}
+                  style={{ display: "none" }}
+                  disabled={uploading}
+                />
+                <PdfIcon
+                  sx={{
+                    fontSize: 48,
+                    color: file ? "success.main" : "primary.main",
+                    mb: 1.5,
+                  }}
+                />
+                <Typography variant="subtitle1" sx={{ fontWeight: 600, color: "text.primary", textAlign: "center" }}>
+                  {file ? file.name : "Choose PDF Statement or Drag & Drop Here"}
+                </Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5 }}>
+                  {file ? `${(file.size / (1024 * 1024)).toFixed(2)} MB • Ready to analyze` : "Supported: Official PDF e-Statements (Max 15 MB)"}
+                </Typography>
+              </Box>
 
-            {/* Password input if protected */}
-            {requiresPassword && (
-              <div style={{ marginBottom: "18px" }}>
-                <label style={{ display: "block", fontSize: "13px", fontWeight: "500", color: "#475569", marginBottom: "6px" }}>
-                  PDF Password
-                </label>
-                <div style={{ display: "flex", alignItems: "center", border: "1px solid #cbd5e1", borderRadius: "6px", padding: "8px 12px" }}>
-                  <Lock style={{ width: "16px", height: "16px", color: "#94a3b8", marginRight: "8px" }} />
-                  <input
-                    type="password"
-                    placeholder="Enter statement password"
+              {/* Password Input if Statement is Protected */}
+              {requiresPassword && (
+                <Box sx={{ mb: 2 }}>
+                  <TextField
+                    fullWidth
+                    size="small"
+                    type={showPassword ? "text" : "password"}
+                    label="Statement Password"
+                    placeholder="Enter statement PDF password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    style={{ border: "none", outline: "none", width: "100%", fontSize: "14px" }}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <LockIcon fontSize="small" color="action" />
+                        </InputAdornment>
+                      ),
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton
+                            size="small"
+                            onClick={() => setShowPassword(!showPassword)}
+                            edge="end"
+                          >
+                            {showPassword ? <VisibilityOffIcon fontSize="small" /> : <VisibilityIcon fontSize="small" />}
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    }}
                   />
-                </div>
-              </div>
-            )}
-
-            {/* Customer Consent Checkbox */}
-            <div style={{ display: "flex", alignItems: "flex-start", gap: "10px", marginBottom: "22px" }}>
-              <input
-                type="checkbox"
-                id="bsa-consent"
-                checked={consent}
-                onChange={(e) => setConsent(e.target.checked)}
-                style={{ marginTop: "3px", cursor: "pointer" }}
-              />
-              <label htmlFor="bsa-consent" style={{ fontSize: "13px", color: "#475569", cursor: "pointer", lineHeight: "1.4" }}>
-                I confirm that I have obtained customer consent to analyze this bank statement for credit underwriting purposes.
-              </label>
-            </div>
-
-            {/* Error Banner */}
-            {errorMessage && (
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", background: "#fef2f2", color: "#b91c1c", padding: "10px 14px", borderRadius: "6px", fontSize: "13px", marginBottom: "18px", border: "1px solid #fecaca" }}>
-                <AlertCircle style={{ width: "16px", height: "16px", flexShrink: 0 }} />
-                <span>{errorMessage}</span>
-              </div>
-            )}
-
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={uploading || !file || !consent}
-              style={{
-                width: "100%",
-                padding: "12px",
-                background: uploading || !file || !consent ? "#94a3b8" : "#2563eb",
-                color: "#ffffff",
-                border: "none",
-                borderRadius: "6px",
-                fontSize: "14px",
-                fontWeight: "600",
-                cursor: uploading || !file || !consent ? "not-allowed" : "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "8px",
-              }}
-            >
-              {uploading ? (
-                <>
-                  <RefreshCw style={{ width: "16px", height: "16px", animation: "spin 1s linear infinite" }} />
-                  Processing Statement...
-                </>
-              ) : (
-                "Analyse Statement"
+                </Box>
               )}
-            </button>
-          </form>
-        </div>
 
-        {/* Live Processing or Result Card */}
-        <div style={{ background: "#ffffff", padding: "28px", borderRadius: "12px", border: "1px solid #e2e8f0", boxShadow: "0 4px 6px -1px rgba(0,0,0,0.05)", display: "flex", flexDirection: "column" }}>
-          <h2 style={{ fontSize: "18px", fontWeight: "600", color: "#0f172a", marginBottom: "18px" }}>
-            Analysis Status
-          </h2>
+              {/* Customer Consent Checkbox */}
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={consent}
+                    onChange={(e) => setConsent(e.target.checked)}
+                    color="primary"
+                    size="small"
+                  />
+                }
+                label={
+                  <Typography variant="body2" color="text.secondary">
+                    I confirm that I have obtained customer consent to analyze this bank statement for credit underwriting purposes.
+                  </Typography>
+                }
+                sx={{ mb: 2, alignItems: "flex-start", mt: 0.5 }}
+              />
 
-          {status === "idle" && (
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", flex: 1, color: "#94a3b8", textAlign: "center" }}>
-              <FileText style={{ width: "48px", height: "48px", strokeWidth: 1.5, marginBottom: "12px" }} />
-              <p style={{ margin: 0, fontSize: "14px" }}>Upload a statement to begin credit intelligence analysis.</p>
-            </div>
-          )}
+              {/* Error Alert */}
+              {errorMessage && (
+                <Alert severity="error" sx={{ mb: 2, borderRadius: 1.5 }}>
+                  {errorMessage}
+                </Alert>
+              )}
 
-          {(status === "processing" || status === "finalizing") && (
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", flex: 1, textAlign: "center" }}>
-              <RefreshCw style={{ width: "40px", height: "40px", color: "#2563eb", animation: "spin 1.5s linear infinite", marginBottom: "16px" }} />
-              <h3 style={{ fontSize: "16px", fontWeight: "600", color: "#1e293b", margin: "0 0 6px 0" }}>
-                {status === "processing" ? "Extracting & Reconciling Rows…" : "Generating Credit Intelligence Report…"}
-              </h3>
-              <p style={{ fontSize: "13px", color: "#64748b", margin: 0, maxWidth: "320px" }}>
-                Verifying opening/closing balances, calculating cash flow velocity, detecting loan liabilities, and building risk scorecard.
-              </p>
-            </div>
-          )}
-
-          {status === "success" && jobData && (
-            <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "#16a34a", marginBottom: "16px", fontWeight: "600", fontSize: "14px" }}>
-                <CheckCircle style={{ width: "18px", height: "18px" }} />
-                <span>Statement Successfully Reconciled</span>
-              </div>
-
-              <div style={{ background: "#f8fafc", padding: "14px", borderRadius: "8px", border: "1px solid #e2e8f0", marginBottom: "18px" }}>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", fontSize: "13px" }}>
-                  <div>
-                    <span style={{ color: "#64748b" }}>Bank: </span>
-                    <strong style={{ color: "#1e293b" }}>{jobData.bankName || "Detected Bank"}</strong>
-                  </div>
-                  <div>
-                    <span style={{ color: "#64748b" }}>Holder: </span>
-                    <strong style={{ color: "#1e293b" }}>{jobData.accountHolderName || "N/A"}</strong>
-                  </div>
-                  <div>
-                    <span style={{ color: "#64748b" }}>Account: </span>
-                    <strong style={{ color: "#1e293b" }}>{jobData.accountNumberMasked || "N/A"}</strong>
-                  </div>
-                  <div>
-                    <span style={{ color: "#64748b" }}>Reconciliation: </span>
-                    <span style={{ color: "#16a34a", fontWeight: "600" }}>{jobData.reconciliationStatus || "VERIFIED"}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div style={{ display: "flex", gap: "12px", marginTop: "auto" }}>
-                <button
-                  onClick={() => handleDownloadReport(jobData.id, jobData.fileName, false)}
-                  style={{
-                    flex: 1,
-                    padding: "10px",
-                    background: "#ffffff",
-                    border: "1px solid #cbd5e1",
-                    color: "#334155",
-                    borderRadius: "6px",
-                    fontWeight: "500",
-                    fontSize: "13px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "6px",
-                    cursor: "pointer",
+              {/* Submit Button */}
+              <Box sx={{ mt: "auto", pt: 1 }}>
+                <Button
+                  fullWidth
+                  variant="contained"
+                  size="large"
+                  onClick={handleSubmit}
+                  disabled={uploading || !file || !consent}
+                  startIcon={uploading ? <CircularProgress size={20} color="inherit" /> : <AssessmentIcon />}
+                  sx={{
+                    py: 1.4,
+                    fontWeight: 600,
+                    textTransform: "none",
+                    borderRadius: 1.5,
                   }}
                 >
-                  <Eye style={{ width: "16px", height: "16px" }} />
-                  View PDF
-                </button>
-                <button
-                  onClick={() => handleDownloadReport(jobData.id, jobData.fileName, true)}
-                  style={{
-                    flex: 1,
-                    padding: "10px",
-                    background: "#2563eb",
-                    border: "none",
-                    color: "#ffffff",
-                    borderRadius: "6px",
-                    fontWeight: "500",
-                    fontSize: "13px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "6px",
-                    cursor: "pointer",
-                  }}
-                >
-                  <Download style={{ width: "16px", height: "16px" }} />
-                  Download PDF
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
+                  {uploading
+                    ? status === "finalizing"
+                      ? "Generating Report..."
+                      : "Reconciling Statement..."
+                    : "Analyse Statement"}
+                </Button>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
 
-      {/* History Table */}
-      <div style={{ background: "#ffffff", padding: "24px", borderRadius: "12px", border: "1px solid #e2e8f0", boxShadow: "0 4px 6px -1px rgba(0,0,0,0.05)" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-          <h2 style={{ fontSize: "16px", fontWeight: "600", color: "#0f172a", margin: 0 }}>
-            Recent Analyses
-          </h2>
-          <button
-            onClick={fetchHistory}
-            style={{ background: "none", border: "none", color: "#2563eb", cursor: "pointer", fontSize: "13px", display: "flex", alignItems: "center", gap: "4px" }}
+        {/* Live Analysis Status Card */}
+        <Grid item xs={12} md={5}>
+          <Card
+            sx={{
+              height: "100%",
+              display: "flex",
+              flexDirection: "column",
+              boxShadow: 2,
+              borderRadius: 2,
+              border: "1px solid",
+              borderColor: "divider",
+            }}
           >
-            <RefreshCw style={{ width: "14px", height: "14px" }} /> Refresh
-          </button>
-        </div>
+            <CardContent sx={{ p: 3, flex: 1, display: "flex", flexDirection: "column" }}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1 }}>
+                <AccountBalanceIcon color="primary" />
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                  Analysis Status
+                </Typography>
+              </Box>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2.5 }}>
+                Real-time tracking of statement parsing, transaction verification, and PDF compilation.
+              </Typography>
 
-        {loadingHistory ? (
-          <div style={{ textAlign: "center", padding: "20px", color: "#64748b", fontSize: "13px" }}>Loading past statements...</div>
-        ) : analyses.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "20px", color: "#94a3b8", fontSize: "13px" }}>No statement analyses found.</div>
-        ) : (
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
-            <thead>
-              <tr style={{ borderBottom: "1px solid #e2e8f0", textAlign: "left", color: "#64748b" }}>
-                <th style={{ padding: "10px" }}>File Name</th>
-                <th style={{ padding: "10px" }}>Bank</th>
-                <th style={{ padding: "10px" }}>Account Holder</th>
-                <th style={{ padding: "10px" }}>Date</th>
-                <th style={{ padding: "10px" }}>Status</th>
-                <th style={{ padding: "10px", textAlign: "right" }}>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {analyses.map((item) => (
-                <tr key={item.id} style={{ borderBottom: "1px solid #f1f5f9" }}>
-                  <td style={{ padding: "12px 10px", fontWeight: "500", color: "#1e293b" }}>{item.fileName || "Statement.pdf"}</td>
-                  <td style={{ padding: "12px 10px", color: "#475569" }}>{item.bankName || "—"}</td>
-                  <td style={{ padding: "12px 10px", color: "#475569" }}>{item.accountHolderName || "—"}</td>
-                  <td style={{ padding: "12px 10px", color: "#64748b" }}>{new Date(item.createdAt).toLocaleDateString()}</td>
-                  <td style={{ padding: "12px 10px" }}>
-                    <span
-                      style={{
-                        padding: "3px 8px",
-                        borderRadius: "12px",
-                        fontSize: "11px",
-                        fontWeight: "600",
-                        background: item.status === "Success" ? "#dcfce7" : item.status === "Failed" ? "#fee2e2" : "#fef9c3",
-                        color: item.status === "Success" ? "#15803d" : item.status === "Failed" ? "#b91c1c" : "#854d0e",
+              {status === "idle" && (
+                <Box
+                  sx={{
+                    flex: 1,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    py: 6,
+                    textAlign: "center",
+                    color: "text.secondary",
+                  }}
+                >
+                  <AccountBalanceIcon sx={{ fontSize: 56, color: "grey.300", mb: 1.5 }} />
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, color: "text.primary" }}>
+                    No Active Analysis
+                  </Typography>
+                  <Typography variant="caption" sx={{ maxWidth: 280, mt: 0.5 }}>
+                    Select and submit a bank statement PDF to view running balance audit and credit intelligence KPIs.
+                  </Typography>
+                </Box>
+              )}
+
+              {(status === "processing" || status === "finalizing") && (
+                <Box
+                  sx={{
+                    flex: 1,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    py: 5,
+                    textAlign: "center",
+                  }}
+                >
+                  <CircularProgress size={52} thickness={4} sx={{ mb: 2.5 }} />
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                    {status === "processing"
+                      ? "Reconciling Statement Rows..."
+                      : "Generating Credit Intelligence Report..."}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" sx={{ maxWidth: 300, mt: 1 }}>
+                    Verifying chronological balances, calculating cash flow velocity, detecting loan liabilities, and building risk scorecard.
+                  </Typography>
+                </Box>
+              )}
+
+              {status === "success" && jobData && (
+                <Box sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
+                  <Alert
+                    icon={<CheckCircleIcon fontSize="inherit" />}
+                    severity="success"
+                    sx={{ mb: 2, borderRadius: 1.5 }}
+                  >
+                    Statement Successfully Reconciled & Generated!
+                  </Alert>
+
+                  <Card variant="outlined" sx={{ p: 2, mb: 3, borderRadius: 1.5, bgcolor: "grey.50" }}>
+                    <Grid container spacing={1.5}>
+                      <Grid item xs={6}>
+                        <Typography variant="caption" color="text.secondary" display="block">
+                          Detected Bank
+                        </Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                          {jobData.bankName || "Detected Bank"}
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={6}>
+                        <Typography variant="caption" color="text.secondary" display="block">
+                          Account Holder
+                        </Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                          {jobData.accountHolderName || "N/A"}
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={6}>
+                        <Typography variant="caption" color="text.secondary" display="block">
+                          Account Number
+                        </Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                          {jobData.accountNumberMasked || "N/A"}
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={6}>
+                        <Typography variant="caption" color="text.secondary" display="block">
+                          Reconciliation
+                        </Typography>
+                        <Chip
+                          label={jobData.reconciliationStatus || "VERIFIED"}
+                          color="success"
+                          size="small"
+                          sx={{ fontWeight: 600, height: 22, fontSize: "0.75rem" }}
+                        />
+                      </Grid>
+                    </Grid>
+                  </Card>
+
+                  <Box sx={{ mt: "auto", display: "flex", gap: 1.5 }}>
+                    <Button
+                      fullWidth
+                      variant="outlined"
+                      startIcon={<VisibilityIcon />}
+                      onClick={() => handleDownloadReport(jobData.id, jobData.fileName, false)}
+                      sx={{ textTransform: "none", fontWeight: 600, borderRadius: 1.5 }}
+                    >
+                      View PDF
+                    </Button>
+                    <Button
+                      fullWidth
+                      variant="contained"
+                      startIcon={<DownloadIcon />}
+                      onClick={() => handleDownloadReport(jobData.id, jobData.fileName, true)}
+                      sx={{ textTransform: "none", fontWeight: 600, borderRadius: 1.5 }}
+                    >
+                      Download PDF
+                    </Button>
+                  </Box>
+                </Box>
+              )}
+
+              {status === "error" && (
+                <Box
+                  sx={{
+                    flex: 1,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    py: 5,
+                    textAlign: "center",
+                  }}
+                >
+                  <ErrorIcon color="error" sx={{ fontSize: 48, mb: 1.5 }} />
+                  <Typography variant="subtitle1" color="error" sx={{ fontWeight: 600 }}>
+                    Analysis Failed
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" sx={{ maxWidth: 300, mt: 1 }}>
+                    {errorMessage || "We encountered an issue processing this statement. Please verify the statement PDF."}
+                  </Typography>
+                </Box>
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+
+      {/* Recent Analyses Documents List */}
+      <Card sx={{ boxShadow: 2, borderRadius: 2, border: "1px solid", borderColor: "divider" }}>
+        <CardContent sx={{ p: 3 }}>
+          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+              <AssessmentIcon color="primary" />
+              <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                Recent Statement Analyses
+              </Typography>
+            </Box>
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={<RefreshIcon />}
+              onClick={fetchHistory}
+              disabled={loadingHistory}
+              sx={{ textTransform: "none", borderRadius: 1.5 }}
+            >
+              Refresh
+            </Button>
+          </Box>
+
+          {loadingHistory ? (
+            <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
+              <CircularProgress size={36} />
+            </Box>
+          ) : analyses.length === 0 ? (
+            <Typography variant="body2" color="text.secondary" align="center" sx={{ py: 4 }}>
+              No bank statement analyses performed yet.
+            </Typography>
+          ) : (
+            <List disablePadding>
+              {analyses.map((item, index) => {
+                const isSuccess = item.status === "Success";
+                const isFailed = item.status === "Failed";
+                const isProcessing = item.status === "Processing" || item.status === "Finalizing";
+
+                return (
+                  <React.Fragment key={item.id || index}>
+                    <ListItem
+                      sx={{
+                        px: 1.5,
+                        py: 2,
+                        display: "flex",
+                        flexDirection: { xs: "column", sm: "row" },
+                        alignItems: { xs: "flex-start", sm: "center" },
+                        gap: 2,
+                        bgcolor: "background.paper",
+                        borderRadius: 1,
+                        "&:hover": { bgcolor: "action.hover" },
                       }}
                     >
-                      {item.status}
-                    </span>
-                  </td>
-                  <td style={{ padding: "12px 10px", textAlign: "right" }}>
-                    {item.status === "Success" && (
-                      <button
-                        onClick={() => handleDownloadReport(item.id, item.fileName, true)}
-                        style={{
-                          background: "#f1f5f9",
-                          border: "1px solid #cbd5e1",
-                          borderRadius: "4px",
-                          padding: "4px 8px",
-                          cursor: "pointer",
-                          color: "#1e293b",
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: "4px",
-                          fontSize: "12px",
-                        }}
-                      >
-                        <Download style={{ width: "13px", height: "13px" }} /> Download
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
-    </div>
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, minWidth: 40 }}>
+                        <PdfIcon color={isSuccess ? "primary" : isFailed ? "error" : "action"} />
+                      </Box>
+
+                      <ListItemText
+                        primary={
+                          <Box sx={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 1 }}>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                              {item.fileName || "Bank_Statement.pdf"}
+                            </Typography>
+                            <Chip
+                              label={item.status}
+                              size="small"
+                              color={isSuccess ? "success" : isFailed ? "error" : "warning"}
+                              sx={{ fontWeight: 600, height: 20, fontSize: "0.7rem" }}
+                            />
+                            {item.bankName && (
+                              <Chip
+                                label={item.bankName}
+                                size="small"
+                                variant="outlined"
+                                sx={{ height: 20, fontSize: "0.7rem" }}
+                              />
+                            )}
+                          </Box>
+                        }
+                        secondary={
+                          <Box sx={{ mt: 0.5, display: "flex", flexWrap: "wrap", gap: 2 }}>
+                            {item.accountHolderName && (
+                              <Typography variant="caption" color="text.secondary">
+                                Holder: <strong>{item.accountHolderName}</strong>
+                              </Typography>
+                            )}
+                            <Typography variant="caption" color="text.secondary">
+                              Date: {new Date(item.createdAt).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}
+                            </Typography>
+                            {isFailed && item.failureReason && (
+                              <Typography variant="caption" color="error" display="block">
+                                Reason: {item.failureReason}
+                              </Typography>
+                            )}
+                          </Box>
+                        }
+                      />
+
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1, ml: { xs: 0, sm: "auto" } }}>
+                        {isSuccess && (
+                          <>
+                            <Tooltip title="View PDF">
+                              <IconButton
+                                size="small"
+                                onClick={() => handleDownloadReport(item.id, item.fileName, false)}
+                                color="primary"
+                              >
+                                <VisibilityIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Download PDF Report">
+                              <IconButton
+                                size="small"
+                                onClick={() => handleDownloadReport(item.id, item.fileName, true)}
+                                color="success"
+                              >
+                                <DownloadIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          </>
+                        )}
+                        {isProcessing && <CircularProgress size={20} />}
+                      </Box>
+                    </ListItem>
+                    {index < analyses.length - 1 && <Divider />}
+                  </React.Fragment>
+                );
+              })}
+            </List>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Snackbar */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: "100%", borderRadius: 1.5 }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+    </Box>
   );
 };
 

@@ -43,7 +43,7 @@ const DisclaimerPage = lazy(() => import("./components/DisclaimerPage"));
 const RefundPolicyPage = lazy(() => import("./components/RefundPolicyPage"));
 const ApplyForLoanPage = lazy(() => import("./components/ApplyForLoanPage"));
 const SuvidhaCentrePage = lazy(() => import("./components/SuvidhaCentrePage"));
-const CareersPage = lazy(() => import(./components/CareersPage));
+const CareersPage = lazy(() => import("./components/CareersPage"));
 const BankStatementAnalyzer = lazy(() => import("./components/bsa/BankStatementAnalyzer"));
 
 const RouteFallback = () => (

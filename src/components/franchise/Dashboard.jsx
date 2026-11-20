@@ -48,6 +48,7 @@ import {
   LibraryBooks as CaseStudiesIcon,
   Summarize as SummarizeIcon,
   ArrowUpward as ArrowUpwardIcon,
+  AccountBalance as AccountBalanceIcon,
   AutoAwesome as AutoAwesomeIcon,
 } from "@mui/icons-material";
 import { ExpandLess, ExpandMore } from "@mui/icons-material";
@@ -407,6 +408,11 @@ const FranchiseDashboard = () => {
       text: "AI Analysis",
       icon: <AutoGraphIcon />,
       path: "/franchise/ai-analysis",
+    },
+    {
+      text: "Bank Statement Analyzer",
+      icon: <AccountBalanceIcon />,
+      path: "/franchise/bank-statement-analyzer",
     },
     //Contact support need to check here sandhya
     {
