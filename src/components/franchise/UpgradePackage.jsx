@@ -20,6 +20,7 @@ import {
 } from "@mui/icons-material";
 import { franchiseAPI } from "../../services/api";
 import { useNavigate } from "react-router-dom";
+import { openCashfreeCheckout, useCashfreeReturn } from "../../utils/cashfree";
 
 const PURPLE = "#6200ea";
 const DEEP_PURPLE = "#2d0a6e";
@@ -42,22 +43,8 @@ const UpgradePackage = () => {
   const [upgradeLoading, setUpgradeLoading] = useState(false);
   const [processingId, setProcessingId] = useState(null);
 
-  // Load Razorpay script
-  useEffect(() => {
-    const loadRazorpayScript = () => {
-      if (window.Razorpay) return Promise.resolve(true);
-
-      return new Promise((resolve) => {
-        const script = document.createElement("script");
-        script.src = "https://checkout.razorpay.com/v1/checkout.js";
-        script.onload = () => resolve(true);
-        script.onerror = () => resolve(false);
-        document.body.appendChild(script);
-      });
-    };
-
-    loadRazorpayScript();
-  }, []);
+  // Redirect-based payment methods come back with ?cf_order_id=...
+  useCashfreeReturn((orderId) => verifyPayment(orderId));
 
   // Fetch package data and filter for upgradeable packages
   useEffect(() => {
@@ -148,59 +135,27 @@ const UpgradePackage = () => {
       setProcessingId(pkg._id);
       setError("");
 
-      // Check if Razorpay is loaded
-      if (!window.Razorpay) {
-        throw new Error("Payment gateway not loaded. Please try again.");
-      }
+      // Create order on backend (amount incl. GST is computed server-side)
+      const response = await franchiseAPI.initiatePayment(
+        pkg._id,
+        "/franchise/upgrade-package",
+      );
+      const { orderId, paymentSessionId } = response.data;
 
-      // Create order on backend
-      const response = await franchiseAPI.initiatePayment(pkg._id);
-      const { orderId } = response.data;
-
-      // Initialize Razorpay
-      const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
-        amount: pkg.price * 100,
-        currency: "INR",
-        name: "Credit Dost",
-        description: `Upgrade to ${pkg.name} package`,
-        order_id: orderId,
-        handler: function (response) {
-          // Payment successful - verify payment with backend
-          verifyPayment(response);
-        },
-        prefill: {
-          // You can add user details here if available
-        },
-        notes: {
-          packageId: pkg._id,
-          packageName: pkg.name,
-        },
-        theme: {
-          color: PURPLE,
-        },
-        modal: {
-          ondismiss: function () {
-            setUpgradeLoading(false);
-            setProcessingId(null);
-            setError("Payment cancelled by user.");
-          },
-        },
-      };
-
-      const rzp = new window.Razorpay(options);
-      rzp.on("payment.failed", function (response) {
-        console.error("Payment failed:", response.error);
+      const result = await openCashfreeCheckout(paymentSessionId);
+      if (result.status !== "done") {
+        setError(result.message);
         setUpgradeLoading(false);
         setProcessingId(null);
-        setError(`Payment failed: ${response.error.description}`);
-      });
-
-      rzp.open();
+        return;
+      }
+      await verifyPayment(orderId);
     } catch (err) {
       console.error("Error initiating payment:", err);
       setError(
-        err.message || "Failed to initiate payment. Please try again.",
+        err.response?.data?.message ||
+          err.message ||
+          "Failed to initiate payment. Please try again.",
       );
       setUpgradeLoading(false);
       setProcessingId(null);
@@ -208,23 +163,23 @@ const UpgradePackage = () => {
   };
 
   // Function to verify payment with backend
-  const verifyPayment = async (response) => {
+  const verifyPayment = async (orderId) => {
     try {
       setUpgradeLoading(true);
 
-      // Verify payment with backend
-      await franchiseAPI.verifyPayment({
-        razorpay_order_id: response.razorpay_order_id,
-        razorpay_payment_id: response.razorpay_payment_id,
-        razorpay_signature: response.razorpay_signature,
-      });
+      // Verify payment with backend (backend checks the order with Cashfree)
+      await franchiseAPI.verifyPayment({ orderId });
 
       // Payment verified successfully
       alert("Payment successful! Your package has been upgraded.");
       navigate("/franchise");
     } catch (err) {
       console.error("Error verifying payment:", err);
-      setError("Payment verification failed. Please contact support.");
+      setError(
+        err.response?.data?.message === "Payment not completed"
+          ? "Payment was not completed. If money was deducted, your package will update automatically within a few minutes."
+          : "Payment verification failed. Please contact support.",
+      );
     } finally {
       setUpgradeLoading(false);
       setProcessingId(null);

@@ -19,6 +19,7 @@ import {
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { franchiseAPI } from "../../services/api";
+import { openCashfreeCheckout, useCashfreeReturn } from "../../utils/cashfree";
 
 const BLUE = "#2563eb";
 const NAVY = "#111827";
@@ -76,7 +77,7 @@ const CUSTOMISATION = [
 ];
 
 const STEPS = [
-  { n: 1, title: "Pay one-time fee", desc: "Pay ₹10,000 + 18% GST via Razorpay. Zero monthly fees or recurring charges.", color: BLUE },
+  { n: 1, title: "Pay one-time fee", desc: "Pay ₹10,000 + 18% GST via Cashfree.Zero monthly fees or recurring charges.", color: BLUE },
   { n: 2, title: "Onboarding in 1–2 days", desc: "Our dedicated designer reaches out within 3 hours via WhatsApp or phone call.", color: BLUE },
   { n: 3, title: "Submit brand assets", desc: "Share your PNG logo, desired brand colors, contact links, and preferred disclaimer text.", color: BLUE },
   { n: 4, title: "Approve & go live", desc: "Includes 2 free revision rounds. Once approved, all future reports export automatically branded.", color: GREEN },
@@ -88,17 +89,6 @@ const PLAN_FEATURES = [
   "Up to 2 complimentary revision rounds with dedicated designer",
   "Instant automated generation for all future credit analyses",
 ];
-
-const loadRazorpayScript = () => {
-  if (window.Razorpay) return Promise.resolve(true);
-  return new Promise((resolve) => {
-    const script = document.createElement("script");
-    script.src = "https://checkout.razorpay.com/v1/checkout.js";
-    script.onload = () => resolve(true);
-    script.onerror = () => resolve(false);
-    document.body.appendChild(script);
-  });
-};
 
 const money = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
 
@@ -128,9 +118,14 @@ const WhiteLabelReports = () => {
   };
 
   useEffect(() => {
-    loadRazorpayScript();
     fetchStatus();
   }, []);
+
+  // Redirect-based payment methods come back with ?cf_order_id=...
+  useCashfreeReturn((orderId) => {
+    setPaying(true);
+    verifyPayment(orderId);
+  });
 
   const handleContactChange = (e) => {
     const { name, value } = e.target;
@@ -141,13 +136,10 @@ const WhiteLabelReports = () => {
     document.getElementById("wl-payment")?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const verifyPayment = async (response) => {
+  // Backend checks the order with Cashfree before activating
+  const verifyPayment = async (orderId) => {
     try {
-      await franchiseAPI.verifyWhiteLabelPayment({
-        razorpay_order_id: response.razorpay_order_id,
-        razorpay_payment_id: response.razorpay_payment_id,
-        razorpay_signature: response.razorpay_signature,
-      });
+      await franchiseAPI.verifyWhiteLabelPayment({ orderId });
       await fetchStatus();
     } catch (err) {
       console.error("White label verify error:", err);
@@ -169,40 +161,20 @@ const WhiteLabelReports = () => {
       setPaying(true);
       setError("");
 
-      const scriptReady = await loadRazorpayScript();
-      if (!scriptReady || !window.Razorpay) {
-        throw new Error("Payment gateway not loaded. Please try again.");
-      }
-
-      const res = await franchiseAPI.createWhiteLabelOrder({
+const res = await franchiseAPI.createWhiteLabelOrder({
         name: contact.name.trim(),
         email: contact.email.trim(),
         mobile: contact.mobile.trim(),
       });
-      const { orderId, keyId, amount, currency, prefill } = res.data;
+      const { orderId, paymentSessionId } = res.data;
 
-      const rzp = new window.Razorpay({
-        key: keyId,
-        amount,
-        currency,
-        name: "Credit Dost",
-        description: "White Label Reports (incl. 18% GST)",
-        order_id: orderId,
-        prefill,
-        theme: { color: BLUE },
-        handler: (response) => verifyPayment(response),
-        modal: {
-          ondismiss: () => {
-            setPaying(false);
-            setError("Payment cancelled.");
-          },
-        },
-      });
-      rzp.on("payment.failed", (response) => {
+      const result = await openCashfreeCheckout(paymentSessionId);
+      if (result.status !== "done") {
         setPaying(false);
-        setError(`Payment failed: ${response.error.description}`);
-      });
-      rzp.open();
+        setError(result.message);
+        return;
+      }
+      await verifyPayment(orderId);
     } catch (err) {
       console.error("White label payment error:", err);
       setError(
@@ -628,7 +600,7 @@ const WhiteLabelReports = () => {
           <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 2 }}>
             <Box>
               <Typography sx={{ fontSize: { xs: "1.8rem", md: "2.2rem" }, fontWeight: 800, color: INK }}>Complete payment</Typography>
-              <Typography color={MUTED}>Enter your contact details, then pay with Razorpay. Our team will reach out to configure your branding.</Typography>
+              <Typography color={MUTED}>Enter your contact details, then pay with Cashfree. Our teamwill reach out to configure your branding.</Typography>
             </Box>
             <Box sx={{ textAlign: "right" }}>
               <Typography sx={{ fontSize: "2rem", fontWeight: 800, color: BLUE }}>{money(total)}</Typography>
@@ -649,7 +621,7 @@ const WhiteLabelReports = () => {
             <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
               <Payment sx={{ color: BLUE }} />
               <Box>
-                <Typography fontWeight={700} color={INK}>Razorpay / Instant Pay</Typography>
+                <Typography fontWeight={700} color={INK}>Cashfree / Instant Pay</Typography>
                 <Typography fontSize={13} color={MUTED}>UPI (GPay, PhonePe, Paytm), Cards, Net banking &amp; Wallets</Typography>
               </Box>
             </Box>
@@ -673,7 +645,7 @@ const WhiteLabelReports = () => {
                 Processing...
               </>
             ) : (
-              `Pay ${money(total)} with Razorpay`
+              `Pay ${money(total)} with Cashfree`
             )}
           </Button>
           <Typography sx={{ mt: 2, textAlign: "center", fontSize: 12.5, color: "#94a3b8" }}>

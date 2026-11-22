@@ -119,7 +119,7 @@ const ManualPayments = () => {
   }, [fetchPayments]);
 
   // Auto-update: while any link is still open, refresh the table every 15s (silently).
-  // The backend syncs open links with Razorpay every 30s, so changes show up here.
+  // The backend syncs open links with the payment gateway every 30s, so changes show up here.
   const hasOpenLinks = payments.some((p) => p.status === "created");
   useEffect(() => {
     if (!hasOpenLinks) return undefined;
@@ -149,7 +149,7 @@ const ManualPayments = () => {
     setBusyId(id);
     try {
       await adminAPI.refreshManualPayment(id);
-      showToast("Status refreshed from Razorpay");
+      showToast("Status refreshed from payment gateway");
       fetchPayments();
     } catch (err) {
       showToast(err.response?.data?.message || "Failed to refresh status", "error");
@@ -284,7 +284,7 @@ const ManualPayments = () => {
                           </IconButton>
                         </span>
                       </Tooltip>
-                      <Tooltip title="Refresh status from Razorpay">
+                      <Tooltip title="Refresh status from payment gateway">
                         <span>
                           <IconButton size="small" onClick={() => handleRefresh(p._id)} disabled={busy}>
                             <RefreshIcon fontSize="small" />

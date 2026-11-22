@@ -28,7 +28,7 @@ const validate = (form) => {
   return "";
 };
 
-// Creates a Razorpay payment link. Calls onCreated with the server response.
+// Creates a Cashfree payment link.Calls onCreated with the server response.
 const ManualPaymentDialog = ({ open, onClose, onCreated }) => {
   const [form, setForm] = useState(EMPTY_FORM);
   const [submitting, setSubmitting] = useState(false);
