@@ -197,7 +197,7 @@ const ManualPayments = () => {
       <Stack direction={{ xs: "column", md: "row" }} spacing={2} sx={{ mb: 2 }}>
         <TextField
           size="small"
-          label="Search name, mobile, email, city"
+          label="Search name, mobile, city"
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
           sx={{ minWidth: 300 }}
@@ -230,7 +230,7 @@ const ManualPayments = () => {
             <TableRow>
               <TableCell>Name</TableCell>
               <TableCell>Mobile</TableCell>
-              <TableCell>Email</TableCell>
+              <TableCell>Gateway</TableCell>
               <TableCell>City</TableCell>
               <TableCell align="right">Amount</TableCell>
               <TableCell>Remarks</TableCell>
@@ -262,7 +262,7 @@ const ManualPayments = () => {
                   <TableRow key={p._id} hover>
                     <TableCell>{p.name}</TableCell>
                     <TableCell>{p.mobile}</TableCell>
-                    <TableCell>{p.email}</TableCell>
+                    <TableCell>{p.gateway === "cashfree" ? "Cashfree" : "Razorpay"}</TableCell>
                     <TableCell>{p.city || "-"}</TableCell>
                     <TableCell align="right">₹{p.amount}</TableCell>
                     <TableCell sx={{ maxWidth: 200 }}>{p.remarks || "-"}</TableCell>
