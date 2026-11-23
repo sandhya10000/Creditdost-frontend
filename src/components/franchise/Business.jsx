@@ -29,11 +29,15 @@ import {
   Snackbar,
   Paper,
   Autocomplete,
+  createFilterOptions,
 } from "@mui/material";
 import { Check as CheckIcon, Close as CloseIcon } from "@mui/icons-material";
 import api, { franchiseAPI } from "../../services/api";
 import { useAuth } from "../../hooks/useAuth.jsx";
-import { ensureRazorpay } from "../../utils/razorpay";
+import { openCashfreeCheckout, useCashfreeReturn } from "../../utils/cashfree";
+
+// Survives a Cashfree redirect so the return can still be verified
+const PENDING_PAYMENT_KEY = "cfBusinessPayment";
 import IconButton from "@mui/material/IconButton";
 //import FileUploadField from "./FileUploadField";
 
@@ -78,6 +82,7 @@ const Business = ({
   const [formData, setFormData] = useState({
     customerType: fixedCustomerType || "individual",
     customerName: "",
+    fatherName: "",
     customerEmail: "",
     customerPhone: "",
     panNumber: "",
@@ -104,13 +109,13 @@ const Business = ({
     endDate: "",
     amount: "",
     paymentStatus: "pending",
-    workStatus: "in_progress",
+    workStatus: "newly_logged",
   });
   const [businessDetails, setBusinessDetails] = useState(
     EMPTY_BUSINESS_DETAILS,
   );
   const [selectedPackage, setSelectedPackage] = useState(null);
-  const [razorpayOrderId, setRazorpayOrderId] = useState("");
+  const [paymentOrder, setPaymentOrder] = useState(null); // { orderId, paymentSessionId }
   const [businessFormId, setBusinessFormId] = useState("");
   const [paymentProcessing, setPaymentProcessing] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -250,7 +255,9 @@ const Business = ({
 
       // Fetch customer packages
       const packagesResponse = await api.get("/customer-packages");
-      const allPackages = packagesResponse.data;
+      const allPackages = Array.isArray(packagesResponse?.data)
+        ? packagesResponse.data
+        : [];
       // ADMIN CASE
       if (userType === "admin") {
         setCustomerPackages(allPackages);
@@ -312,8 +319,9 @@ const Business = ({
       // Fallback to original behavior
       try {
         const response = await api.get("/customer-packages");
-        setCustomerPackages(response.data);
-        setFilteredPackages(response.data); // Show all if filtering fails
+        const fallbackPackages = Array.isArray(response?.data) ? response.data : [];
+        setCustomerPackages(fallbackPackages);
+        setFilteredPackages(fallbackPackages); // Show all if filtering fails
       } catch (fallbackErr) {
         console.error("Error in fallback fetch:", fallbackErr);
       }
@@ -411,8 +419,24 @@ const Business = ({
 
       const response =
         await franchiseAPI.submitBusinessForm(formDataWithPackage);
-      setRazorpayOrderId(response.data.orderId);
       setBusinessFormId(response.data.businessFormId);
+      if (response.data.paymentSessionId) {
+        setPaymentOrder({
+          orderId: response.data.orderId,
+          paymentSessionId: response.data.paymentSessionId,
+        });
+        try {
+          sessionStorage.setItem(
+            PENDING_PAYMENT_KEY,
+            JSON.stringify({
+              orderId: response.data.orderId,
+              businessFormId: response.data.businessFormId,
+            }),
+          );
+        } catch {
+          // storage unavailable: popup flow still works, only the redirect fallback is lost
+        }
+      }
       if (userType === "admin") {
         setSuccess("Form submitted successfully.");
       } else {
@@ -436,78 +460,74 @@ const Business = ({
       return;
     }
 
-    const options = {
-      key: import.meta.env.VITE_RAZORPAY_KEY_ID, // Use the correct variable
-      amount:
-        (selectedPackage.price +
-          (selectedPackage.price * (selectedPackage.gstPercentage || 0)) /
-            100) *
-        100,
-      currency: "INR",
-      name: "Credit Dost",
-      description: selectedPackage.name,
-      order_id: razorpayOrderId,
-      handler: async function (response) {
-        // Show loader after payment completion
-        setPaymentProcessing(true);
-
-        try {
-          // Verify payment
-          await franchiseAPI.verifyBusinessPayment({
-            razorpay_order_id: response.razorpay_order_id,
-            razorpay_payment_id: response.razorpay_payment_id,
-            razorpay_signature: response.razorpay_signature,
-            businessFormId: businessFormId,
-          });
-          // localStorage.removeItem("businessFormData");
-          // localStorage.removeItem("businessFormStep");
-          setSuccess("Payment successful! Business form has been submitted.");
-          resetForm();
-          setActiveStep(0); // Reset to first step
-
-          // Show success toast
-          setSnackbarMessage("Payment completed successfully!");
-          setSnackbarSeverity("success");
-          setSnackbarOpen(true);
-        } catch (err) {
-          setError("Payment verification failed. Please contact support.");
-          console.error("Error verifying payment:", err);
-
-          // Show error toast
-          setSnackbarMessage(
-            "Payment verification failed. Please contact support.",
-          );
-          setSnackbarSeverity("error");
-          setSnackbarOpen(true);
-        } finally {
-          // Hide loader after verification is complete
-          setPaymentProcessing(false);
-        }
-      },
-      prefill: {
-        name: formData.customerName,
-        // email: formData.customerEmail,
-        contact: formData.customerPhone,
-      },
-      theme: {
-        color: "#6200ea",
-      },
-    };
-
-    // Check if Razorpay key is available
-    if (!options.key) {
-      setError("Razorpay key is not configured. Please contact administrator.");
+    if (!paymentOrder?.paymentSessionId) {
+      setError("Payment session not found. Please submit the form again.");
       return;
     }
 
-    const ready = await ensureRazorpay();
-    if (!ready) {
-      setError("Payment gateway failed to load. Please check your connection and retry.");
+    setError("");
+    const result = await openCashfreeCheckout(paymentOrder.paymentSessionId);
+    if (result.status !== "done") {
+      setError(result.message);
       return;
     }
-    const rzp = new window.Razorpay(options);
-    rzp.open();
+    await verifyBusinessPayment(paymentOrder.orderId, businessFormId);
   };
+
+  // Backend checks the order with Cashfree, then marks the form paid
+  const verifyBusinessPayment = async (orderId, formId) => {
+    // Show loader after payment completion
+    setPaymentProcessing(true);
+
+    try {
+      await franchiseAPI.verifyBusinessPayment({
+        orderId,
+        businessFormId: formId,
+      });
+      try {
+        sessionStorage.removeItem(PENDING_PAYMENT_KEY);
+      } catch {
+        // ignore
+      }
+      setPaymentOrder(null);
+      setSuccess("Payment successful! Business form has been submitted.");
+      resetForm();
+      setActiveStep(0); // Reset to first step
+
+      // Show success toast
+      setSnackbarMessage("Payment completed successfully!");
+      setSnackbarSeverity("success");
+      setSnackbarOpen(true);
+    } catch (err) {
+      const message =
+        err.response?.data?.message === "Payment not completed"
+          ? "Payment was not completed. If money was deducted, it will update automatically within a few minutes."
+          : "Payment verification failed. Please contact support.";
+      setError(message);
+      console.error("Error verifying payment:", err);
+
+      // Show error toast
+      setSnackbarMessage(message);
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
+    } finally {
+      // Hide loader after verification is complete
+      setPaymentProcessing(false);
+    }
+  };
+
+  // Redirect-based payment methods come back with ?cf_order_id=...
+  useCashfreeReturn((orderId) => {
+    let pending = null;
+    try {
+      pending = JSON.parse(sessionStorage.getItem(PENDING_PAYMENT_KEY) || "null");
+    } catch {
+      pending = null;
+    }
+    if (pending?.orderId === orderId && pending.businessFormId) {
+      verifyBusinessPayment(orderId, pending.businessFormId);
+    }
+  });
 
   const documentFields = [
     {
@@ -576,6 +596,7 @@ const Business = ({
     setFormData({
       customerType: fixedCustomerType || "individual",
       customerName: "",
+      fatherName: "",
       customerEmail: "",
       customerPhone: "",
       panNumber: "",
@@ -593,7 +614,7 @@ const Business = ({
     });
     setBusinessDetails(EMPTY_BUSINESS_DETAILS);
     setSelectedPackage(null);
-    setAmcData({ startDate: "", endDate: "", amount: "", paymentStatus: "pending", workStatus: "in_progress" });
+    setAmcData({ startDate: "", endDate: "", amount: "", paymentStatus: "pending", workStatus: "newly_logged" });
   };
 
   const states = [
@@ -785,6 +806,34 @@ const Business = ({
                                   (f) => f._id === franchiseData1.franchiseId,
                                 ) || null
                               }
+                              filterOptions={createFilterOptions({
+                                stringify: (option) =>
+                                  [
+                                    option.businessName,
+                                    option.franchiseCode,
+                                    option.ownerName,
+                                    option.email,
+                                    option.phone,
+                                    option.panNumber,
+                                  ]
+                                    .filter(Boolean)
+                                    .join(" "),
+                              })}
+                              renderOption={(props, option) => (
+                                <li {...props} key={option._id}>
+                                  {option.businessName}
+                                  {option.franchiseCode && (
+                                    <Typography
+                                      component="span"
+                                      variant="body2"
+                                      color="text.secondary"
+                                      sx={{ ml: 1 }}
+                                    >
+                                      ({option.franchiseCode})
+                                    </Typography>
+                                  )}
+                                </li>
+                              )}
                               onChange={(event, newValue) => {
                                 setFranchiseData1((prev) => ({
                                   ...prev,
@@ -905,6 +954,20 @@ const Business = ({
                             label="Customer Name"
                             name="customerName"
                             value={formData.customerName}
+                            onChange={handleInputChange}
+                          />
+                        </Grid>
+                        <Grid
+                          item
+                          xs={12}
+                          sm={6}
+                          sx={{ minWidth: { xs: "0px", md: "350px" } }}
+                        >
+                          <TextField
+                            fullWidth
+                            label="Father's Name"
+                            name="fatherName"
+                            value={formData.fatherName}
                             onChange={handleInputChange}
                           />
                         </Grid>
@@ -1150,7 +1213,7 @@ const Business = ({
                             multiline
                             rows={3}
                             inputProps={{ maxLength: 1000 }}
-                            helperText={`What the client is facing and wants help with · ${formData.clientIssues.length}/1000`}
+                            helperText={`What the client is facing and wants help with · ${formData?.clientIssues?.length}/1000`}
                             sx={{ minWidth: { xs: "0px", md: "280px" } }}
                           />
                         </Grid>
@@ -1405,6 +1468,7 @@ const Business = ({
                                   setAmcData((prev) => ({ ...prev, workStatus: e.target.value }))
                                 }
                               >
+                                <MenuItem value="newly_logged">Newly Logged</MenuItem>
                                 <MenuItem value="in_progress">In Progress</MenuItem>
                                 <MenuItem value="pending">Pending</MenuItem>
                                 <MenuItem value="closed">Closed</MenuItem>
@@ -1587,13 +1651,13 @@ const Business = ({
                         Choose the best package for your customer's credit needs
                       </Typography>
 
-                      {filteredPackages.length === 0 ? (
+                      {(filteredPackages || []).length === 0 ? (
                         <Alert severity="info">
                           No packages available at the moment.
                         </Alert>
                       ) : (
                         <Grid container spacing={3}>
-                          {filteredPackages.map((pkg) => (
+                          {(filteredPackages || []).map((pkg) => (
                             <Grid
                               item
                               xs={12}

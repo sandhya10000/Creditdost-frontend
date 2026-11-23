@@ -23,7 +23,7 @@ const WhatsAppGroups = () => {
   // Social media and group links
   const socialLinks = [
     {
-      name: "Main WhatsApp Group",
+      name: "Franchise Partner Groups",
       url: "https://chat.whatsapp.com/BM7OdjpeVu23HZt3465c9L",
       icon: <WhatsApp sx={{ color: "#25D366", fontSize: 32 }} />,
       description:
@@ -31,7 +31,7 @@ const WhatsAppGroups = () => {
       tag: "General Support",
     },
     {
-      name: "Sales & Marketing Group",
+      name: "Regular Updates",
       url: "https://whatsapp.com/channel/0029VbCIhwEKmCPLvpOePP2u",
       icon: <WhatsApp sx={{ color: "#25D366", fontSize: 32 }} />,
       description:
@@ -87,7 +87,7 @@ const WhatsAppGroups = () => {
           mb: 1,
         }}
       >
-        WhatsApp Groups & Social Media
+        Important Updates
       </Typography>
 
       <Typography

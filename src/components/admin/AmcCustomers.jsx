@@ -48,6 +48,7 @@ import {
 import { AmcPaymentChip, AmcStatusChip } from "./AmcChips";
 
 const WORK_STATUS_COLORS = {
+  newly_logged: { bg: "#ef6c00", color: "#fff" },
   in_progress: { bg: "#0288d1", color: "#fff" },
   closed: { bg: "#2e7d32", color: "#fff" },
 };
@@ -340,7 +341,7 @@ const AmcCustomers = () => {
                     </TableRow>
                   )}
                   {records.map((record) => {
-                    const currentWork = record.workStatus || "in_progress";
+                    const currentWork = record.workStatus || "newly_logged";
                     const workColors = WORK_STATUS_COLORS[currentWork] || {
                       bg: "#757575",
                       color: "#fff",
@@ -403,6 +404,7 @@ const AmcCustomers = () => {
                                 "& .MuiOutlinedInput-notchedOutline": { border: "none" },
                               }}
                             >
+                              <MenuItem value="newly_logged">Newly Logged</MenuItem>
                               <MenuItem value="in_progress">In Progress</MenuItem>
                               <MenuItem value="closed">Closed</MenuItem>
                             </Select>

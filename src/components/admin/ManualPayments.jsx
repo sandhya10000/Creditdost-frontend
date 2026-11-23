@@ -119,7 +119,7 @@ const ManualPayments = () => {
   }, [fetchPayments]);
 
   // Auto-update: while any link is still open, refresh the table every 15s (silently).
-  // The backend syncs open links with Razorpay every 30s, so changes show up here.
+  // The backend syncs open links with the payment gateway every 30s, so changes show up here.
   const hasOpenLinks = payments.some((p) => p.status === "created");
   useEffect(() => {
     if (!hasOpenLinks) return undefined;
@@ -149,7 +149,7 @@ const ManualPayments = () => {
     setBusyId(id);
     try {
       await adminAPI.refreshManualPayment(id);
-      showToast("Status refreshed from Razorpay");
+      showToast("Status refreshed from payment gateway");
       fetchPayments();
     } catch (err) {
       showToast(err.response?.data?.message || "Failed to refresh status", "error");
@@ -197,7 +197,7 @@ const ManualPayments = () => {
       <Stack direction={{ xs: "column", md: "row" }} spacing={2} sx={{ mb: 2 }}>
         <TextField
           size="small"
-          label="Search name, mobile, email, city"
+          label="Search name, mobile, city"
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
           sx={{ minWidth: 300 }}
@@ -230,7 +230,7 @@ const ManualPayments = () => {
             <TableRow>
               <TableCell>Name</TableCell>
               <TableCell>Mobile</TableCell>
-              <TableCell>Email</TableCell>
+              <TableCell>Gateway</TableCell>
               <TableCell>City</TableCell>
               <TableCell align="right">Amount</TableCell>
               <TableCell>Remarks</TableCell>
@@ -262,7 +262,7 @@ const ManualPayments = () => {
                   <TableRow key={p._id} hover>
                     <TableCell>{p.name}</TableCell>
                     <TableCell>{p.mobile}</TableCell>
-                    <TableCell>{p.email}</TableCell>
+                    <TableCell>{p.gateway === "cashfree" ? "Cashfree" : "Razorpay"}</TableCell>
                     <TableCell>{p.city || "-"}</TableCell>
                     <TableCell align="right">₹{p.amount}</TableCell>
                     <TableCell sx={{ maxWidth: 200 }}>{p.remarks || "-"}</TableCell>
@@ -284,7 +284,7 @@ const ManualPayments = () => {
                           </IconButton>
                         </span>
                       </Tooltip>
-                      <Tooltip title="Refresh status from Razorpay">
+                      <Tooltip title="Refresh status from payment gateway">
                         <span>
                           <IconButton size="small" onClick={() => handleRefresh(p._id)} disabled={busy}>
                             <RefreshIcon fontSize="small" />

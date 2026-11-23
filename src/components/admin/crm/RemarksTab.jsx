@@ -144,7 +144,7 @@ const RemarksTab = ({ customerRemark, onUpdated }) => {
       <Stack spacing={3}>
         {remarks.map((item) => (
           <Paper
-            key={item.id}
+            key={item._id || item.id}
             elevation={0}
             sx={{
               p: 3,
@@ -166,8 +166,9 @@ const RemarksTab = ({ customerRemark, onUpdated }) => {
                   fontSize: 18,
                 }}
               >
-                {item?.createdBy?.name || "Admin"} (
-                {item?.createdBy?.role || "admin"})
+                {item?.createdBy?.staffCode
+                  ? `${item.createdBy.name} (${item.createdBy.staffCode})`
+                  : `${item?.createdBy?.name || "Admin"} (${item?.createdBy?.role || "admin"})`}
               </Typography>
 
               <Typography

@@ -35,6 +35,16 @@ const CustomerCRM = () => {
     fetchCustomer();
   }, []);
 
+  // Re-fetch the customer (including reports) each time the Reports tab opens,
+  // so reports generated in the Bureau tab show up without a page reload
+  useEffect(() => {
+    if (tab !== 1 || loading) return;
+    adminAPI
+      .getSinglebusinessform(customerId)
+      .then((res) => setCustomerInfo(res.data.data))
+      .catch((err) => console.log(err));
+  }, [tab]);
+
   const fetchCustomer = async () => {
     try {
       const res = await adminAPI.getSinglebusinessform(customerId);
@@ -97,6 +107,7 @@ const CustomerCRM = () => {
                     customer={customerInfo?.customerData}
                     creditReport={customerInfo?.report[0]?.score || "NA"}
                     ifscDeatails={customerInfo?.bankInfo?.ifsc_details}
+                    onUpdated={fetchCustomer}
                   />
                 )}
 
@@ -123,7 +134,7 @@ const CustomerCRM = () => {
                     customerBureau={customerInfo?.customerData}
                     setCreditReports={setCreditReports}
                     onSearchSucess={() => {
-                      fetchCustomer;
+                      fetchCustomer();
                     }}
                     customer={customerInfo?.customerData}
                   />

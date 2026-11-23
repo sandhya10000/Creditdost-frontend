@@ -132,8 +132,6 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
   const [newFranchise, setNewFranchise] = useState({
     name: "",
     email: "",
-    phone: "",
-    alternatePhone: "",
     state: "",
     pincode: "",
     language: "english",
@@ -308,6 +306,27 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
 
   //   setFilteredFranchises(filtered);
   // };
+
+  const handleToggleCreditHold = async (franchise) => {
+    const hold = !franchise.creditHold;
+    const confirmed = window.confirm(
+      hold
+        ? `Put credits on hold for ${franchise.businessName}? They cannot use bureau or AI credits until released.`
+        : `Release credit hold for ${franchise.businessName}?`,
+    );
+    if (!confirmed) return;
+
+    try {
+      setError("");
+      setSuccess("");
+      await adminAPI.setFranchiseCreditHold(franchise._id, hold);
+      setSuccess(hold ? "Credits are now on hold." : "Credit hold released.");
+      fetchFranchises();
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to update credit hold.");
+      console.error("Error updating credit hold:", err);
+    }
+  };
 
   const handleApproveKyc = async (franchiseId) => {
     try {
@@ -785,8 +804,6 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
     setNewFranchise({
       name: "",
       email: "",
-      phone: "",
-      alternatePhone: "",
       state: "",
       pincode: "",
       language: "english",
@@ -812,19 +829,8 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
       setSuccess("");
 
       // Validate required fields
-      if (!newFranchise.name || !newFranchise.email || !newFranchise.phone) {
+      if (!newFranchise.name || !newFranchise.email) {
         setError("Please fill in all required fields.");
-        return;
-      }
-
-      if (!/^\d{10}$/.test(newFranchise.phone)) {
-        setError("Please enter a valid 10-digit phone number.");
-        return;
-      }
-
-      // Alternate mobile is optional, but must be 10 digits when given
-      if (newFranchise.alternatePhone && !/^\d{10}$/.test(newFranchise.alternatePhone)) {
-        setError("Please enter a valid 10-digit alternate mobile number.");
         return;
       }
 
@@ -841,8 +847,6 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
       const franchiseData = {
         name: newFranchise.name,
         email: newFranchise.email,
-        phone: newFranchise.phone,
-        alternatePhone: newFranchise.alternatePhone || undefined,
         role: isFranchiseUser ? "franchise_user" : "admin",
         subRole: isFranchiseUser ? "franchise" : createUserRole,
         assignedPackages: isFranchiseUser ? selectedPackages : null,
@@ -1501,7 +1505,23 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
                               labelPlacement="end"
                             />
                           </TableCell>
-                          <TableCell>{franchise.credits}</TableCell>
+                          <TableCell>
+                            <Box display="flex" alignItems="center" gap={0.5} flexWrap="wrap">
+                              {franchise.credits}
+                              {franchise.creditHold && (
+                                <Chip label="On hold" color="warning" size="small" />
+                              )}
+                              {!currentUser?.scopedToOwnFranchises && (
+                                <Button
+                                  size="small"
+                                  color={franchise.creditHold ? "success" : "warning"}
+                                  onClick={() => handleToggleCreditHold(franchise)}
+                                >
+                                  {franchise.creditHold ? "Release" : "Hold"}
+                                </Button>
+                              )}
+                            </Box>
+                          </TableCell>
                           <TableCell>
                             <Box display="flex" alignItems="center" gap={0.5}>
                               {franchise.businessManager ? (
@@ -1774,31 +1794,6 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
                   />
                 </Grid>
 
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    required
-                    label="Phone Number"
-                    name="phone"
-                    value={newFranchise.phone}
-                    onChange={handleCreateFranchiseChange}
-                    inputProps={{ maxLength: 10, inputMode: "numeric" }}
-                    helperText="10-digit mobile number (used for WhatsApp messages)"
-                    margin="normal"
-                  />
-                </Grid>
-
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Alternate Mobile Number (Optional)"
-                    name="alternatePhone"
-                    value={newFranchise.alternatePhone}
-                    onChange={handleCreateFranchiseChange}
-                    inputProps={{ maxLength: 10, inputMode: "numeric" }}
-                    margin="normal"
-                  />
-                </Grid>
 
                 {/* Package Selection */}
                 <Grid item xs={12}>

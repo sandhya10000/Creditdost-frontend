@@ -23,6 +23,7 @@ import {
   Select,
   MenuItem,
   FormControl,
+  InputLabel,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -38,11 +39,12 @@ import EventAvailableIcon from "@mui/icons-material/EventAvailable";
 
 // Work status: label, select/chip background, and the Customer ID text color
 const WORK_STATUS = {
+  newly_logged: { label: "Newly Logged", bg: "#ef6c00", text: "#ef6c00" },
   in_progress: { label: "In Progress", bg: "#0288d1", text: "#1565c0" },
   pending: { label: "Pending", bg: "#7b1fa2", text: "#7b1fa2" },
   closed: { label: "Closed", bg: "#2e7d32", text: "#2e7d32" },
 };
-const getWorkStatus = (status) => WORK_STATUS[status] || WORK_STATUS.in_progress;
+const getWorkStatus = (status) => WORK_STATUS[status] || WORK_STATUS.newly_logged;
 
 const BusinessForms = ({ status = "paid", customerType }) => {
   const isBusinessView = customerType === "business";
@@ -56,12 +58,28 @@ const BusinessForms = ({ status = "paid", customerType }) => {
 
   const [totalRecords, setTotalRecords] = useState(0);
   const [page, setPage] = useState(1);
+  const [sortKey, setSortKey] = useState("createdAt-desc");
   const rowsPerPage = 20;
+
+  const SORT_OPTIONS = [
+    { value: "createdAt-desc", label: "Newest first", sortBy: "createdAt", sortOrder: "desc" },
+    { value: "createdAt-asc", label: "Oldest first", sortBy: "createdAt", sortOrder: "asc" },
+    { value: "customerId-asc", label: "Customer ID (A → Z)", sortBy: "customerId", sortOrder: "asc" },
+    { value: "customerId-desc", label: "Customer ID (Z → A)", sortBy: "customerId", sortOrder: "desc" },
+    { value: "customerName-asc", label: "Name (A → Z)", sortBy: "customerName", sortOrder: "asc" },
+    { value: "customerName-desc", label: "Name (Z → A)", sortBy: "customerName", sortOrder: "desc" },
+  ];
+  const activeSort = SORT_OPTIONS.find((o) => o.value === sortKey) || SORT_OPTIONS[0];
   const [toast, setToast] = useState({ open: false, message: "", severity: "success" });
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [businessToDelete, setBusinessToDelete] = useState(null);
   // Only full admins can change the RM; BMs see it read-only
   const { user } = useAuth();
+  // Credit analysts don't see amount / payment status
+  // Staff carry a Role (staffRoleName, e.g. "Credit Analyst"); subRole is a fallback
+  const hideAmountAndPayment =
+    user?.subRole === "credit_analyst" ||
+    /credit\s*analyst/i.test(user?.staffRoleName || "");
   const isFullAdmin = !user?.staffRole;
   const [rmList, setRmList] = useState([]);
 
@@ -126,6 +144,8 @@ const BusinessForms = ({ status = "paid", customerType }) => {
         limit: rowsPerPage,
         search: appliedSearch,
         paymentStatus: status,
+        sortBy: activeSort.sortBy,
+        sortOrder: activeSort.sortOrder,
         ...(customerType && { customerType }),
       });
       // console.log("fetch all documents with details----", response);
@@ -225,10 +245,7 @@ const BusinessForms = ({ status = "paid", customerType }) => {
         "Email",
         "Phone",
         "Franchise",
-        "Package",
-        "Amount",
-        "Payment Status",
-        "Role",
+        ...(hideAmountAndPayment ? [] : ["Amount", "Payment Status"]),
         "Document",
         "Date",
         "Work Status",
@@ -250,10 +267,12 @@ const BusinessForms = ({ status = "paid", customerType }) => {
         form.customerEmail || "",
         form.customerPhone || "",
         form.franchiseId?.businessName || "N/A",
-        form.selectedPackage?.name || "N/A",
-        form.manualAmount ? form.manualAmount : form.selectedPackage?.price || "N/A",
-        form.paymentStatus || "",
-        form.createdByRole || "franchise",
+        ...(hideAmountAndPayment
+          ? []
+          : [
+              form.manualAmount ? form.manualAmount : form.selectedPackage?.price || "N/A",
+              form.paymentStatus || "",
+            ]),
         Object.values(form.documents || {}).some(Boolean) ? "Yes" : "No",
         formatDate(form.createdAt),
         form.workStatus || "",
@@ -389,6 +408,24 @@ const BusinessForms = ({ status = "paid", customerType }) => {
                 maxWidth: { xs: "100%", sm: 400 },
               }}
             />
+            <FormControl sx={{ minWidth: { xs: "100%", sm: 200 } }}>
+              <InputLabel id="business-sort-label">Sort by</InputLabel>
+              <Select
+                labelId="business-sort-label"
+                label="Sort by"
+                value={sortKey}
+                onChange={(e) => {
+                  setSortKey(e.target.value);
+                  setPage(1);
+                }}
+              >
+                {SORT_OPTIONS.map((opt) => (
+                  <MenuItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
             <Stack
               direction={{ xs: "column", sm: "row" }}
               spacing={1.5}
@@ -464,10 +501,8 @@ const BusinessForms = ({ status = "paid", customerType }) => {
                     <TableCell>Phone</TableCell>
                     {!isBusinessView && <TableCell>RM</TableCell>}
                     <TableCell>Franchise</TableCell>
-                    <TableCell>Package</TableCell>
-                    <TableCell>Amount</TableCell>
-                    <TableCell>Payment Status</TableCell>
-                    <TableCell>Role</TableCell>
+                    {!hideAmountAndPayment && <TableCell>Amount</TableCell>}
+                    {!hideAmountAndPayment && <TableCell>Payment Status</TableCell>}
                     <TableCell>Document</TableCell>
 
                     <TableCell>Date</TableCell>
@@ -565,22 +600,22 @@ const BusinessForms = ({ status = "paid", customerType }) => {
                           "N/A"
                         )}
                       </TableCell>
-                      <TableCell sx={{ minWidth: 100 }}>
-                        {form.selectedPackage?.name || "N/A"}
-                      </TableCell>
                       {/* <TableCell>
                         ₹{form.selectedPackage?.price || "N/A"}
                       </TableCell> */}
-                      <TableCell>
-                        ₹
-                        {form.manualAmount
-                          ? form.manualAmount
-                          : form.selectedPackage?.price || "N/A"}
-                      </TableCell>
-                      <TableCell>
-                        {getPaymentStatusChip(form.paymentStatus)}
-                      </TableCell>
-                      <TableCell>{form.createdByRole || "franchise"}</TableCell>
+                      {!hideAmountAndPayment && (
+                        <TableCell>
+                          ₹
+                          {form.manualAmount
+                            ? form.manualAmount
+                            : form.selectedPackage?.price || "N/A"}
+                        </TableCell>
+                      )}
+                      {!hideAmountAndPayment && (
+                        <TableCell>
+                          {getPaymentStatusChip(form.paymentStatus)}
+                        </TableCell>
+                      )}
                       <TableCell
                         sx={{
                           width: 60,
@@ -605,7 +640,7 @@ const BusinessForms = ({ status = "paid", customerType }) => {
                       <TableCell align="center" sx={{ whiteSpace: "nowrap" }}>
                         <Stack direction="row" spacing={1} justifyContent="center" alignItems="center">
                           {status !== "pending" && (() => {
-                            const current = form.workStatus || "in_progress";
+                            const current = form.workStatus || "newly_logged";
                             const { bg } = getWorkStatus(current);
                             const color = "#fff";
                             return (
@@ -625,6 +660,7 @@ const BusinessForms = ({ status = "paid", customerType }) => {
                                     "&.Mui-focused .MuiOutlinedInput-notchedOutline": { border: "1px solid rgba(255,255,255,0.5)" },
                                   }}
                                 >
+                                  <MenuItem value="newly_logged">Newly Logged</MenuItem>
                                   <MenuItem value="in_progress">In Progress</MenuItem>
                                   <MenuItem value="pending">Pending</MenuItem>
                                   <MenuItem value="closed">Closed</MenuItem>
@@ -642,16 +678,14 @@ const BusinessForms = ({ status = "paid", customerType }) => {
                               clickable
                             />
                           )}
-                          {status !== "paid" && (
-                            <Button
-                              variant="contained"
-                              color="error"
-                              size="small"
-                              onClick={() => handleDeleteClick(form)}
-                            >
-                              Delete
-                            </Button>
-                          )}
+                          <Button
+                            variant="contained"
+                            color="error"
+                            size="small"
+                            onClick={() => handleDeleteClick(form)}
+                          >
+                            Delete
+                          </Button>
                         </Stack>
                       </TableCell>
                     </TableRow>
@@ -689,7 +723,7 @@ const BusinessForms = ({ status = "paid", customerType }) => {
         </CardContent>
       </Card>
 
-      {/* Delete Business Confirmation Dialog (pending MIS only) */}
+      {/* Delete Business Confirmation Dialog (paid and pending MIS) */}
       <Dialog
         open={deleteDialogOpen}
         onClose={handleCloseDeleteDialog}
@@ -699,8 +733,8 @@ const BusinessForms = ({ status = "paid", customerType }) => {
         <DialogTitle>Confirm Delete</DialogTitle>
         <DialogContent>
           <Typography sx={{ mb: 2 }}>
-            <strong>{businessToDelete?.customerName || "This business"}</strong> — business
-            will be deleted.
+            <strong>{businessToDelete?.customerName || "This business"}</strong> — this
+            Business MIS entry will be permanently deleted.
           </Typography>
         </DialogContent>
         <DialogActions>

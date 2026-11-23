@@ -54,6 +54,8 @@ export const authAPI = {
   requestPasswordReset: (data) =>
     api.post("/auth/request-password-reset", data),
   resetPassword: (data) => api.post("/auth/reset-password", data),
+  // Signed-in user changes own password: { currentPassword, newPassword }
+  changePassword: (data) => api.post("/auth/change-password", data),
 };
 
 // Franchise API functions
@@ -82,8 +84,9 @@ export const franchiseAPI = {
   // Add the new function for DigiLocker initialization
   initDigiLocker: () => api.post("/kyc/digilocker/init"),
   getCreditPackages: () => api.get("/dashboard/packages"),
-  initiatePayment: (packageId) =>
-    api.post("/payments/create-order", { packageId }),
+  // Cashfree: create returns { orderId, paymentSessionId }; verify takes { orderId }
+  initiatePayment: (packageId, returnPath) =>
+    api.post("/payments/create-order", { packageId, returnPath }),
   verifyPayment: (data) => api.post("/payments/verify-payment", data),
   getCreditReport: (data) => api.post("/credit/check", data),
   getCreditReports: (params) => api.get("/credit/reports", { params }),
@@ -98,12 +101,18 @@ export const franchiseAPI = {
   submitBusinessForm: (data) => api.post("/business/submit", data),
   lookupConsultant: (q) => api.get("/business/consultant-lookup", { params: { q } }),
   getAssignableRms: () => api.get("/business/rms"),
+  // Cashfree: { orderId, businessFormId }
   verifyBusinessPayment: (data) => api.post("/business/verify-payment", data),
   getBusinessForms: () => api.get("/business/franchise"),
   getAmcCustomers: (params) => api.get("/business/franchise/amc", { params }),
 
   // Transactions
   getTransactions: () => api.get("/dashboard/transactions"),
+  // White Label Reports (Platinum/Diamond only)
+  getWhiteLabelStatus: () => api.get("/dashboard/white-label/status"),
+  createWhiteLabelOrder: (data) => api.post("/dashboard/white-label/order", data),
+  // Cashfree: { orderId }
+  verifyWhiteLabelPayment: (data) => api.post("/dashboard/white-label/verify", data),
   // Referrals
   getReferrals: () => api.get("/dashboard/referrals"),
   createReferral: (data) => api.post("/dashboard/referrals", data),
@@ -185,6 +194,12 @@ export const blogAPI = {
 
 // Admin API functions
 export const adminAPI = {
+  getWhiteLabelPartners: (params) =>
+    api.get("/admin/white-label/partners", { params }),
+  getWhiteLabelReports: (params) =>
+    api.get("/admin/white-label/reports", { params }),
+  getWhiteLabelPartnerReports: (partnerId) =>
+    api.get(`/admin/white-label/partners/${partnerId}/reports`),
   getDashboardStats: (params) => api.get("/admin/dashboard", { params }),
   getRecentActivities: () => api.get("/admin/dashboard/activities"),
   getPerformanceOverview: (params) =>
@@ -405,6 +420,8 @@ export const adminAPI = {
   getStaffMembers: () => api.get("/admin/staff"),
   getStaffProfile: (id) => api.get(`/admin/staff/${id}`),
   assignBusinessManagersToPartners: () => api.post("/franchises/assign-business-managers"),
+  setFranchiseCreditHold: (franchiseId, hold) =>
+    api.put(`/franchises/${franchiseId}/credit-hold`, { hold }),
   reassignFranchiseManager: (franchiseId, businessManagerId) =>
     api.put(`/franchises/${franchiseId}/business-manager`, { businessManagerId }),
   assignStaffMember: (data) => api.post("/admin/staff", data),
@@ -418,22 +435,24 @@ export const adminAPI = {
   getAllTickets: (params) =>
     api.get("/admin/support/all-tickets", { params }),
   getTicket: (id) => api.get(`/admin/support/tickets/${id}`),
+  getSupportUnreadCount: () => api.get("/admin/support/unread-count"),
+  markTicketRead: (id) => api.patch(`/admin/support/tickets/${id}/read`),
   replyTicket: (id, formData) =>
     api.post(`/admin/support/tickets/${id}/reply`, formData),
   updateTicketStatus: (id, status) =>
     api.patch(`/admin/support/tickets/${id}/status`, { status }),
   updateTicketMeta: (id, data) =>
     api.patch(`/admin/support/tickets/${id}/meta`, data),
-  getSupportUnreadCount: () => api.get("/admin/support/unread-count"),
-  markTicketRead: (id) => api.patch(`/admin/support/tickets/${id}/read`),
   deleteBusinessForm: (id) => api.delete(`/admin/business-forms/${id}`),
+  // Credit analyst dashboard: logged today / this month, pending / closed
+  getBusinessMisCounts: () => api.get("/business/mis-counts"),
   // AMC (Annual Maintenance Contract)
   getAmcCustomers: (params) => api.get("/business/amc", { params }),
   upsertAmc: (id, data) => api.put(`/admin/business-forms/${id}/amc`, data),
   renewAmc: (id, data) => api.post(`/admin/business-forms/${id}/amc/renew`, data),
   cancelAmc: (id, data) =>
     api.delete(`/admin/business-forms/${id}/amc`, { data }),
-  // Manual Payments (Razorpay payment links created by admin)
+  // Manual Payments (Cashfree payment links created by admin)
   getManualPayments: (params) => api.get("/admin/manual-payments", { params }),
   createManualPayment: (data) => api.post("/admin/manual-payments", data),
   refreshManualPayment: (id) => api.post(`/admin/manual-payments/${id}/refresh`),

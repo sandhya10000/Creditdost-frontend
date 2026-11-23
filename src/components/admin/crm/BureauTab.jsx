@@ -22,9 +22,10 @@ const BureauTab = ({
 }) => {
   const fullName = customerBureau?.customerName || "";
   const pan = customerBureau?.panNumber || "";
-  const [cibilApiType, setCibilApiType] = useState("indiconnect");
-  const [crifApiType, setCrifApiType] = useState("indiconnect");
-  const [experianApiType, setExperianApiType] = useState("indiconnect");
+  const [cibilApiType, setCibilApiType] = useState("finpass");
+  const [crifApiType, setCrifApiType] = useState("finpass");
+  const [experianApiType, setExperianApiType] = useState("finpass");
+  const [equifaxApiType] = useState("finpass");
   const [expPincode, setExpPincode] = useState("");
   const [bureauData, setBureauData] = useState({
     cibil: {
@@ -51,7 +52,8 @@ const BureauTab = ({
       mobile: "",
     },
   });
-  const [loading, setLoading] = useState(false);
+  // Which bureau is currently being checked (null = none). Each card tracks only its own request
+  const [loadingBureau, setLoadingBureau] = useState(null);
   const [success, setSuccess] = useState("");
 
   const [error, setError] = useState("");
@@ -93,7 +95,7 @@ const BureauTab = ({
         gender: customer?.gender?.toLowerCase(),
         dob,
         bureau: "equifax",
-        cibilApiType: "surepass",
+        equifaxApiType,
       };
     }
 
@@ -105,6 +107,7 @@ const BureauTab = ({
       cibilApiType,
       crifApiType,
       experianApiType,
+      gender: customer?.gender?.toLowerCase(),
       ...(dob ? { dob } : {}),
       ...(bureau === "experian" &&
       experianApiType === "indiconnect" &&
@@ -117,7 +120,7 @@ const BureauTab = ({
   //COMMON CIBIL CHECK
   const handleCheckCibil = async (bureau) => {
     try {
-      setLoading(true);
+      setLoadingBureau(bureau);
       setError("");
       setSuccess("");
       const payload = getPayload(bureau);
@@ -146,7 +149,7 @@ const BureauTab = ({
 
       setError(error?.response?.data?.message || "CIBIL Check Failed");
     } finally {
-      setLoading(false);
+      setLoadingBureau(null);
     }
   };
 
@@ -211,11 +214,11 @@ const BureauTab = ({
                 value={cibilApiType}
                 onChange={(e) => setCibilApiType(e.target.value)}
               >
+                <MenuItem value="finpass">Finpass</MenuItem>
+
                 <MenuItem value="indiconnect">IndiConnect</MenuItem>
 
                 <MenuItem value="digi">Digi</MenuItem>
-
-                <MenuItem value="surepass">Surepass</MenuItem>
               </TextField>
             </Grid>
           )}
@@ -232,9 +235,9 @@ const BureauTab = ({
                     : setExperianApiType(e.target.value)
                 }
               >
-                <MenuItem value="indiconnect">IndiConnect</MenuItem>
+                <MenuItem value="finpass">Finpass</MenuItem>
 
-                <MenuItem value="surepass">Surepass</MenuItem>
+                <MenuItem value="indiconnect">IndiConnect</MenuItem>
               </TextField>
             </Grid>
           )}
@@ -244,10 +247,10 @@ const BureauTab = ({
                 select
                 fullWidth
                 label="Select API"
-                value="surepass"
+                value={equifaxApiType}
                 disabled
               >
-                <MenuItem value="surepass">Surepass</MenuItem>
+                <MenuItem value="finpass">Finpass</MenuItem>
               </TextField>
             </Grid>
           )}
@@ -259,9 +262,9 @@ const BureauTab = ({
             onClick={() => {
               handleCheckCibil(keyName);
             }}
-            disabled={loading}
+            disabled={loadingBureau === keyName}
           >
-            {loading ? "Checking..." : `Check ${title}`}
+            {loadingBureau === keyName ? "Checking..." : `Check ${title}`}
           </Button>
         </Box>
       </CardContent>

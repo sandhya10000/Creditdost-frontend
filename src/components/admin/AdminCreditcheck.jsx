@@ -38,20 +38,21 @@ import { franchiseAPI, adminAPI } from "../../services/api";
 
 const AdminCreditBureau = ({ defaultBureau = "" }) => {
   const bureauOptions = [
+    { value: "cibil-finpass", label: "CIBIL (Finpass)" },
     { value: "cibil-indiconnect", label: "CIBIL (IndiConnect)" },
     { value: "cibil-digi", label: "CIBIL (Digi)" },
-    { value: "cibil-surepass", label: "CIBIL (Surepass)" },
+    { value: "cibil-finpass", label: "CIBIL (Finpass)" },
     { value: "crif-indiconnect", label: "CRIF (IndiConnect)" },
     { value: "crif-surepass", label: "CRIF (Surepass)" },
     { value: "experian-indiconnect", label: "Experian (IndiConnect)" },
-    { value: "experian-surepass", label: "Experian (Surepass)" },
+    { value: "crif-indiconnect", label: "CRIF (IndiConnect)" },
     { value: "equifax", label: "Equifax" },
   ];
   // CIBIL standalone options route through /credit/credit-check-v2
   const CIBIL_V2_MAP = {
+    "cibil-finpass": "finpass",
     "cibil-indiconnect": "indiconnect",
     "cibil-digi": "digi",
-    "cibil-surepass": "surepass",
   };
   // CRIF / Experian Surepass options route through V2 with their own picker
   // keys; IndiConnect variants keep the existing V1 (/credit/check) flow.
@@ -241,6 +242,15 @@ const AdminCreditBureau = ({ defaultBureau = "" }) => {
             [v2Route.key]: v2Route.value,
           };
           if (formData.pan) v2Payload.pan = formData.pan.trim().toUpperCase();
+          if (v2Route.value === "finpass") {
+            // Finpass requires PAN and takes gender (optional on our side)
+            if (!v2Payload.pan) {
+              setError("PAN is required for CIBIL (Finpass)");
+              setSaving(false);
+              return;
+            }
+            if (formData.gender) v2Payload.gender = formData.gender;
+          }
           const v2Response = await adminAPI.checkCreditV2(v2Payload);
           const v2Report = v2Response.data.creditReport || {};
           setSuccess(
@@ -416,42 +426,6 @@ const AdminCreditBureau = ({ defaultBureau = "" }) => {
       <Typography variant="h4" gutterBottom>
         Credit Check
       </Typography>
-
-      {/* Credits Display */}
-      <Card
-        sx={{
-          mb: 3,
-          boxShadow: 3,
-          borderRadius: 2,
-          bgcolor: "background.default",
-        }}
-      >
-        <CardContent>
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
-            <Typography variant="h6" component="div">
-              Available Credits
-            </Typography>
-            <Chip
-              label={availableCredits}
-              color="primary"
-              size="large"
-              sx={{
-                fontWeight: "bold",
-                fontSize: "1.2rem",
-                height: "auto",
-                py: 1,
-                px: 2,
-              }}
-            />
-          </Box>
-        </CardContent>
-      </Card>
 
       <Tabs
         value={activeTab}

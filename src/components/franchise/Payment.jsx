@@ -18,7 +18,7 @@ import {
 } from "@mui/material";
 import { useLocation, useNavigate } from "react-router-dom";
 import api from "../../services/api"; // Use the configured API instance instead of raw axios
-import { ensureRazorpay } from "../../utils/razorpay";
+import { openCashfreeCheckout, useCashfreeReturn } from "../../utils/cashfree";
 
 // Toast notification component
 const ToastAlert = React.forwardRef(function Alert(props, ref) {
@@ -33,7 +33,12 @@ const Payment = () => {
   const [error, setError] = useState("");
   const [toast, setToast] = useState({ open: false, message: "", severity: "success" }); // Toast state
   const pkg = location.state?.package;
-  
+  // Set when Cashfree redirected back here (?cf_order_id=...); location.state may be gone then
+  const [returning] = useState(() =>
+    new URLSearchParams(location.search).has("cf_order_id"),
+  );
+  const [returnStatus, setReturnStatus] = useState("verifying"); // verifying | success | error
+
   // Calculate total price with GST
   const totalPrice = pkg ? Number(pkg.price) + (Number(pkg.price) * (pkg.gstPercentage || 0) / 100) : 0;
 
@@ -46,66 +51,42 @@ const Payment = () => {
   };
 
   useEffect(() => {
-    if (!pkg) {
+    if (!pkg && !returning) {
       navigate("/franchise/packages");
     }
-  }, [pkg, navigate]);
+  }, [pkg, returning, navigate]);
+
+  // Redirect-based payment methods come back with ?cf_order_id=...
+  useCashfreeReturn((orderId) => handlePaymentSuccess(orderId));
 
   const handlePayment = async () => {
     try {
       setLoading(true);
       setError("");
       
-      // Create order on backend
+      // Create order on backend (amount incl. GST is computed server-side)
       const response = await api.post("/payments/create-order", {
         packageId: pkg._id,
-        amount: totalPrice, // Use total price including GST
+        returnPath: "/franchise/payment",
       });
-      
-      const { orderId } = response.data;
-      
-      // Initialize Razorpay
-      const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
-        amount: totalPrice * 100, // Use total price in paise
-        currency: "INR",
-        name: "Credit Dost",
-        description: `Purchase of ${pkg.name} package`,
-        order_id: orderId,
-        handler: function (response) {
-          // Payment successful
-          handlePaymentSuccess(response);
-        },
-        prefill: {
-          name: "User Name",
-          email: "user@example.com",
-          contact: "9999999999"
-        },
-        notes: {
-          packageId: pkg._id,
-          packageName: pkg.name
-        },
-        theme: {
-          color: "#6200ea"
-        }
-      };
-      
-      const ready = await ensureRazorpay();
-      if (!ready) {
-        setError("Payment gateway failed to load. Please check your connection and retry.");
+
+      const { orderId, paymentSessionId } = response.data;
+
+      const result = await openCashfreeCheckout(paymentSessionId);
+      if (result.status !== "done") {
+        setError(result.message);
         return;
       }
-      const rzp = new window.Razorpay(options);
-      rzp.open();
+      await handlePaymentSuccess(orderId);
     } catch (err) {
-      setError("Failed to initiate payment. Please try again.");
+      setError(err.response?.data?.message || "Failed to initiate payment. Please try again.");
       console.error("Payment error:", err);
     } finally {
       setLoading(false);
     }
   };
  
-  const handlePaymentSuccess = async (response) => {
+  const handlePaymentSuccess = async (orderId) => {
     try {
       // Show processing message
       setLoading(true);  
@@ -117,16 +98,13 @@ const Payment = () => {
         severity: "info"
       });
 
-      // Verify payment on backend
-      await api.post("/payments/verify-payment", {
-        razorpay_order_id: response.razorpay_order_id,
-        razorpay_payment_id: response.razorpay_payment_id,
-        razorpay_signature: response.razorpay_signature
-      });
-      
+      // Verify payment on backend (backend checks the order with Cashfree)
+      await api.post("/payments/verify-payment", { orderId });
+
       // Move to success step
       setActiveStep(2);
-      
+      setReturnStatus("success");
+
       // Show success toast notification
       setToast({
         open: true,
@@ -134,9 +112,14 @@ const Payment = () => {
         severity: "success"
       });
     } catch (err) {
-      setError("Payment verification failed. Please contact support.");
+      setReturnStatus("error");
+      setError(
+        err.response?.data?.message === "Payment not completed"
+          ? "Payment was not completed. If money was deducted, it will update automatically within a few minutes."
+          : "Payment verification failed. Please contact support.",
+      );
       console.error("Payment verification error:", err);
-      
+
       // Show error toast notification
       setToast({
         open: true,
@@ -154,7 +137,33 @@ const Payment = () => {
   };
 
   if (!pkg) {
-    return null;
+    if (!returning) return null;
+    // Back from a Cashfree redirect: the package details are no longer in router state
+    return (
+      <Container maxWidth="sm" sx={{ py: 6, textAlign: "center" }}>
+        {returnStatus === "verifying" && (
+          <>
+            <CircularProgress sx={{ mb: 2 }} />
+            <Typography variant="h6">Confirming your payment...</Typography>
+          </>
+        )}
+        {returnStatus === "success" && (
+          <Alert severity="success" sx={{ mb: 2, textAlign: "left" }}>
+            Your payment has been processed successfully! Your credits have been added to your account.
+          </Alert>
+        )}
+        {returnStatus === "error" && (
+          <Alert severity="error" sx={{ mb: 2, textAlign: "left" }}>
+            {error}
+          </Alert>
+        )}
+        {returnStatus !== "verifying" && (
+          <Button variant="contained" onClick={handleContinue}>
+            Continue to Dashboard
+          </Button>
+        )}
+      </Container>
+    );
   }
 
   const steps = [
@@ -164,7 +173,7 @@ const Payment = () => {
     },
     {
       label: "Make Payment",
-      description: "Complete your payment using Razorpay"
+      description: "Complete your payment securely via Cashfree"
     },
     {
       label: "Confirmation",

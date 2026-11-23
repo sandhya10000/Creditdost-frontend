@@ -42,7 +42,7 @@ import {
 } from "@mui/icons-material";
 import axios from "axios";
 import api from "../services/api";
-import { ensureRazorpay } from "../utils/razorpay";
+import { openCashfreeCheckout, useCashfreeReturn } from "../utils/cashfree";
 import { useNavigate } from "react-router-dom";
 import Header from "./homepage/Header";
 import HomePageFooter from "./homepage/HomePageFooter";
@@ -227,55 +227,31 @@ const PackagesPage = () => {
         return;
       }
 
-      // Create order on backend
+      // Create order on backend (amount incl. GST is computed server-side)
       const response = await api.post("/payments/create-order", {
         packageId: selectedPackage._id,
-        amount: selectedPackage.totalPrice, // Use total price including GST
+        returnPath: "/packages",
       });
 
-      const { orderId } = response.data;
+      const { orderId, paymentSessionId } = response.data;
 
-      // Initialize Razorpay
-      const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
-        amount: selectedPackage.totalPrice * 100, // Use total price in paise
-        currency: "INR",
-        name: "Credit Dost",
-        description: `Purchase of ${selectedPackage.name} package`,
-        order_id: orderId,
-        handler: function (response) {
-          // Payment successful
-          handlePaymentSuccess(response);
-        },
-        prefill: {
-          name: user.name || "User Name",
-          email: user.email || "user@example.com",
-        },
-        notes: {
-          packageId: selectedPackage._id,
-          packageName: selectedPackage.name,
-        },
-        theme: {
-          color: "#6200ea",
-        },
-      };
-
-      const ready = await ensureRazorpay();
-      if (!ready) {
-        setPaymentError("Payment gateway failed to load. Please check your connection and retry.");
+      const result = await openCashfreeCheckout(paymentSessionId);
+      if (result.status !== "done") {
+        setPaymentError(result.message);
         return;
       }
-      const rzp = new window.Razorpay(options);
-      rzp.open();
+      await handlePaymentSuccess(orderId);
     } catch (err) {
-      setPaymentError("Failed to initiate payment. Please try again.");
+      setPaymentError(
+        err.response?.data?.message || "Failed to initiate payment. Please try again.",
+      );
       console.error("Payment error:", err);
     } finally {
       setPaymentLoading(false);
     }
   };
 
-  const handlePaymentSuccess = async (response) => {
+  const handlePaymentSuccess = async (orderId) => {
     try {
       // Show processing message
       setPaymentLoading(true);
@@ -287,12 +263,8 @@ const PackagesPage = () => {
         severity: "info",
       });
 
-      // Verify payment on backend
-      await api.post("/payments/verify-payment", {
-        razorpay_order_id: response.razorpay_order_id,
-        razorpay_payment_id: response.razorpay_payment_id,
-        razorpay_signature: response.razorpay_signature,
-      });
+      // Verify payment on backend (backend checks the order with Cashfree)
+      await api.post("/payments/verify-payment", { orderId });
 
       // Move to success step
       setActiveStep(2);
@@ -326,6 +298,9 @@ const PackagesPage = () => {
     }
   };
 
+  // Redirect-based payment methods come back with ?cf_order_id=...
+  useCashfreeReturn((orderId) => handlePaymentSuccess(orderId));
+
   const handleContinue = () => {
     // Close dialog and redirect to dashboard
     setPaymentDialogOpen(false);
@@ -352,7 +327,7 @@ const PackagesPage = () => {
     },
     {
       label: "Make Payment",
-      description: "Complete your payment using Razorpay",
+      description: "Complete your payment securely via Cashfree",
     },
     {
       label: "Confirmation",

@@ -52,12 +52,12 @@ import {
   GroupAdd as GroupAddIcon,
   Settings as SettingsIcon,
   Logout as LogoutIcon,
-  CreditScore as CreditScoreIcon,
+  LockReset as LockResetIcon,
+CreditScore as CreditScoreIcon,
   Description as DescriptionIcon,
   AutoGraph as AutoGraphIcon,
 } from "@mui/icons-material";
 import CampaignIcon from "@mui/icons-material/Campaign";
-import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
 import EventRepeatIcon from "@mui/icons-material/EventRepeat";
 import { useAuth } from "../../hooks/useAuth.jsx";
@@ -69,6 +69,7 @@ import ExpandMore from "@mui/icons-material/ExpandMore";
 import CASE_STUDY_CATEGORIES from "../../config/caseStudyCategories";
 import { useLeadUnreadCounts } from "./useLeadUnreadCounts";
 import { useInboxUnreadCounts } from "./useInboxUnreadCounts";
+import ChangePasswordDialog from "./ChangePasswordDialog";
 
 // Styled components for enhanced UI
 const drawerWidth = 260;
@@ -208,6 +209,7 @@ const AdminDashboard = () => {
   const [open, setOpen] = useState(!isMobile); /* MOBILE FIX */
   const [mobileOpen, setMobileOpen] = useState(false); /* MOBILE FIX */
   const [anchorEl, setAnchorEl] = useState(null);
+  const [changePasswordOpen, setChangePasswordOpen] = useState(false);
 
   const handleToggle = (menu) => {
     setOpenMenu(openMenu === menu ? null : menu);
@@ -301,6 +303,11 @@ const AdminDashboard = () => {
           path: "/admin/franchises",
           icon: <PeopleIcon />,
         },
+        {
+          text: "White Labeled Partners",
+          path: "/admin/white-label-partners",
+          icon: <BusinessIcon />,
+        },
       ],
     },
     {
@@ -319,7 +326,11 @@ const AdminDashboard = () => {
       path: "/admin/credit-check",
     },
 
-    { text: "View Reports", icon: <AssessmentIcon />, path: "/admin/reports" },
+    {
+      text: "View Reports",
+      icon: <AssessmentIcon />,
+      path: "/admin/reports",
+    },
     {
       text: "Prefill Failed Logs",
       icon: <AssessmentIcon />,
@@ -384,11 +395,6 @@ const AdminDashboard = () => {
       path: "/admin/marketing-materials",
     },
     {
-      text: "Reward",
-      icon: <EmojiEventsIcon />,
-      path: "/admin/reward",
-    },
-    {
       text: "Case Studies",
       icon: <MenuBookIcon />,
       children: CASE_STUDY_CATEGORIES.map((category) => ({
@@ -401,6 +407,11 @@ const AdminDashboard = () => {
       text: "AI Analysis",
       icon: <AutoGraphIcon />,
       path: "/admin/ai-analysis",
+    },
+    {
+      text: "White Labeled Reports",
+      icon: <DescriptionIcon />,
+      path: "/admin/white-label-reports",
     },
     {
       text: "Manual Business",
@@ -685,6 +696,17 @@ const AdminDashboard = () => {
                 </Box>
               </MenuItem>
               <Divider />
+              <MenuItem
+                onClick={() => {
+                  handleMenuClose();
+                  setChangePasswordOpen(true);
+                }}
+              >
+                <ListItemIcon>
+                  <LockResetIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText>Change password</ListItemText>
+              </MenuItem>
               <MenuItem onClick={handleLogout}>
                 <ListItemIcon>
                   <LogoutIcon fontSize="small" />
@@ -692,6 +714,10 @@ const AdminDashboard = () => {
                 <ListItemText>Logout</ListItemText>
               </MenuItem>
             </Menu>
+            <ChangePasswordDialog
+              open={changePasswordOpen}
+              onClose={() => setChangePasswordOpen(false)}
+            />
           </Box>
         </Toolbar>
       </AppBarStyled>

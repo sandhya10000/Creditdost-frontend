@@ -10,10 +10,12 @@ const PATH_PERMISSIONS = [
   ["/admin/franchises", "franchises"],
   ["/admin/manage-franchise", "franchises"],
   ["/admin/franchise", "franchises"],
+  ["/admin/white-label-partners", "white_label_partners"],
+  ["/admin/white-label-reports", "white_label_reports"],
   ["/admin/packages", "packages"],
   ["/admin/customer-packages", "packages"],
   ["/admin/credit-check", "credit"],
-  ["/admin/prefill-failed-logs", "credit"],
+  ["/admin/prefill-failed-logs", "prefill_logs"],
   ["/admin/reports", "reports"],
   ["/admin/business-forms", "business"],
   // Hyphenated sibling of /admin/business-forms, so the prefix rule above doesn't cover it
