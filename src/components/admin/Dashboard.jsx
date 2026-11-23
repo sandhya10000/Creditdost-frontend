@@ -409,6 +409,11 @@ const AdminDashboard = () => {
       path: "/admin/ai-analysis",
     },
     {
+      text: "Bank Statement Analyzer",
+      icon: <AccountBalanceIcon />,
+      path: "/admin/bsa-reports",
+    },
+    {
       text: "White Labeled Reports",
       icon: <DescriptionIcon />,
       path: "/admin/white-label-reports",

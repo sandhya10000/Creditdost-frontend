@@ -23,6 +23,7 @@ const AdminDashboardHome = lazy(() => import("./AdminDashboardHome"));
 const GoogleSheetsSettings = lazy(() => import("./GoogleSheetsSettings"));
 const ManageDigitalAgreements = lazy(() => import("./ManageDigitalAgreements"));
 const ManageAIAnalysis = lazy(() => import("./ManageAIAnalysis"));
+const ManageBsaReports = lazy(() => import("./ManageBsaReports"));
 const AdminMarketing = lazy(() => import("./AdminMarketing"));
 const AdminReward = lazy(() => import("./AdminReward"));
 const AdminCaseStudies = lazy(() => import("./AdminCaseStudy"));
@@ -102,6 +103,7 @@ const AdminRoutes = () => {
             element={<ManageDigitalAgreements />}
           />
           <Route path="ai-analysis" element={<ManageAIAnalysis />} />
+          <Route path="bsa-reports" element={<ManageBsaReports />} />
           <Route path="marketing-materials" element={<AdminMarketing />} />
           <Route path="reward" element={<AdminReward />} />
           <Route path="case-study/:category?" element={<AdminCaseStudies />} />

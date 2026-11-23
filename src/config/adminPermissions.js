@@ -30,6 +30,7 @@ const PATH_PERMISSIONS = [
   ["/admin/rms", "relationship_managers"],
   ["/admin/google-sheets", "google_sheets"],
   ["/admin/ai-analysis", "ai_analysis"],
+  ["/admin/bsa-reports", "ai_analysis"],
   ["/admin/surepass-settings", "settings"],
   ["/admin/marketing-materials", "marketing"],
   ["/admin/reward", "marketing"],
