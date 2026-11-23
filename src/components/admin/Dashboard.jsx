@@ -52,7 +52,8 @@ import {
   GroupAdd as GroupAddIcon,
   Settings as SettingsIcon,
   Logout as LogoutIcon,
-  CreditScore as CreditScoreIcon,
+  LockReset as LockResetIcon,
+CreditScore as CreditScoreIcon,
   Description as DescriptionIcon,
   AutoGraph as AutoGraphIcon,
 } from "@mui/icons-material";
@@ -68,6 +69,7 @@ import ExpandMore from "@mui/icons-material/ExpandMore";
 import CASE_STUDY_CATEGORIES from "../../config/caseStudyCategories";
 import { useLeadUnreadCounts } from "./useLeadUnreadCounts";
 import { useInboxUnreadCounts } from "./useInboxUnreadCounts";
+import ChangePasswordDialog from "./ChangePasswordDialog";
 
 // Styled components for enhanced UI
 const drawerWidth = 260;
@@ -207,6 +209,7 @@ const AdminDashboard = () => {
   const [open, setOpen] = useState(!isMobile); /* MOBILE FIX */
   const [mobileOpen, setMobileOpen] = useState(false); /* MOBILE FIX */
   const [anchorEl, setAnchorEl] = useState(null);
+  const [changePasswordOpen, setChangePasswordOpen] = useState(false);
 
   const handleToggle = (menu) => {
     setOpenMenu(openMenu === menu ? null : menu);
@@ -693,6 +696,17 @@ const AdminDashboard = () => {
                 </Box>
               </MenuItem>
               <Divider />
+              <MenuItem
+                onClick={() => {
+                  handleMenuClose();
+                  setChangePasswordOpen(true);
+                }}
+              >
+                <ListItemIcon>
+                  <LockResetIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText>Change password</ListItemText>
+              </MenuItem>
               <MenuItem onClick={handleLogout}>
                 <ListItemIcon>
                   <LogoutIcon fontSize="small" />
@@ -700,6 +714,10 @@ const AdminDashboard = () => {
                 <ListItemText>Logout</ListItemText>
               </MenuItem>
             </Menu>
+            <ChangePasswordDialog
+              open={changePasswordOpen}
+              onClose={() => setChangePasswordOpen(false)}
+            />
           </Box>
         </Toolbar>
       </AppBarStyled>

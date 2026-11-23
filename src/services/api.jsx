@@ -54,6 +54,8 @@ export const authAPI = {
   requestPasswordReset: (data) =>
     api.post("/auth/request-password-reset", data),
   resetPassword: (data) => api.post("/auth/reset-password", data),
+  // Signed-in user changes own password: { currentPassword, newPassword }
+  changePassword: (data) => api.post("/auth/change-password", data),
 };
 
 // Franchise API functions
@@ -82,8 +84,9 @@ export const franchiseAPI = {
   // Add the new function for DigiLocker initialization
   initDigiLocker: () => api.post("/kyc/digilocker/init"),
   getCreditPackages: () => api.get("/dashboard/packages"),
-  initiatePayment: (packageId) =>
-    api.post("/payments/create-order", { packageId }),
+  // Cashfree: create returns { orderId, paymentSessionId }; verify takes { orderId }
+  initiatePayment: (packageId, returnPath) =>
+    api.post("/payments/create-order", { packageId, returnPath }),
   verifyPayment: (data) => api.post("/payments/verify-payment", data),
   getCreditReport: (data) => api.post("/credit/check", data),
   getCreditReports: (params) => api.get("/credit/reports", { params }),
@@ -98,6 +101,7 @@ export const franchiseAPI = {
   submitBusinessForm: (data) => api.post("/business/submit", data),
   lookupConsultant: (q) => api.get("/business/consultant-lookup", { params: { q } }),
   getAssignableRms: () => api.get("/business/rms"),
+  // Cashfree: { orderId, businessFormId }
   verifyBusinessPayment: (data) => api.post("/business/verify-payment", data),
   getBusinessForms: () => api.get("/business/franchise"),
   getAmcCustomers: (params) => api.get("/business/franchise/amc", { params }),
@@ -107,6 +111,7 @@ export const franchiseAPI = {
   // White Label Reports (Platinum/Diamond only)
   getWhiteLabelStatus: () => api.get("/dashboard/white-label/status"),
   createWhiteLabelOrder: (data) => api.post("/dashboard/white-label/order", data),
+  // Cashfree: { orderId }
   verifyWhiteLabelPayment: (data) => api.post("/dashboard/white-label/verify", data),
   // Referrals
   getReferrals: () => api.get("/dashboard/referrals"),
@@ -447,7 +452,7 @@ export const adminAPI = {
   renewAmc: (id, data) => api.post(`/admin/business-forms/${id}/amc/renew`, data),
   cancelAmc: (id, data) =>
     api.delete(`/admin/business-forms/${id}/amc`, { data }),
-  // Manual Payments (Razorpay payment links created by admin)
+  // Manual Payments (Cashfree payment links created by admin)
   getManualPayments: (params) => api.get("/admin/manual-payments", { params }),
   createManualPayment: (data) => api.post("/admin/manual-payments", data),
   refreshManualPayment: (id) => api.post(`/admin/manual-payments/${id}/refresh`),
