@@ -28,7 +28,7 @@ import DownloadIcon from "@mui/icons-material/Download";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import axios from "axios";
 
-const API_BASE = (import.meta.env.VITE_API_URL || "http://localhost:5000/api").replace(/\/+$/, "");
+const API_BASE = (import.meta.env.VITE_REACT_APP_API_URL || "http://localhost:5000/api").replace(/\/+$/, "");
 
 const fmtDateTime = (v) => {
   if (!v) return "—";

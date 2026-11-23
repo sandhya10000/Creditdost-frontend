@@ -40,7 +40,7 @@ export default function BsaReportView({ reportData, jobId }) {
 
   const handleDownloadPdf = () => {
     if (jobId) {
-      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      const API_BASE_URL = import.meta.env.VITE_REACT_APP_API_URL || 'http://localhost:5000/api';
       window.open(`${API_BASE_URL}/v1/bsa/report/${jobId}/pdf`, '_blank');
     }
   };
