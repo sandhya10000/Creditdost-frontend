@@ -1,5 +1,6 @@
 ﻿import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
+import { PDFDocument } from "pdf-lib";
 import {
   Box,
   Typography,
@@ -151,7 +152,7 @@ const BankStatementAnalyzer = () => {
     validateAndSetFile(selected);
   };
 
-  const validateAndSetFile = (selected) => {
+  const validateAndSetFile = async (selected) => {
     if (selected) {
       if (selected.type !== "application/pdf" && !selected.name.toLowerCase().endsWith(".pdf")) {
         setErrorMessage("Please select a valid PDF bank statement file.");
@@ -165,8 +166,27 @@ const BankStatementAnalyzer = () => {
       }
       setFile(selected);
       setErrorMessage("");
-      setRequiresPassword(false);
       setPassword("");
+      setStatus("idle");
+
+      // Instantly check client-side if PDF is password-protected
+      try {
+        const buffer = await selected.arrayBuffer();
+        try {
+          await PDFDocument.load(buffer, { ignoreEncryption: false });
+          setRequiresPassword(false);
+        } catch (pdfErr) {
+          const errMsg = String(pdfErr.message || "").toLowerCase();
+          if (errMsg.includes("encrypt") || errMsg.includes("password")) {
+            setRequiresPassword(true);
+            showSnackbar("This statement is password-protected. Please enter password before analyzing.", "info");
+          } else {
+            setRequiresPassword(false);
+          }
+        }
+      } catch (err) {
+        console.warn("Could not pre-check PDF encryption:", err);
+      }
     }
   };
 
@@ -186,6 +206,11 @@ const BankStatementAnalyzer = () => {
     }
     if (!consent) {
       setErrorMessage("Please confirm customer consent to proceed with credit underwriting.");
+      return;
+    }
+    if (requiresPassword && !password.trim()) {
+      setErrorMessage("Please enter the password for this protected PDF statement.");
+      showSnackbar("Password is required to unlock this bank statement.", "warning");
       return;
     }
 
