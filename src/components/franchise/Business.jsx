@@ -696,8 +696,8 @@ const Business = ({
       if (key === "bankAccountNumber" || key === "ifscCode") {
         continue;
       }
-      // Client issues are optional
-      if (key === "clientIssues") {
+      // Client issues and father's name are optional
+      if (key === "clientIssues" || key === "fatherName") {
         continue;
       }
 
