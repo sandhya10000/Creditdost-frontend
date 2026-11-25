@@ -80,7 +80,7 @@ const BusinessForms = ({ status = "paid", customerType }) => {
   const hideAmountAndPayment =
     user?.subRole === "credit_analyst" ||
     /credit\s*analyst/i.test(user?.staffRoleName || "");
-  const isFullAdmin = !user?.staffRole;
+  const isFullAdmin = user?.subRole === "super_admin";
   const [rmList, setRmList] = useState([]);
 
   useEffect(() => {
@@ -678,14 +678,16 @@ const BusinessForms = ({ status = "paid", customerType }) => {
                               clickable
                             />
                           )}
-                          <Button
-                            variant="contained"
-                            color="error"
-                            size="small"
-                            onClick={() => handleDeleteClick(form)}
-                          >
-                            Delete
-                          </Button>
+                          {isFullAdmin && (
+                            <Button
+                              variant="contained"
+                              color="error"
+                              size="small"
+                              onClick={() => handleDeleteClick(form)}
+                            >
+                              Delete
+                            </Button>
+                          )}
                         </Stack>
                       </TableCell>
                     </TableRow>
