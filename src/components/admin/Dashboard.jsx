@@ -60,6 +60,8 @@ CreditScore as CreditScoreIcon,
 import CampaignIcon from "@mui/icons-material/Campaign";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
 import EventRepeatIcon from "@mui/icons-material/EventRepeat";
+import Inventory2Icon from "@mui/icons-material/Inventory2";
+import PendingActionsIcon from "@mui/icons-material/PendingActions";
 import { useAuth } from "../../hooks/useAuth.jsx";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useEffect } from "react";
@@ -306,14 +308,20 @@ const AdminDashboard = () => {
       ],
     },
     {
-      text: "Manage Franchise Packages",
-      icon: <BusinessIcon />,
-      path: "/admin/packages",
-    },
-    {
-      text: "Manage Customer Packages",
-      icon: <BusinessCenterIcon />,
-      path: "/admin/customer-packages",
+      text: "Manage Packages",
+      icon: <Inventory2Icon />,
+      children: [
+        {
+          text: "Franchise Packages",
+          path: "/admin/packages",
+          icon: <BusinessIcon />,
+        },
+        {
+          text: "Customer Packages",
+          path: "/admin/customer-packages",
+          icon: <BusinessCenterIcon />,
+        },
+      ],
     },
     {
       text: "Credit Check",
@@ -351,12 +359,12 @@ const AdminDashboard = () => {
           path: "/admin/amc-customers",
           icon: <EventRepeatIcon />,
         },
+        {
+          text: "Business MIS Pending",
+          path: "/admin/business-forms-pending",
+          icon: <PendingActionsIcon />,
+        },
       ],
-    },
-    {
-      text: "Business MIS Pending",
-      icon: <DescriptionIcon />,
-      path: "/admin/business-forms-pending",
     },
     {
       text: "Support Tickets",
