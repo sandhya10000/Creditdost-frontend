@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import {
   Container,
@@ -140,7 +140,11 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
+  // A notice left by a forced sign-out (e.g. account suspended) is shown once
+  const [error, setError] = useState(() => sessionStorage.getItem("loginNotice") || "");
+  useEffect(() => {
+    sessionStorage.removeItem("loginNotice");
+  }, []);
   const [openForgotPassword, setOpenForgotPassword] = useState(false);
   const [forgotEmail, setForgotEmail] = useState("");
   const [forgotSuccess, setForgotSuccess] = useState("");

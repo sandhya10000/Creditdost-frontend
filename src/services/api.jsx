@@ -41,6 +41,16 @@ api.interceptors.response.use(
       // Unauthorized - remove token and redirect to login
       localStorage.removeItem("token");
       window.location.href = "/login";
+    } else if (
+      error.response?.status === 403 &&
+      error.response.data?.code === "ACCOUNT_SUSPENDED" &&
+      localStorage.getItem("token")
+    ) {
+      // Partner was blacklisted while signed in: sign out and explain on the login page
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      sessionStorage.setItem("loginNotice", error.response.data.message);
+      window.location.href = "/login";
     }
     return Promise.reject(error);
   },
@@ -211,6 +221,8 @@ export const adminAPI = {
     api.get("/analytics/visitors/trends", { params }),
   // Franchise management
   getAllFranchises: (params) => api.get("/franchises", { params }),
+  // Tab counts for the Franchises page: { active, pending, deleted, byStatus }
+  getFranchiseCounts: () => api.get("/franchises/counts"),
   /**
    * Export ALL matching franchise records as a streamed CSV.
    * Pass the same `search` / `kycStatus` params that are active in the list view
@@ -422,6 +434,9 @@ export const adminAPI = {
   assignBusinessManagersToPartners: () => api.post("/franchises/assign-business-managers"),
   setFranchiseCreditHold: (franchiseId, hold) =>
     api.put(`/franchises/${franchiseId}/credit-hold`, { hold }),
+  // Admin / Business Manager: blacklisted partners can't log in ({ blacklisted, reason })
+  setFranchiseBlacklist: (franchiseId, blacklisted, reason = "") =>
+    api.put(`/franchises/${franchiseId}/blacklist`, { blacklisted, reason }),
   reassignFranchiseManager: (franchiseId, businessManagerId) =>
     api.put(`/franchises/${franchiseId}/business-manager`, { businessManagerId }),
   assignStaffMember: (data) => api.post("/admin/staff", data),

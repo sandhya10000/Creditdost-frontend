@@ -294,12 +294,7 @@ const AdminDashboard = () => {
       icon: <PeopleIcon />,
       children: [
         {
-          text: "Pending Franchise",
-          path: "/admin/franchise-pending",
-          icon: <BusinessIcon />,
-        },
-        {
-          text: "Active Franchise",
+          text: "Franchises",
           path: "/admin/franchises",
           icon: <PeopleIcon />,
         },

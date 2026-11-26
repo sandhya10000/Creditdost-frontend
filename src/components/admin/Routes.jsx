@@ -32,9 +32,6 @@ const FranchiseCRM = lazy(() => import("../pages/FranchiseCRM"));
 const AdminCreditBureau = lazy(() => import("../admin/AdminCreditcheck"));
 const PrefillFailedLog = lazy(() => import("../admin/PrefillFailedLog"));
 const ManualBusiness = lazy(() => import("../admin/ManualBusiness"));
-const FranchisePending = lazy(
-  () => import("../admin/Website-enquiry/FranchisePending"),
-);
 const CreditReportLeads = lazy(
   () => import("../admin/Website-enquiry/CreditReportLeads"),
 );
@@ -47,10 +44,8 @@ const AdminRoutes = () => {
       <Routes>
         <Route path="/" element={<Dashboard />}>
           <Route index element={<AdminDashboardHome />} />
-          <Route
-            path="franchises"
-            element={<ManageFranchises kycStatus="approved" />}
-          />
+          {/* One Franchises page; tabs are ?tab=active|pending|deleted */}
+          <Route path="franchises" element={<ManageFranchises />} />
           <Route path="packages" element={<ManagePackages />} />
           <Route
             path="customer-packages"
@@ -113,24 +108,22 @@ const AdminRoutes = () => {
           <Route path="/prefill-failed-logs" element={<PrefillFailedLog />} />
           <Route path="/manual-business" element={<ManualBusiness />} />
           <Route path="/admin-tickets" element={<AdminTickets />} />
+          {/* Older franchise URLs open the matching tab */}
           <Route
             path="manage-franchise"
-            element={<ManageFranchises kycStatus="all" />}
+            element={<Navigate to="/admin/franchises?tab=active&status=all" replace />}
           />
-
           <Route
             path="franchise-pending"
-            element={<FranchisePending />}
+            element={<Navigate to="/admin/franchises?tab=pending" replace />}
           />
-
           <Route
             path="franchise-approved"
-            element={<ManageFranchises kycStatus="approved" />}
+            element={<Navigate to="/admin/franchises?tab=active" replace />}
           />
-
           <Route
             path="franchise-rejected"
-            element={<ManageFranchises kycStatus="rejected" />}
+            element={<Navigate to="/admin/franchises?tab=active&status=rejected" replace />}
           />
 
           <Route path="credit-report-leads" element={<CreditReportLeads />} />

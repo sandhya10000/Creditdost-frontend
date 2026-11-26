@@ -37,6 +37,7 @@ import {
   Cancel as CancelIcon,
 } from "@mui/icons-material";
 import { adminAPI } from "../../services/api";
+import { useAuth } from "../../hooks/useAuth.jsx";
 import AmcDialog from "./AmcDialog";
 import {
   AMC_STATUS_CONFIG,
@@ -51,11 +52,22 @@ const WORK_STATUS_COLORS = {
   newly_logged: { bg: "#ef6c00", color: "#fff" },
   in_progress: { bg: "#0288d1", color: "#fff" },
   closed: { bg: "#2e7d32", color: "#fff" },
+  refunded: { bg: "#c62828", color: "#fff" }, // set or changed only by a full admin
+};
+const WORK_STATUS_LABELS = {
+  newly_logged: "Newly Logged",
+  in_progress: "In Progress",
+  pending: "Pending",
+  closed: "Closed",
+  refunded: "Refunded",
 };
 
 const rowsPerPage = 20;
 
 const AmcCustomers = () => {
+  // Same rule as Business MIS: only a full admin can set or undo Refunded
+  const { user } = useAuth();
+  const isFullAdmin = user?.subRole === "super_admin";
   const [records, setRecords] = useState([]);
   const [counts, setCounts] = useState({});
   const [loading, setLoading] = useState(false);
@@ -122,13 +134,21 @@ const AmcCustomers = () => {
   };
 
   const updateWorkStatus = async (id, newStatus) => {
+    if (
+      newStatus === "refunded" &&
+      !window.confirm(
+        "Mark this case as Refunded? It will be removed from customer package revenue, and only Admin can change it afterwards.",
+      )
+    ) {
+      return;
+    }
     try {
       await adminAPI.updateBusinessWorkStatus(id, { workStatus: newStatus });
       showToast("Work status has been updated.");
       fetchRecords();
     } catch (err) {
       console.error(err);
-      showToast("Failed to update status. Please try again.", "error");
+      showToast(err.response?.data?.message || "Failed to update status. Please try again.", "error");
     }
   };
 
@@ -393,8 +413,15 @@ const AmcCustomers = () => {
                           <FormControl size="small" sx={{ minWidth: 130 }}>
                             <Select
                               value={currentWork}
+                              disabled={currentWork === "refunded" && !isFullAdmin}
+                              renderValue={(value) => WORK_STATUS_LABELS[value] || value}
                               onChange={(e) => updateWorkStatus(record._id, e.target.value)}
                               sx={{
+                                "& .MuiSelect-select.Mui-disabled": {
+                                  WebkitTextFillColor: workColors.color,
+                                  color: workColors.color,
+                                },
+                                "& .MuiSelect-icon.Mui-disabled": { color: workColors.color },
                                 backgroundColor: workColors.bg,
                                 color: workColors.color,
                                 fontWeight: 600,
@@ -407,6 +434,9 @@ const AmcCustomers = () => {
                               <MenuItem value="newly_logged">Newly Logged</MenuItem>
                               <MenuItem value="in_progress">In Progress</MenuItem>
                               <MenuItem value="closed">Closed</MenuItem>
+                              <MenuItem value="refunded" disabled={!isFullAdmin}>
+                                Refunded{!isFullAdmin ? " (Admin only)" : ""}
+                              </MenuItem>
                             </Select>
                           </FormControl>
                         </TableCell>

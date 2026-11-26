@@ -164,6 +164,7 @@ const BusinessFollowUps = () => {
       closed: { label: "Closed", color: "success" },
       pending: { label: "Pending", color: "secondary" },
       newly_logged: { label: "Newly Logged", color: "warning", bg: "#ef6c00" },
+      refunded: { label: "Refunded", color: "error", bg: "#c62828" },
     };
     const config = map[status] || { label: "In Progress", color: "info" };
     return (

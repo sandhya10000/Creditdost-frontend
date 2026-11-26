@@ -33,6 +33,7 @@ import { adminAPI, franchiseAPI } from "../../services/api";
 import { notifyInboxCountsChanged } from "./useInboxUnreadCounts";
 import { useAuth } from "../../hooks/useAuth.jsx";
 import { formatAmcDate } from "../../utils/amc";
+import { downloadXlsx } from "../../utils/xlsxExport";
 import { useNavigate, Link as RouterLink } from "react-router-dom";
 import { Link } from "@mui/material";
 import EventAvailableIcon from "@mui/icons-material/EventAvailable";
@@ -43,6 +44,8 @@ const WORK_STATUS = {
   in_progress: { label: "In Progress", bg: "#0288d1", text: "#1565c0" },
   pending: { label: "Pending", bg: "#7b1fa2", text: "#7b1fa2" },
   closed: { label: "Closed", bg: "#2e7d32", text: "#2e7d32" },
+  // Only a full admin can set it, or change a refunded case back
+  refunded: { label: "Refunded", bg: "#c62828", text: "#c62828" },
 };
 const getWorkStatus = (status) => WORK_STATUS[status] || WORK_STATUS.newly_logged;
 
@@ -182,11 +185,6 @@ const BusinessForms = ({ status = "paid", customerType }) => {
       setLoading(false);
     }
   };
-  const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleDateString();
-  };
-
   const getPaymentStatusChip = (status) => {
     const statusConfig = {
       pending: { label: "Pending", color: "warning" },
@@ -207,6 +205,14 @@ const BusinessForms = ({ status = "paid", customerType }) => {
   };
 
   const updateWorkStatus = async (id, newStatus) => {
+    if (
+      newStatus === "refunded" &&
+      !window.confirm(
+        "Mark this case as Refunded? It will be removed from customer package revenue, and only Admin can change it afterwards.",
+      )
+    ) {
+      return;
+    }
     try {
       await adminAPI.updateBusinessWorkStatus(id, {
         workStatus: newStatus,
@@ -215,13 +221,17 @@ const BusinessForms = ({ status = "paid", customerType }) => {
       fetchBusinessForms();
     } catch (err) {
       console.error(err);
-      setToast({ open: true, message: "Failed to update status. Please try again.", severity: "error" });
+      setToast({
+        open: true,
+        message: err.response?.data?.message || "Failed to update status. Please try again.",
+        severity: "error",
+      });
     }
   };
 
   // Removed client-side filter
   console.log(businessForms, "businessForms----------------"); //Download bussiness mis users data function
-  const handleDownloadCSV = async () => {
+  const handleDownloadExcel = async () => {
     try {
       setLoading(true);
       
@@ -231,85 +241,134 @@ const BusinessForms = ({ status = "paid", customerType }) => {
         limit: 1000000, // Large number to fetch all records
         search: appliedSearch,
         paymentStatus: status,
+        sortBy: activeSort.sortBy,
+        sortOrder: activeSort.sortOrder,
         ...(customerType && { customerType }),
       });
       
-      const allBusinessForms = response.data.businessData || [];
-      
-      // Removed frontend search filter since backend already filters by search and paymentStatus
-      const exportData = allBusinessForms;
+      // Backend already filters by search, paymentStatus and customerType
+      const exportData = response.data.businessData || [];
 
-      const headers = [
-        "Customer ID",
-        "Customer Name",
-        "Email",
-        "Phone",
-        "Franchise",
-        ...(hideAmountAndPayment ? [] : ["Amount", "Payment Status"]),
-        "Document",
-        "Date",
-        "Work Status",
-        "AMC",
+      const PAYMENT_LABELS = { pending: "Pending", paid: "Paid", failed: "Failed" };
+      const formatDateTime = (value) =>
+        value
+          ? new Date(value).toLocaleString("en-IN", {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: true,
+            })
+          : "";
+      const formatDob = (value) =>
+        value ? new Date(value).toLocaleDateString("en-IN") : "";
+
+      // One entry per column: [header, value for a form]. Mirrors the table first,
+      // then the sections of the customer details page (Customer ID link).
+      const columns = [
+        // ----- Table columns -----
+        ["Customer ID", (f) => f.customerId],
+        ["Customer Name", (f) => f.customerName],
+        ["Email", (f) => f.customerEmail],
+        ["Phone", (f) => f.customerPhone],
         ...(isBusinessView
-          ? [
-              "Director Name",
-              "GST Username",
-              "GST Number",
-              "Company Type",
-              "Company PAN Number",
-            ]
-          : []),
-      ];
-
-      const rows = exportData.map((form) => [
-        form.customerId || "",
-        form.customerName || "",
-        form.customerEmail || "",
-        form.customerPhone || "",
-        form.franchiseId?.businessName || "N/A",
+          ? []
+          : [
+              [
+                "RM",
+                (f) =>
+                  f.assignedRm
+                    ? `${f.assignedRm.name}${f.assignedRm.staffCode ? ` (${f.assignedRm.staffCode})` : ""}`
+                    : "Unassigned",
+              ],
+            ]),
+        ["Franchise Code", (f) => f.franchiseId?.franchiseCode],
+        ["Franchise Name", (f) => f.franchiseId?.businessName],
         ...(hideAmountAndPayment
           ? []
           : [
-              form.manualAmount ? form.manualAmount : form.selectedPackage?.price || "N/A",
-              form.paymentStatus || "",
+              ["Amount", (f) => f.manualAmount || f.selectedPackage?.price],
+              ["Payment Status", (f) => PAYMENT_LABELS[f.paymentStatus] || f.paymentStatus],
             ]),
-        Object.values(form.documents || {}).some(Boolean) ? "Yes" : "No",
-        formatDate(form.createdAt),
-        form.workStatus || "",
-        form.amc?.isEnrolled
-          ? `${formatAmcDate(form.amc.startDate)} to ${formatAmcDate(form.amc.endDate)}`
-          : "No",
+        ["Document", (f) => (Object.values(f.documents || {}).some(Boolean) ? "Yes" : "No")],
+        ["Date", (f) => formatDateTime(f.createdAt)],
+        ["Work Status", (f) => getWorkStatus(f.workStatus).label],
+        [
+          "AMC",
+          (f) =>
+            f.amc?.isEnrolled
+              ? `${formatAmcDate(f.amc.startDate)} to ${formatAmcDate(f.amc.endDate)}`
+              : "No",
+        ],
+
+        // ----- Personal details -----
+        ["WhatsApp Number", (f) => f.whatsappNumber],
+        ["Father's Name", (f) => f.fatherName],
+        ["PAN Number", (f) => f.panNumber],
+        ["Aadhaar Number", (f) => f.aadharNumber],
+        ["Date of Birth", (f) => formatDob(f.dob)],
+        ["Gender", (f) => f.gender],
+        ["Language", (f) => f.language],
+        ["Occupation", (f) => f.occupation],
+
+        // ----- Business details (business customers) -----
         ...(isBusinessView
           ? [
-              form.businessDetails?.directorName || "",
-              form.businessDetails?.gstUsername || "",
-              form.businessDetails?.gstNumber || "",
-              form.businessDetails?.companyType || "",
-              form.businessDetails?.companyPanNumber || "",
+              ["Director Name", (f) => f.businessDetails?.directorName],
+              ["GST Username", (f) => f.businessDetails?.gstUsername],
+              ["GST Number", (f) => f.businessDetails?.gstNumber],
+              ["Company Type", (f) => f.businessDetails?.companyType],
+              ["Company PAN Number", (f) => f.businessDetails?.companyPanNumber],
             ]
           : []),
-      ]);
 
-      // Enclose fields in double quotes to handle commas in data
-      const csvContent = [headers, ...rows]
-        .map((row) => row.map(value => `"${String(value).replace(/"/g, '""')}"`).join(","))
-        .join("\n");
+        // ----- Address details -----
+        ["Full Address", (f) => f.fullAddress],
+        ["City", (f) => f.city],
+        ["State", (f) => f.state],
+        ["Pincode", (f) => f.pincode],
 
-      const encodedUri =
-        "data:text/csv;charset=utf-8," + encodeURIComponent(csvContent);
+        // ----- Financial details -----
+        ["Monthly Income", (f) => f.monthlyIncome],
+        ["Bank Account Number", (f) => f.bankAccountNumber],
+        ["IFSC Code", (f) => f.ifscCode],
 
-      const link = document.createElement("a");
-      link.href = encodedUri;
-      link.download = customerType
-        ? `business_mis_${customerType}.csv`
-        : "business_mis.csv";
+        // ----- Package details -----
+        ["Selected Package", (f) => f.selectedPackage?.name],
+        ...(hideAmountAndPayment
+          ? []
+          : [["Package Price (incl. GST)", (f) => f.selectedPackage?.totalPrice]]),
 
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+        // ----- Franchise / consultant details -----
+        ["Franchise Phone", (f) => f.franchiseId?.phone],
+        ...(isBusinessView
+          ? []
+          : [
+              ["Consultant Name", (f) => f.consultant?.name],
+              ["Consultant Number", (f) => f.consultant?.phone],
+              ["Consultant Email", (f) => f.consultant?.email],
+            ]),
+      ];
+
+      // Empty values show as N/A
+      const cellValue = (value) =>
+        value === undefined || value === null || String(value).trim() === "" ? "N/A" : value;
+
+      // Excel file (not CSV) so the header row can be coloured
+      downloadXlsx(
+        customerType ? `business_mis_${customerType}.xlsx` : "business_mis.xlsx",
+        {
+          sheetName: "Business MIS",
+          headers: columns.map(([header]) => header),
+          rows: exportData.map((form) =>
+            columns.map(([, getValue]) => cellValue(getValue(form))),
+          ),
+        },
+      );
     } catch (err) {
-      console.error("Error downloading CSV:", err);
-      setToast({ open: true, message: "Failed to download CSV", severity: "error" });
+      console.error("Error downloading Excel:", err);
+      setToast({ open: true, message: "Failed to download Excel file", severity: "error" });
     } finally {
       setLoading(false);
     }
@@ -443,10 +502,10 @@ const BusinessForms = ({ status = "paid", customerType }) => {
               <Button
                 variant="contained"
                 color="success"
-                onClick={handleDownloadCSV}
+                onClick={handleDownloadExcel}
                 sx={{ color: "#fff", width: { xs: "100%", sm: "auto" } }}
               >
-                Download CSV
+                Download Excel
               </Button>
             </Stack>
           </Box>
@@ -643,12 +702,19 @@ const BusinessForms = ({ status = "paid", customerType }) => {
                             const current = form.workStatus || "newly_logged";
                             const { bg } = getWorkStatus(current);
                             const color = "#fff";
+                            // Staff can't change a case once Admin has marked it Refunded
+                            const locked = current === "refunded" && !isFullAdmin;
                             return (
                               <FormControl size="small" sx={{ minWidth: 130 }}>
                                 <Select
                                   value={current}
+                                  disabled={locked}
+                                  title={locked ? "Only Admin can change a Refunded case" : undefined}
+                                  renderValue={(value) => getWorkStatus(value).label}
                                   onChange={(e) => updateWorkStatus(form._id, e.target.value)}
                                   sx={{
+                                    "& .MuiSelect-select.Mui-disabled": { WebkitTextFillColor: color, color },
+                                    "& .MuiSelect-icon.Mui-disabled": { color },
                                     backgroundColor: bg,
                                     color: color,
                                     fontWeight: 600,
@@ -664,6 +730,10 @@ const BusinessForms = ({ status = "paid", customerType }) => {
                                   <MenuItem value="in_progress">In Progress</MenuItem>
                                   <MenuItem value="pending">Pending</MenuItem>
                                   <MenuItem value="closed">Closed</MenuItem>
+                                  {/* Kept in the list for everyone so a refunded case still shows its label */}
+                                  <MenuItem value="refunded" disabled={!isFullAdmin}>
+                                    Refunded{!isFullAdmin ? " (Admin only)" : ""}
+                                  </MenuItem>
                                 </Select>
                               </FormControl>
                             );

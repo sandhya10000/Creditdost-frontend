@@ -1023,6 +1023,50 @@ const AdminDashboardHome = () => {
         ))}
       </Box>
 
+      {/* Partners by package (backend limits RMs to their own partners) */}
+      <Card
+        sx={{
+          mb: 4,
+          borderRadius: 3,
+          border: "1px solid",
+          borderColor: "divider",
+          boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+        }}
+      >
+        <CardContent sx={{ p: 3 }}>
+          <MisWidgetHeader
+            icon={<GroupIcon />}
+            color="#5e35b1"
+            title="Partners by Package"
+            subtitle="Each partner is counted once, under their highest active package"
+          />
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+              gap: 2,
+            }}
+          >
+            {[
+              { key: "silver", label: "Silver", color: "#607d8b" },
+              { key: "platinum", label: "Platinum", color: "#5e35b1" },
+              { key: "diamond", label: "Diamond", color: "#0288d1" },
+              // Packages outside the four tiers (only shown when there are any)
+              ...(stats.partnerPackageCounts?.other
+                ? [{ key: "other", label: "Other package", color: "#8d6e63" }]
+                : []),
+            ].map(({ key, label, color }) => (
+              <MisCountItem
+                key={key}
+                label={label}
+                value={stats.partnerPackageCounts ? stats.partnerPackageCounts[key] : "--"}
+                color={color}
+              />
+            ))}
+          </Box>
+        </CardContent>
+      </Card>
+
       {/* Monthly and Yearly Revenue Section */}
       <Box sx={{ mb: 4 }}>
         <Typography variant="h5" sx={{ fontWeight: 700, mb: 3 }}>

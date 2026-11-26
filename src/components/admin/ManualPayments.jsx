@@ -29,6 +29,7 @@ import ManualPaymentDialog from "./ManualPaymentDialog";
 import { adminAPI } from "../../services/api";
 
 const PAGE_SIZE = 20;
+const COLUMN_COUNT = 9;
 const AUTO_REFRESH_MS = 15 * 1000;
 
 const STATUS_META = {
@@ -197,7 +198,7 @@ const ManualPayments = () => {
       <Stack direction={{ xs: "column", md: "row" }} spacing={2} sx={{ mb: 2 }}>
         <TextField
           size="small"
-          label="Search name, mobile, city"
+          label="Search name or city"
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
           sx={{ minWidth: 300 }}
@@ -229,12 +230,11 @@ const ManualPayments = () => {
           <TableHead>
             <TableRow>
               <TableCell>Name</TableCell>
-              <TableCell>Mobile</TableCell>
-              <TableCell>Gateway</TableCell>
               <TableCell>City</TableCell>
               <TableCell align="right">Amount</TableCell>
               <TableCell>Remarks</TableCell>
               <TableCell>Status</TableCell>
+              <TableCell>Created By</TableCell>
               <TableCell>Created</TableCell>
               <TableCell>Expires</TableCell>
               <TableCell align="center">Actions</TableCell>
@@ -243,13 +243,13 @@ const ManualPayments = () => {
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={10} align="center">
+                <TableCell colSpan={COLUMN_COUNT} align="center">
                   <CircularProgress size={24} />
                 </TableCell>
               </TableRow>
             ) : payments.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={10} align="center">
+                <TableCell colSpan={COLUMN_COUNT} align="center">
                   No manual payments yet
                 </TableCell>
               </TableRow>
@@ -260,9 +260,15 @@ const ManualPayments = () => {
                 const busy = busyId === p._id;
                 return (
                   <TableRow key={p._id} hover>
-                    <TableCell>{p.name}</TableCell>
-                    <TableCell>{p.mobile}</TableCell>
-                    <TableCell>{p.gateway === "cashfree" ? "Cashfree" : "Razorpay"}</TableCell>
+                    <TableCell>
+                      {p.name}
+                      {/* Older links were created with a mobile number */}
+                      {p.mobile && (
+                        <Typography variant="caption" color="text.secondary" display="block">
+                          {p.mobile}
+                        </Typography>
+                      )}
+                    </TableCell>
                     <TableCell>{p.city || "-"}</TableCell>
                     <TableCell align="right">₹{p.amount}</TableCell>
                     <TableCell sx={{ maxWidth: 200 }}>{p.remarks || "-"}</TableCell>
@@ -272,6 +278,26 @@ const ManualPayments = () => {
                         <Typography variant="caption" display="block">
                           {formatDate(p.paidAt)}
                         </Typography>
+                      )}
+                      {/* New links are Razorpay-only; flag the older Cashfree ones */}
+                      {p.gateway === "cashfree" && (
+                        <Typography variant="caption" color="text.secondary" display="block">
+                          via Cashfree
+                        </Typography>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {p.createdBy ? (
+                        <>
+                          {p.createdBy.name || "-"}
+                          {p.createdBy.roleLabel && (
+                            <Typography variant="caption" color="text.secondary" display="block">
+                              {p.createdBy.roleLabel}
+                            </Typography>
+                          )}
+                        </>
+                      ) : (
+                        "-"
                       )}
                     </TableCell>
                     <TableCell>{formatDate(p.createdAt)}</TableCell>

@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect, useRef } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
 import { useAuth } from "../../hooks/useAuth.jsx";
 import ReassignRmDialog from "./ReassignRmDialog";
+import CreateFranchiseDialog from "./CreateFranchiseDialog";
 import {
   Box,
   Stack,
@@ -33,15 +34,19 @@ import {
   Select,
   MenuItem,
   FormControl,
-  AppBar,
   Tabs,
   Tab,
   Divider,
   Checkbox,
   ListItemText,
+  ListItemIcon,
   Snackbar,
   Menu,
   Pagination,
+  LinearProgress,
+  Tooltip,
+  InputAdornment,
+  Avatar,
 } from "@mui/material";
 import {
   Search,
@@ -56,16 +61,25 @@ import {
   PictureAsPdf as PictureAsPdfIcon,
   Add as AddIcon,
   Delete,
-  Info,
   Password,
   Restore,
   AddCircle,
   RemoveCircle,
   Send,
   AlternateEmail,
+  Block,
+  MoreVert,
+  CheckCircleOutline,
+  HourglassEmpty,
+  DeleteOutline,
+  SupervisorAccount,
+  PauseCircleOutline,
+  PlayCircleOutline,
 } from "@mui/icons-material";
 import { adminAPI } from "../../services/api";
 import CreditAdjustDialog from "./CreditAdjustDialog";
+import BlacklistPartnerDialog from "./BlacklistPartnerDialog";
+import { canBlacklistPartners } from "../../utils/blacklist";
 
 const DetailItem = ({ label, value }) => (
   <Grid item xs={12} sm={6}>
@@ -98,15 +112,122 @@ const DetailSection = ({ title, children }) => (
   </Card>
 );
 
-const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPage = false }) => {
+// Tabs on the Franchises page (?tab=active|pending|deleted)
+const VIEWS = {
+  active: {
+    label: "Active Franchise",
+    icon: <CheckCircleOutline fontSize="small" />,
+    emptyTitle: "No franchises found",
+    emptyHint: "Nothing matches the selected KYC filter.",
+  },
+  pending: {
+    label: "Pending Franchise",
+    icon: <HourglassEmpty fontSize="small" />,
+    emptyTitle: "All caught up",
+    emptyHint: "No registrations are waiting for review.",
+  },
+  deleted: {
+    label: "Deleted Franchise",
+    icon: <DeleteOutline fontSize="small" />,
+    emptyTitle: "No deleted franchises",
+    emptyHint: "Deleted franchises show up here and can be restored.",
+  },
+};
+const VIEW_KEYS = Object.keys(VIEWS);
+
+// KYC filters per tab (?status=). "all" on Active means every status except pending.
+const STATUS_FILTERS = {
+  active: [
+    { value: "approved", label: "Approved" },
+    { value: "submitted", label: "KYC Submitted" },
+    { value: "rejected", label: "Rejected" },
+    { value: "all", label: "All" },
+  ],
+  pending: null,
+  deleted: [
+    { value: "all", label: "All" },
+    { value: "pending", label: "Pending" },
+    { value: "submitted", label: "KYC Submitted" },
+    { value: "approved", label: "Approved" },
+    { value: "rejected", label: "Rejected" },
+  ],
+};
+const DEFAULT_STATUS = { active: "approved", pending: "pending", deleted: "all" };
+
+// List / CSV query for a tab and KYC filter
+const queryFor = (view, status) => {
+  if (view === "pending") return { kycStatus: "pending" };
+  if (view === "deleted") {
+    return { showDeleted: "true", kycStatus: status === "all" ? "" : status };
+  }
+  return status === "all" ? { excludeStatus: "pending" } : { kycStatus: status };
+};
+
+// ---- Franchise table display helpers ----
+const COLUMNS = [
+  { key: "partner", label: "Partner", width: 230 },
+  { key: "owner", label: "Owner", width: 170 },
+  { key: "email", label: "Email & Login", width: 240 },
+  { key: "kyc", label: "KYC", width: 125 },
+  { key: "status", label: "Status", width: 120 },
+  { key: "credits", label: "Credits", width: 90 },
+  { key: "rm", label: "RM", width: 140 },
+  { key: "created", label: "Created", width: 110 },
+  { key: "actions", label: "Actions", width: 175, align: "right" },
+];
+const TABLE_MIN_WIDTH = COLUMNS.reduce((sum, col) => sum + col.width, 0);
+
+const AVATAR_COLORS = ["#6200ea", "#00897b", "#e65100", "#1565c0", "#ad1457", "#2e7d32", "#6d4c41", "#c62828"];
+const avatarColor = (text = "") =>
+  AVATAR_COLORS[[...text].reduce((sum, ch) => sum + ch.charCodeAt(0), 0) % AVATAR_COLORS.length];
+
+const initialsOf = (text = "") =>
+  text
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((word) => word[0])
+    .join("")
+    .toUpperCase() || "?";
+
+// Owner names often arrive in capitals (from PAN records); show them in title case
+const displayName = (name = "") =>
+  name && name === name.toUpperCase()
+    ? name
+        .toLowerCase()
+        .split(" ")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ")
+    : name;
+
+// e.g. "23 Nov 2026"
+const shortDate = (value) =>
+  value
+    ? new Date(value).toLocaleDateString("en-IN", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      })
+    : "—";
+
+// One line cut with "…"; the full text shows on hover
+const CellText = ({ children, ...props }) => (
+  <Tooltip title={children || ""} placement="top-start" enterDelay={600}>
+    <Typography noWrap {...props}>
+      {children}
+    </Typography>
+  </Tooltip>
+);
+
+const ManageFranchises = () => {
   const [searchTerm, setSearchTerm] = useState("");
   // The term the list is actually filtered by (typed text is applied after a short pause or on submit)
   const [appliedSearch, setAppliedSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [franchises, setFranchises] = useState([]);
   const [filteredFranchises, setFilteredFranchises] = useState([]);
+  const [counts, setCounts] = useState(null);
   const [kycDialogOpen, setKycDialogOpen] = useState(false);
   const [selectedFranchise, setSelectedFranchise] = useState(null);
   const [kycData, setKycData] = useState(null);
@@ -129,17 +250,18 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
     useState(true);
   const [emailChangeLoading, setEmailChangeLoading] = useState(false);
   const [emailChangeError, setEmailChangeError] = useState("");
-  const [newFranchise, setNewFranchise] = useState({
-    name: "",
-    email: "",
-    state: "",
-    pincode: "",
-    language: "english",
-    businessName: "",
-    ownerName: "",
-  });
 
-  const [tabValue, setTabValue] = useState(0);
+  // Active tab and KYC filter live in the URL so they can be linked to
+  const [searchParams, setSearchParams] = useSearchParams();
+  const view = VIEW_KEYS.includes(searchParams.get("tab"))
+    ? searchParams.get("tab")
+    : "active";
+  const statusOptions = STATUS_FILTERS[view];
+  const requestedStatus = searchParams.get("status");
+  const status = statusOptions?.some((o) => o.value === requestedStatus)
+    ? requestedStatus
+    : DEFAULT_STATUS[view];
+  const isDeletedView = view === "deleted";
 
   // Certificate name update state
   const [certificateDialogOpen, setCertificateDialogOpen] = useState(false);
@@ -155,12 +277,7 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
 
   // State for packages
   const [packages, setPackages] = useState([]);
-  const [selectedPackages, setSelectedPackages] = useState([]); // For create franchise dialog
   const [approvalPackages, setApprovalPackages] = useState([]); // For registration approval dialog
-
-  const [createTitle, setCreateTitle] = useState("Create New Franchise User");
-  const [createBtnTxt, setCreateBtnTxt] = useState("Create Franchise User");
-  const [createUserRole, setCreateUserRole] = useState("franchise_user");
 
   const [newPackage, setNewPackage] = useState(null);
   const [snackbar, setSnackbar] = useState({
@@ -175,12 +292,10 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
   const [csvExporting, setCsvExporting] = useState(false);
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [assigning, setAssigning] = useState(false);
-  const [kycStatus, setKycStatus] = useState(initialKycStatus);
-
-  // Sync local state if the route/prop changes
-  useEffect(() => {
-    setKycStatus(initialKycStatus);
-  }, [initialKycStatus]);
+  // Row "more actions" menu; franchise is kept while the menu animates closed
+  const [rowMenu, setRowMenu] = useState({ anchor: null, franchise: null });
+  // Ignores responses from older requests when tabs/filters change quickly
+  const requestRef = useRef(0);
 
   // Search as you type: apply the term after a short pause, back to page 1
   useEffect(() => {
@@ -191,28 +306,15 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  // Reload data when page, search or bureau filter changes
-  // tabValue 1 = Deleted Franchises tab
+  // Reload data when page, search, tab or KYC filter changes
   useEffect(() => {
     fetchFranchises();
-  }, [page, kycStatus, tabValue, appliedSearch]);
+  }, [page, view, status, appliedSearch]);
 
   // Fetch all franchises and packages on component mount
   useEffect(() => {
     fetchPackages();
   }, []);
-
-  const id = React.useId();
-  const buttonId = `${id}-button`;
-  const menuId = `${id}-menu`;
-  const [anchorEl, setAnchorEl] = React.useState(null);
-  const open = Boolean(anchorEl);
-  const handleClick = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
 
   const handlePackageChange = (index, field, value) => {
     const updatedPackages = [...editFranchiseData.allPackages.assigned];
@@ -240,41 +342,60 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
   // RM column: full admins can open a manager's profile; managers see the code only
   const { user: currentUser } = useAuth();
   const [rmFranchise, setRmFranchise] = useState(null);
+  const [blacklistTarget, setBlacklistTarget] = useState(null);
+
+  const fetchCounts = async () => {
+    try {
+      const response = await adminAPI.getFranchiseCounts();
+      setCounts(response.data);
+    } catch (err) {
+      console.error("Error fetching franchise counts:", err);
+    }
+  };
 
   const fetchFranchises = async () => {
+    const requestId = ++requestRef.current;
+    fetchCounts();
     try {
       setLoading(true);
       setError("");
-      
-      const queryParams = {
-        page: page,
+
+      const response = await adminAPI.getAllFranchises({
+        page,
         limit: rowsPerPage,
         search: appliedSearch,
-        kycStatus: kycStatus !== "all" ? kycStatus : "",
-        // Deleted tab (tabValue 1) shows only soft-deleted franchises
-        showDeleted: tabValue === 1 ? "true" : undefined,
-      };
-      
-      if (!isPendingPage && kycStatus === "all") {
-        queryParams.excludeStatus = "pending";
-      }
-      
-      const response = await adminAPI.getAllFranchises(queryParams);
-      
-      let fetchedFranchises = response.data.franchises || [];
-      if (!isPendingPage && kycStatus === "all") {
-        fetchedFranchises = fetchedFranchises.filter(f => f.kycStatus !== 'pending');
-      }
-      
-      setFranchises(response.data);
-      setFilteredFranchises(fetchedFranchises);
+        ...queryFor(view, status),
+      });
+      if (requestId !== requestRef.current) return;
+
+      setFilteredFranchises(response.data.franchises || []);
       setTotalRecords(response.data.total || 0);
     } catch (err) {
+      if (requestId !== requestRef.current) return;
       setError("Failed to fetch franchises. Please try again later.");
       console.error("Error fetching franchises:", err);
     } finally {
-      setLoading(false);
+      if (requestId === requestRef.current) setLoading(false);
     }
+  };
+
+  // Rows are cleared on tab/filter change so actions never run on the previous tab's rows
+  const changeView = (next) => {
+    if (next === view) return;
+    setSearchParams({ tab: next });
+    setPage(1);
+    setFilteredFranchises([]);
+    setTotalRecords(0);
+    setError("");
+    setSuccess("");
+  };
+
+  const changeStatus = (next) => {
+    if (next === status) return;
+    setSearchParams({ tab: view, status: next }, { replace: true });
+    setPage(1);
+    setFilteredFranchises([]);
+    setTotalRecords(0);
   };
 
   const handleChangePage = (event, newPage) => {
@@ -642,6 +763,7 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
       setSuccess(
         "Registration approved successfully! Email notification sent to franchise partner.",
       );
+      handleCloseRegistrationDialog();
 
       // Refresh the franchise list
       fetchFranchises();
@@ -676,6 +798,7 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
       setSuccess(
         "Registration rejected successfully! Email notification sent to franchise partner.",
       );
+      handleCloseRegistrationDialog();
       setRejectDialogOpen(false);
       setRejectionReason("");
       setFranchiseToReject(null);
@@ -762,112 +885,15 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
     fetchFranchises();
   };
 
-  const handleOpenCreateDialog = (userType = "franchise") => {
-    let title;
-    let btnTxt;
-    let role;
-
-    switch (userType) {
-      case "franchise":
-        title = "Create New Franchise User";
-        btnTxt = "Create Franchise User";
-        role = "franchise_user";
-        break;
-
-      case "relation_manager":
-        title = "Create New Relationship Manager";
-        btnTxt = "Create Relationship Manager";
-        role = "relationship_manager";
-        break;
-
-      case "credit_analyst":
-        title = "Create New Credit Analysist";
-        btnTxt = "Create Credit Analysist";
-        role = "credit_analyst";
-        break;
-
-      default:
-        title = "Create New Franchise User";
-        btnTxt = "Create Franchise User";
-        role = "franchise_user";
-        break;
-    }
-    setCreateTitle(title);
-    setCreateBtnTxt(btnTxt);
-    setCreateUserRole(role);
-
-    setCreateDialogOpen(true);
-  };
-
-  const handleCloseCreateDialog = () => {
+  const handleFranchiseCreated = (message) => {
     setCreateDialogOpen(false);
-    setNewFranchise({
-      name: "",
-      email: "",
-      state: "",
-      pincode: "",
-      language: "english",
-      businessName: "",
-      ownerName: "",
-    });
-    setSelectedPackages([]); // Reset selected packages
+    showSnackbar(message, "success");
+    fetchFranchises();
   };
 
-  const handleCreateFranchiseChange = (e) => {
-    const { name, value } = e.target;
-    setNewFranchise((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleCreateFranchise = async (e) => {
-    e.preventDefault();
-    try {
-      setLoading(true);
-      setError("");
-      setSuccess("");
-
-      // Validate required fields
-      if (!newFranchise.name || !newFranchise.email) {
-        setError("Please fill in all required fields.");
-        return;
-      }
-
-      // Email validation
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(newFranchise.email)) {
-        setError("Please enter a valid email address.");
-        return;
-      }
-
-      // Include assigned packages in the request
-      const isFranchiseUser = createUserRole === "franchise_user";
-
-      const franchiseData = {
-        name: newFranchise.name,
-        email: newFranchise.email,
-        role: isFranchiseUser ? "franchise_user" : "admin",
-        subRole: isFranchiseUser ? "franchise" : createUserRole,
-        assignedPackages: isFranchiseUser ? selectedPackages : null,
-      };
-
-      await adminAPI.createFranchiseUser(franchiseData);
-      setSuccess(
-        "User created successfully! Login credentials sent to user email.",
-      );
-      handleCloseCreateDialog();
-      fetchFranchises();
-    } catch (err) {
-      setError(
-        err.response?.data?.message ||
-          "Failed to create user. Please try again.",
-      );
-      console.error("Error creating franchise user:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const openRowMenu = (event, franchise) =>
+    setRowMenu({ anchor: event.currentTarget, franchise });
+  const closeRowMenu = () => setRowMenu((prev) => ({ ...prev, anchor: null }));
 
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
@@ -1037,7 +1063,7 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
 
   // Resend invite / change email are only for live franchise partner accounts
   const isFranchisePartnerRow = (franchise) =>
-    tabValue !== 1 &&
+    !isDeletedView &&
     !franchise.isDeleted &&
     franchise.userId &&
     typeof franchise.userId === "object" &&
@@ -1137,15 +1163,8 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
     try {
       setCsvExporting(true);
 
-      // Pass the same search/kycStatus filters that are active in the list view
-      const params = {
-        search: appliedSearch,
-        kycStatus: kycStatus !== "all" ? kycStatus : "",
-      };
-      
-      if (!isPendingPage && kycStatus === "all") {
-        params.excludeStatus = "pending";
-      }
+      // Same tab, KYC filter and search as the list view
+      const params = { search: appliedSearch, ...queryFor(view, status) };
 
       const response = await adminAPI.exportFranchisesCSV(params);
 
@@ -1175,78 +1194,197 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
     }
   };
 
+  const isFullAdmin = !currentUser?.staffRoleName;
+  const canManageCredits = !currentUser?.scopedToOwnFranchises;
+  const firstRecord = totalRecords ? (page - 1) * rowsPerPage + 1 : 0;
+  const lastRecord = Math.min(page * rowsPerPage, totalRecords);
+
+  // Count on a KYC filter chip (Active tab only; the counts endpoint has no per-status deleted split)
+  const statusCount = (value) => {
+    if (!counts || view !== "active") return null;
+    return value === "all" ? counts.active : counts.byStatus?.[value] ?? null;
+  };
+
+  // Shown under "⋮" so the row keeps only its main actions inline
+  const rowMenuItems = (franchise) => {
+    if (!franchise) return [];
+    const run = (action) => () => {
+      closeRowMenu();
+      action();
+    };
+    const items = [
+      <MenuItem key="certificate" onClick={run(() => handleCertificateNameClick(franchise))}>
+        <ListItemIcon>
+          <PictureAsPdfIcon fontSize="small" />
+        </ListItemIcon>
+        <ListItemText>Update certificate name</ListItemText>
+      </MenuItem>,
+    ];
+
+    if (isFranchisePartnerRow(franchise)) {
+      if (franchise.isActive) {
+        items.push(
+          <MenuItem key="resend" onClick={run(() => setResendTarget(franchise))}>
+            <ListItemIcon>
+              <Send fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>Resend invite / credentials</ListItemText>
+          </MenuItem>,
+        );
+      }
+      items.push(
+        <MenuItem key="email" onClick={run(() => handleChangeEmailClick(franchise))}>
+          <ListItemIcon>
+            <AlternateEmail fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>Change email</ListItemText>
+        </MenuItem>,
+      );
+    }
+
+    // Deleted records are read-only apart from Restore
+    if (!isDeletedView) {
+      items.push(<Divider key="divider-funds" />);
+      if (!currentUser?.scopedToOwnFranchises) {
+        items.push(
+          <MenuItem key="change-rm" onClick={run(() => setRmFranchise(franchise))}>
+            <ListItemIcon>
+              <SwapHorizIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>Change RM</ListItemText>
+          </MenuItem>,
+        );
+      }
+      if (canManageCredits) {
+        items.push(
+          <MenuItem key="credit-hold" onClick={run(() => handleToggleCreditHold(franchise))}>
+            <ListItemIcon>
+              {franchise.creditHold ? (
+                <PlayCircleOutline fontSize="small" color="success" />
+              ) : (
+                <PauseCircleOutline fontSize="small" color="warning" />
+              )}
+            </ListItemIcon>
+            <ListItemText>
+              {franchise.creditHold ? "Release credit hold" : "Put credits on hold"}
+            </ListItemText>
+          </MenuItem>,
+        );
+      }
+      items.push(
+        <MenuItem key="add-funds" onClick={run(() => handleCreditClick(franchise, "add"))}>
+          <ListItemIcon>
+            <AddCircle fontSize="small" color="success" />
+          </ListItemIcon>
+          <ListItemText>Add funds</ListItemText>
+        </MenuItem>,
+        <MenuItem key="deduct-funds" onClick={run(() => handleCreditClick(franchise, "deduct"))}>
+          <ListItemIcon>
+            <RemoveCircle fontSize="small" color="warning" />
+          </ListItemIcon>
+          <ListItemText>Deduct funds</ListItemText>
+        </MenuItem>,
+      );
+      if (canBlacklistPartners(currentUser)) {
+        items.push(
+          <MenuItem key="blacklist" onClick={run(() => setBlacklistTarget(franchise))}>
+            <ListItemIcon>
+              <Block fontSize="small" color={franchise.isBlacklisted ? "success" : "error"} />
+            </ListItemIcon>
+            <ListItemText>
+              {franchise.isBlacklisted ? "Remove from blacklist" : "Blacklist partner"}
+            </ListItemText>
+          </MenuItem>,
+        );
+      }
+      items.push(
+        <Divider key="divider-delete" />,
+        <MenuItem
+          key="delete"
+          onClick={run(() => handleDeleteFranchiseClick(franchise))}
+          sx={{ color: "error.main" }}
+        >
+          <ListItemIcon>
+            <Delete fontSize="small" color="error" />
+          </ListItemIcon>
+          <ListItemText>Delete franchise</ListItemText>
+        </MenuItem>,
+      );
+    }
+    return items;
+  };
+
   return (
     <Box>
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          mb: 2,
-        }}
+      {/* Header */}
+      <Stack
+        direction={{ xs: "column", md: "row" }}
+        justifyContent="space-between"
+        alignItems={{ xs: "flex-start", md: "center" }}
+        spacing={2}
+        sx={{ mb: 3 }}
       >
-        <Typography variant="h4">
-          {tabValue === 1
-            ? "Deleted Franchises"
-            : kycStatus === "pending"
-              ? "Pending Franchise"
-              : initialKycStatus === "approved"
-                ? "Active Franchise"
-                : "Manage Franchises"}
-        </Typography>
+        <Box>
+          <Typography variant="h4" fontWeight={700}>
+            Franchises
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+            Review new registrations, manage active partners and restore deleted ones.
+          </Typography>
+        </Box>
 
-        <Stack direction="row" spacing={1}>
-          {!currentUser?.staffRoleName && (
-            <Button variant="contained" onClick={() => setAssignDialogOpen(true)}>
+        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+          {isFullAdmin && (
+            <Button
+              variant="outlined"
+              startIcon={<SupervisorAccount />}
+              onClick={() => setAssignDialogOpen(true)}
+            >
               Assign BM to Partners
             </Button>
           )}
           <Button
-            variant="contained"
+            variant="outlined"
             color="success"
+            startIcon={
+              csvExporting ? <CircularProgress size={16} color="inherit" /> : <Download />
+            }
             onClick={handleDownloadCSV}
             disabled={csvExporting}
-            sx={{ color: "#fff", minWidth: 140 }}
           >
             {csvExporting ? "Exporting..." : "Download CSV"}
           </Button>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => setCreateDialogOpen(true)}
+          >
+            Create Franchise
+          </Button>
         </Stack>
+      </Stack>
 
-        <Dialog open={assignDialogOpen} onClose={() => !assigning && setAssignDialogOpen(false)}>
-          <DialogTitle>Assign Business Managers</DialogTitle>
-          <DialogContent>
-            <Typography>
-              Assign every partner without a Business Manager to the active Business Managers, one
-              after another in serial order? Partners that already have one are not changed.
-            </Typography>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setAssignDialogOpen(false)} disabled={assigning}>
-              Cancel
-            </Button>
-            <Button variant="contained" onClick={handleAssignBusinessManagers} disabled={assigning}>
-              {assigning ? "Assigning..." : "Assign"}
-            </Button>
-          </DialogActions>
-        </Dialog>
-      </Box>
+      <Dialog open={assignDialogOpen} onClose={() => !assigning && setAssignDialogOpen(false)}>
+        <DialogTitle>Assign Business Managers</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Assign every partner without a Business Manager to the active Business Managers, one
+            after another in serial order? Partners that already have one are not changed.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setAssignDialogOpen(false)} disabled={assigning}>
+            Cancel
+          </Button>
+          <Button variant="contained" onClick={handleAssignBusinessManagers} disabled={assigning}>
+            {assigning ? "Assigning..." : "Assign"}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
-      <AppBar position="static" color="default" sx={{ mb: 3, borderRadius: 1 }}>
-        <Tabs
-          value={tabValue}
-          onChange={(e, newValue) => setTabValue(newValue)}
-          indicatorColor="primary"
-          textColor="primary"
-          variant="fullWidth"
-        >
-          <Tab label="Franchise List" />
-          <Tab label="Deleted Franchises" />
-          <Tab label="Create New Franchise" />
-        </Tabs>
-      </AppBar>
       <Snackbar
         open={snackbar.open}
-        autoHideDuration={3000}
+        autoHideDuration={5000}
         onClose={() =>
           setSnackbar({
             ...snackbar,
@@ -1272,595 +1410,491 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
         </Alert>
       </Snackbar>
 
-      {(tabValue === 0 || tabValue === 1) && (
-        <>
-          {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {error}
-            </Alert>
-          )}
+      <Paper
+        elevation={0}
+        sx={{ borderRadius: 3, border: 1, borderColor: "divider", overflow: "hidden" }}
+      >
+        <Tabs
+          value={view}
+          onChange={(_, next) => changeView(next)}
+          variant="scrollable"
+          scrollButtons="auto"
+          sx={{
+            px: 1,
+            borderBottom: 1,
+            borderColor: "divider",
+            "& .MuiTab-root": { textTransform: "none", fontWeight: 600, minHeight: 60 },
+          }}
+        >
+          {VIEW_KEYS.map((key) => {
+            const count = counts ? counts[key] : null;
+            const selected = view === key;
+            return (
+              <Tab
+                key={key}
+                value={key}
+                icon={VIEWS[key].icon}
+                iconPosition="start"
+                label={
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <span>{VIEWS[key].label}</span>
+                    {count !== null && count !== undefined && (
+                      <Chip
+                        size="small"
+                        label={count}
+                        sx={{
+                          height: 20,
+                          fontSize: 12,
+                          fontWeight: 700,
+                          bgcolor: selected
+                            ? "primary.main"
+                            : key === "pending" && count > 0
+                              ? "warning.light"
+                              : "grey.200",
+                          color: selected ? "primary.contrastText" : "text.primary",
+                        }}
+                      />
+                    )}
+                  </Stack>
+                }
+              />
+            );
+          })}
+        </Tabs>
 
-          {success && (
-            <Alert severity="success" sx={{ mb: 2 }}>
-              {success}
-            </Alert>
-          )}
-
-          <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
-            <CardContent>
-              <Box component="form" onSubmit={handleSearch} sx={{ mb: 3 }}>
-                <Grid container spacing={2} alignItems="center">
-                  <Grid item xs={12} sm={10}>
-                    <TextField
-                      fullWidth
-                      placeholder="Search franchises by partner ID, business name, owner name, or email"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      InputProps={{
-                        startAdornment: (
-                          <Search sx={{ mr: 1, color: "text.secondary" }} />
-                        ),
-                      }}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={2}>
-                    <Button
-                      type="submit"
-                      variant="contained"
-                      fullWidth
-                      disabled={loading}
+        {/* Search + KYC filter */}
+        <Stack
+          direction={{ xs: "column", md: "row" }}
+          spacing={2}
+          alignItems={{ xs: "stretch", md: "center" }}
+          justifyContent="space-between"
+          sx={{ p: 2 }}
+        >
+          <Box component="form" onSubmit={handleSearch} sx={{ flex: 1, maxWidth: { md: 520 } }}>
+            <TextField
+              fullWidth
+              size="small"
+              placeholder="Search by partner ID, business name, owner, email or phone"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Search fontSize="small" />
+                  </InputAdornment>
+                ),
+                endAdornment: searchTerm ? (
+                  <InputAdornment position="end">
+                    <IconButton
+                      size="small"
+                      aria-label="Clear search"
+                      onClick={() => setSearchTerm("")}
                     >
-                      {loading ? <CircularProgress size={24} /> : "Search"}
-                    </Button>
-                  </Grid>
-                </Grid>
-              </Box>
+                      <Close fontSize="small" />
+                    </IconButton>
+                  </InputAdornment>
+                ) : null,
+              }}
+            />
+          </Box>
 
-              {/* <Button
-                variant="contained"
-                startIcon={<AddIcon />}
-                onClick={handleOpenCreateDialog}
-                sx={{ mb: 2 }}
-              >
-                Create New Franchise
-              </Button> */}
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  mb: 2,
-                }}
-              >
-                <Button
-                  id={buttonId}
-                  aria-controls={open ? menuId : undefined}
-                  aria-haspopup="true"
-                  aria-expanded={open}
-                  onClick={handleClick}
-                  variant="contained"
-                  startIcon={<AddIcon />}
-                >
-                  Create User
-                </Button>
+          {statusOptions && (
+            <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap alignItems="center">
+              <Typography variant="body2" color="text.secondary">
+                KYC:
+              </Typography>
+              {statusOptions.map((option) => {
+                const selected = status === option.value;
+                const count = statusCount(option.value);
+                return (
+                  <Chip
+                    key={option.value}
+                    clickable
+                    onClick={() => changeStatus(option.value)}
+                    color={selected ? "primary" : "default"}
+                    variant={selected ? "filled" : "outlined"}
+                    label={count === null ? option.label : `${option.label} (${count})`}
+                  />
+                );
+              })}
+            </Stack>
+          )}
+        </Stack>
 
-                {!isPendingPage && (
-                  <TextField
-                    select
-                    label="Filter Status"
-                    value={kycStatus}
-                    onChange={(e) => {
-                      setKycStatus(e.target.value);
-                      setPage(1);
-                    }}
-                    size="small"
-                    sx={{
-                      minWidth: 180,
-                      backgroundColor: "#fff",
-                    }}
-                  >
-                    <MenuItem value="all">All</MenuItem>
-                    <MenuItem value="submitted">Submitted</MenuItem>
-                    <MenuItem value="approved">Approved</MenuItem>
-                    <MenuItem value="rejected">Rejected</MenuItem>
-                  </TextField>
-                )}
-              </Box>
-
-              <Menu
-                id={menuId}
-                anchorEl={anchorEl}
-                open={open}
-                onClose={handleClose}
-                slotProps={{
-                  list: {
-                    "aria-labelledby": buttonId,
-                  },
-                }}
-              >
-                <MenuItem
-                  onClick={() => {
-                    handleClose();
-                    handleOpenCreateDialog("franchise");
-                  }}
-                >
-                  Franchise
-                </MenuItem>
-                <MenuItem component={Link} to="/admin/staff" onClick={handleClose}>
-                  Staff (Relationship Manager / Credit Analyst)
-                </MenuItem>
-              </Menu>
-
-              {loading && filteredFranchises.length === 0 ? (
-                <Box display="flex" justifyContent="center" my={4}>
-                  <CircularProgress />
-                </Box>
-              ) : (
-                <TableContainer component={Paper}>
-                  <Table sx={{ minWidth: 650 }} aria-label="franchises table">
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>Franchise ID</TableCell>
-                        <TableCell>Business Name</TableCell>
-                        <TableCell>Owner</TableCell>
-                        <TableCell>Email</TableCell>
-                        <TableCell>Phone</TableCell>
-                        <TableCell>KYC Status</TableCell>
-                        <TableCell>Status</TableCell>
-                        <TableCell>Credits</TableCell>
-                        <TableCell>RM</TableCell>
-                        <TableCell>Created</TableCell>
-                        <TableCell>Actions</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {filteredFranchises.map((franchise) => (
-                        <TableRow
-                          key={franchise._id}
-                          sx={{
-                            "&:last-child td, &:last-child th": { border: 0 },
-                          }}
-                        >
-                          <TableCell component="th" scope="row">
-                            <a href={`franchise/${franchise.franchiseCode}`}>
-                              {franchise.franchiseCode}
-                            </a>
-                          </TableCell>
-                          <TableCell component="th" scope="row">
-                            {franchise.businessName}
-                            {franchise.isDeleted && (
-                              <Box sx={{ mt: 0.5 }}>
-                                <Chip
-                                  label="User Deleted"
-                                  color="error"
-                                  size="small"
-                                  variant="outlined"
-                                />
-                              </Box>
-                            )}
-                          </TableCell>
-                          <TableCell>{franchise.ownerName}</TableCell>
-                          <TableCell
-                            style={{
-                              minWidth: "170px",
-                              wordBreak: "break-word",
-                            }}
-                          >
-                            {franchise.email}
-                            {isFranchisePartnerRow(franchise) && (
-                              <Box sx={{ mt: 0.5 }}>
-                                {franchise.userId.lastLoginAt ? (
-                                  <Typography
-                                    variant="caption"
-                                    color="success.main"
-                                    display="block"
-                                  >
-                                    Last login:{" "}
-                                    {formatDate(franchise.userId.lastLoginAt)}
-                                  </Typography>
-                                ) : (
-                                  <Typography
-                                    variant="caption"
-                                    color="warning.main"
-                                    display="block"
-                                  >
-                                    Never logged in
-                                  </Typography>
-                                )}
-                                {franchise.userId.credentialsSentAt && (
-                                  <Typography
-                                    variant="caption"
-                                    color="textSecondary"
-                                    display="block"
-                                  >
-                                    Invite sent:{" "}
-                                    {formatDate(
-                                      franchise.userId.credentialsSentAt,
-                                    )}{" "}
-                                    (×{franchise.userId.credentialsSentCount || 1})
-                                  </Typography>
-                                )}
-                              </Box>
-                            )}
-                          </TableCell>
-                          <TableCell>{franchise.phone}</TableCell>
-                          <TableCell>
-                            {getStatusChip(franchise.kycStatus)}
-                          </TableCell>
-                          <TableCell>
-                            <FormControlLabel
-                              control={
-                                <Switch
-                                  checked={franchise.isActive}
-                                  onChange={() =>
-                                    handleToggleStatus(
-                                      franchise._id,
-                                      franchise.isActive,
-                                    )
-                                  }
-                                  color="primary"
-                                />
-                              }
-                              label={franchise.isActive ? "Active" : "Inactive"}
-                              labelPlacement="end"
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <Box display="flex" alignItems="center" gap={0.5} flexWrap="wrap">
-                              {franchise.credits}
-                              {franchise.creditHold && (
-                                <Chip label="On hold" color="warning" size="small" />
-                              )}
-                              {!currentUser?.scopedToOwnFranchises && (
-                                <Button
-                                  size="small"
-                                  color={franchise.creditHold ? "success" : "warning"}
-                                  onClick={() => handleToggleCreditHold(franchise)}
-                                >
-                                  {franchise.creditHold ? "Release" : "Hold"}
-                                </Button>
-                              )}
-                            </Box>
-                          </TableCell>
-                          <TableCell>
-                            <Box display="flex" alignItems="center" gap={0.5}>
-                              {franchise.businessManager ? (
-                                currentUser?.scopedToOwnFranchises ? (
-                                  `${franchise.businessManager.name}${franchise.businessManager.staffCode ? ` (${franchise.businessManager.staffCode})` : ""}`
-                                ) : (
-                                  <Link
-                                    to={`/admin/staff/${franchise.businessManager._id}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                  >
-                                    {franchise.businessManager.name}
-                                    {franchise.businessManager.staffCode ? ` (${franchise.businessManager.staffCode})` : ""}
-                                  </Link>
-                                )
-                              ) : (
-                                <Typography variant="body2" color="text.secondary">
-                                  Unassigned
-                                </Typography>
-                              )}
-                              {!currentUser?.scopedToOwnFranchises && (
-                                <IconButton
-                                  size="small"
-                                  aria-label="Change RM"
-                                  onClick={() => setRmFranchise(franchise)}
-                                >
-                                  <SwapHorizIcon fontSize="small" />
-                                </IconButton>
-                              )}
-                            </Box>
-                            {rmFranchise?._id === franchise._id && (
-                              <ReassignRmDialog
-                                franchise={rmFranchise}
-                                onClose={() => setRmFranchise(null)}
-                                onSaved={() => {
-                                  setRmFranchise(null);
-                                  fetchFranchises();
-                                }}
-                              />
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {formatDate(franchise.createdAt)}
-                          </TableCell>
-                          <TableCell>
-                            <IconButton
-                              size="small"
-                              onClick={() => handleViewKyc(franchise)}
-                            >
-                              <Visibility />
-                            </IconButton>
-                            <IconButton
-                              size="small"
-                              onClick={() =>
-                                handleEditFranchiseClick(franchise)
-                              }
-                            >
-                              <Edit />
-                            </IconButton>
-                            {/* Registration Details Icon - Show for self-registered users */}
-                            {franchise.kycStatus === "pending" &&
-                              !franchise.isActive && (
-                                <IconButton
-                                  size="small"
-                                  onClick={() =>
-                                    handleViewRegistrationDetails(franchise)
-                                  }
-                                  sx={{ color: "info.main" }}
-                                  title="View Registration Details"
-                                >
-                                  <Info />
-                                </IconButton>
-                              )}
-                            {/* Registration Approval Buttons - Show for new registrations that need approval */}
-                            {franchise.kycStatus === "pending" &&
-                              !franchise.isActive && (
-                                <>
-                                  {/* Removed direct approval buttons - only allow approval through registration details dialog */}
-                                </>
-                              )}
-                            {/* KYC Approval Buttons - Only show for submitted KYC */}
-                            {franchise.kycStatus === "submitted" && (
-                              <>
-                                <IconButton
-                                  size="small"
-                                  onClick={() =>
-                                    handleApproveKyc(franchise._id)
-                                  }
-                                  sx={{ color: "success.main" }}
-                                  title="Approve KYC"
-                                >
-                                  <Check />
-                                </IconButton>
-                                <IconButton
-                                  size="small"
-                                  onClick={() =>
-                                    handleRejectKycClick(franchise)
-                                  }
-                                  sx={{ color: "error.main" }}
-                                  title="Reject KYC"
-                                >
-                                  <Close />
-                                </IconButton>
-                              </>
-                            )}
-                            {/* Certificate Name Button - Show for all franchises */}
-                            <IconButton
-                              size="small"
-                              onClick={() =>
-                                handleCertificateNameClick(franchise)
-                              }
-                              sx={{ color: "primary.main" }}
-                              title="Update Certificate Name"
-                            >
-                              <PictureAsPdfIcon />
-                            </IconButton>
-                            {/* Resend Invite / Change Email - franchise partners only */}
-                            {isFranchisePartnerRow(franchise) && (
-                              <>
-                                {franchise.isActive && (
-                                  <IconButton
-                                    size="small"
-                                    onClick={() =>
-                                      setResendTarget(franchise)
-                                    }
-                                    sx={{ color: "info.main" }}
-                                    title="Resend invite / credentials"
-                                  >
-                                    <Send />
-                                  </IconButton>
-                                )}
-                                <IconButton
-                                  size="small"
-                                  onClick={() =>
-                                    handleChangeEmailClick(franchise)
-                                  }
-                                  sx={{ color: "secondary.main" }}
-                                  title="Change email"
-                                >
-                                  <AlternateEmail />
-                                </IconButton>
-                              </>
-                            )}
-                            {/* Add / Deduct Funds - only for active list, deleted records are read-only */}
-                            {tabValue !== 1 && (
-                              <>
-                                <IconButton
-                                  size="small"
-                                  onClick={() => handleCreditClick(franchise, "add")}
-                                  sx={{ color: "success.main" }}
-                                  title="Add Funds"
-                                >
-                                  <AddCircle />
-                                </IconButton>
-                                <IconButton
-                                  size="small"
-                                  onClick={() => handleCreditClick(franchise, "deduct")}
-                                  sx={{ color: "warning.main" }}
-                                  title="Deduct Funds"
-                                >
-                                  <RemoveCircle />
-                                </IconButton>
-                              </>
-                            )}
-                            {/* Delete / Restore Button */}
-                            {tabValue === 1 ? (
-                              <IconButton
-                                size="small"
-                                onClick={() =>
-                                  handleRestoreFranchise(franchise._id)
-                                }
-                                sx={{ color: "success.main" }}
-                                title="Restore Franchise"
-                              >
-                                <Restore />
-                              </IconButton>
-                            ) : (
-                              <IconButton
-                                size="small"
-                                onClick={() =>
-                                  handleDeleteFranchiseClick(franchise)
-                                }
-                                sx={{ color: "error.main" }}
-                                title="Delete Franchise"
-                              >
-                                <Delete />
-                              </IconButton>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      flexDirection: { xs: "column", sm: "row" }, // Stacks on mobile, side-by-side on desktop
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      gap: 2,
-                      p: 3,
-                    }}
-                  >
-                    <Typography variant="body2" color="text.secondary">
-                      Total Records: {totalRecords}
-                    </Typography>
-
-                    <Pagination
-                      count={Math.ceil(totalRecords / rowsPerPage)}
-                      page={page}
-                      onChange={handleChangePage}
-                      color="primary"
-                      variant="outlined"
-                      shape="rounded"
-                      showFirstButton
-                      showLastButton
-                    />
-                    <Typography></Typography>
-                  </Box>
-                </TableContainer>
-              )}
-            </CardContent>
-          </Card>
-        </>
-      )}
-
-      {tabValue === 2 && (
-        <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
-          <CardContent>
-            <Typography variant="h5" gutterBottom>
-              Create New Franchise User
-            </Typography>
-
+        {(error || success) && (
+          <Stack spacing={1} sx={{ px: 2, pb: 2 }}>
             {error && (
-              <Alert severity="error" sx={{ mb: 2 }}>
+              <Alert severity="error" onClose={() => setError("")}>
                 {error}
               </Alert>
             )}
-
             {success && (
-              <Alert severity="success" sx={{ mb: 2 }}>
+              <Alert severity="success" onClose={() => setSuccess("")}>
                 {success}
               </Alert>
             )}
+          </Stack>
+        )}
 
-            <Box component="form" onSubmit={handleCreateFranchise}>
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    required
-                    label="Full Name"
-                    name="name"
-                    value={newFranchise.name}
-                    onChange={handleCreateFranchiseChange}
-                    margin="normal"
-                  />
-                </Grid>
+        <Box sx={{ height: 4 }}>{loading && <LinearProgress />}</Box>
 
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    required
-                    label="Email Address"
-                    name="email"
-                    type="email"
-                    value={newFranchise.email}
-                    onChange={handleCreateFranchiseChange}
-                    margin="normal"
-                  />
-                </Grid>
-
-
-                {/* Package Selection */}
-                <Grid item xs={12}>
-                  <FormControl
-                    fullWidth
-                    margin="normal"
-                    style={{ minWidth: "200px" }}
+        <TableContainer>
+          <Table
+            size="small"
+            sx={{ tableLayout: "fixed", minWidth: TABLE_MIN_WIDTH }}
+            aria-label="franchises table"
+          >
+            <TableHead>
+              <TableRow
+                sx={{
+                  "& th": {
+                    bgcolor: "grey.50",
+                    color: "text.secondary",
+                    fontWeight: 600,
+                    fontSize: 12,
+                    textTransform: "uppercase",
+                    letterSpacing: 0.4,
+                    whiteSpace: "nowrap",
+                    py: 1.25,
+                  },
+                }}
+              >
+                {COLUMNS.map((col) => (
+                  <TableCell key={col.key} align={col.align} sx={{ width: col.width }}>
+                    {col.label}
+                  </TableCell>
+                ))}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {filteredFranchises.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={COLUMNS.length}
+                    sx={{ py: 8, textAlign: "center", borderBottom: 0 }}
                   >
-                    <InputLabel>Assign Packages (Optional)</InputLabel>
-                    <Select
-                      multiple
-                      value={selectedPackages}
-                      onChange={(e) => setSelectedPackages(e.target.value)}
-                      label="Assign Packages (Optional)"
-                      renderValue={(selected) =>
-                        selected
-                          .map((id) => {
-                            const pkg = packages.find((p) => p._id === id);
-                            return pkg ? pkg.name : "";
-                          })
-                          .join(", ")
-                      }
+                    {loading ? (
+                      <CircularProgress size={28} />
+                    ) : (
+                      <>
+                        <Typography variant="subtitle1" fontWeight={600}>
+                          {VIEWS[view].emptyTitle}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {appliedSearch ? "Try a different search term." : VIEWS[view].emptyHint}
+                        </Typography>
+                      </>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredFranchises.map((franchise) => {
+                  const user = isFranchisePartnerRow(franchise) ? franchise.userId : null;
+                  const manager = franchise.businessManager;
+                  const color = avatarColor(franchise.businessName || franchise.email);
+                  return (
+                    <TableRow
+                      key={franchise._id}
+                      hover
+                      sx={{
+                        "& td": { py: 1.25, verticalAlign: "middle" },
+                        "&:last-child td": { borderBottom: 0 },
+                      }}
                     >
-                      {packages.map((pkg) => (
-                        <MenuItem key={pkg._id} value={pkg._id}>
-                          <Checkbox
-                            checked={selectedPackages.indexOf(pkg._id) > -1}
-                          />
-                          <ListItemText
-                            primary={pkg.name}
-                            secondary={`₹${pkg.price} - ${pkg.creditsIncluded} credits`}
-                          />
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Grid>
+                      {/* Partner */}
+                      <TableCell>
+                        <Stack direction="row" spacing={1.5} alignItems="center">
+                          <Avatar
+                            sx={{
+                              width: 36,
+                              height: 36,
+                              fontSize: 13,
+                              fontWeight: 700,
+                              bgcolor: `${color}1f`,
+                              color,
+                            }}
+                          >
+                            {initialsOf(franchise.businessName)}
+                          </Avatar>
+                          <Box sx={{ minWidth: 0 }}>
+                            <CellText variant="body2" fontWeight={600}>
+                              {franchise.businessName || "—"}
+                            </CellText>
+                            {franchise.franchiseCode ? (
+                              <Typography
+                                component={Link}
+                                to={`/admin/franchise/${franchise.franchiseCode}`}
+                                variant="caption"
+                                sx={{
+                                  color: "primary.main",
+                                  fontWeight: 600,
+                                  textDecoration: "none",
+                                  "&:hover": { textDecoration: "underline" },
+                                }}
+                              >
+                                {franchise.franchiseCode}
+                              </Typography>
+                            ) : (
+                              <Typography variant="caption" color="text.secondary">
+                                No partner ID yet
+                              </Typography>
+                            )}
+                          </Box>
+                        </Stack>
+                      </TableCell>
 
-                <Grid item xs={12}>
-                  <Divider sx={{ my: 2 }} />
-                  <Box
-                    sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}
-                  >
-                    <Button
-                      onClick={handleCloseCreateDialog}
-                      disabled={loading}
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      type="submit"
-                      variant="contained"
-                      disabled={loading}
-                    >
-                      {loading ? (
-                        <CircularProgress size={24} />
-                      ) : (
-                        "Create Franchise User"
-                      )}
-                    </Button>
-                  </Box>
-                </Grid>
-              </Grid>
-            </Box>
-          </CardContent>
-        </Card>
-      )}
+                      {/* Owner */}
+                      <TableCell>
+                        <CellText variant="body2">{displayName(franchise.ownerName) || "—"}</CellText>
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          sx={{ fontVariantNumeric: "tabular-nums" }}
+                        >
+                          {franchise.phone || "No phone"}
+                        </Typography>
+                      </TableCell>
+
+                      {/* Email & login */}
+                      <TableCell>
+                        <CellText variant="body2">{franchise.email || "—"}</CellText>
+                        {user && (
+                          <Tooltip
+                            placement="bottom-start"
+                            title={
+                              user.credentialsSentAt
+                                ? `Invite sent ${shortDate(user.credentialsSentAt)} (×${user.credentialsSentCount || 1})`
+                                : "No invite sent yet"
+                            }
+                          >
+                            <Stack
+                              direction="row"
+                              spacing={0.75}
+                              alignItems="center"
+                              sx={{ width: "fit-content", maxWidth: "100%" }}
+                            >
+                              <Box
+                                sx={{
+                                  width: 7,
+                                  height: 7,
+                                  borderRadius: "50%",
+                                  flexShrink: 0,
+                                  bgcolor: user.lastLoginAt ? "success.main" : "warning.main",
+                                }}
+                              />
+                              <Typography variant="caption" color="text.secondary" noWrap>
+                                {user.lastLoginAt
+                                  ? `Last login ${shortDate(user.lastLoginAt)}`
+                                  : "Never logged in"}
+                              </Typography>
+                            </Stack>
+                          </Tooltip>
+                        )}
+                      </TableCell>
+
+                      {/* KYC */}
+                      <TableCell>{getStatusChip(franchise.kycStatus || "pending")}</TableCell>
+
+                      {/* Status */}
+                      <TableCell>
+                        {isDeletedView ? (
+                          <Chip size="small" label="Deleted" variant="outlined" />
+                        ) : (
+                          <Stack direction="row" alignItems="center" spacing={0.5}>
+                            <Switch
+                              size="small"
+                              checked={Boolean(franchise.isActive)}
+                              onChange={() =>
+                                handleToggleStatus(franchise._id, franchise.isActive)
+                              }
+                              inputProps={{ "aria-label": "Active" }}
+                            />
+                            <Typography
+                              variant="body2"
+                              color={franchise.isActive ? "text.primary" : "text.secondary"}
+                            >
+                              {franchise.isActive ? "Active" : "Inactive"}
+                            </Typography>
+                          </Stack>
+                        )}
+                        {franchise.isBlacklisted && (
+                          <Tooltip title={franchise.blacklistReason || ""}>
+                            <Chip
+                              label="Blacklisted"
+                              color="error"
+                              size="small"
+                              icon={<Block />}
+                              sx={{ mt: 0.5 }}
+                            />
+                          </Tooltip>
+                        )}
+                      </TableCell>
+
+                      {/* Credits */}
+                      <TableCell>
+                        <Typography
+                          variant="body2"
+                          fontWeight={700}
+                          sx={{ fontVariantNumeric: "tabular-nums" }}
+                        >
+                          {franchise.credits ?? 0}
+                        </Typography>
+                        {franchise.creditHold && (
+                          <Chip
+                            label="On hold"
+                            color="warning"
+                            size="small"
+                            variant="outlined"
+                            sx={{ mt: 0.25, height: 20, fontSize: 11 }}
+                          />
+                        )}
+                      </TableCell>
+
+                      {/* RM */}
+                      <TableCell>
+                        {manager ? (
+                          <>
+                            {currentUser?.scopedToOwnFranchises ? (
+                              <CellText variant="body2">{manager.name}</CellText>
+                            ) : (
+                              <CellText
+                                variant="body2"
+                                component={Link}
+                                to={`/admin/staff/${manager._id}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                sx={{
+                                  display: "block",
+                                  color: "text.primary",
+                                  textDecoration: "none",
+                                  "&:hover": { color: "primary.main", textDecoration: "underline" },
+                                }}
+                              >
+                                {manager.name}
+                              </CellText>
+                            )}
+                            {manager.staffCode && (
+                              <Typography variant="caption" color="text.secondary">
+                                {manager.staffCode}
+                              </Typography>
+                            )}
+                          </>
+                        ) : (
+                          <Chip size="small" variant="outlined" label="Unassigned" />
+                        )}
+                      </TableCell>
+
+                      {/* Created */}
+                      <TableCell>
+                        <Typography variant="body2" noWrap>
+                          {shortDate(franchise.createdAt)}
+                        </Typography>
+                      </TableCell>
+
+                      {/* Actions */}
+                      <TableCell align="right" sx={{ whiteSpace: "nowrap" }}>
+                        {/* Self-registered partners waiting for approval */}
+                        {!isDeletedView &&
+                          franchise.kycStatus === "pending" &&
+                          !franchise.isActive && (
+                            <Button
+                              size="small"
+                              variant="contained"
+                              disableElevation
+                              onClick={() => handleViewRegistrationDetails(franchise)}
+                              sx={{ mr: 0.5, minWidth: 0, px: 1.25 }}
+                            >
+                              Review
+                            </Button>
+                          )}
+                        {!isDeletedView && franchise.kycStatus === "submitted" && (
+                          <>
+                            <Tooltip title="Approve KYC">
+                              <IconButton
+                                size="small"
+                                color="success"
+                                onClick={() => handleApproveKyc(franchise._id)}
+                              >
+                                <Check fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Reject KYC">
+                              <IconButton
+                                size="small"
+                                color="error"
+                                onClick={() => handleRejectKycClick(franchise)}
+                              >
+                                <Close fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          </>
+                        )}
+                        {isDeletedView && (
+                          <Tooltip title="Restore franchise">
+                            <IconButton
+                              size="small"
+                              color="success"
+                              onClick={() => handleRestoreFranchise(franchise._id)}
+                            >
+                              <Restore fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        )}
+                        <Tooltip title="View details">
+                          <IconButton size="small" onClick={() => handleViewKyc(franchise)}>
+                            <Visibility fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Edit">
+                          <IconButton
+                            size="small"
+                            onClick={() => handleEditFranchiseClick(franchise)}
+                          >
+                            <Edit fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="More actions">
+                          <IconButton
+                            size="small"
+                            aria-label="More actions"
+                            onClick={(e) => openRowMenu(e, franchise)}
+                          >
+                            <MoreVert fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+
+        <Stack
+          direction={{ xs: "column", sm: "row" }}
+          justifyContent="space-between"
+          alignItems="center"
+          spacing={2}
+          sx={{ px: 2, py: 1.5, borderTop: 1, borderColor: "divider" }}
+        >
+          <Typography variant="body2" color="text.secondary">
+            {totalRecords
+              ? `Showing ${firstRecord}–${lastRecord} of ${totalRecords}`
+              : "No records"}
+          </Typography>
+          <Pagination
+            count={Math.max(1, Math.ceil(totalRecords / rowsPerPage))}
+            page={page}
+            onChange={handleChangePage}
+            color="primary"
+            shape="rounded"
+            size="small"
+            showFirstButton
+            showLastButton
+          />
+        </Stack>
+      </Paper>
 
       {/* Franchise Details Dialog */}
       <Dialog
@@ -2138,96 +2172,50 @@ const ManageFranchises = ({ kycStatus: initialKycStatus = "pending", isPendingPa
         onSuccess={handleCreditSuccess}
       />
 
-      {/* Create Franchise Dialog */}
-      <Dialog
-        open={createDialogOpen}
-        onClose={handleCloseCreateDialog}
-        maxWidth="md"
-        fullWidth
+      {/* Blacklist / remove from blacklist (Admin and Business Managers) */}
+      <BlacklistPartnerDialog
+        franchise={blacklistTarget}
+        onClose={() => setBlacklistTarget(null)}
+        onSaved={(message) => {
+          setBlacklistTarget(null);
+          setError("");
+          setSuccess(message);
+          fetchFranchises();
+        }}
+      />
+
+      {/* Row "more actions" menu */}
+      <Menu
+        anchorEl={rowMenu.anchor}
+        open={Boolean(rowMenu.anchor)}
+        onClose={closeRowMenu}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
+        PaperProps={{ sx: { minWidth: 240 } }}
       >
-        <DialogTitle>{createTitle}</DialogTitle>
-        <DialogContent>
-          <Box component="form" onSubmit={handleCreateFranchise}>
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  required
-                  label="Full Name"
-                  name="name"
-                  value={newFranchise.name}
-                  onChange={handleCreateFranchiseChange}
-                  margin="normal"
-                />
-              </Grid>
+        {rowMenuItems(rowMenu.franchise)}
+      </Menu>
 
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  required
-                  label="Email Address"
-                  name="email"
-                  type="email"
-                  value={newFranchise.email}
-                  onChange={handleCreateFranchiseChange}
-                  margin="normal"
-                />
-              </Grid>
+      {/* Change Business Manager (RM) */}
+      {rmFranchise && (
+        <ReassignRmDialog
+          franchise={rmFranchise}
+          onClose={() => setRmFranchise(null)}
+          onSaved={() => {
+            setRmFranchise(null);
+            fetchFranchises();
+          }}
+        />
+      )}
 
-              {/* Package Selection */}
-              {createUserRole === "franchise_user" && (
-                <Grid item xs={12}>
-                  <FormControl
-                    fullWidth
-                    margin="normal"
-                    style={{ minWidth: "200px" }}
-                  >
-                    <InputLabel>Assign Packages (Optional)</InputLabel>
-                    <Select
-                      multiple
-                      value={selectedPackages}
-                      onChange={(e) => setSelectedPackages(e.target.value)}
-                      label="Assign Packages (Optional)"
-                      renderValue={(selected) =>
-                        selected
-                          .map((id) => {
-                            const pkg = packages.find((p) => p._id === id);
-                            return pkg ? pkg.name : "";
-                          })
-                          .join(", ")
-                      }
-                    >
-                      {packages.map((pkg) => (
-                        <MenuItem key={pkg._id} value={pkg._id}>
-                          <Checkbox
-                            checked={selectedPackages.indexOf(pkg._id) > -1}
-                          />
-                          <ListItemText
-                            primary={pkg.name}
-                            secondary={`₹${pkg.price} - ${pkg.creditsIncluded} credits`}
-                          />
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Grid>
-              )}
-            </Grid>
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseCreateDialog} disabled={loading}>
-            Cancel
-          </Button>
-          <Button
-            onClick={handleCreateFranchise}
-            variant="contained"
-            disabled={loading}
-          >
-            {loading ? <CircularProgress size={24} /> : createBtnTxt}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {/* Create Franchise modal */}
+      <CreateFranchiseDialog
+        open={createDialogOpen}
+        onClose={() => setCreateDialogOpen(false)}
+        onCreated={handleFranchiseCreated}
+        packages={packages}
+        canPickManager={isFullAdmin}
+      />
 
       {/* Edit Franchise Dialog */}
       <Dialog

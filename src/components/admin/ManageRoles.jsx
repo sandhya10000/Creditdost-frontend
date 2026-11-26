@@ -9,11 +9,13 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  Divider,
   FormControlLabel,
   FormGroup,
   IconButton,
   Paper,
   Stack,
+  Switch,
   TextField,
   Tooltip,
   Typography,
@@ -28,8 +30,13 @@ const EMPTY_FORM = {
   name: "",
   description: "",
   permissions: [],
+  fullAccess: false,
   limitToOwnFranchises: false,
 };
+
+// Sections a role may hold: all of them, or only the scopable ones for a Business Manager
+const allowedKeys = (catalog, limitToOwnFranchises) =>
+  catalog.filter((p) => !limitToOwnFranchises || p.scopable).map((p) => p.key);
 
 const ManageRoles = () => {
   const [roles, setRoles] = useState([]);
@@ -70,6 +77,7 @@ const ManageRoles = () => {
       name: role.name,
       description: role.description || "",
       permissions: role.permissions || [],
+      fullAccess: Boolean(role.fullAccess),
       limitToOwnFranchises: Boolean(role.limitToOwnFranchises),
     });
     setDialogOpen(true);
@@ -83,6 +91,21 @@ const ManageRoles = () => {
         : [...prev.permissions, key],
     }));
 
+  // Full access ticks every section the role may hold; turning it off keeps them ticked to edit
+  const toggleFullAccess = (checked) =>
+    setForm((prev) => ({
+      ...prev,
+      fullAccess: checked,
+      permissions: checked ? allowedKeys(catalog, prev.limitToOwnFranchises) : prev.permissions,
+    }));
+
+  const allowed = allowedKeys(catalog, form.limitToOwnFranchises);
+  const allSelected = allowed.length > 0 && allowed.every((key) => form.permissions.includes(key));
+  const someSelected = allowed.some((key) => form.permissions.includes(key));
+
+  const toggleSelectAll = () =>
+    setForm((prev) => ({ ...prev, permissions: allSelected ? [] : allowed }));
+
   const save = async () => {
     if (!form.name.trim()) return alert("Role name is required");
     try {
@@ -91,6 +114,7 @@ const ManageRoles = () => {
         name: form.name.trim(),
         description: form.description.trim(),
         permissions: form.permissions,
+        fullAccess: form.fullAccess,
         limitToOwnFranchises: form.limitToOwnFranchises,
       };
       if (form.id) {
@@ -177,7 +201,17 @@ const ManageRoles = () => {
             </Stack>
 
             <Stack direction="row" spacing={1} flexWrap="wrap" mt={1}>
-              {role.permissions.length === 0 ? (
+              {role.fullAccess ? (
+                <Chip
+                  size="small"
+                  color="primary"
+                  label={
+                    role.limitToOwnFranchises
+                      ? "Full access (all Business Manager sections)"
+                      : "Full access (all sections)"
+                  }
+                />
+              ) : role.permissions.length === 0 ? (
                 <Chip size="small" label="No sections" />
               ) : (
                 role.permissions.map((key) => (
@@ -218,11 +252,14 @@ const ManageRoles = () => {
                     ...prev,
                     limitToOwnFranchises: e.target.checked,
                     // Business Managers can only hold sections limited to their own franchises
-                    permissions: e.target.checked
-                      ? prev.permissions.filter((key) =>
-                          catalog.find((p) => p.key === key)?.scopable,
-                        )
-                      : prev.permissions,
+                    // Full access follows the switch: all sections, or all scopable ones
+                    permissions: prev.fullAccess
+                      ? allowedKeys(catalog, e.target.checked)
+                      : e.target.checked
+                        ? prev.permissions.filter((key) =>
+                            catalog.find((p) => p.key === key)?.scopable,
+                          )
+                        : prev.permissions,
                   }))
                 }
               />
@@ -230,9 +267,56 @@ const ManageRoles = () => {
             label="Business Manager: limit to franchises this person owns (gets an RM-n ID)"
           />
 
-          <Typography variant="subtitle2" mt={2}>
-            Sections this role can access
-          </Typography>
+          <Paper
+            variant="outlined"
+            sx={{
+              mt: 2,
+              p: 1.5,
+              borderRadius: 2,
+              bgcolor: form.fullAccess ? "rgba(98, 0, 234, 0.06)" : "transparent",
+              borderColor: form.fullAccess ? "primary.main" : "divider",
+            }}
+          >
+            <FormControlLabel
+              sx={{ m: 0, alignItems: "flex-start" }}
+              control={
+                <Switch
+                  checked={form.fullAccess}
+                  onChange={(e) => toggleFullAccess(e.target.checked)}
+                />
+              }
+              label={
+                <Box sx={{ pt: 0.75 }}>
+                  <Typography variant="body1" fontWeight={600}>
+                    Full access
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {form.limitToOwnFranchises
+                      ? "Every section a Business Manager can hold, including ones added later."
+                      : "Every admin section, including ones added later. Team & Roles stays with full administrators."}
+                  </Typography>
+                </Box>
+              }
+            />
+          </Paper>
+
+          <Stack direction="row" justifyContent="space-between" alignItems="center" mt={2}>
+            <Typography variant="subtitle2">Sections this role can access</Typography>
+            <FormControlLabel
+              sx={{ mr: 0 }}
+              control={
+                <Checkbox
+                  size="small"
+                  checked={allSelected}
+                  indeterminate={someSelected && !allSelected}
+                  disabled={form.fullAccess}
+                  onChange={toggleSelectAll}
+                />
+              }
+              label={<Typography variant="body2">Select all</Typography>}
+            />
+          </Stack>
+          <Divider sx={{ mb: 1 }} />
           <FormGroup>
             {catalog.map((p) => (
               <FormControlLabel
@@ -240,7 +324,7 @@ const ManageRoles = () => {
                 control={
                   <Checkbox
                     checked={form.permissions.includes(p.key)}
-                    disabled={form.limitToOwnFranchises && !p.scopable}
+                    disabled={form.fullAccess || (form.limitToOwnFranchises && !p.scopable)}
                     onChange={() => togglePermission(p.key)}
                   />
                 }

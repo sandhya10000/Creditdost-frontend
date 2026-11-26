@@ -28,6 +28,7 @@ const WORK_STATUS_LABELS = {
   in_progress: "In Progress",
   pending: "Pending",
   closed: "Closed",
+  refunded: "Refunded",
 };
 
 // Every editable Business MIS field, flattened so one TextField can bind to each
@@ -254,7 +255,13 @@ const DetailsTab = ({ customer, creditReport, ifscDeatails, onUpdated }) => {
         <Box display="flex" gap={2}>
           <Chip
             label={WORK_STATUS_LABELS[customer?.workStatus] || "Newly Logged"}
-            color={customer?.workStatus === "closed" ? "success" : "warning"}
+            color={
+              customer?.workStatus === "closed"
+                ? "success"
+                : customer?.workStatus === "refunded"
+                  ? "error"
+                  : "warning"
+            }
           />
 
           {!editMode ? (
