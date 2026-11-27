@@ -2,34 +2,43 @@ import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
-  Card,
-  CardContent,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
-  CircularProgress,
-  Alert,
   Chip,
   Button,
   Link,
-  TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Grid,
-  Pagination,
 } from "@mui/material";
-import TablePagination from "@mui/material/TablePagination";
-import { PictureAsPdf, Search } from "@mui/icons-material";
+import { PictureAsPdf } from "@mui/icons-material";
 import { adminAPI } from "../../services/api";
 import FranchiseDetailsDialog from "./FranchiseDetailsDialog";
+import {
+  CardAlerts,
+  CellText,
+  DateCell,
+  EmptyRow,
+  FilterChips,
+  LoadingBar,
+  ScoreChip,
+  SearchField,
+  SectionCard,
+  TableFooter,
+  TableToolbar,
+} from "./ui/AdminTable";
+import { bodyRowSx, headRowSx } from "./ui/tableStyles";
 
-const ViewReports = () => {
+const BUREAU_FILTERS = [
+  { value: "", label: "All" },
+  { value: "cibil", label: "CIBIL" },
+  { value: "crif", label: "CRIF" },
+  { value: "experian", label: "Experian" },
+  { value: "equifax", label: "Equifax" },
+];
+
+const ViewReports = ({ embedded = false }) => {
   const [creditReports, setCreditReports] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -93,15 +102,12 @@ const ViewReports = () => {
   const loadCreditReports = async () => {
     try {
       setLoading(true);
-      // API expects 1-indexed pages, so we pass page + 1
       const response = await adminAPI.getAllCreditReports({
         page: page,
         limit: rowsPerPage,
         search: searchTerm,
         bureau: bureauFilter,
       });
-
-      console.log("Report response", response);
 
       // Map API response to local state
       setCreditReports(response.data.reports || []);
@@ -114,24 +120,6 @@ const ViewReports = () => {
     }
   };
 
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  const getScoreColor = (score) => {
-    if (score >= 750) return "success";
-    if (score >= 700) return "info";
-    if (score >= 650) return "warning";
-    return "error";
-  };
-
-  const getScoreLabel = (score) => {
-    if (score >= 750) return "Excellent";
-    if (score >= 700) return "Good";
-    if (score >= 650) return "Fair";
-    return "Poor";
-  };
-
   const getReportUrl = (report) => {
     if (report.localPath) {
       const baseUrl = import.meta.env.VITE_REACT_APP_API_URL
@@ -142,208 +130,150 @@ const ViewReports = () => {
     return report.reportUrl;
   };
 
+  // Who pulled the report: a staff member, or the partner's business
+  const creatorName = (report) =>
+    report.createdByEmployee
+      ? `${report.createdByEmployee.name}${
+          report.createdByEmployee.staffCode ? ` (${report.createdByEmployee.staffCode})` : ""
+        }`
+      : report?.franchiseId?.businessName || "N/A";
+
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>
-        Credit Reports
-      </Typography>
-
-      {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
+      {!embedded && (
+        <Typography variant="h4" gutterBottom>
+          Credit Reports
+        </Typography>
       )}
 
-      <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-            All Credit Reports
-          </Typography>
+      <SectionCard>
+        <TableToolbar>
+          <SearchField
+            value={searchTerm}
+            onChange={(value) => {
+              setSearchTerm(value);
+              setPage(1);
+            }}
+            placeholder="Search by name, mobile, PAN or franchise"
+          />
+          <FilterChips
+            label="Bureau:"
+            options={BUREAU_FILTERS}
+            value={bureauFilter}
+            onChange={(value) => {
+              setBureauFilter(value);
+              setPage(1);
+            }}
+          />
+        </TableToolbar>
 
-          {/* Search and Filter Controls */}
-          <Grid container spacing={2} sx={{ mb: 3 }}>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Search by name, mobile, PAN, or franchise"
-                value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  setPage(1);
-                }}
-                InputProps={{
-                  endAdornment: <Search />,
-                }}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <InputLabel>Credit Bureau</InputLabel>
-                <Select
-                  value={bureauFilter}
-                  label="Credit Bureau"
-                  onChange={(e) => {
-                    setBureauFilter(e.target.value);
-                    setPage(1);
-                  }}
-                >
-                  <MenuItem value="">All Bureaus</MenuItem>
-                  <MenuItem value="cibil">CIBIL</MenuItem>
-                  <MenuItem value="crif">CRIF</MenuItem>
-                  <MenuItem value="experian">Experian</MenuItem>
-                  <MenuItem value="equifax">Equifax</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-          </Grid>
+        <CardAlerts error={error} onCloseError={() => setError("")} />
+        <LoadingBar loading={loading} />
 
-          {loading ? (
-            <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-              <CircularProgress />
-            </Box>
-          ) : creditReports.length === 0 ? (
-            <Typography variant="body1" sx={{ textAlign: "center", py: 4 }}>
-              {searchTerm || bureauFilter
-                ? "No reports match your search criteria."
-                : "No credit reports found."}
-            </Typography>
-          ) : (
-            <>
-              <TableContainer component={Paper}>
-                <Table sx={{ minWidth: 650 }} aria-label="credit reports table">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Franchise</TableCell>
-                      <TableCell>Created from</TableCell>
-                      <TableCell>Name</TableCell>
-                      <TableCell>Mobile</TableCell>
-                      <TableCell>PAN</TableCell>
-                      <TableCell>Bureau</TableCell>
-                      <TableCell>Credit Score</TableCell>
-                      <TableCell>Date</TableCell>
-                      <TableCell>Actions</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {creditReports.map((report) => (
-                      <TableRow
-                        key={report._id}
-                        sx={{
-                          "&:last-child td, &:last-child th": { border: 0 },
-                        }}
-                      >
-                        <TableCell>
+        <TableContainer>
+          <Table size="small" sx={{ minWidth: 1000 }} aria-label="credit reports table">
+            <TableHead>
+              <TableRow sx={headRowSx}>
+                <TableCell>Customer</TableCell>
+                <TableCell>PAN</TableCell>
+                <TableCell>Pulled by</TableCell>
+                <TableCell>Bureau</TableCell>
+                <TableCell>Credit Score</TableCell>
+                <TableCell>Date</TableCell>
+                <TableCell align="right">Report</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {creditReports.length === 0 ? (
+                <EmptyRow
+                  colSpan={7}
+                  loading={loading}
+                  title="No credit reports found"
+                  hint={
+                    searchTerm || bureauFilter
+                      ? "Try a different search or bureau."
+                      : "Reports appear here once a credit check is run."
+                  }
+                />
+              ) : (
+                creditReports.map((report) => (
+                  <TableRow key={report._id} hover sx={bodyRowSx}>
+                    <TableCell sx={{ maxWidth: 220 }}>
+                      <CellText variant="body2" fontWeight={600}>
+                        {report.name}
+                      </CellText>
+                      <Typography variant="caption" color="text.secondary">
+                        {report.mobile || "No mobile"}
+                      </Typography>
+                    </TableCell>
+                    <TableCell sx={{ fontFamily: "monospace", whiteSpace: "nowrap" }}>
+                      {report.pan || "—"}
+                    </TableCell>
+                    <TableCell sx={{ maxWidth: 220 }}>
+                      <CellText variant="body2">{creatorName(report)}</CellText>
+                      {report.franchiseId?.franchiseCode ? (
+                        <Link
+                          component="button"
+                          variant="caption"
+                          underline="hover"
+                          sx={{ fontWeight: 600 }}
+                          onClick={() => setFranchiseCode(report.franchiseId.franchiseCode)}
+                        >
+                          {report.franchiseId.franchiseCode}
+                        </Link>
+                      ) : (
+                        <Typography variant="caption" color="text.secondary">
                           {report.createdByEmployee
-                            ? `${report.createdByEmployee.name}${
-                                report.createdByEmployee.staffCode
-                                  ? ` (${report.createdByEmployee.staffCode})`
-                                  : ""
-                              }`
-                            : report?.franchiseId?.businessName || "N/A"}
-                        </TableCell>
-                        <TableCell>
-                          {report.franchiseId?.franchiseCode ? (
-                            <Link
-                              component="button"
-                              variant="body2"
-                              underline="hover"
-                              sx={{ fontFamily: "monospace", fontWeight: 700 }}
-                              onClick={() =>
-                                setFranchiseCode(report.franchiseId.franchiseCode)
-                              }
-                            >
-                              {report.franchiseId.franchiseCode}
-                            </Link>
-                          ) : (
-                            <Chip
-                              label={
-                                report.createdByEmployee
-                                  ? report.createdByEmployee.roleName || "Staff"
-                                  : report.createdFrom || "N/A"
-                              }
-                              size="small"
-                              variant="outlined"
-                            />
-                          )}
-                        </TableCell>
-                        <TableCell component="th" scope="row">
-                          {report.name}
-                        </TableCell>
-                        <TableCell>{report.mobile}</TableCell>
-                        <TableCell>{report.pan || "N/A"}</TableCell>
-                        <TableCell>
-                          <Chip
-                            label={
-                              report.bureau
-                                ? report.bureau.toUpperCase()
-                                : "N/A"
-                            }
-                            size="small"
-                            variant="outlined"
-                          />
-                        </TableCell>
-                        <TableCell>
-                          {report.score ? (
-                            <Chip
-                              label={`${report.score} (${getScoreLabel(report.score)})`}
-                              color={getScoreColor(report.score)}
-                              size="small"
-                            />
-                          ) : (
-                            <Chip label="N/A" size="small" />
-                          )}
-                        </TableCell>
-                        <TableCell sx={{ whiteSpace: "nowrap" }}>
-                          {new Date(report.createdAt).toLocaleString()}
-                        </TableCell>
-                        <TableCell>
-                          {getReportUrl(report) && (
-                            <Button
-                              size="small"
-                              startIcon={<PictureAsPdf />}
-                              component={Link}
-                              href={getReportUrl(report)}
-                              target="_blank"
-                            >
-                              PDF
-                            </Button>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-                <Box
-                  sx={{
-                    display: "flex",
-                    flexDirection: { xs: "column", sm: "row" }, // Stacks on mobile, side-by-side on desktop
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    gap: 2,
-                    p: 3,
-                  }}
-                >
-                  <Typography variant="body2" color="text.secondary">
-                    Total Records: {totalRecords}
-                  </Typography>
+                            ? report.createdByEmployee.roleName || "Staff"
+                            : report.createdFrom || "—"}
+                        </Typography>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        label={report.bureau ? report.bureau.toUpperCase() : "N/A"}
+                        size="small"
+                        variant="outlined"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <ScoreChip score={report.score || null} />
+                    </TableCell>
+                    <TableCell>
+                      <DateCell value={report.createdAt} />
+                    </TableCell>
+                    <TableCell align="right">
+                      {getReportUrl(report) ? (
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          startIcon={<PictureAsPdf fontSize="small" />}
+                          component={Link}
+                          href={getReportUrl(report)}
+                          target="_blank"
+                        >
+                          PDF
+                        </Button>
+                      ) : (
+                        <Typography variant="caption" color="text.secondary">
+                          No PDF
+                        </Typography>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
 
-                  <Pagination
-                    count={Math.ceil(totalRecords / rowsPerPage)}
-                    page={page}
-                    onChange={handleChangePage}
-                    color="primary"
-                    variant="outlined"
-                    shape="rounded"
-                    showFirstButton
-                    showLastButton
-                  />
-                  <Typography></Typography>
-                </Box>
-              </TableContainer>
-            </>
-          )}
-        </CardContent>
-      </Card>
+        <TableFooter
+          page={page}
+          rowsPerPage={rowsPerPage}
+          total={totalRecords}
+          onPageChange={setPage}
+        />
+      </SectionCard>
 
       <FranchiseDetailsDialog
         franchiseCode={franchiseCode}

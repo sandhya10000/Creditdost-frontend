@@ -2,11 +2,8 @@ import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
-  Card,
-  CardContent,
   TextField,
   Button,
-  Grid,
   Alert,
   CircularProgress,
   Table,
@@ -15,15 +12,13 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
   Chip,
-  Pagination,
   Stack,
   Snackbar,
   Select,
   MenuItem,
-  FormControl,
-  InputLabel,
+  IconButton,
+  Tooltip,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -35,8 +30,21 @@ import { useAuth } from "../../hooks/useAuth.jsx";
 import { formatAmcDate } from "../../utils/amc";
 import { downloadXlsx } from "../../utils/xlsxExport";
 import { useNavigate, Link as RouterLink } from "react-router-dom";
-import { Link } from "@mui/material";
 import EventAvailableIcon from "@mui/icons-material/EventAvailable";
+import DownloadIcon from "@mui/icons-material/Download";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import {
+  CardAlerts,
+  CellText,
+  DateCell,
+  EmptyRow,
+  LoadingBar,
+  SearchField,
+  SectionCard,
+  TableFooter,
+  TableToolbar,
+} from "./ui/AdminTable";
+import { bodyRowSx, headRowSx, statusSelectSx } from "./ui/tableStyles";
 
 // Work status: label, select/chip background, and the Customer ID text color
 const WORK_STATUS = {
@@ -49,7 +57,7 @@ const WORK_STATUS = {
 };
 const getWorkStatus = (status) => WORK_STATUS[status] || WORK_STATUS.newly_logged;
 
-const BusinessForms = ({ status = "paid", customerType }) => {
+const BusinessForms = ({ status = "paid", customerType, embedded = false }) => {
   const isBusinessView = customerType === "business";
   const navigate = useNavigate();
   const [businessForms, setBusinessForms] = useState([]);
@@ -127,7 +135,7 @@ const BusinessForms = ({ status = "paid", customerType }) => {
   // Fetch all business forms on component mount or dependency change
   useEffect(() => {
     fetchBusinessForms();
-  }, [status, customerType, page, appliedSearch]);
+  }, [status, customerType, page, appliedSearch, sortKey]);
 
   // Opening a paid Individual / Business list clears that type's unread badge
   useEffect(() => {
@@ -160,14 +168,6 @@ const BusinessForms = ({ status = "paid", customerType }) => {
     } finally {
       setLoading(false);
     }
-  };
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-  const handleSearch = (e) => {
-    e.preventDefault();
-    setAppliedSearch(searchTerm.trim());
-    setPage(1);
   };
   //function for case close update from admin api
   const closeCase = async (id) => {
@@ -416,384 +416,317 @@ const BusinessForms = ({ status = "paid", customerType }) => {
     }
   };
 
+  const showWorkStatus = status !== "pending";
+  const columnCount = 7 + (hideAmountAndPayment ? 0 : 1) + (showWorkStatus ? 1 : 0);
+
   return (
     <Box>
-      <Typography
-        variant="h4"
-        sx={{
-          mb: 2,
-          fontSize: { xs: "1.5rem", md: "2rem" },
-        }}
-      >
-        {status === "pending"
-          ? "Business MIS Pending"
-          : customerType === "business"
-            ? "Business MIS – Business Customers"
-            : customerType === "individual"
-              ? "Business MIS – Individual Customers"
-              : "Business MIS"}
-      </Typography>
-
-      {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
+      {!embedded && (
+        <Typography
+          variant="h4"
+          sx={{
+            mb: 2,
+            fontSize: { xs: "1.5rem", md: "2rem" },
+          }}
+        >
+          {status === "pending"
+            ? "Business MIS Pending"
+            : customerType === "business"
+              ? "Business MIS – Business Customers"
+              : customerType === "individual"
+                ? "Business MIS – Individual Customers"
+                : "Business MIS"}
+        </Typography>
       )}
 
-      <Card
-        sx={{
-          mt: 2,
-          borderRadius: 2,
-          overflow: "visible",
-        }}
-      >
-        <CardContent>
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: { xs: "column", sm: "row" },
-              gap: 2,
-              justifyContent: "space-between",
-              mb: 3,
+      <SectionCard>
+        <TableToolbar>
+          <SearchField
+            value={searchTerm}
+            onChange={setSearchTerm}
+            onSubmit={() => {
+              setAppliedSearch(searchTerm.trim());
+              setPage(1);
             }}
-            onSubmit={handleSearch}
+            placeholder="Search by customer name, email, phone or franchise"
+          />
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            spacing={1}
+            alignItems={{ xs: "stretch", sm: "center" }}
           >
             <TextField
-              fullWidth
-              placeholder="Search by customer name, email, phone, or franchise"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              sx={{
-                maxWidth: { xs: "100%", sm: 400 },
+              select
+              size="small"
+              label="Sort by"
+              value={sortKey}
+              onChange={(e) => {
+                setSortKey(e.target.value);
+                setPage(1);
               }}
-            />
-            <FormControl sx={{ minWidth: { xs: "100%", sm: 200 } }}>
-              <InputLabel id="business-sort-label">Sort by</InputLabel>
-              <Select
-                labelId="business-sort-label"
-                label="Sort by"
-                value={sortKey}
-                onChange={(e) => {
-                  setSortKey(e.target.value);
-                  setPage(1);
-                }}
-              >
-                {SORT_OPTIONS.map((opt) => (
-                  <MenuItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <Stack
-              direction={{ xs: "column", sm: "row" }}
-              spacing={1.5}
-              sx={{ width: { xs: "100%", sm: "auto" } }}
+              sx={{ minWidth: 190 }}
             >
-              <Button
-                variant="outlined"
-                color="primary"
-                startIcon={<EventAvailableIcon />}
-                onClick={() => navigate("/admin/business-forms/follow-ups")}
-                sx={{ width: { xs: "100%", sm: "auto" }, whiteSpace: "nowrap" }}
-              >
-                Follow Up
-              </Button>
-              <Button
-                variant="contained"
-                color="success"
-                onClick={handleDownloadExcel}
-                sx={{ color: "#fff", width: { xs: "100%", sm: "auto" } }}
-              >
-                Download Excel
-              </Button>
-            </Stack>
-          </Box>
-          {loading && businessForms.length === 0 ? (
-            <Box display="flex" justifyContent="center" my={4}>
-              <CircularProgress />
-            </Box>
-          ) : (
-            <TableContainer
-              component={Paper}
-              sx={{
-                width: "100%",
-                overflowX: "auto",
-                "&::-webkit-scrollbar": {
-                  height: 8,
-                },
-              }}
+              {SORT_OPTIONS.map((opt) => (
+                <MenuItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </MenuItem>
+              ))}
+            </TextField>
+            <Button
+              variant="outlined"
+              startIcon={<EventAvailableIcon />}
+              onClick={() => navigate("/admin/business-forms/follow-ups")}
+              sx={{ whiteSpace: "nowrap" }}
             >
-              <Table
-                size="small"
-                sx={{
-                  minWidth: 1400,
-                  tableLayout: "auto",
-                }}
-                aria-label="business forms table"
-              >
-                <TableHead
-                  sx={{
-                    "& .MuiTableCell-root": {
-                      fontWeight: 700,
-                      whiteSpace: "nowrap",
-                      backgroundColor: "#f8f9fa",
-                    },
-                  }}
-                >
-                  <TableRow
-                    sx={{
-                      "& td, & th": {
-                        py: 0.8,
-                      },
-                      "&:last-child td, &:last-child th": {
-                        border: 0,
-                      },
-                    }}
-                  >
-                    <TableCell>Customer ID</TableCell>
+              Follow-ups
+            </Button>
+            <Button
+              variant="outlined"
+              color="success"
+              startIcon={<DownloadIcon />}
+              onClick={handleDownloadExcel}
+              sx={{ whiteSpace: "nowrap" }}
+            >
+              Download Excel
+            </Button>
+          </Stack>
+        </TableToolbar>
 
-                    <TableCell>Customer Name</TableCell>
-                    {isBusinessView && <TableCell>Company Type</TableCell>}
-                    {isBusinessView && <TableCell>GST Number</TableCell>}
-                    <TableCell>Email</TableCell>
-                    <TableCell>Phone</TableCell>
-                    {!isBusinessView && <TableCell>RM</TableCell>}
-                    <TableCell>Franchise</TableCell>
-                    {!hideAmountAndPayment && <TableCell>Amount</TableCell>}
-                    {!hideAmountAndPayment && <TableCell>Payment Status</TableCell>}
-                    <TableCell>Document</TableCell>
+        <CardAlerts error={error} onCloseError={() => setError("")} />
+        <LoadingBar loading={loading} />
 
-                    <TableCell>Date</TableCell>
-                    <TableCell align="center">Action</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody
-                  sx={{
-                    "& td": {
-                      padding: "6px 8px",
-                    },
-                  }}
-                >
-                  {businessForms.map((form) => (
-                    <TableRow
-                      key={form._id}
-                      sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-                    >
-                      <TableCell
-                        sx={{
-                          cursor: "pointer",
-                          fontWeight: "bold",
-                        }}
-                      >
-                        <a
-                          href={`/admin/customer/${form.customerId}`}
-                          style={{
-                            color: getWorkStatus(form.workStatus).text,
-                            textDecoration: "none",
-                          }}
-                        >
-                          {form.customerId}
-                        </a>
+        <TableContainer>
+          <Table size="small" sx={{ minWidth: 1250 }} aria-label="business forms table">
+            <TableHead>
+              <TableRow sx={headRowSx}>
+                <TableCell>Customer ID</TableCell>
+                {isBusinessView && <TableCell>Company</TableCell>}
+                <TableCell>Contact</TableCell>
+                {!isBusinessView && <TableCell>RM</TableCell>}
+                <TableCell>Franchise</TableCell>
+                {!hideAmountAndPayment && <TableCell>Payment</TableCell>}
+                <TableCell>Documents</TableCell>
+                <TableCell>Date</TableCell>
+                {showWorkStatus && <TableCell>Work Status</TableCell>}
+                <TableCell align="right">Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {businessForms.length === 0 ? (
+                <EmptyRow
+                  colSpan={columnCount}
+                  loading={loading}
+                  title="No customers found"
+                  hint={
+                    appliedSearch
+                      ? "Try a different search term."
+                      : status === "pending"
+                        ? "Forms waiting for payment show up here."
+                        : "Customers appear here once their business form is submitted."
+                  }
+                />
+              ) : (
+                businessForms.map((form) => {
+                  const amount = form.manualAmount || form.selectedPackage?.price;
+                  const hasDocuments = Object.values(form.documents || {}).some(Boolean);
+                  return (
+                    <TableRow key={form._id} hover sx={bodyRowSx}>
+                      {/* Customer ID coloured by work status; the name shows on hover */}
+                      <TableCell sx={{ whiteSpace: "nowrap" }}>
+                        <Tooltip title={form.customerName || ""} placement="top-start" arrow>
+                          <Typography
+                            component={RouterLink}
+                            to={`/admin/customer/${form.customerId}`}
+                            variant="body2"
+                            sx={{
+                              fontWeight: 700,
+                              color: getWorkStatus(form.workStatus).text,
+                              textDecoration: "none",
+                              "&:hover": { textDecoration: "underline" },
+                            }}
+                          >
+                            {form.customerId}
+                          </Typography>
+                        </Tooltip>
                       </TableCell>
-                      <TableCell component="th" scope="row">
-                        {form.customerName}
-                      </TableCell>
+
                       {isBusinessView && (
-                        <TableCell sx={{ whiteSpace: "nowrap" }}>
-                          {form.businessDetails?.companyType || "N/A"}
+                        <TableCell sx={{ maxWidth: 180 }}>
+                          <CellText variant="body2">
+                            {form.businessDetails?.companyType || "N/A"}
+                          </CellText>
+                          <Typography
+                            variant="caption"
+                            color="text.secondary"
+                            sx={{ fontFamily: "monospace" }}
+                          >
+                            {form.businessDetails?.gstNumber || "No GST"}
+                          </Typography>
                         </TableCell>
                       )}
-                      {isBusinessView && (
-                        <TableCell sx={{ whiteSpace: "nowrap" }}>
-                          {form.businessDetails?.gstNumber || "N/A"}
-                        </TableCell>
-                      )}
-                      <TableCell
-                        sx={{
-                          maxWidth: 180,
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                        }}
-                      >
-                        {form.customerEmail}
+
+                      <TableCell sx={{ maxWidth: 220 }}>
+                        <CellText variant="body2">{form.customerEmail}</CellText>
+                        <Typography variant="caption" color="text.secondary">
+                          {form.customerPhone}
+                        </Typography>
                       </TableCell>
-                      <TableCell>{form.customerPhone}</TableCell>
+
                       {!isBusinessView && (
-                        <TableCell sx={{ minWidth: 150 }}>
+                        <TableCell sx={{ minWidth: 170 }}>
                           {isFullAdmin ? (
-                            <FormControl size="small" fullWidth>
-                              <Select
-                                displayEmpty
-                                value={form.assignedRm?._id || ""}
-                                onChange={(e) => assignRm(form._id, e.target.value)}
-                              >
-                                <MenuItem value="">
-                                  <em>Unassigned</em>
+                            <TextField
+                              select
+                              size="small"
+                              fullWidth
+                              value={form.assignedRm?._id || ""}
+                              onChange={(e) => assignRm(form._id, e.target.value)}
+                              SelectProps={{ displayEmpty: true }}
+                              sx={{ "& .MuiSelect-select": { py: 0.75, fontSize: 13 } }}
+                            >
+                              <MenuItem value="">
+                                <em>Unassigned</em>
+                              </MenuItem>
+                              {rmList.map((rm) => (
+                                <MenuItem key={rm._id} value={rm._id}>
+                                  {rm.name}
+                                  {rm.staffCode ? ` (${rm.staffCode})` : ""}
                                 </MenuItem>
-                                {rmList.map((rm) => (
-                                  <MenuItem key={rm._id} value={rm._id}>
-                                    {rm.name}
-                                    {rm.staffCode ? ` (${rm.staffCode})` : ""}
-                                  </MenuItem>
-                                ))}
-                              </Select>
-                            </FormControl>
+                              ))}
+                            </TextField>
                           ) : form.assignedRm ? (
-                            `${form.assignedRm.name}${form.assignedRm.staffCode ? ` (${form.assignedRm.staffCode})` : ""}`
+                            <>
+                              <CellText variant="body2">{form.assignedRm.name}</CellText>
+                              {form.assignedRm.staffCode && (
+                                <Typography variant="caption" color="text.secondary">
+                                  {form.assignedRm.staffCode}
+                                </Typography>
+                              )}
+                            </>
                           ) : (
-                            "Unassigned"
+                            <Chip size="small" variant="outlined" label="Unassigned" />
                           )}
                         </TableCell>
                       )}
-                      <TableCell sx={{ minWidth: 120 }}>
+
+                      <TableCell sx={{ maxWidth: 200 }}>
                         {form.franchiseId?._id ? (
-                          <Link
-                            component={RouterLink}
-                            to={`/admin/franchise/${form.franchiseId.franchiseCode || form.franchiseId._id}`}
-                          >
-                            {form.franchiseId.franchiseCode || form.franchiseId.businessName}
-                          </Link>
+                          <>
+                            <Typography
+                              component={RouterLink}
+                              to={`/admin/franchise/${form.franchiseId.franchiseCode || form.franchiseId._id}`}
+                              variant="body2"
+                              sx={{
+                                fontWeight: 600,
+                                color: "primary.main",
+                                textDecoration: "none",
+                                "&:hover": { textDecoration: "underline" },
+                              }}
+                            >
+                              {form.franchiseId.franchiseCode || "Partner"}
+                            </Typography>
+                            <CellText variant="caption" color="text.secondary" display="block">
+                              {form.franchiseId.businessName}
+                            </CellText>
+                          </>
                         ) : (
-                          "N/A"
+                          <Typography variant="body2" color="text.secondary">
+                            Direct
+                          </Typography>
                         )}
                       </TableCell>
-                      {/* <TableCell>
-                        ₹{form.selectedPackage?.price || "N/A"}
-                      </TableCell> */}
+
                       {!hideAmountAndPayment && (
-                        <TableCell>
-                          ₹
-                          {form.manualAmount
-                            ? form.manualAmount
-                            : form.selectedPackage?.price || "N/A"}
+                        <TableCell sx={{ whiteSpace: "nowrap" }}>
+                          <Typography variant="body2" fontWeight={600}>
+                            {amount ? `₹${Number(amount).toLocaleString("en-IN")}` : "—"}
+                          </Typography>
+                          <Box sx={{ mt: 0.5 }}>{getPaymentStatusChip(form.paymentStatus)}</Box>
                         </TableCell>
                       )}
-                      {!hideAmountAndPayment && (
+
+                      <TableCell>
+                        <Chip
+                          size="small"
+                          variant="outlined"
+                          color={hasDocuments ? "success" : "default"}
+                          label={hasDocuments ? "Uploaded" : "None"}
+                        />
+                      </TableCell>
+
+                      <TableCell>
+                        <DateCell value={form.createdAt} />
+                      </TableCell>
+
+                      {showWorkStatus && (
                         <TableCell>
-                          {getPaymentStatusChip(form.paymentStatus)}
-                        </TableCell>
-                      )}
-                      <TableCell
-                        sx={{
-                          width: 60,
-                          textAlign: "center",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        {Object.values(form.documents || {}).some(Boolean)
-                          ? "Yes"
-                          : "No"}
-                      </TableCell>
-                      <TableCell sx={{ whiteSpace: "nowrap" }}>
-                        {new Date(form.createdAt).toLocaleString("en-IN", {
-                          day: "2-digit",
-                          month: "short",
-                          year: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                          hour12: true,
-                        })}
-                      </TableCell>
-                      <TableCell align="center" sx={{ whiteSpace: "nowrap" }}>
-                        <Stack direction="row" spacing={1} justifyContent="center" alignItems="center">
-                          {status !== "pending" && (() => {
+                          {(() => {
                             const current = form.workStatus || "newly_logged";
-                            const { bg } = getWorkStatus(current);
-                            const color = "#fff";
                             // Staff can't change a case once Admin has marked it Refunded
                             const locked = current === "refunded" && !isFullAdmin;
                             return (
-                              <FormControl size="small" sx={{ minWidth: 130 }}>
-                                <Select
-                                  value={current}
-                                  disabled={locked}
-                                  title={locked ? "Only Admin can change a Refunded case" : undefined}
-                                  renderValue={(value) => getWorkStatus(value).label}
-                                  onChange={(e) => updateWorkStatus(form._id, e.target.value)}
-                                  sx={{
-                                    "& .MuiSelect-select.Mui-disabled": { WebkitTextFillColor: color, color },
-                                    "& .MuiSelect-icon.Mui-disabled": { color },
-                                    backgroundColor: bg,
-                                    color: color,
-                                    fontWeight: 600,
-                                    fontSize: "0.78rem",
-                                    borderRadius: "6px",
-                                    "& .MuiSelect-icon": { color: color },
-                                    "& .MuiOutlinedInput-notchedOutline": { border: "none" },
-                                    "&:hover .MuiOutlinedInput-notchedOutline": { border: "none" },
-                                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": { border: "1px solid rgba(255,255,255,0.5)" },
-                                  }}
-                                >
-                                  <MenuItem value="newly_logged">Newly Logged</MenuItem>
-                                  <MenuItem value="in_progress">In Progress</MenuItem>
-                                  <MenuItem value="pending">Pending</MenuItem>
-                                  <MenuItem value="closed">Closed</MenuItem>
-                                  {/* Kept in the list for everyone so a refunded case still shows its label */}
-                                  <MenuItem value="refunded" disabled={!isFullAdmin}>
-                                    Refunded{!isFullAdmin ? " (Admin only)" : ""}
-                                  </MenuItem>
-                                </Select>
-                              </FormControl>
+                              <Select
+                                size="small"
+                                value={current}
+                                disabled={locked}
+                                title={locked ? "Only Admin can change a Refunded case" : undefined}
+                                renderValue={(value) => getWorkStatus(value).label}
+                                onChange={(e) => updateWorkStatus(form._id, e.target.value)}
+                                sx={{ minWidth: 140, ...statusSelectSx(getWorkStatus(current).bg) }}
+                              >
+                                <MenuItem value="newly_logged">Newly Logged</MenuItem>
+                                <MenuItem value="in_progress">In Progress</MenuItem>
+                                <MenuItem value="pending">Pending</MenuItem>
+                                <MenuItem value="closed">Closed</MenuItem>
+                                {/* Kept in the list for everyone so a refunded case still shows its label */}
+                                <MenuItem value="refunded" disabled={!isFullAdmin}>
+                                  Refunded{!isFullAdmin ? " (Admin only)" : ""}
+                                </MenuItem>
+                              </Select>
                             );
                           })()}
-                          {status === "paid" && form.customerId && form.amc?.isEnrolled && (
-                            <Chip
-                              label={`AMC till ${formatAmcDate(form.amc.endDate)}`}
-                              color="secondary"
+                        </TableCell>
+                      )}
+
+                      <TableCell align="right" sx={{ whiteSpace: "nowrap" }}>
+                        {status === "paid" && form.customerId && form.amc?.isEnrolled && (
+                          <Chip
+                            label={`AMC till ${formatAmcDate(form.amc.endDate)}`}
+                            color="secondary"
+                            size="small"
+                            component={RouterLink}
+                            to="/admin/business-mis?tab=amc"
+                            clickable
+                            sx={{ mr: 0.5 }}
+                          />
+                        )}
+                        {isFullAdmin && (
+                          <Tooltip title="Delete">
+                            <IconButton
                               size="small"
-                              component="a"
-                              href="/admin/amc-customers"
-                              clickable
-                            />
-                          )}
-                          {isFullAdmin && (
-                            <Button
-                              variant="contained"
                               color="error"
-                              size="small"
                               onClick={() => handleDeleteClick(form)}
                             >
-                              Delete
-                            </Button>
-                          )}
-                        </Stack>
+                              <DeleteOutlineIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        )}
                       </TableCell>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: { xs: "column", sm: "row" }, // Stacks on mobile, side-by-side on desktop
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  gap: 2,
-                  p: 3,
-                }}
-              >
-                <Typography>Total Records: {totalRecords}</Typography>
+                  );
+                })
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
 
-                <Pagination
-                  count={Math.ceil(totalRecords / rowsPerPage)}
-                  page={page}
-                  onChange={handleChangePage}
-                  color="primary"
-                  shape="rounded"
-                  showFirstButton
-                  showLastButton
-                />
-
-                <Typography>
-                  Page {page} of {Math.ceil(totalRecords / rowsPerPage)}
-                </Typography>
-              </Box>
-            </TableContainer>
-          )}
-        </CardContent>
-      </Card>
+        <TableFooter
+          page={page}
+          rowsPerPage={rowsPerPage}
+          total={totalRecords}
+          onPageChange={setPage}
+        />
+      </SectionCard>
 
       {/* Delete Business Confirmation Dialog (paid and pending MIS) */}
       <Dialog
@@ -801,6 +734,7 @@ const BusinessForms = ({ status = "paid", customerType }) => {
         onClose={handleCloseDeleteDialog}
         maxWidth="sm"
         fullWidth
+        PaperProps={{ sx: { borderRadius: 3 } }}
       >
         <DialogTitle>Confirm Delete</DialogTitle>
         <DialogContent>

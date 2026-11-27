@@ -2,8 +2,6 @@ import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
-  Card,
-  CardContent,
   Button,
   Table,
   TableBody,
@@ -11,7 +9,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
   Chip,
   Dialog,
   DialogTitle,
@@ -22,7 +19,6 @@ import {
   CircularProgress,
   IconButton,
   Tooltip,
-  Pagination,
   Snackbar,
 } from "@mui/material";
 import {
@@ -34,8 +30,18 @@ import {
   OpenInNew as OpenInNewIcon,
 } from "@mui/icons-material";
 import { adminAPI } from "../../services/api";
+import {
+  CellText,
+  DateCell,
+  EmptyRow,
+  LoadingBar,
+  SectionCard,
+  SectionHeader,
+  TableFooter,
+} from "./ui/AdminTable";
+import { bodyRowSx, headRowSx } from "./ui/tableStyles";
 
-const ManageAIAnalysis = () => {
+const ManageAIAnalysis = ({ embedded = false }) => {
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState(null);
@@ -70,9 +76,6 @@ const ManageAIAnalysis = () => {
     fetchDocuments();
   }, [page]);
 
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
 
   // Handle response file selection
   const handleFileChange = (event) => {
@@ -280,138 +283,115 @@ const ManageAIAnalysis = () => {
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>
-        AI Analysis Documents
-      </Typography>
+      {!embedded && (
+        <Typography variant="h4" gutterBottom>
+          AI Analysis Documents
+        </Typography>
+      )}
 
-      <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-            Document Management
-          </Typography>
+      <SectionCard>
+        <SectionHeader
+          title="Documents for AI analysis"
+          subtitle="Credit reports uploaded by partners, with their AI analysis status."
+        />
+        <LoadingBar loading={loading} />
 
-          {loading ? (
-            <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
-              <CircularProgress />
-            </Box>
-          ) : (
-            <TableContainer component={Paper}>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Franchise</TableCell>
-                    <TableCell>Document</TableCell>
-                    <TableCell>Uploaded At</TableCell>
-                    <TableCell>AI Analysis Status</TableCell>
-                    <TableCell>Actions</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {documents.map((doc) => {
-                    const statusChip = getStatusChip(doc);
-                    const hasAnalysis =
-                      doc.claudeAnalysisStatus === "completed" ||
-                      doc.claudeAnalysisStatus === "email_sent";
+        <TableContainer>
+          <Table size="small" sx={{ minWidth: 900 }} aria-label="AI analysis documents table">
+            <TableHead>
+              <TableRow sx={headRowSx}>
+                <TableCell>Partner</TableCell>
+                <TableCell>Document</TableCell>
+                <TableCell>Uploaded</TableCell>
+                <TableCell>AI Analysis</TableCell>
+                <TableCell align="right">Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {documents.length === 0 ? (
+                <EmptyRow
+                  colSpan={5}
+                  loading={loading}
+                  title="No documents yet"
+                  hint="Documents uploaded by partners for AI analysis show up here."
+                />
+              ) : (
+                documents.map((doc) => {
+                  const statusChip = getStatusChip(doc);
+                  const hasAnalysis =
+                    doc.claudeAnalysisStatus === "completed" ||
+                    doc.claudeAnalysisStatus === "email_sent";
 
-                    return (
-                      <TableRow key={doc._id}>
-                        <TableCell>
-                          <Typography variant="body2">
-                            {doc.franchiseName}
-                          </Typography>
-                          <Typography variant="caption" color="textSecondary">
-                            {doc.franchiseEmail}
-                          </Typography>
-                        </TableCell>
-                        <TableCell>{doc.uploadedDocumentName}</TableCell>
-                        <TableCell>
-                          {new Date(doc.uploadedAt).toLocaleString()}
-                        </TableCell>
-                        <TableCell>
-                          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, flexWrap: "wrap" }}>
+                  return (
+                    <TableRow key={doc._id} hover sx={bodyRowSx}>
+                      <TableCell sx={{ maxWidth: 240 }}>
+                        <CellText variant="body2" fontWeight={600}>
+                          {doc.franchiseName}
+                        </CellText>
+                        <CellText variant="caption" color="text.secondary" display="block">
+                          {doc.franchiseEmail}
+                        </CellText>
+                      </TableCell>
+                      <TableCell sx={{ maxWidth: 280 }}>
+                        <CellText variant="body2">{doc.uploadedDocumentName}</CellText>
+                      </TableCell>
+                      <TableCell>
+                        <DateCell value={doc.uploadedAt} />
+                      </TableCell>
+                      <TableCell>
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, flexWrap: "wrap" }}>
+                          <Chip
+                            label={statusChip.label}
+                            color={statusChip.color}
+                            icon={statusChip.icon}
+                            size="small"
+                            variant="outlined"
+                          />
+                          {doc.language && doc.language !== "en" && (
                             <Chip
-                              label={statusChip.label}
-                              color={statusChip.color}
-                              icon={statusChip.icon}
+                              label={doc.languageName || doc.language.toUpperCase()}
+                              color="primary"
                               size="small"
                               variant="outlined"
                             />
-                            {doc.language && doc.language !== "en" && (
-                              <Chip
-                                label={doc.languageName || doc.language.toUpperCase()}
-                                color="primary"
-                                size="small"
-                                variant="outlined"
-                              />
-                            )}
-                          </Box>
-                        </TableCell>
-                        <TableCell>
-                          <Box sx={{ display: "flex", gap: 0.5 }}>
-                            {/* View Details Button */}
-                            <Tooltip title="View Details">
-                              <IconButton
-                                size="small"
-                                onClick={() => handleOpenDialog(doc)}
-                              >
-                                <ViewIcon />
-                              </IconButton>
-                            </Tooltip>
+                          )}
+                        </Box>
+                      </TableCell>
+                      <TableCell align="right" sx={{ whiteSpace: "nowrap" }}>
+                        {hasAnalysis && doc.claudeAnalysisFileName && (
+                          <Tooltip title="Download AI analysis report">
+                            <IconButton
+                              size="small"
+                              color="success"
+                              onClick={() =>
+                                handleDownloadAnalysis(doc._id, doc.claudeAnalysisFileName)
+                              }
+                            >
+                              <DownloadIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        )}
+                        <Tooltip title="View details">
+                          <IconButton size="small" onClick={() => handleOpenDialog(doc)}>
+                            <ViewIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
 
-                            {/* Download AI Analysis Button */}
-                            {hasAnalysis && doc.claudeAnalysisFileName && (
-                              <Tooltip title="Download AI Analysis Report">
-                                <IconButton
-                                  size="small"
-                                  onClick={() =>
-                                    handleDownloadAnalysis(
-                                      doc._id,
-                                      doc.claudeAnalysisFileName,
-                                    )
-                                  }
-                                  color="success"
-                                >
-                                  <DownloadIcon />
-                                </IconButton>
-                              </Tooltip>
-                            )}
-                          </Box>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: { xs: "column", sm: "row" }, // Stacks on mobile, side-by-side on desktop
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  gap: 2,
-                  p: 3,
-                }}
-              >
-                <Typography variant="body2" color="text.secondary">
-                  Total Records: {totalRecords}
-                </Typography>
-
-                <Pagination
-                  count={Math.ceil(totalRecords / rowsPerPage)}
-                  page={page}
-                  onChange={handleChangePage}
-                  color="primary"
-                  variant="outlined"
-                  shape="rounded"
-                  showFirstButton
-                  showLastButton
-                />
-                <Typography></Typography>
-              </Box>
-            </TableContainer>
-          )}
-        </CardContent>
-      </Card>
+        <TableFooter
+          page={page}
+          rowsPerPage={rowsPerPage}
+          total={totalRecords}
+          onPageChange={setPage}
+        />
+      </SectionCard>
 
       {/* Response Dialog */}
       <Dialog
@@ -419,6 +399,7 @@ const ManageAIAnalysis = () => {
         onClose={handleCloseDialog}
         maxWidth="md"
         fullWidth
+        PaperProps={{ sx: { borderRadius: 3 } }}
       >
         <DialogTitle>
           <Box

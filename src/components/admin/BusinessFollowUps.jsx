@@ -198,7 +198,7 @@ const BusinessFollowUps = () => {
         <Button
           variant="outlined"
           startIcon={<ArrowBackIcon />}
-          onClick={() => navigate("/admin/business-forms/individual")}
+          onClick={() => navigate("/admin/business-mis?tab=individual")}
         >
           Back to Business MIS
         </Button>

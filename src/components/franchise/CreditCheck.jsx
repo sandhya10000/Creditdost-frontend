@@ -37,8 +37,6 @@ import {
 import { franchiseAPI } from "../../services/api";
 
 const CreditCheck = () => {
-  // TEMP: prefill unplugged for CIBIL checks. Set true to restore.
-  const PREFILL_ENABLED = false;
   // TEMP: CIBIL maintenance — hides the Generation form and shows a notice. Set false to restore.
   const CIBIL_MAINTENANCE = false;
   // No-record text from the bureau (CIBIL/Equifax). The backend locks the PAN for 48h.
@@ -61,11 +59,11 @@ const CreditCheck = () => {
   const [creditReports, setCreditReports] = useState([]);
   const [recentReport, setRecentReport] = useState(null);
   const [availableCredits, setAvailableCredits] = useState(0);
-  //for prefilled data mobile
-  const [loadingPrefill, setLoadingPrefill] = useState(false);
-  const [prefillError, setPrefillError] = useState("");
+  // Set when the prefill match failed: mobile + PAN are locked until prefillLock.until
+  const [prefillLock, setPrefillLock] = useState(null);
+  // Last name|mobile|PAN sent for a match, so blurring a field doesn't repeat the call
+  const lastPrefillKeyRef = useRef("");
 
-  const [showCreditButton, setShowCreditButton] = useState(true);
   const [totalRecords, setTotalRecords] = useState(0);
   const [page, setPage] = useState(1);
   const rowsPerPage = 10;
@@ -426,96 +424,56 @@ const CreditCheck = () => {
   //   return `${day}-${month}-${year}`;
   // };
 
-  const fetchPrefillData = async (mobile) => {
+  // Reads the lock for a mobile + PAN pair from the database. No provider call.
+  // Sets the lock state and returns whether the pair is locked.
+  const fetchPrefillLock = async (mobile, pan) => {
+    const { data } = await franchiseAPI.getPrefillLock({ mobile, pan });
+    setPrefillLock(
+      data.locked ? { until: data.lockedUntil, message: data.message } : null,
+    );
+    return Boolean(data.locked);
+  };
+
+  // Runs when the user leaves the name, mobile or PAN field.
+  // 1. Locked pair: shown from the database; the prefill provider is not called.
+  // 2. All three filled and not locked: silent prefill match (no loading UI).
+  const checkPrefill = async () => {
+    const mobile = formData.mobile;
+    const name = formData.name.trim();
+    const pan = formData.pan.trim().toUpperCase();
+    if (!/^[0-9]{10}$/.test(mobile) || !/^[A-Z]{5}[0-9]{4}[A-Z]$/.test(pan)) {
+      return;
+    }
+
     try {
-      setLoadingPrefill(true);
-      setPrefillError("");
+      if (await fetchPrefillLock(mobile, pan)) return;
+      if (name.length < 2) return;
 
-      const response = await franchiseAPI.getfetchPrefillData(mobile);
+      const key = `${mobile}|${pan}|${name.toUpperCase()}`;
+      if (lastPrefillKeyRef.current === key) return;
+      lastPrefillKeyRef.current = key;
 
-      console.log("Prefill API Response:", response);
-
-      //  Correct data extraction
-      const apiData = response?.data?.data;
-
-      if (!apiData || !apiData.details) {
-        setPrefillError("No data found");
-        return;
+      const { data } = await franchiseAPI.checkPrefillMatch({ mobile, name, pan });
+      if (data.locked) {
+        setPrefillLock({ until: data.lockedUntil, message: data.message });
+      } else if (data.matched) {
+        setPrefillLock(null);
       }
-
-      const details = apiData.details;
-      // setDisablePan(false);
-      setShowCreditButton(true); //Show button on success
-      setFormData((prev) => ({
-        ...prev,
-        name: details.personal_info?.full_name?.trim() || "",
-        pan: details.identity_info?.pan_number?.[0]?.id_number || "",
-        dob: details.personal_info?.dob || "",
-        gender: details.personal_info?.gender || "",
-      }));
     } catch (err) {
-      console.error("API Error:", err);
-
-      const status =
-        err?.response?.data?.error?.status_code || err?.response?.status;
-
-      const message =
-        err?.response?.data?.error?.message ||
-        err?.response?.data?.message ||
-        "Something went wrong";
-
-      // Audit every prefill failure for the admin log
-      await franchiseAPI.savePrefillFailure({
-        mobile,
-        message,
-        statusCode: status,
-      });
-
-      if (status === 404 || status === 422) {
-        alert(
-          "No PAN record found for this mobile number. You can proceed with Experian.",
-        );
-        setShowCreditButton(false);
-      } else if (status === 429) {
-        alert("Too many requests. Please try again after some time.");
-        setShowCreditButton(true);
-      } else if (status === 500 || status === 503 || status === 504) {
-        alert("Server error occurred. Please try again after 15 minutes.");
-        setShowCreditButton(true);
-      } else {
-        alert(message);
-        setShowCreditButton(true);
-      }
-
-      setPrefillError(message);
-    } finally {
-      setLoadingPrefill(false);
+      // Lookup or provider problem: no lock and no message. Allow a retry on the next blur.
+      console.error("Prefill check failed:", err.message);
+      lastPrefillKeyRef.current = "";
     }
   };
 
-  const handleMobileChange = async (e) => {
-    const value = e.target.value.replace(/\D/g, "");
-
-    console.log("Typing:", value); //  check typing
-
+  const handleMobileChange = (e) => {
+    const value = e.target.value.replace(/\D/g, "").slice(0, 10);
     setFormData((prev) => ({ ...prev, mobile: value }));
-
-    if (!PREFILL_ENABLED) return;
-
-    if (value.length === 10) {
-      try {
-        setLoadingPrefill(true);
-
-        console.log("Calling Prefill API...");
-
-        await fetchPrefillData(value);
-      } catch (error) {
-        console.log(error);
-      } finally {
-        setLoadingPrefill(false);
-      }
-    }
   };
+
+  const lockedUntilText = prefillLock
+    ? new Date(prefillLock.until).toLocaleString("en-IN")
+    : "";
 
   return (
     <Box>
@@ -602,7 +560,7 @@ const CreditCheck = () => {
               }}
             >
               <Backdrop
-                open={saving || loadingPrefill}
+                open={saving}
                 sx={{
                   position: "absolute",
                   top: 10,
@@ -616,6 +574,11 @@ const CreditCheck = () => {
               >
                 <CircularProgress color="primary" />
               </Backdrop>
+              {prefillLock && (
+                <Alert severity="warning" sx={{ mb: 3 }}>
+                  The details did not match our records. Mobile number and PAN are locked until {lockedUntilText}.
+                </Alert>
+              )}
               <Grid container spacing={3}>
                 <Grid
                   item
@@ -631,6 +594,7 @@ const CreditCheck = () => {
                     fullWidth
                     value={formData.name}
                     onChange={handleInputChange}
+                    onBlur={checkPrefill}
                     helperText="Enter the full name of the customer"
                   />
                 </Grid>
@@ -648,20 +612,16 @@ const CreditCheck = () => {
                     fullWidth
                     value={formData.mobile}
                     onChange={handleMobileChange}
-                    disabled={loadingPrefill}
+                    onBlur={checkPrefill}
+                    disabled={!!prefillLock}
                     inputProps={{
                       maxLength: 10,
                       pattern: "[0-9]{10}",
                     }}
-                    error={!!prefillError}
-                    InputProps={{
-                      endAdornment: loadingPrefill ? (
-                        <CircularProgress size={20} />
-                      ) : null,
-                    }}
                     helperText={
-                      prefillError ||
-                      "Enter exactly 10 digits without spaces or dashes"
+                      prefillLock
+                        ? "Locked until " + lockedUntilText
+                        : "Enter exactly 10 digits without spaces or dashes"
                     }
                   />
                 </Grid>
@@ -679,6 +639,8 @@ const CreditCheck = () => {
                     fullWidth
                     value={formData.pan}
                     onChange={handleInputChange}
+                    onBlur={checkPrefill}
+                    disabled={!!prefillLock}
                     inputProps={{
                       style: { textTransform: "uppercase" },
                       maxLength: 10,
@@ -692,7 +654,11 @@ const CreditCheck = () => {
                         WebkitTextFillColor: "#999", //  text grey
                       },
                     }}
-                    helperText="PAN number (e.g., ABCDE1234F)"
+                    helperText={
+                      prefillLock
+                        ? "Locked until " + lockedUntilText
+                        : "PAN number (e.g., ABCDE1234F)"
+                    }
                   />
                 </Grid>
 
@@ -769,7 +735,7 @@ const CreditCheck = () => {
                 </Grid>
                 <Grid item xs={12}>
                   <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-                    {showCreditButton && (
+                    {(
                       <Button
                         type="submit"
                         variant="contained"

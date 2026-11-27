@@ -7,12 +7,11 @@ const ManageFranchises = lazy(() => import("./ManageFranchises"));
 const ManagePackages = lazy(() => import("./ManagePackages"));
 const ManageCustomerPackages = lazy(() => import("./ManageCustomerPackages"));
 const ManagePayouts = lazy(() => import("./ManagePayouts"));
-const ViewReports = lazy(() => import("./ViewReports"));
-const WhiteLabelPartners = lazy(() => import("./WhiteLabelPartners"));
-const WhiteLabelReports = lazy(() => import("./WhiteLabelReports"));
 const SurepassSettings = lazy(() => import("./SurepassSettings"));
-const BusinessForms = lazy(() => import("./BusinessForms"));
-const AmcCustomers = lazy(() => import("./AmcCustomers"));
+// Pages made of tabs (see TabbedPage)
+const CreditCheckTabs = lazy(() => import("./CreditCheckTabs"));
+const BusinessMisTabs = lazy(() => import("./BusinessMisTabs"));
+const AiAnalysisTabs = lazy(() => import("./AiAnalysisTabs"));
 const ManualPayments = lazy(() => import("./ManualPayments"));
 const BusinessFollowUps = lazy(() => import("./BusinessFollowUps"));
 const ManageBlogs = lazy(() => import("./ManageBlogs"));
@@ -22,15 +21,12 @@ const ManageRelationshipManagers = lazy(
 const AdminDashboardHome = lazy(() => import("./AdminDashboardHome"));
 const GoogleSheetsSettings = lazy(() => import("./GoogleSheetsSettings"));
 const ManageDigitalAgreements = lazy(() => import("./ManageDigitalAgreements"));
-const ManageAIAnalysis = lazy(() => import("./ManageAIAnalysis"));
 const ManageBsaReports = lazy(() => import("./ManageBsaReports"));
 const AdminMarketing = lazy(() => import("./AdminMarketing"));
 const AdminReward = lazy(() => import("./AdminReward"));
 const AdminCaseStudies = lazy(() => import("./AdminCaseStudy"));
 const CustomerCRM = lazy(() => import("../pages/CustomerCRM"));
 const FranchiseCRM = lazy(() => import("../pages/FranchiseCRM"));
-const AdminCreditBureau = lazy(() => import("../admin/AdminCreditcheck"));
-const PrefillFailedLog = lazy(() => import("../admin/PrefillFailedLog"));
 const ManualBusiness = lazy(() => import("../admin/ManualBusiness"));
 const CreditReportLeads = lazy(
   () => import("../admin/Website-enquiry/CreditReportLeads"),
@@ -38,6 +34,8 @@ const CreditReportLeads = lazy(
 const AdminTickets = lazy(() => import("../admin/supportTicket"));
 const ManageStaff = lazy(() => import("./ManageStaff"));
 const StaffProfile = lazy(() => import("./StaffProfile"));
+// Shared by every role granted the Work Tracking section (see config/adminPermissions.js)
+const WorkTracking = lazy(() => import("./WorkTracking"));
 const AdminRoutes = () => {
   return (
     <Suspense fallback={<div>Loading...</div>}>
@@ -52,60 +50,70 @@ const AdminRoutes = () => {
             element={<ManageCustomerPackages />}
           />
           <Route path="payouts" element={<ManagePayouts />} />
-          <Route path="reports" element={<ViewReports />} />
-          <Route path="white-label-partners" element={<WhiteLabelPartners />} />
-          <Route path="white-label-reports" element={<WhiteLabelReports />} />
           <Route path="surepass-settings" element={<SurepassSettings />} />
+
+          {/* Credit Check page: ?tab=check|reports|prefill-logs */}
+          <Route path="credit-check" element={<CreditCheckTabs />} />
+          <Route
+            path="reports"
+            element={<Navigate to="/admin/credit-check?tab=reports" replace />}
+          />
+          <Route
+            path="prefill-failed-logs"
+            element={<Navigate to="/admin/credit-check?tab=prefill-logs" replace />}
+          />
+
+          {/* Business MIS page: ?tab=individual|business|amc|pending */}
+          <Route path="business-mis" element={<BusinessMisTabs />} />
           <Route
             path="business-forms"
-            element={<Navigate to="/admin/business-forms/individual" replace />}
+            element={<Navigate to="/admin/business-mis?tab=individual" replace />}
           />
           <Route
             path="business-forms/individual"
-            element={
-              <BusinessForms
-                key="paid-individual"
-                status="paid"
-                customerType="individual"
-              />
-            }
+            element={<Navigate to="/admin/business-mis?tab=individual" replace />}
           />
           <Route
             path="business-forms/business"
-            element={
-              <BusinessForms
-                key="paid-business"
-                status="paid"
-                customerType="business"
-              />
-            }
+            element={<Navigate to="/admin/business-mis?tab=business" replace />}
           />
-
+          <Route
+            path="amc-customers"
+            element={<Navigate to="/admin/business-mis?tab=amc" replace />}
+          />
           <Route
             path="business-forms-pending"
-            element={<BusinessForms key="pending" status="pending" />}
+            element={<Navigate to="/admin/business-mis?tab=pending" replace />}
+          />
+
+          {/* AI Analysis page: ?tab=ai-reports|white-label-partners|white-label-reports */}
+          <Route path="ai-analysis" element={<AiAnalysisTabs />} />
+          <Route
+            path="white-label-partners"
+            element={<Navigate to="/admin/ai-analysis?tab=white-label-partners" replace />}
+          />
+          <Route
+            path="white-label-reports"
+            element={<Navigate to="/admin/ai-analysis?tab=white-label-reports" replace />}
           />
           <Route path="business-forms/follow-ups" element={<BusinessFollowUps />} />
-          <Route path="amc-customers" element={<AmcCustomers />} />
           <Route path="manual-payments" element={<ManualPayments />} />
           <Route path="blogs" element={<ManageBlogs />} />
           <Route path="rms" element={<ManageRelationshipManagers />} />
           <Route path="staff" element={<ManageStaff />} />
           <Route path="staff/:id" element={<StaffProfile />} />
+          <Route path="work-tracking" element={<WorkTracking />} />
           <Route path="google-sheets" element={<GoogleSheetsSettings />} />
           <Route
             path="digital-agreements"
             element={<ManageDigitalAgreements />}
           />
-          <Route path="ai-analysis" element={<ManageAIAnalysis />} />
           <Route path="bsa-reports" element={<ManageBsaReports />} />
           <Route path="marketing-materials" element={<AdminMarketing />} />
           <Route path="reward" element={<AdminReward />} />
           <Route path="case-study/:category?" element={<AdminCaseStudies />} />
           <Route path="/customer/:customerId" element={<CustomerCRM />} />
           <Route path="/franchise/:franchiseCode" element={<FranchiseCRM />} />
-          <Route path="/credit-check" element={<AdminCreditBureau />} />
-          <Route path="/prefill-failed-logs" element={<PrefillFailedLog />} />
           <Route path="/manual-business" element={<ManualBusiness />} />
           <Route path="/admin-tickets" element={<AdminTickets />} />
           {/* Older franchise URLs open the matching tab */}

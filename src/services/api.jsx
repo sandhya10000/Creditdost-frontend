@@ -166,6 +166,10 @@ export const franchiseAPI = {
     }),
   //api for mobiled prefilled data
   getfetchPrefillData: (mobile) => api.post("/prefill", { mobile }),
+  // Matches name, mobile and PAN against prefill-by-mobile; locks them for 48h on mismatch
+  checkPrefillMatch: (data) => api.post("/credit/prefill-check", data),
+  // Lock status for a mobile + PAN pair, read from the database (no provider call)
+  getPrefillLock: (params) => api.get("/credit/prefill-lock", { params }),
   savePrefillFailure: (data) => api.post("/save-prefill-failure", data),
   getPrefillFailedLog: (params) => api.get("/prefill-failed-logs", { params }),
   //get marketing material
@@ -518,6 +522,16 @@ export const careersAPI = {
     };
     return api.post("/careers/apply", formData, config);
   },
+};
+
+// Monthly Working & Business Tracking (permission: work_tracking)
+// Staff see their own entries; full administrators can filter by role and user.
+export const workTrackingAPI = {
+  getEntries: (params) => api.get("/work-tracking/entries", { params }),
+  getSummary: (params) => api.get("/work-tracking/summary", { params }),
+  createEntry: (data) => api.post("/work-tracking/entries", data),
+  updateEntry: (id, data) => api.put(`/work-tracking/entries/${id}`, data),
+  deleteEntry: (id) => api.delete(`/work-tracking/entries/${id}`),
 };
 
 export default api;

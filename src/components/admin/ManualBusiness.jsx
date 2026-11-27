@@ -1,19 +1,31 @@
 import React, { useState } from "react";
 import { Box, Tab, Tabs } from "@mui/material";
 import Business from "../franchise/Business";
+import { PageHeader } from "./ui/AdminTable";
 
 const ManualBusiness = () => {
   const [tabValue, setTabValue] = useState(0);
 
   return (
     <Box>
+      <PageHeader
+        title="Manual Business"
+        subtitle="Create a business or AMC record on behalf of a customer."
+      />
+
       <Tabs
         value={tabValue}
         onChange={(e, v) => setTabValue(v)}
-        sx={{ mb: 2 }}
+        sx={{
+          mb: 3,
+          minHeight: 40,
+          borderBottom: 1,
+          borderColor: "divider",
+          "& .MuiTab-root": { textTransform: "none", fontWeight: 600, minHeight: 40 },
+        }}
       >
-        <Tab label="Individual Customer" />
-        <Tab label="Business Customer" />
+        <Tab label="Individual customer" />
+        <Tab label="Business customer" />
         <Tab label="AMC" />
       </Tabs>
 

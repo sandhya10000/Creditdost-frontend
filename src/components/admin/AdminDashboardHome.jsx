@@ -62,12 +62,12 @@ const StatCard = styled(Card)(({ theme }) => ({
   display: "flex",
   flexDirection: "column",
   borderRadius: theme.shape.borderRadius * 2,
-  boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+  boxShadow: "none",
   border: `1px solid ${theme.palette.divider}`,
   transition: "transform 0.3s ease, box-shadow 0.3s ease",
   "&:hover": {
     transform: "translateY(-5px)",
-    boxShadow: "0 6px 16px rgba(0,0,0,0.1)",
+    boxShadow: "0 8px 20px -12px rgba(15, 23, 42, 0.18)",
   },
 }));
 
@@ -103,13 +103,13 @@ const ActivityItem = styled(Paper)(({ theme }) => ({
 const QuickActionCard = styled(Card)(({ theme }) => ({
   height: "100%",
   borderRadius: theme.shape.borderRadius * 2,
-  boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+  boxShadow: "none",
   border: `1px solid ${theme.palette.divider}`,
   cursor: "pointer",
   transition: "all 0.3s ease",
   "&:hover": {
     transform: "translateY(-3px)",
-    boxShadow: "0 6px 16px rgba(0,0,0,0.1)",
+    boxShadow: "0 8px 20px -12px rgba(15, 23, 42, 0.18)",
     borderColor: theme.palette.primary.main,
   },
 }));
@@ -625,7 +625,7 @@ const AdminDashboardHome = () => {
     return (
       <Box sx={{ flexGrow: 1, py: 3 }}>
         <Box sx={{ mb: 4 }}>
-          <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5 }}>
+          <Typography variant="h5" sx={{ fontWeight: 700, letterSpacing: "-0.02em", mb: 0.5 }}>
             Business MIS Dashboard
           </Typography>
           <Typography variant="body1" color="text.secondary">
@@ -640,7 +640,7 @@ const AdminDashboardHome = () => {
                 borderRadius: 3,
                 border: "1px solid",
                 borderColor: "divider",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+                boxShadow: "none",
               }}
             >
               <CardContent sx={{ p: 3 }}>
@@ -677,7 +677,7 @@ const AdminDashboardHome = () => {
                 borderRadius: 3,
                 border: "1px solid",
                 borderColor: "divider",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+                boxShadow: "none",
               }}
             >
               <CardContent sx={{ p: 3 }}>
@@ -713,7 +713,7 @@ const AdminDashboardHome = () => {
                 borderRadius: 3,
                 border: "1px solid",
                 borderColor: "divider",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+                boxShadow: "none",
               }}
             >
               <CardContent sx={{ p: 3 }}>
@@ -766,7 +766,7 @@ const AdminDashboardHome = () => {
         }}
       >
         <Box>
-          <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5 }}>
+          <Typography variant="h5" sx={{ fontWeight: 700, letterSpacing: "-0.02em", mb: 0.5 }}>
             Dashboard Overview
           </Typography>
           <Typography variant="body1" color="text.secondary">
@@ -1030,7 +1030,7 @@ const AdminDashboardHome = () => {
           borderRadius: 3,
           border: "1px solid",
           borderColor: "divider",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+          boxShadow: "none",
         }}
       >
         <CardContent sx={{ p: 3 }}>
@@ -1146,7 +1146,7 @@ const AdminDashboardHome = () => {
                 borderRadius: 3,
                 border: "1px solid",
                 borderColor: "divider",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+                boxShadow: "none",
               }}
             >
               <CardContent sx={{ p: 3 }}>
@@ -1216,7 +1216,7 @@ const AdminDashboardHome = () => {
                 borderRadius: 3,
                 border: "1px solid",
                 borderColor: "divider",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+                boxShadow: "none",
               }}
             >
               <CardContent sx={{ p: 3 }}>
@@ -1282,7 +1282,7 @@ const AdminDashboardHome = () => {
             sx={{
               height: "100%",
               borderRadius: 3,
-              boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+              boxShadow: "none",
               border: "1px solid rgba(0,0,0,0.08)",
             }}
           >
@@ -1366,7 +1366,7 @@ const AdminDashboardHome = () => {
             sx={{
               height: "100%",
               borderRadius: 3,
-              boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+              boxShadow: "none",
               border: "1px solid rgba(0,0,0,0.08)",
             }}
           >
@@ -1433,7 +1433,7 @@ const AdminDashboardHome = () => {
           <Card
             sx={{
               borderRadius: 3,
-              boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+              boxShadow: "none",
               border: "1px solid rgba(0,0,0,0.08)",
             }}
           >
@@ -1594,7 +1594,7 @@ const AdminDashboardHome = () => {
           <Card
             sx={{
               borderRadius: 3,
-              boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+              boxShadow: "none",
               border: "1px solid rgba(0,0,0,0.08)",
               height: "100%",
             }}

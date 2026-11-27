@@ -1,38 +1,64 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+
+const ACCENT = '#0891b2';
 import {
   Box,
-  Typography,
-  Card,
-  CardContent,
-  TextField,
   Button,
   Grid,
-  Alert,
+  TextField,
   CircularProgress,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  IconButton,
-  Switch,
+  Checkbox,
+  Chip,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
-  Chip,
-  MenuItem,
   FormControl,
+  InputAdornment,
   InputLabel,
-  Select,
-  ListItemText,
   ListItemIcon,
-  Checkbox,
+  ListItemText,
+  MenuItem,
+  Select,
+  Stack,
+  Switch,
+  ToggleButton,
+  ToggleButtonGroup,
+  Typography,
 } from '@mui/material';
-import { Add, Edit, Delete, Check, Close } from '@mui/icons-material';
+import {
+  SearchOutlined,
+  CheckCircleOutline,
+  Inventory2Outlined,
+  PauseCircleOutline,
+} from '@mui/icons-material';
 import { adminAPI } from '../../services/api';
+import {
+  FeatureEditor,
+  FormSection,
+  PackageAlerts,
+  PackageCard,
+  PackageGridEmpty,
+  PackageTag,
+  PackageHeader,
+  PackageStats,
+  PricePreview,
+} from './PackageUi';
+
+const emptyForm = () => ({
+  name: '',
+  description: '',
+  price: '',
+  gstPercentage: 0,
+  creditsIncluded: '',
+  features: [],
+  isActive: true,
+  availableForPackages: [],
+  // Business payout settings (kept in the payload; the UI for them is not shown)
+  businessPayoutPercentage: 20,
+  businessPayoutType: 'percentage',
+  businessPayoutFixedAmount: 0,
+});
 
 const ManageCustomerPackages = () => {
   const [packages, setPackages] = useState([]);
@@ -42,21 +68,10 @@ const ManageCustomerPackages = () => {
   const [success, setSuccess] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
   const [editingPackage, setEditingPackage] = useState(null);
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    price: '',
-    gstPercentage: 0,
-    creditsIncluded: '',
-    features: [],
-    isActive: true,
-    availableForPackages: [], // Add the new field
-    // Business payout settings
-    businessPayoutPercentage: 20,
-    businessPayoutType: 'percentage',
-    businessPayoutFixedAmount: 0,
-  });
+  const [formData, setFormData] = useState(emptyForm);
   const [featureInput, setFeatureInput] = useState('');
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
 
   // Fetch all customer packages and franchise packages on component mount
   useEffect(() => {
@@ -99,27 +114,13 @@ const ManageCustomerPackages = () => {
         features: pkg.features || [],
         isActive: pkg.isActive,
         availableForPackages: pkg.availableForPackages || [],
-        // Business payout settings
         businessPayoutPercentage: pkg.businessPayoutPercentage || 20,
         businessPayoutType: pkg.businessPayoutType || 'percentage',
         businessPayoutFixedAmount: pkg.businessPayoutFixedAmount || 0,
       });
     } else {
       setEditingPackage(null);
-      setFormData({
-        name: '',
-        description: '',
-        price: '',
-        gstPercentage: 0,
-        creditsIncluded: '',
-        features: [],
-        isActive: true,
-        availableForPackages: [],
-        // Business payout settings
-        businessPayoutPercentage: 20,
-        businessPayoutType: 'percentage',
-        businessPayoutFixedAmount: 0,
-      });
+      setFormData(emptyForm());
     }
     setOpenDialog(true);
   };
@@ -132,34 +133,29 @@ const ManageCustomerPackages = () => {
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData({
-      ...formData,
+    setFormData((prev) => ({
+      ...prev,
       [name]: type === 'checkbox' ? checked : value,
-    });
+    }));
   };
 
   const handlePackageSelection = (selectedPackageIds) => {
-    setFormData({
-      ...formData,
-      availableForPackages: selectedPackageIds,
-    });
+    setFormData((prev) => ({ ...prev, availableForPackages: selectedPackageIds }));
   };
 
   const handleAddFeature = () => {
-    if (featureInput.trim() && !formData.features.includes(featureInput.trim())) {
-      setFormData({
-        ...formData,
-        features: [...formData.features, featureInput.trim()],
-      });
+    const trimmed = featureInput.trim();
+    if (trimmed && !formData.features.includes(trimmed)) {
+      setFormData((prev) => ({ ...prev, features: [...prev.features, trimmed] }));
       setFeatureInput('');
     }
   };
 
   const handleRemoveFeature = (featureToRemove) => {
-    setFormData({
-      ...formData,
-      features: formData.features.filter(feature => feature !== featureToRemove),
-    });
+    setFormData((prev) => ({
+      ...prev,
+      features: prev.features.filter((feature) => feature !== featureToRemove),
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -167,7 +163,7 @@ const ManageCustomerPackages = () => {
     setLoading(true);
     setError('');
     setSuccess('');
-    
+
     try {
       // Convert price and credits to numbers
       const packageData = {
@@ -177,17 +173,15 @@ const ManageCustomerPackages = () => {
         creditsIncluded: Number(formData.creditsIncluded),
         availableForPackages: formData.availableForPackages || [],
       };
-      
+
       if (editingPackage) {
-        // Update existing package
-        const response = await adminAPI.updateCustomerPackage(editingPackage._id, packageData);
+        await adminAPI.updateCustomerPackage(editingPackage._id, packageData);
         setSuccess('Customer package updated successfully!');
       } else {
-        // Create new package
-        const response = await adminAPI.createCustomerPackage(packageData);
+        await adminAPI.createCustomerPackage(packageData);
         setSuccess('Customer package created successfully!');
       }
-      
+
       // Refresh the package list
       fetchPackages();
       handleCloseDialog();
@@ -203,11 +197,11 @@ const ManageCustomerPackages = () => {
     if (!window.confirm('Are you sure you want to delete this customer package?')) {
       return;
     }
-    
+
     setLoading(true);
     setError('');
     setSuccess('');
-    
+
     try {
       await adminAPI.deleteCustomerPackage(id);
       setSuccess('Customer package deleted successfully!');
@@ -224,7 +218,7 @@ const ManageCustomerPackages = () => {
     setLoading(true);
     setError('');
     setSuccess('');
-    
+
     try {
       await adminAPI.updateCustomerPackage(id, { isActive: !currentStatus });
       setSuccess('Package status updated successfully!');
@@ -237,243 +231,243 @@ const ManageCustomerPackages = () => {
     }
   };
 
+  const franchiseNameById = useMemo(
+    () => Object.fromEntries(franchisePackages.map((fp) => [fp._id, fp.name])),
+    [franchisePackages],
+  );
+
+  const counts = useMemo(() => {
+    const active = packages.filter((pkg) => pkg.isActive).length;
+    return { total: packages.length, active, inactive: packages.length - active };
+  }, [packages]);
+
+  const visiblePackages = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    return packages.filter((pkg) => {
+      if (statusFilter === 'active' && !pkg.isActive) return false;
+      if (statusFilter === 'inactive' && pkg.isActive) return false;
+      if (!query) return true;
+      return (
+        pkg.name?.toLowerCase().includes(query) ||
+        pkg.description?.toLowerCase().includes(query)
+      );
+    });
+  }, [packages, search, statusFilter]);
+
+  const isFiltering = Boolean(search.trim()) || statusFilter !== 'all';
+
+  // Footer tag: which franchise packages can offer this customer package
+  const availabilityFooter = (pkg) => {
+    const ids = pkg.availableForPackages || [];
+    if (ids.length === 0) {
+      return <PackageTag accent={ACCENT}>Sold via all franchise packages</PackageTag>;
+    }
+    const names = ids.map((id) => franchiseNameById[id] || 'Unknown');
+    return (
+      <PackageTag title={names.join(', ')} accent={ACCENT}>
+        Via {names.length === 1 ? names[0] : `${names.length} franchise packages`}
+      </PackageTag>
+    );
+  };
+
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>
-        Manage Customer Packages
-      </Typography>
-      
-      {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
+      <PackageHeader
+        accent={ACCENT}
+        eyebrow="Customer plans"
+        title="Customer Packages"
+        subtitle="Packages sold to customers. Choose which franchise packages can offer each one."
+        actionLabel="Add Customer Package"
+        onAction={() => handleOpenDialog()}
+      />
+
+      <PackageAlerts error={error} success={success} />
+
+      <PackageStats total={counts.total} active={counts.active} inactive={counts.inactive} accent={ACCENT} />
+
+      {/* Toolbar */}
+      <Stack
+        direction={{ xs: 'column', md: 'row' }}
+        spacing={2}
+        alignItems={{ xs: 'stretch', md: 'center' }}
+        justifyContent="space-between"
+        sx={{ mb: 3 }}
+      >
+        <TextField
+          size="small"
+          placeholder="Search by name or description"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          sx={{ minWidth: { md: 320 } }}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchOutlined fontSize="small" />
+              </InputAdornment>
+            ),
+          }}
+        />
+        <ToggleButtonGroup
+          size="small"
+          exclusive
+          value={statusFilter}
+          onChange={(_, value) => value && setStatusFilter(value)}
+        >
+          <ToggleButton value="all">All</ToggleButton>
+          <ToggleButton value="active">Active</ToggleButton>
+          <ToggleButton value="inactive">Inactive</ToggleButton>
+        </ToggleButtonGroup>
+      </Stack>
+
+      {loading && packages.length === 0 ? (
+        <Box display="flex" justifyContent="center" my={8}>
+          <CircularProgress />
+        </Box>
+      ) : visiblePackages.length === 0 ? (
+        <PackageGridEmpty
+          accent={ACCENT}
+          message={
+            isFiltering
+              ? 'No packages match your search or filter.'
+              : 'No customer packages yet.'
+          }
+          actionLabel={isFiltering ? 'Clear search and filter' : 'Add the first package'}
+          onAction={
+            isFiltering
+              ? () => {
+                  setSearch('');
+                  setStatusFilter('all');
+                }
+              : () => handleOpenDialog()
+          }
+        />
+      ) : (
+        <Grid container spacing={2.5}>
+          {visiblePackages.map((pkg) => (
+            <Grid item xs={12} sm={6} lg={4} key={pkg._id}>
+              <PackageCard
+                pkg={pkg}
+                accent={ACCENT}
+                busy={loading}
+                footer={availabilityFooter(pkg)}
+                onEdit={() => handleOpenDialog(pkg)}
+                onDelete={() => handleDelete(pkg._id)}
+                onToggle={() => handleToggleStatus(pkg._id, pkg.isActive)}
+              />
+            </Grid>
+          ))}
+        </Grid>
       )}
-      
-      {success && (
-        <Alert severity="success" sx={{ mb: 2 }}>
-          {success}
-        </Alert>
-      )}
-      
-      <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
-        <CardContent>
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 3 }}>
-            <Button
-              variant="contained"
-              startIcon={<Add />}
-              onClick={() => handleOpenDialog()}
-            >
-              Add Customer Package
-            </Button>
-          </Box>
-          
-          {loading && packages.length === 0 ? (
-            <Box display="flex" justifyContent="center" my={4}>
-              <CircularProgress />
-            </Box>
-          ) : (
-            <TableContainer component={Paper}>
-              <Table sx={{ minWidth: 650 }} aria-label="customer packages table">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Name</TableCell>
-                    <TableCell>Description</TableCell>
-                    <TableCell>Base Price</TableCell>
-                    <TableCell>GST</TableCell>
-                    <TableCell>Total Price</TableCell>
-                    <TableCell>Features</TableCell>
-                    <TableCell>Available For</TableCell>
-                    <TableCell>Status</TableCell>
-                    <TableCell>Actions</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {packages.map((pkg) => (
-                    <TableRow
-                      key={pkg._id}
-                      sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                    >
-                      <TableCell component="th" scope="row">
-                        {pkg.name}
-                      </TableCell>
-                      <TableCell>{pkg.description}</TableCell>
-                      <TableCell>₹{pkg.price}</TableCell>
-                      <TableCell>{pkg.gstPercentage || 0}%</TableCell>
-                      <TableCell>₹{Number(pkg.price) + (Number(pkg.price) * (pkg.gstPercentage || 0) / 100)}</TableCell>
-                                            
-                      <TableCell>
-                        {pkg.features && pkg.features.length > 0 ? (
-                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                            {pkg.features.map((feature, index) => (
-                              <Chip key={index} label={feature} size="small" />
-                            ))}
-                          </Box>
-                        ) : (
-                          <Typography variant="body2" color="textSecondary">
-                            No features
-                          </Typography>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {pkg.availableForPackages && pkg.availableForPackages.length > 0 ? (
-                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                            {pkg.availableForPackages.map((pkgId, index) => {
-                              const franchisePackage = franchisePackages.find(fp => fp._id === pkgId);
-                              return (
-                                <Chip 
-                                  key={index} 
-                                  label={franchisePackage ? franchisePackage.name : 'Unknown Package'} 
-                                  size="small" 
-                                  variant="outlined" 
-                                />
-                              );
-                            })}
-                          </Box>
-                        ) : (
-                          <Typography variant="body2" color="textSecondary">
-                            All Packages
-                          </Typography>
-                        )}
-                      </TableCell>
-                      
-                      <TableCell>
-                        {pkg.isActive ? (
-                          <Typography variant="body2" sx={{ color: 'success.main', fontWeight: 'bold' }}>
-                            Active
-                          </Typography>
-                        ) : (
-                          <Typography variant="body2" sx={{ color: 'error.main', fontWeight: 'bold' }}>
-                            Inactive
-                          </Typography>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <IconButton 
-                          size="small" 
-                          onClick={() => handleOpenDialog(pkg)}
-                        >
-                          <Edit />
-                        </IconButton>
-                        <IconButton 
-                          size="small" 
-                          onClick={() => handleDelete(pkg._id)}
-                          sx={{ color: 'error.main' }}
-                        >
-                          <Delete />
-                        </IconButton>
-                        <Switch
-                          checked={pkg.isActive}
-                          onChange={() => handleToggleStatus(pkg._id, pkg.isActive)}
-                          color="primary"
-                        />
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          )}
-        </CardContent>
-      </Card>
-      
+
+      {/* Add / edit form */}
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>
-          {editingPackage ? 'Edit Customer Package' : 'Add New Customer Package'}
+        <DialogTitle sx={{ fontWeight: 700 }}>
+          {editingPackage ? 'Edit Customer Package' : 'New Customer Package'}
         </DialogTitle>
-        <DialogContent>
-          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
-            <Grid container spacing={2}>
-              <Grid item xs={12}>
-                <TextField
-                  required
-                  fullWidth
-                  label="Package Name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  required
-                  fullWidth
-                  label="Description"
-                  name="description"
-                  value={formData.description}
-                  onChange={handleInputChange}
-                  multiline
-                  rows={3}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  required
-                  fullWidth
-                  label="Base Price (₹)"
-                  name="price"
-                  type="number"
-                  value={formData.price}
-                  onChange={handleInputChange}
-                />
-              </Grid>
-              
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  required
-                  fullWidth
-                  label="GST Percentage (%)"
-                  name="gstPercentage"
-                  type="number"
-                  value={formData.gstPercentage}
-                  onChange={handleInputChange}
-                  InputProps={{ inputProps: { min: 0, max: 100 } }}
-                  helperText={`Total Price: ₹${Number(formData.price) + (Number(formData.price) * (Number(formData.gstPercentage) || 0) / 100)}`}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Add Feature"
-                  value={featureInput}
-                  onChange={(e) => setFeatureInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      handleAddFeature();
-                    }
-                  }}
-                  helperText="Press Enter to add a feature"
-                />
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
-                  {formData.features.map((feature, index) => (
-                    <Chip
-                      key={index}
-                      label={feature}
-                      onDelete={() => handleRemoveFeature(feature)}
-                      color="primary"
-                      variant="outlined"
+        <DialogContent dividers>
+          <Box component="form" id="customer-package-form" onSubmit={handleSubmit}>
+            <Stack spacing={3}>
+              <FormSection title="Basics">
+                <Stack spacing={2}>
+                  <TextField
+                    required
+                    fullWidth
+                    label="Package name"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                  />
+                  <TextField
+                    required
+                    fullWidth
+                    label="Description"
+                    name="description"
+                    value={formData.description}
+                    onChange={handleInputChange}
+                    multiline
+                    rows={3}
+                  />
+                </Stack>
+              </FormSection>
+
+              <FormSection title="Pricing" hint="Customers pay the total. GST is added on top of the base price.">
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      required
+                      fullWidth
+                      label="Base price (₹)"
+                      name="price"
+                      type="number"
+                      value={formData.price}
+                      onChange={handleInputChange}
+                      inputProps={{ min: 0 }}
                     />
-                  ))}
-                </Box>
-              </Grid>
-              
-              {/* Franchise Package Access */}
-              <Grid item xs={12} style={{minWidth:"250px"}}>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      required
+                      fullWidth
+                      label="GST (%)"
+                      name="gstPercentage"
+                      type="number"
+                      value={formData.gstPercentage}
+                      onChange={handleInputChange}
+                      inputProps={{ min: 0, max: 100 }}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <PricePreview price={formData.price} gstPercentage={formData.gstPercentage} accent={ACCENT} />
+                  </Grid>
+                </Grid>
+              </FormSection>
+
+              <FormSection title="Credits & features">
+                <Stack spacing={2}>
+                  <TextField
+                    fullWidth
+                    label="Credits included"
+                    name="creditsIncluded"
+                    type="number"
+                    value={formData.creditsIncluded}
+                    onChange={handleInputChange}
+                    inputProps={{ min: 0 }}
+                  />
+                  <FeatureEditor
+                    accent={ACCENT}
+                    features={formData.features}
+                    input={featureInput}
+                    onInputChange={setFeatureInput}
+                    onAdd={handleAddFeature}
+                    onRemove={handleRemoveFeature}
+                  />
+                </Stack>
+              </FormSection>
+
+              <FormSection
+                title="Available through franchise packages"
+                hint="Leave empty to offer this package through every franchise package."
+              >
                 <FormControl fullWidth>
-                  <InputLabel id="franchise-packages-label">
-                    Available for Franchise Packages
-                  </InputLabel>
+                  <InputLabel id="franchise-packages-label">Franchise packages</InputLabel>
                   <Select
                     labelId="franchise-packages-label"
+                    label="Franchise packages"
                     multiple
                     value={formData.availableForPackages}
                     onChange={(e) => handlePackageSelection(e.target.value)}
-                    renderValue={(selected) => {
-                      const selectedNames = franchisePackages
-                        .filter(pkg => selected.includes(pkg._id))
-                        .map(pkg => pkg.name);
-                      return selectedNames.join(', '); 
-                    }}
+                    renderValue={(selected) => (
+                      <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
+                        {selected.length === 0 && 'All franchise packages'}
+                        {selected.map((id) => (
+                          <Chip
+                            key={id}
+                            size="small"
+                            label={franchiseNameById[id] || 'Unknown'}
+                          />
+                        ))}
+                      </Stack>
+                    )}
                   >
                     {franchisePackages.map((pkg) => (
                       <MenuItem key={pkg._id} value={pkg._id}>
@@ -489,77 +483,37 @@ const ManageCustomerPackages = () => {
                     ))}
                   </Select>
                 </FormControl>
-              </Grid>
-              
-              {/* Business Payout Settings */}
-              {/* <Grid item xs={12}>
-                <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
-                  Business Payout Settings
-                </Typography>
-              </Grid>
-              
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  select
-                  fullWidth
-                  label="Payout Type"
-                  name="businessPayoutType"
-                  value={formData.businessPayoutType}
-                  onChange={handleInputChange}
-                >
-                  <MenuItem value="percentage">Percentage</MenuItem>
-                  <MenuItem value="fixed">Fixed Amount</MenuItem>
-                </TextField>
-              </Grid> */}
-              
-              {/* {formData.businessPayoutType === 'percentage' ? (
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    label="Payout Percentage (%)"
-                    name="businessPayoutPercentage"
-                    type="number"
-                    value={formData.businessPayoutPercentage}
-                    onChange={handleInputChange}
-                    InputProps={{ inputProps: { min: 0, max: 100 } }}
-                  />
-                </Grid>
-              ) : (
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    label="Fixed Payout Amount (₹)"
-                    name="businessPayoutFixedAmount"
-                    type="number"
-                    value={formData.businessPayoutFixedAmount}
-                    onChange={handleInputChange}
-                    InputProps={{ inputProps: { min: 0 } }}
-                  />
-                </Grid>
-              )} */}
-              
-              <Grid item xs={12}>
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              </FormSection>
+
+              <FormSection title="Visibility">
+                <Stack direction="row" alignItems="center" justifyContent="space-between">
+                  <Box>
+                    <Typography fontWeight={600}>Active</Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Inactive packages are hidden from customers.
+                    </Typography>
+                  </Box>
                   <Switch
                     checked={formData.isActive}
                     onChange={handleInputChange}
                     name="isActive"
-                    color="primary"
+                    color="success"
                   />
-                  <Typography>Active</Typography>
-                </Box>
-              </Grid>
-            </Grid>
+                </Stack>
+              </FormSection>
+            </Stack>
           </Box>
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ px: 3, py: 2 }}>
           <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button 
-            onClick={handleSubmit} 
+          <Button
+            type="submit"
+            form="customer-package-form"
             variant="contained"
             disabled={loading}
+            sx={{ minWidth: 120 }}
           >
-            {loading ? <CircularProgress size={24} /> : (editingPackage ? 'Update' : 'Create')}
+            {loading ? <CircularProgress size={22} color="inherit" /> : editingPackage ? 'Save changes' : 'Create package'}
           </Button>
         </DialogActions>
       </Dialog>

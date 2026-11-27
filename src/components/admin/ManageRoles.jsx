@@ -16,6 +16,12 @@ import {
   Paper,
   Stack,
   Switch,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
   TextField,
   Tooltip,
   Typography,
@@ -24,6 +30,8 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import { adminAPI } from "../../services/api";
+import { SectionCard, SectionHeader, EmptyRow } from "./ui/AdminTable";
+import { headRowSx, bodyRowSx, primaryButtonSx } from "./ui/tableStyles";
 
 const EMPTY_FORM = {
   id: null,
@@ -153,75 +161,102 @@ const ManageRoles = () => {
 
   return (
     <Box>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
-        <Typography variant="body2" color="text.secondary">
-          Roles decide which admin sections a staff member can open.
-        </Typography>
-        <Button variant="contained" startIcon={<AddIcon />} onClick={openCreate}>
-          New role
-        </Button>
-      </Stack>
-
-      {roles.length === 0 ? (
-        <Typography color="text.secondary">No roles yet. Create one to get started.</Typography>
-      ) : (
-        roles.map((role) => (
-          <Paper key={role._id} sx={{ p: 2, mb: 2, borderRadius: 2 }}>
-            <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
-              <Box>
-                <Typography variant="h6">{role.name}</Typography>
-                {role.description && (
-                  <Typography variant="body2" color="text.secondary">
-                    {role.description}
-                  </Typography>
-                )}
-                <Typography variant="caption" color="text.secondary">
-                  {role.staffCount} staff assigned
-                </Typography>
-              </Box>
-              <Stack direction="row" spacing={1}>
-                <IconButton onClick={() => openEdit(role)} aria-label="Edit role">
-                  <EditIcon />
-                </IconButton>
-                <Tooltip
-                  title={role.staffCount > 0 ? "Reassign staff before deleting" : "Delete role"}
-                >
-                  <span>
-                    <IconButton
-                      color="error"
-                      disabled={role.staffCount > 0}
-                      onClick={() => remove(role)}
-                      aria-label="Delete role"
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </span>
-                </Tooltip>
-              </Stack>
-            </Stack>
-
-            <Stack direction="row" spacing={1} flexWrap="wrap" mt={1}>
-              {role.fullAccess ? (
-                <Chip
-                  size="small"
-                  color="primary"
-                  label={
-                    role.limitToOwnFranchises
-                      ? "Full access (all Business Manager sections)"
-                      : "Full access (all sections)"
-                  }
-                />
-              ) : role.permissions.length === 0 ? (
-                <Chip size="small" label="No sections" />
-              ) : (
-                role.permissions.map((key) => (
-                  <Chip key={key} size="small" label={labelFor(key)} />
-                ))
+      <SectionCard>
+        <SectionHeader
+          title="Roles"
+          subtitle="Roles decide which admin sections a staff member can open."
+          actions={
+            <Button
+              variant="contained"
+              disableElevation
+              startIcon={<AddIcon />}
+              onClick={openCreate}
+              sx={primaryButtonSx}
+            >
+              New role
+            </Button>
+          }
+        />
+        <TableContainer>
+          <Table size="small">
+            <TableHead>
+              <TableRow sx={headRowSx}>
+                <TableCell>Role</TableCell>
+                <TableCell>Sections</TableCell>
+                <TableCell align="center">Staff</TableCell>
+                <TableCell align="right">Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {roles.length === 0 && (
+                <EmptyRow colSpan={4} title="No roles yet" hint="Create one to get started." />
               )}
-            </Stack>
-          </Paper>
-        ))
-      )}
+              {roles.map((role) => {
+                const labels = role.permissions.map(labelFor);
+                return (
+                  <TableRow key={role._id} hover sx={bodyRowSx}>
+                    <TableCell>
+                      <Typography variant="body2" fontWeight={600}>
+                        {role.name}
+                      </Typography>
+                      {role.description && (
+                        <Typography variant="caption" color="text.secondary" display="block">
+                          {role.description}
+                        </Typography>
+                      )}
+                    </TableCell>
+                    <TableCell sx={{ maxWidth: 420 }}>
+                      {role.fullAccess ? (
+                        <Chip
+                          size="small"
+                          color="primary"
+                          variant="outlined"
+                          label={
+                            role.limitToOwnFranchises
+                              ? "Full access (Business Manager sections)"
+                              : "Full access (all sections)"
+                          }
+                        />
+                      ) : labels.length === 0 ? (
+                        <Typography variant="body2" color="text.secondary">
+                          No sections
+                        </Typography>
+                      ) : (
+                        <Tooltip title={labels.join(", ")} placement="top-start">
+                          <Typography variant="body2" color="text.secondary" noWrap>
+                            {labels.length} {labels.length === 1 ? "section" : "sections"}: {labels.join(", ")}
+                          </Typography>
+                        </Tooltip>
+                      )}
+                    </TableCell>
+                    <TableCell align="center">{role.staffCount}</TableCell>
+                    <TableCell align="right" sx={{ whiteSpace: "nowrap" }}>
+                      <IconButton size="small" onClick={() => openEdit(role)} aria-label="Edit role">
+                        <EditIcon fontSize="small" />
+                      </IconButton>
+                      <Tooltip
+                        title={role.staffCount > 0 ? "Reassign staff before deleting" : "Delete role"}
+                      >
+                        <span>
+                          <IconButton
+                            size="small"
+                            color="error"
+                            disabled={role.staffCount > 0}
+                            onClick={() => remove(role)}
+                            aria-label="Delete role"
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </span>
+                      </Tooltip>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </SectionCard>
 
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth maxWidth="sm">
         <DialogTitle>{form.id ? "Edit role" : "New role"}</DialogTitle>
@@ -335,7 +370,7 @@ const ManageRoles = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDialogOpen(false)}>Cancel</Button>
-          <Button variant="contained" onClick={save} disabled={saving}>
+          <Button variant="contained" disableElevation sx={primaryButtonSx} onClick={save} disabled={saving}>
             {saving ? "Saving..." : "Save role"}
           </Button>
         </DialogActions>

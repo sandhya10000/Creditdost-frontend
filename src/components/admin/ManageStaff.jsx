@@ -9,8 +9,13 @@ import {
   DialogContent,
   DialogTitle,
   MenuItem,
-  Paper,
   Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
   Tab,
   Tabs,
   TextField,
@@ -19,8 +24,12 @@ import {
 import { Link } from "react-router-dom";
 import { adminAPI } from "../../services/api";
 import ManageRoles from "./ManageRoles";
+import { PageHeader, SectionCard, SectionHeader, EmptyRow } from "./ui/AdminTable";
+import { headRowSx, bodyRowSx, primaryButtonSx } from "./ui/tableStyles";
 
 const EMPTY_FORM = { name: "", email: "", phone: "", roleId: "" };
+
+const outlinedSmall = { textTransform: "none", fontWeight: 600, borderRadius: 2, borderColor: "divider", color: "text.primary" };
 
 const StaffList = () => {
   const [staff, setStaff] = useState([]);
@@ -158,109 +167,116 @@ const StaffList = () => {
 
   return (
     <Box>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
-        <Typography variant="body2" color="text.secondary">
-          Assign a role by email. New staff get an auto-generated password by email.
-        </Typography>
-        <Button
-          variant="contained"
-          onClick={() => setDialogOpen(true)}
-          disabled={activeRoles.length === 0}
-        >
-          Assign role
-        </Button>
-      </Stack>
+      <SectionCard>
+        <SectionHeader
+          title="Staff"
+          subtitle="Assign a role by email. New staff get an auto-generated password by email."
+          actions={
+            <Button
+              variant="contained"
+              disableElevation
+              onClick={() => setDialogOpen(true)}
+              disabled={activeRoles.length === 0}
+              sx={primaryButtonSx}
+            >
+              Assign role
+            </Button>
+          }
+        />
 
-      {activeRoles.length === 0 && (
-        <Typography color="text.secondary" mb={2}>
-          Create a role in the Roles tab before assigning staff.
-        </Typography>
-      )}
+        {activeRoles.length === 0 && (
+          <Typography variant="body2" color="text.secondary" sx={{ px: 2.5, py: 1.5 }}>
+            Create a role in the Roles tab before assigning staff.
+          </Typography>
+        )}
 
-      {staff.length === 0 ? (
-        <Typography color="text.secondary">No staff assigned yet.</Typography>
-      ) : (
-        staff.map((member) => (
-          <Paper key={member._id} sx={{ p: 2, mb: 2, borderRadius: 2 }}>
-            <Stack direction={{ xs: "column", md: "row" }} justifyContent="space-between" spacing={2}>
-              <Box>
-                <Typography
-                  variant="h6"
-                  component={Link}
-                  to={`/admin/staff/${member._id}`}
-                  sx={{ color: "primary.main", textDecoration: "none", "&:hover": { textDecoration: "underline" } }}
-                >
-                  {member.name}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {member.email}
-                </Typography>
-                <Stack direction="row" spacing={1} mt={1}>
-                  <Chip
-                    size="small"
-                    color={member.isActive ? "success" : "default"}
-                    label={member.isActive ? "Active" : "Deactivated"}
-                  />
-                  {member.credentialsSentAt && (
-                    <Typography variant="caption" color="text.secondary" alignSelf="center">
-                      Credentials sent {new Date(member.credentialsSentAt).toLocaleString()}
-                    </Typography>
-                  )}
-                </Stack>
-              </Box>
-
-              <Stack direction={{ xs: "column", md: "row" }} spacing={2} alignItems="center">
-                <TextField
-                  select
-                  size="small"
-                  label="Role"
-                  value={member.staffRole?._id || ""}
-                  disabled={busyId === member._id}
-                  onChange={(e) => changeRole(member, e.target.value)}
-                  sx={{ minWidth: 180 }}
-                >
-                  {activeRoles.map((r) => (
-                    <MenuItem key={r._id} value={r._id}>
-                      {r.name}
-                    </MenuItem>
-                  ))}
-                  {member.staffRole && !activeRoles.some((r) => r._id === member.staffRole._id) && (
-                    <MenuItem value={member.staffRole._id}>{member.staffRole.name} (inactive)</MenuItem>
-                  )}
-                </TextField>
-
-                <Button
-                  size="small"
-                  variant="outlined"
-                  disabled={busyId === member._id}
-                  onClick={() => openEdit(member)}
-                >
-                  Edit details
-                </Button>
-                <Button
-                  size="small"
-                  variant="outlined"
-                  disabled={busyId === member._id}
-                  onClick={() => toggleStatus(member)}
-                >
-                  {member.isActive ? "Deactivate" : "Activate"}
-                </Button>
-                <Button
-                  size="small"
-                  variant="outlined"
-                  disabled={busyId === member._id}
-                  onClick={() => resend(member)}
-                >
-                  Resend credentials
-                </Button>
-              </Stack>
-            </Stack>
-          </Paper>
-        ))
-      )}
+        <TableContainer>
+          <Table size="small">
+            <TableHead>
+              <TableRow sx={headRowSx}>
+                <TableCell>Name</TableCell>
+                <TableCell>Role</TableCell>
+                <TableCell>Status</TableCell>
+                <TableCell align="right">Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {staff.length === 0 && (
+                <EmptyRow colSpan={4} title="No staff assigned yet" hint="Assign a role to add the first team member." />
+              )}
+              {staff.map((member) => {
+                const busy = busyId === member._id;
+                return (
+                  <TableRow key={member._id} hover sx={bodyRowSx}>
+                    <TableCell>
+                      <Typography
+                        variant="body2"
+                        fontWeight={600}
+                        component={Link}
+                        to={`/admin/staff/${member._id}`}
+                        sx={{ color: "text.primary", textDecoration: "none", "&:hover": { color: "primary.main" } }}
+                      >
+                        {member.name}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary" display="block">
+                        {member.email}
+                      </Typography>
+                      {member.credentialsSentAt && (
+                        <Typography variant="caption" color="text.disabled" display="block">
+                          Credentials sent {new Date(member.credentialsSentAt).toLocaleString()}
+                        </Typography>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <TextField
+                        select
+                        size="small"
+                        value={member.staffRole?._id || ""}
+                        disabled={busy}
+                        onChange={(e) => changeRole(member, e.target.value)}
+                        sx={{ minWidth: 180 }}
+                      >
+                        {activeRoles.map((r) => (
+                          <MenuItem key={r._id} value={r._id}>
+                            {r.name}
+                          </MenuItem>
+                        ))}
+                        {member.staffRole && !activeRoles.some((r) => r._id === member.staffRole._id) && (
+                          <MenuItem value={member.staffRole._id}>{member.staffRole.name} (inactive)</MenuItem>
+                        )}
+                      </TextField>
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        size="small"
+                        variant="outlined"
+                        color={member.isActive ? "success" : "default"}
+                        label={member.isActive ? "Active" : "Deactivated"}
+                      />
+                    </TableCell>
+                    <TableCell align="right" sx={{ whiteSpace: "nowrap" }}>
+                      <Stack direction="row" spacing={1} justifyContent="flex-end">
+                        <Button size="small" variant="outlined" disabled={busy} onClick={() => openEdit(member)} sx={outlinedSmall}>
+                          Edit
+                        </Button>
+                        <Button size="small" variant="outlined" disabled={busy} onClick={() => toggleStatus(member)} sx={outlinedSmall}>
+                          {member.isActive ? "Deactivate" : "Activate"}
+                        </Button>
+                        <Button size="small" variant="outlined" disabled={busy} onClick={() => resend(member)} sx={outlinedSmall}>
+                          Resend
+                        </Button>
+                      </Stack>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </SectionCard>
 
       <Dialog open={!!editMember} onClose={() => !editSaving && setEditMember(null)} fullWidth maxWidth="sm">
-        <DialogTitle>Edit staff details</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 700 }}>Edit staff details</DialogTitle>
         <DialogContent dividers>
           <TextField
             fullWidth
@@ -289,18 +305,18 @@ const StaffList = () => {
             margin="normal"
           />
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setEditMember(null)} disabled={editSaving}>
+        <DialogActions sx={{ px: 3, py: 2 }}>
+          <Button onClick={() => setEditMember(null)} disabled={editSaving} sx={{ textTransform: "none" }}>
             Cancel
           </Button>
-          <Button variant="contained" onClick={saveEdit} disabled={editSaving}>
+          <Button variant="contained" disableElevation onClick={saveEdit} disabled={editSaving} sx={primaryButtonSx}>
             {editSaving ? "Saving..." : "Save"}
           </Button>
         </DialogActions>
       </Dialog>
 
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>Assign role</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 700 }}>Assign role</DialogTitle>
         <DialogContent dividers>
           <TextField
             fullWidth
@@ -343,9 +359,11 @@ const StaffList = () => {
             ))}
           </TextField>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDialogOpen(false)}>Cancel</Button>
-          <Button variant="contained" onClick={assign} disabled={saving}>
+        <DialogActions sx={{ px: 3, py: 2 }}>
+          <Button onClick={() => setDialogOpen(false)} sx={{ textTransform: "none" }}>
+            Cancel
+          </Button>
+          <Button variant="contained" disableElevation onClick={assign} disabled={saving} sx={primaryButtonSx}>
             {saving ? "Assigning..." : "Assign & email credentials"}
           </Button>
         </DialogActions>
@@ -358,11 +376,16 @@ const ManageStaff = () => {
   const [tab, setTab] = useState(0);
 
   return (
-    <Box p={3}>
-      <Typography variant="h5" fontWeight="bold" mb={2}>
-        Team & Roles
-      </Typography>
-      <Tabs value={tab} onChange={(_, value) => setTab(value)} sx={{ mb: 3 }}>
+    <Box>
+      <PageHeader
+        title="Team & Roles"
+        subtitle="Staff accounts and the roles that decide which admin sections they can open."
+      />
+      <Tabs
+        value={tab}
+        onChange={(_, value) => setTab(value)}
+        sx={{ mb: 3, minHeight: 40, "& .MuiTab-root": { textTransform: "none", fontWeight: 600, minHeight: 40 } }}
+      >
         <Tab label="Staff" />
         <Tab label="Roles" />
       </Tabs>
