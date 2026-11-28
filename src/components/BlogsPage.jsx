@@ -1,33 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
-import {
-  Box,
-  Container,
-  Grid,
-  Card,
-  CardContent,
-  CardMedia,
-  Typography,
-  Button,
-  Chip,
-  Pagination,
-  CircularProgress,
-  TextField,
-  InputAdornment,
-  IconButton,
-  List,
-  ListItem,
-  ListItemText,
-  Paper,
-} from "@mui/material";
-import {
-  Search as SearchIcon,
-  Person as PersonIcon,
-  Comment as CommentIcon,
-  ArrowForward as ArrowForwardIcon,
-  PlayArrow as PlayArrowIcon,
-} from "@mui/icons-material";
-import { useNavigate } from "react-router-dom";
+import { useSearchParams, Link, useNavigate } from "react-router-dom";
+import { CircularProgress } from "@mui/material";
 import { blogAPI } from "../services/api";
 import Header from "./homepage/Header";
 import HomePageFooter from "./homepage/HomePageFooter";
@@ -36,40 +9,39 @@ const BlogsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [page, setPage] = useState(parseInt(searchParams.get('page')) || 1);
+  const [page, setPage] = useState(parseInt(searchParams.get("page")) || 1);
   const [totalPages, setTotalPages] = useState(0);
-  const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || "");
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
   const [recentPosts, setRecentPosts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [tags, setTags] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || "");
-  const [selectedTag, setSelectedTag] = useState(searchParams.get('tag') || "");
+  const [selectedCategory, setSelectedCategory] = useState(searchParams.get("category") || "");
+  const [selectedTag, setSelectedTag] = useState(searchParams.get("tag") || "");
   const navigate = useNavigate();
 
   const fetchBlogs = async () => {
     try {
       setLoading(true);
-      
-      // Update URL parameters
+
       const params = new URLSearchParams();
-      if (page > 1) params.set('page', page);
-      if (searchQuery) params.set('search', searchQuery);
-      if (selectedCategory) params.set('category', selectedCategory);
-      if (selectedTag) params.set('tag', selectedTag);
+      if (page > 1) params.set("page", page);
+      if (searchQuery) params.set("search", searchQuery);
+      if (selectedCategory) params.set("category", selectedCategory);
+      if (selectedTag) params.set("tag", selectedTag);
       setSearchParams(params);
-      
+
       const response = await blogAPI.getAllBlogs({
         page,
-        limit: 10,
+        limit: 9,
         status: "published",
         search: searchQuery,
         category: selectedCategory,
         tag: selectedTag,
       });
 
-      setBlogs(response.data.blogs);
-      setTotalPages(response.data.totalPages);
-      setRecentPosts(response.data.blogs.slice(0, 3));
+      setBlogs(response.data.blogs || []);
+      setTotalPages(response.data.totalPages || 1);
+      setRecentPosts((response.data.blogs || []).slice(0, 4));
     } catch (error) {
       console.error("Error fetching blogs:", error);
     } finally {
@@ -80,7 +52,7 @@ const BlogsPage = () => {
   const fetchCategories = async () => {
     try {
       const response = await blogAPI.getBlogCategories();
-      setCategories(response.data.categories);
+      setCategories(response.data.categories || []);
     } catch (error) {
       console.error("Error fetching categories:", error);
     }
@@ -89,7 +61,7 @@ const BlogsPage = () => {
   const fetchTags = async () => {
     try {
       const response = await blogAPI.getBlogTags();
-      setTags(response.data.tags);
+      setTags(response.data.tags || []);
     } catch (error) {
       console.error("Error fetching tags:", error);
     }
@@ -101,535 +73,277 @@ const BlogsPage = () => {
     fetchTags();
   }, [page, searchQuery, selectedCategory, selectedTag]);
 
-  // Handle URL parameter changes
-  useEffect(() => {
-    const urlPage = parseInt(searchParams.get('page')) || 1;
-    const urlSearch = searchParams.get('search') || "";
-    const urlCategory = searchParams.get('category') || "";
-    const urlTag = searchParams.get('tag') || "";
-    
-    setPage(urlPage);
-    setSearchQuery(urlSearch);
-    setSelectedCategory(urlCategory);
-    setSelectedTag(urlTag);
-  }, [searchParams]);
-
-  const handlePageChange = (event, value) => {
-    setPage(value);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return {
-      day: date.getDate(),
-      month: date.toLocaleDateString("en-US", { month: "short" }),
-    };
-  };
-
-  const handleCategoryClick = (categoryName) => {
-    // When selecting a category, clear the tag filter
-    setSelectedCategory(selectedCategory === categoryName ? "" : categoryName);
-    if (selectedCategory === categoryName) {
-      setSelectedTag("");
-    }
-  };
-
-  const handleTagClick = (tagName) => {
-    // When selecting a tag, clear the category filter
-    setSelectedTag(selectedTag === tagName ? "" : tagName);
-    if (selectedTag === tagName) {
-      setSelectedCategory("");
-    }
-  };
-
-  const clearFilters = () => {
-    setSearchQuery("");
-    setSelectedCategory("");
-    setSelectedTag("");
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
     setPage(1);
-    // Clear URL parameters
-    setSearchParams({});
+    fetchBlogs();
   };
 
   return (
-    <Box sx={{ backgroundColor: "#f8f9fa", minHeight: "100vh" }}>
-      {/* Hero Section */}
+    <div className="bg-[#080E1B] font-body-md text-slate-100 antialiased min-h-screen flex flex-col justify-between selection:bg-cyan-500 selection:text-slate-950">
       <Header />
-      <Box
-        sx={{
-          background: "linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%)",
-          color: "white",
-          py: 12,
-          position: "relative",
-          overflow: "hidden",
-          "&::before": {
-            content: '""',
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background:
-              "url(\"data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0L50 50L0 100' fill='none' stroke='rgba(255,255,255,0.05)' stroke-width='2'/%3E%3Cpath d='M50 0L100 50L50 100' fill='none' stroke='rgba(255,255,255,0.05)' stroke-width='2'/%3E%3C/svg%3E\")",
-            opacity: 0.3,
-          },
-        }}
-      >
-        <Container maxWidth="lg" sx={{ position: "relative", zIndex: 1 }}>
-          <Grid container alignItems="center" justifyContent="space-between">
-            <Grid item xs={12} md={6}>
-              <Typography
-                variant="h2"
-                sx={{
-                  fontWeight: 700,
-                  fontSize: { xs: "2.5rem", md: "3.5rem" },
-                  mb: 2,
-                }}
-              >
-                Blogs
-              </Typography>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Box sx={{ textAlign: { xs: "left", md: "right" } }}>
-                <Typography variant="body1" sx={{ display: "inline", mr: 1 }}>
-                  Home
-                </Typography>
-                <ArrowForwardIcon
-                  sx={{ fontSize: "1rem", verticalAlign: "middle", mx: 1 }}
-                />
-                <Typography
-                  variant="body1"
-                  sx={{ display: "inline", fontWeight: 600 }}
-                >
-                  Blog Classic
-                </Typography>
-              </Box>
-            </Grid>
-          </Grid>
-        </Container>
-      </Box>
 
-      {/* Main Content */}
-      <Container sx={{ py: 8 }} style={{ maxWidth: "1300px" }}>
-        {loading ? (
-          <Box display="flex" justifyContent="center" my={8}>
-            <CircularProgress />
-          </Box>
-        ) : (
-          <Grid
-            container
-            spacing={4}
-            style={{ flexWrap: "nowrap" }}
-            sx={{ flexDirection: { md: "row", xs: "column" } }}
-          >
-            {/* Blog Posts */}
-            <Grid item xs={12} md={8} style={{ flex: "1" }}>
-              {blogs.map((blog) => {
-                const date = formatDate(blog.createdAt);
-                return (
-                  <Card
-                    key={blog._id}
-                    sx={{
-                      mb: 4,
-                      boxShadow: "0 2px 10px rgba(0,0,0,0.08)",
-                      borderRadius: 2,
-                      overflow: "hidden",
-                      transition: "all 0.3s ease",
-                      "&:hover": {
-                        boxShadow: "0 8px 25px rgba(0,0,0,0.12)",
-                        transform: "translateY(-4px)",
-                      },
+      <main className="relative flex-grow pt-24 pb-20 overflow-hidden">
+        {/* Volumetric Backlights */}
+        <div className="absolute top-1/4 left-1/4 w-[600px] h-[360px] bg-cyan-500/15 rounded-full blur-[140px] pointer-events-none" />
+        <div className="absolute bottom-1/3 right-1/4 w-[500px] h-[340px] bg-blue-600/15 rounded-full blur-[140px] pointer-events-none" />
+
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Breadcrumbs */}
+          <div className="flex items-center gap-2 text-xs font-mono text-slate-400 mb-6">
+            <Link to="/" className="hover:text-cyan-400 transition-colors">Home</Link>
+            <span className="text-slate-600">/</span>
+            <span className="text-cyan-400 font-semibold">Blogs & Financial Insights</span>
+          </div>
+
+          {/* Page Hero Header */}
+          <div className="text-center max-w-3xl mx-auto mb-14">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-950/70 border border-cyan-500/30 text-cyan-400 font-mono text-xs mb-4 shadow-[0_0_20px_rgba(0,210,255,0.2)]">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_#3afaac]" />
+              <span>CREDIT LITERACY & BUREAU EDUCATION</span>
+            </div>
+
+            <h1 className="text-3xl sm:text-5xl font-extrabold text-white font-['Sora'] tracking-tight mb-4">
+              Credit Dost{" "}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-sky-300 to-emerald-400">
+                Insights & Guides.
+              </span>
+            </h1>
+
+            <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
+              Explore expert articles on CIBIL score recovery, bureau dispute playbooks, DPD resolution, and banking approval secrets.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            
+            {/* Left 8-Cols: Blog Post Cards */}
+            <div className="lg:col-span-8">
+              {loading ? (
+                <div className="py-20 text-center">
+                  <CircularProgress sx={{ color: "#00d2ff" }} />
+                  <p className="text-slate-400 text-xs font-mono mt-3">Loading financial articles...</p>
+                </div>
+              ) : blogs.length === 0 ? (
+                <div className="p-10 rounded-2xl bg-[#0a1426]/80 border border-slate-800 text-center">
+                  <span className="material-symbols-outlined text-4xl text-slate-500 mb-2">article</span>
+                  <h3 className="text-lg font-bold text-white mb-1">No articles found</h3>
+                  <p className="text-xs text-slate-400 mb-4">Try adjusting your keyword search or category filters.</p>
+                  <button
+                    onClick={() => {
+                      setSearchQuery("");
+                      setSelectedCategory("");
+                      setSelectedTag("");
                     }}
+                    className="px-5 py-2 rounded-xl bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-xs font-bold"
                   >
-                    <Box sx={{ position: "relative" }}>
-                      {blog.featuredImage && (
-                        <CardMedia
-                          component="img"
-                          image={blog.featuredImage}
-                          alt={blog.title}
-                          sx={{
-                            objectFit: { md: "cover", xs: "contain" },
-                            maxHeight: "400px",
-                          }}
-                        />
-                      )}
-
-                      {/* Video Play Button (if applicable) */}
-                      {blog.hasVideo && (
-                        <Box
-                          sx={{
-                            position: "absolute",
-                            top: "50%",
-                            left: "50%",
-                            transform: "translate(-50%, -50%)",
-                            backgroundColor: "white",
-                            borderRadius: "50%",
-                            width: 80,
-                            height: 80,
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            cursor: "pointer",
-                            boxShadow: "0 4px 15px rgba(0,0,0,0.3)",
-                            transition: "all 0.3s ease",
-                            "&:hover": {
-                              transform: "translate(-50%, -50%) scale(1.1)",
-                            },
-                          }}
-                        >
-                          <PlayArrowIcon
-                            sx={{ fontSize: 40, color: "#0891b2" }}
-                          />
-                        </Box>
-                      )}
-                    </Box>
-
-                    <CardContent sx={{ p: 4 }}>
-                      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, mb: 2, alignItems: "center" }}>
-                        <Box
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 0.5,
-                          }}
-                        >
-                          <PersonIcon
-                            sx={{ fontSize: 18, color: "text.secondary" }}
-                          />
-                          <Typography variant="body2" color="text.secondary">
-                            By Credit Dost
-                          </Typography>
-                        </Box>
-                        
-                        {/* Date Box */}
-                        <Box
-                          sx={{
-                            backgroundColor: "white",
-                            borderRadius: 1,
-                            px: 2,
-                            py: 1,
-                            textAlign: "center",
-                            minWidth: 60,
-                            boxShadow: "0 2px 4px rgba(0,0,0,0.08)",
-                            border: "1px solid #e0e0e0",
-                          }}
-                        >
-                          <Typography
-                            variant="h6"
-                            sx={{
-                              fontWeight: 700,
-                              color: "#0891b2",
-                              lineHeight: 1,
-                              fontSize: "1rem",
-                            }}
-                          >
-                            {date.day} {date.month}
-                          </Typography>
-                        </Box>
-                        
-                        {/* Category */}
-                        {blog.categories && blog.categories.length > 0 && (
-                          <Chip
-                            label={blog.categories[0]}
-                            size="small"
-                            sx={{
-                              backgroundColor: "#e3f2fd",
-                              color: "#0891b2",
-                              fontWeight: 600,
-                              height: "24px",
-                            }}
-                          />
-                        )}
-                      </Box>
-
-                      <Typography
-                        variant="h4"
-                        sx={{
-                          fontWeight: 700,
-                          fontSize: { xs: "1.5rem", md: "2rem" },
-                          mb: 2,
-                          color: "#1e3a5f",
-                          cursor: "pointer",
-                          "&:hover": {
-                            color: "#0891b2",
-                          },
-                        }}
-                        onClick={() => navigate(`/blog/${blog.slug}`)}
-                      >
-                        {blog.title}
-                      </Typography>
-
-                      <Typography
-                        variant="body1"
-                        color="text.secondary"
-                        sx={{ mb: 3, lineHeight: 1.8 }}
-                        dangerouslySetInnerHTML={{
-                          __html: blog.excerpt || 
-                            blog.content?.substring(0, 200) + "..."
-                        }}
-                      />
-
-                      <Button
-                        variant="text"
-                        endIcon={<ArrowForwardIcon />}
-                        sx={{
-                          color: "#0891b2",
-                          fontWeight: 600,
-                          textTransform: "none",
-                          fontSize: "1rem",
-                          "&:hover": {
-                            backgroundColor: "transparent",
-                            color: "#06b6d4",
-                          },
-                        }}
-                        onClick={() => navigate(`/blog/${blog.slug}`)}
-                      >
-                        Read More
-                      </Button>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-
-              {blogs.length === 0 && !loading && (
-                <Box textAlign="center" py={8}>
-                  <Typography variant="h6" color="text.secondary">
-                    No blogs found
-                  </Typography>
-                </Box>
-              )}
-
-              {totalPages > 1 && (
-                <Box display="flex" justifyContent="center" mt={4}>
-                  <Pagination
-                    count={totalPages}
-                    page={page}
-                    onChange={handlePageChange}
-                    color="primary"
-                    size="large"
-                    sx={{
-                      "& .MuiPaginationItem-root": {
-                        borderRadius: 1,
-                        fontWeight: 600,
-                      },
-                    }}
-                  />
-                </Box>
-              )}
-            </Grid>
-
-            {/* Sidebar */}
-            <Grid item xs={12} md={4} style={{ flex: "0.6" }}>
-              {/* Search */}
-              <Paper
-                sx={{
-                  p: 3,
-                  mb: 4,
-                  borderRadius: 2,
-                  boxShadow: "0 2px 10px rgba(0,0,0,0.08)",
-                }}
-              >
-                <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
-                  Search
-                </Typography>
-                <TextField
-                  fullWidth
-                  placeholder="Search..."
-                  variant="outlined"
-                  size="small"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  InputProps={{
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton>
-                          <SearchIcon />
-                        </IconButton>
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-                {(searchQuery || selectedCategory || selectedTag) && (
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    onClick={clearFilters}
-                    sx={{ mt: 2 }}
-                  >
-                    Clear Filters
-                  </Button>
-                )}
-              </Paper>
-
-              {/* Categories */}
-              <Paper
-                sx={{
-                  p: 3,
-                  mb: 4,
-                  borderRadius: 2,
-                  boxShadow: "0 2px 10px rgba(0,0,0,0.08)",
-                }}
-              >
-                <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
-                  Categories
-                </Typography>
-                <List disablePadding>
-                  {categories.map((category, index) => (
-                    <ListItem
-                      key={index}
-                      disableGutters
-                      sx={{
-                        py: 1.5,
-                        borderBottom:
-                          index < categories.length - 1
-                            ? "1px solid #eee"
-                            : "none",
-                        cursor: "pointer",
-                        backgroundColor:
-                          selectedCategory === category.name
-                            ? "#e3f2fd"
-                            : "transparent",
-                        "&:hover": {
-                          color: "#0891b2",
-                          backgroundColor:
-                            selectedCategory === category.name
-                              ? "#bbdefb"
-                              : "#f5f5f5",
-                        },
-                      }}
-                      onClick={() => handleCategoryClick(category.name)}
+                    Clear All Filters
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  {blogs.map((blog) => (
+                    <article
+                      key={blog._id}
+                      className="rounded-[22px] overflow-hidden bg-[#0a1426]/85 border border-cyan-500/20 hover:border-cyan-400/50 transition-all duration-300 shadow-[0_0_30px_rgba(0,0,0,0.5)] flex flex-col justify-between group"
                     >
-                      <ArrowForwardIcon
-                        sx={{ fontSize: 16, mr: 1, color: "#0891b2" }}
-                      />
-                      <ListItemText
-                        primary={category.name}
-                        primaryTypographyProps={{
-                          variant: "body2",
-                          fontWeight: 500,
-                        }}
-                      />
-                      <Typography variant="body2" color="text.secondary">
-                        ({category.count || 0})
-                      </Typography>
-                    </ListItem>
-                  ))}
-                </List>
-              </Paper>
-
-              {/* Tags */}
-              <Paper
-                sx={{
-                  p: 3,
-                  mb: 4,
-                  borderRadius: 2,
-                  boxShadow: "0 2px 10px rgba(0,0,0,0.08)",
-                }}
-              >
-                <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
-                  Tags
-                </Typography>
-                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-                  {tags.map((tag, index) => (
-                    <Chip
-                      key={index}
-                      label={tag.name || tag}
-                      variant={selectedTag === (tag.name || tag) ? "filled" : "outlined"}
-                      color="primary"
-                      clickable
-                      onClick={() => handleTagClick(tag.name || tag)}
-                      sx={{
-                        mb: 1,
-                        borderColor: selectedTag === (tag.name || tag) ? "transparent" : "rgba(0,0,0,0.23)",
-                        backgroundColor: selectedTag === (tag.name || tag) ? "rgba(8, 145, 178, 0.1)" : "inherit",
-                        "&:hover": {
-                          backgroundColor: selectedTag === (tag.name || tag) ? "rgba(8, 145, 178, 0.2)" : "rgba(0,0,0,0.04)",
-                        },
-                      }}
-                    />
-                  ))}
-                </Box>
-              </Paper>
-
-              {/* Recent Posts */}
-              <Paper
-                sx={{
-                  p: 3,
-                  mb: 4,
-                  borderRadius: 2,
-                  boxShadow: "0 2px 10px rgba(0,0,0,0.08)",
-                }}
-              >
-                <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
-                  Recent Post
-                </Typography>
-                <List disablePadding>
-                  {recentPosts.map((post, index) => {
-                    const date = formatDate(post.createdAt);
-                    return (
-                      <ListItem
-                        key={index}
-                        disableGutters
-                        sx={{
-                          py: 2,
-                          borderBottom:
-                            index < recentPosts.length - 1
-                              ? "1px solid #eee"
-                              : "none",
-                          cursor: "pointer",
-                          display: "flex",
-                          gap: 2,
-                          alignItems: "flex-start",
-                        }}
-                        onClick={() => navigate(`/blog/${post.slug}`)}
-                      >
-                        {post.featuredImage && (
-                          <Box
-                            component="img"
-                            src={post.featuredImage}
-                            alt={post.title}
-                            sx={{
-                              width: 70,
-                              height: 70,
-                              objectFit: "cover",
-                              borderRadius: 1,
-                              flexShrink: 0,
-                            }}
-                          />
+                      <div>
+                        {blog.featuredImage ? (
+                          <div className="h-48 overflow-hidden relative">
+                            <img
+                              src={blog.featuredImage}
+                              alt={blog.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            />
+                            <div className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-[#080E1B]/80 backdrop-blur-md border border-cyan-500/30 text-cyan-300 text-[10px] font-mono uppercase font-bold">
+                              {blog.category?.name || "Credit Score"}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="h-44 bg-gradient-to-br from-cyan-950 to-slate-900 flex items-center justify-center p-4 border-b border-cyan-500/10">
+                            <span className="material-symbols-outlined text-4xl text-cyan-400/40">newspaper</span>
+                          </div>
                         )}
-                        <Box>
-                          <Typography
-                            variant="body2"
-                            sx={{
-                              fontWeight: 600,
-                              color: "#1e3a5f",
-                              mb: 0.5,
-                              "&:hover": {
-                                color: "#0891b2",
-                              },
-                            }}
-                          >
-                            {post.title}
-                          </Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            {date.month} {date.day},{" "}
-                            {new Date(post.createdAt).getFullYear()}
-                          </Typography>
-                        </Box>
-                      </ListItem>
-                    );
-                  })}
-                </List>
-              </Paper>
 
-              {/* Quote Widget */}
-            </Grid>
-          </Grid>
-        )}
-      </Container>
+                        <div className="p-5">
+                          <div className="flex items-center gap-3 text-xs font-mono text-slate-400 mb-2.5">
+                            <span>{new Date(blog.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>
+                            <span>•</span>
+                            <span className="text-emerald-400">{blog.readTime || "4 min read"}</span>
+                          </div>
+
+                          <h2 className="text-base sm:text-lg font-bold font-['Sora'] text-white group-hover:text-cyan-300 transition-colors line-clamp-2 leading-snug mb-2">
+                            {blog.title}
+                          </h2>
+
+                          <p className="text-slate-400 text-xs leading-relaxed line-clamp-3 mb-4">
+                            {blog.summary || blog.excerpt || (blog.content ? blog.content.replace(/<[^>]*>?/gm, "").slice(0, 130) : "")}...
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="p-5 pt-0 border-t border-slate-800/80 flex items-center justify-between">
+                        <span className="text-xs font-mono text-slate-400">By {blog.author?.name || "Credit Dost Team"}</span>
+                        <Link
+                          to={`/blog/${blog.slug}`}
+                          className="inline-flex items-center gap-1 text-xs font-bold text-cyan-400 hover:text-cyan-300 transition-colors font-mono"
+                        >
+                          <span>Read Full Guide</span>
+                          <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                        </Link>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              )}
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="mt-10 flex justify-center gap-2">
+                  {Array.from({ length: totalPages }).map((_, i) => (
+                    <button
+                      key={i + 1}
+                      onClick={() => {
+                        setPage(i + 1);
+                        window.scrollTo({ top: 300, behavior: "smooth" });
+                      }}
+                      className={`w-10 h-10 rounded-xl font-mono text-xs font-bold transition-all ${
+                        page === i + 1
+                          ? "bg-cyan-500 text-slate-950 shadow-[0_0_15px_rgba(0,210,255,0.4)]"
+                          : "bg-slate-900 border border-slate-800 text-slate-300 hover:border-cyan-500/40"
+                      }`}
+                    >
+                      {i + 1}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Right 4-Cols: Search, Categories, Recent Posts & Tags */}
+            <aside className="lg:col-span-4 space-y-6">
+              
+              {/* Search Widget */}
+              <div className="p-6 rounded-[22px] bg-[#0a1426]/90 border border-cyan-500/25 shadow-lg backdrop-blur-xl">
+                <h3 className="text-sm font-bold font-['Sora'] text-white uppercase tracking-wider mb-3">
+                  Search Articles
+                </h3>
+                <form onSubmit={handleSearchSubmit} className="flex gap-2">
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search CIBIL, DPD, loans..."
+                    className="flex-1 bg-[#071120] text-white text-xs px-3.5 py-2.5 rounded-xl border border-cyan-500/30 focus:border-cyan-400 focus:outline-none"
+                  />
+                  <button
+                    type="submit"
+                    className="px-4 py-2.5 rounded-xl bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 hover:bg-cyan-500/30 transition-all flex items-center justify-center"
+                  >
+                    <span className="material-symbols-outlined text-base">search</span>
+                  </button>
+                </form>
+              </div>
+
+              {/* Categories Widget */}
+              {categories.length > 0 && (
+                <div className="p-6 rounded-[22px] bg-[#0a1426]/90 border border-cyan-500/25 shadow-lg backdrop-blur-xl">
+                  <h3 className="text-sm font-bold font-['Sora'] text-white uppercase tracking-wider mb-3">
+                    Categories
+                  </h3>
+                  <div className="space-y-1.5 font-mono text-xs">
+                    {categories.map((cat) => (
+                      <button
+                        key={cat._id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedCategory(selectedCategory === cat.name ? "" : cat.name);
+                          setPage(1);
+                        }}
+                        className={`w-full py-2 px-3 rounded-lg text-left flex items-center justify-between transition-all ${
+                          selectedCategory === cat.name
+                            ? "bg-cyan-500/20 text-cyan-300 font-bold border border-cyan-500/40"
+                            : "text-slate-400 hover:text-white hover:bg-slate-900/50"
+                        }`}
+                      >
+                        <span>{cat.name}</span>
+                        <span className="text-[10px] text-slate-500">→</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Recent Articles */}
+              {recentPosts.length > 0 && (
+                <div className="p-6 rounded-[22px] bg-[#0a1426]/90 border border-cyan-500/25 shadow-lg backdrop-blur-xl">
+                  <h3 className="text-sm font-bold font-['Sora'] text-white uppercase tracking-wider mb-4">
+                    Latest Insights
+                  </h3>
+                  <div className="space-y-4">
+                    {recentPosts.map((post) => (
+                      <Link
+                        key={post._id}
+                        to={`/blog/${post.slug}`}
+                        className="flex gap-3 group items-center"
+                      >
+                        <div className="w-14 h-14 rounded-xl bg-slate-900 shrink-0 overflow-hidden border border-slate-800">
+                          {post.featuredImage ? (
+                            <img src={post.featuredImage} alt={post.title} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-cyan-400/40">
+                              <span className="material-symbols-outlined text-sm">feed</span>
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <h4 className="text-xs font-bold text-slate-200 group-hover:text-cyan-300 line-clamp-2 transition-colors">
+                            {post.title}
+                          </h4>
+                          <span className="text-[10px] font-mono text-slate-500">
+                            {new Date(post.createdAt).toLocaleDateString("en-IN", { month: "short", day: "numeric" })}
+                          </span>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Tags Cloud */}
+              {tags.length > 0 && (
+                <div className="p-6 rounded-[22px] bg-[#0a1426]/90 border border-cyan-500/25 shadow-lg backdrop-blur-xl">
+                  <h3 className="text-sm font-bold font-['Sora'] text-white uppercase tracking-wider mb-3">
+                    Popular Topics
+                  </h3>
+                  <div className="flex flex-wrap gap-1.5">
+                    {tags.map((tg) => (
+                      <button
+                        key={tg._id || tg.name}
+                        onClick={() => {
+                          setSelectedTag(selectedTag === tg.name ? "" : tg.name);
+                          setPage(1);
+                        }}
+                        className={`text-[11px] font-mono px-2.5 py-1 rounded-lg border transition-all ${
+                          selectedTag === tg.name
+                            ? "bg-cyan-500 text-slate-950 font-bold border-cyan-400"
+                            : "bg-slate-900/80 text-slate-400 border-slate-800 hover:border-slate-700 hover:text-white"
+                        }`}
+                      >
+                        #{tg.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+            </aside>
+          </div>
+        </div>
+      </main>
+
       <HomePageFooter />
-    </Box>
+    </div>
   );
 };
 

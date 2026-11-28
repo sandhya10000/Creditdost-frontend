@@ -1,628 +1,334 @@
 import React, { useState } from "react";
-import {
-  Box,
-  Container,
-  Grid,
-  Typography,
-  TextField,
-  Button,
-  Paper,
-  IconButton,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-} from "@mui/material";
-import {
-  Phone,
-  Email,
-  LocationOn,
-  Facebook,
-  Twitter,
-  LinkedIn,
-  YouTube,
-  X,
-  Instagram,
-} from "@mui/icons-material";
+import { Link } from "react-router-dom";
+import { TextField, CircularProgress, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
 import Header from "./homepage/Header";
 import HomePageFooter from "./homepage/HomePageFooter";
 import api from "../services/api";
-import { trackEvent, trackException } from "../hooks/useAnalytics";
 
 const ContactPage = () => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     mobileNumber: "",
-    subject: "",
+    subject: "General Inquiry",
     message: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState("");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
-    // If it's the mobile number field, only allow digits and limit to 10
     if (name === "mobileNumber") {
-      const numericValue = value.replace(/[^0-9]/g, "").slice(0, 10);
-      setFormData({
-        ...formData,
-        [name]: numericValue,
-      });
+      const numeric = value.replace(/[^0-9]/g, "").slice(0, 10);
+      setFormData((prev) => ({ ...prev, [name]: numeric }));
     } else {
-      setFormData({
-        ...formData,
-        [name]: value,
-      });
+      setFormData((prev) => ({ ...prev, [name]: value }));
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
+
+    if (!formData.name.trim() || !formData.email.trim() || !formData.message.trim()) {
+      setError("Please fill in all required fields (Name, Email, Message)");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
-      // Track form submission attempt
-      trackEvent("Contact Form", "Form Submission Started", "Contact Page");
-
-      // Submit to backend API
       await api.post("/forms/contact", formData);
-
-      // Track successful submission
-      trackEvent("Contact Form", "Form Submitted Successfully", "Contact Page");
-
-      // Reset form
+      setSuccess(true);
       setFormData({
         name: "",
         email: "",
         mobileNumber: "",
-        subject: "",
+        subject: "General Inquiry",
         message: "",
       });
-      // Show success message
-      alert("Thank you for your message. We will get back to you soon!");
-    } catch (error) {
-      console.error("Form submission error:", error);
-      // Track failed submission
-      trackException(`Contact form submission failed: ${error.message}`, false);
-      trackEvent("Contact Form", "Form Submission Failed", "Contact Page");
-      alert("Failed to submit your message. Please try again.");
+    } catch (err) {
+      console.error("Contact form error:", err);
+      setError(err.response?.data?.message || "Failed to submit message. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const contactInfo = [
-    // {
-    //   icon: <LocationOn sx={{ fontSize: 40, color: '#0891b2' }} />,
-    //   title: 'Address',
-    //   content: '6391 Elgin St. Celina, 10299'
-    // },
-    {
-      icon: <Email sx={{ fontSize: 40, color: "#0891b2" }} />,
-      title: "Mail Us",
-      content: [" info@creditdost.co.in"],
+  const inputStyle = {
+    "& .MuiOutlinedInput-root": {
+      color: "#ffffff",
+      backgroundColor: "#071120",
+      borderRadius: "12px",
+      fontFamily: "'Inter', sans-serif",
+      "& fieldset": { borderColor: "rgba(0, 210, 255, 0.25)", borderWidth: "1.5px" },
+      "&:hover fieldset": { borderColor: "rgba(0, 210, 255, 0.55)" },
+      "&.Mui-focused fieldset": { borderColor: "#00d2ff !important", boxShadow: "0 0 16px rgba(0, 210, 255, 0.25)" },
+      "& input": { color: "#ffffff !important" },
     },
-    {
-      icon: <Phone sx={{ fontSize: 40, color: "#0891b2" }} />,
-      title: "Telephone",
-      content: [" 92174-69202"],
+    "& .MuiInputLabel-root": {
+      color: "rgba(203, 213, 225, 0.8)",
+      "&.Mui-focused": { color: "#00d2ff !important" },
     },
-  ];
+  };
 
   return (
-    <Box sx={{ backgroundColor: "#f8f9fa", minHeight: "100vh" }}>
+    <div className="bg-[#080E1B] font-body-md text-slate-100 antialiased min-h-screen flex flex-col justify-between selection:bg-cyan-500 selection:text-slate-950">
       <Header />
 
-      {/* Hero Section */}
-      <Box
-        sx={{
-          background: "linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%)",
-          color: "white",
-          py: 8,
-          position: "relative",
-          overflow: "hidden",
-          "&::before": {
-            content: '""',
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background:
-              "url(\"data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0L50 50L0 100' fill='none' stroke='rgba(255,255,255,0.05)' stroke-width='2'/%3E%3Cpath d='M50 0L100 50L50 100' fill='none' stroke='rgba(255,255,255,0.05)' stroke-width='2'/%3E%3C/svg%3E\")",
-            opacity: 0.3,
-          },
-        }}
-      >
-        <Container maxWidth="lg" sx={{ position: "relative", zIndex: 1 }}>
-          <Grid container alignItems="center" justifyContent="space-between">
-            <Grid item xs={12}>
-              <Typography
-                variant="h2"
-                sx={{
-                  fontWeight: 700,
-                  fontSize: { xs: "2.5rem", md: "3.5rem" },
-                  mb: 2,
-                  textAlign: "center",
-                }}
-              >
-                Contact Us
-              </Typography>
-              <Box sx={{ textAlign: "center" }}>
-                <Typography variant="body1" sx={{ display: "inline", mr: 1 }}>
-                  Home
-                </Typography>
-                <span style={{ margin: "0 10px" }}>→</span>
-                <Typography
-                  variant="body1"
-                  sx={{ display: "inline", fontWeight: 600 }}
-                >
-                  Contact
-                </Typography>
-              </Box>
-            </Grid>
-          </Grid>
-        </Container>
-      </Box>
+      <main className="relative flex-grow pt-24 pb-20 overflow-hidden">
+        {/* Volumetric ambient backlights */}
+        <div className="absolute top-1/4 left-1/4 w-[500px] h-[350px] bg-cyan-500/15 rounded-full blur-[140px] pointer-events-none" />
+        <div className="absolute bottom-1/3 right-1/4 w-[450px] h-[300px] bg-blue-600/15 rounded-full blur-[140px] pointer-events-none" />
 
-      {/* Main Content */}
-      <Container sx={{ py: 8 }} style={{ maxWidth: "1300px" }}>
-        <Grid
-          container
-          spacing={6}
-          sx={{ flexDirection: { md: "row", sm: "column", xs: "column" } }}
-        >
-          {/* Contact Form */}
-          <Grid item xs={12} md={7} style={{ flex: "1" }}>
-            <Paper
-              sx={{
-                p: 4,
-                borderRadius: 2,
-                boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-                height: "100%",
-              }}
-            >
-              <Typography
-                variant="h4"
-                sx={{
-                  fontWeight: 700,
-                  mb: 3,
-                  color: "#1e3a5f",
-                  position: "relative",
-                  pb: 2,
-                  "&::after": {
-                    content: '""',
-                    position: "absolute",
-                    bottom: 0,
-                    left: 0,
-                    width: "60px",
-                    height: "4px",
-                    background:
-                      "linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)",
-                    borderRadius: "2px",
-                  },
-                }}
-              >
-                Get in touch
-              </Typography>
-              <Typography
-                variant="body1"
-                sx={{
-                  color: "#64748b",
-                  mb: 4,
-                  fontSize: "1.1rem",
-                }}
-              >
-                We are here for you! How can we help?
-              </Typography>
+        <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Breadcrumbs & Header */}
+          <div className="flex items-center gap-2 text-xs font-mono text-slate-400 mb-6">
+            <Link to="/" className="hover:text-cyan-400 transition-colors">Home</Link>
+            <span className="text-slate-600">/</span>
+            <span className="text-cyan-400 font-semibold">Contact Us</span>
+          </div>
 
-              <Box component="form" onSubmit={handleSubmit}>
-                <Grid container spacing={3} style={{ flexDirection: "column" }}>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      fullWidth
-                      label="Your Name"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      required
-                      variant="outlined"
-                      sx={{
-                        "& .MuiOutlinedInput-root": {
-                          "& fieldset": {
-                            borderColor: "#e2e8f0",
-                          },
-                          "&:hover fieldset": {
-                            borderColor: "#cbd5e1",
-                          },
-                          "&.Mui-focused fieldset": {
-                            borderColor: "#0891b2",
-                          },
-                        },
-                      }}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      fullWidth
-                      label="Email Address"
-                      name="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      required
-                      variant="outlined"
-                      sx={{
-                        "& .MuiOutlinedInput-root": {
-                          "& fieldset": {
-                            borderColor: "#e2e8f0",
-                          },
-                          "&:hover fieldset": {
-                            borderColor: "#cbd5e1",
-                          },
-                          "&.Mui-focused fieldset": {
-                            borderColor: "#0891b2",
-                          },
-                        },
-                      }}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      fullWidth
-                      label="Mobile Number"
-                      name="mobileNumber"
-                      value={formData.mobileNumber}
-                      onChange={handleChange}
-                      variant="outlined"
-                      inputProps={{ maxLength: 10 }}
-                      placeholder="Enter 10-digit mobile number"
-                      sx={{
-                        "& .MuiOutlinedInput-root": {
-                          "& fieldset": {
-                            borderColor: "#e2e8f0",
-                          },
-                          "&:hover fieldset": {
-                            borderColor: "#cbd5e1",
-                          },
-                          "&.Mui-focused fieldset": {
-                            borderColor: "#0891b2",
-                          },
-                        },
-                      }}
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <FormControl
-                      fullWidth
-                      variant="outlined"
-                      sx={{
-                        "& .MuiOutlinedInput-root": {
-                          "& fieldset": {
-                            borderColor: "#e2e8f0",
-                          },
-                          "&:hover fieldset": {
-                            borderColor: "#cbd5e1",
-                          },
-                          "&.Mui-focused fieldset": {
-                            borderColor: "#0891b2",
-                          },
-                        },
-                      }}
-                    >
-                      <InputLabel id="subject-label">Subject</InputLabel>
-                      <Select
-                        labelId="subject-label"
-                        name="subject"
-                        value={formData.subject}
-                        onChange={handleChange}
-                        label="Subject"
+          <div className="text-center max-w-2xl mx-auto mb-12">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-950/70 border border-cyan-500/30 text-cyan-400 font-mono text-xs mb-4 shadow-[0_0_20px_rgba(0,210,255,0.2)]">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_#3afaac]" />
+              <span>DIRECT CLIENT & PARTNER DESK</span>
+            </div>
+
+            <h1 className="text-3xl sm:text-5xl font-extrabold text-white font-['Sora'] tracking-tight mb-4">
+              Get in{" "}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-sky-300 to-emerald-400">
+                Touch.
+              </span>
+            </h1>
+
+            <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
+              Have questions about your credit score, bureau dispute cases, or partnership inquiries? Reach our advisory team directly.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            
+            {/* Left Column: Form */}
+            <div className="lg:col-span-7 p-6 sm:p-10 rounded-[28px] bg-gradient-to-b from-[#111f38]/95 via-[#0a1426]/98 to-[#060c18] border border-cyan-500/30 shadow-[0_0_40px_rgba(0,210,255,0.12),0_25px_60px_-15px_rgba(0,0,0,0.85)] backdrop-blur-2xl">
+              <div className="pb-4 mb-6 border-b border-cyan-500/20">
+                <h2 className="text-xl font-bold font-['Sora'] text-white">Send Us a Message</h2>
+                <p className="text-xs text-slate-400 font-mono mt-0.5">We respond within 24 business hours</p>
+              </div>
+
+              {success ? (
+                <div className="py-10 text-center">
+                  <div className="w-16 h-16 rounded-2xl bg-emerald-500/15 border border-emerald-400/40 text-emerald-400 flex items-center justify-center mx-auto mb-4 animate-bounce shadow-[0_0_30px_rgba(58,250,172,0.35)]">
+                    <span className="material-symbols-outlined text-3xl">check_circle</span>
+                  </div>
+                  <h3 className="text-2xl font-bold font-['Sora'] text-white mb-2">Message Delivered!</h3>
+                  <p className="text-slate-300 text-sm max-w-sm mx-auto mb-6">
+                    Thank you for reaching out. A Credit Dost representative has received your enquiry and will contact you shortly.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setSuccess(false)}
+                    className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 text-slate-950 font-bold text-sm shadow-lg hover:scale-105 transition-all"
+                  >
+                    Send Another Message
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} noValidate className="space-y-4">
+                  {error && (
+                    <div className="p-3.5 rounded-xl bg-red-950/50 border border-red-500/40 text-red-200 text-xs sm:text-sm flex items-center gap-2">
+                      <span className="material-symbols-outlined text-red-400 text-lg shrink-0">error</span>
+                      <span>{error}</span>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-mono uppercase text-slate-300 tracking-wider mb-1 font-semibold">
+                        Your Name *
+                      </label>
+                      <TextField
+                        fullWidth
                         required
-                      >
-                        <MenuItem value="Franchise">Franchise</MenuItem>
-                        <MenuItem value="Credit Dost Suvidha Centre">
-                          Credit Dost Suvidha Centre
-                        </MenuItem>
-                        <MenuItem value="Credit Score Repair">
-                          Credit Score Repair
-                        </MenuItem>
-                        <MenuItem value="Apply for Loan">
-                          Apply for Loan
-                        </MenuItem>
-                        <MenuItem value="Others">Others</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  <Grid item xs={12}>
+                        name="name"
+                        value={formData.name}
+                        onChange={handleChange}
+                        placeholder="e.g. Rahul Sharma"
+                        sx={inputStyle}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-mono uppercase text-slate-300 tracking-wider mb-1 font-semibold">
+                        Email Address *
+                      </label>
+                      <TextField
+                        fullWidth
+                        required
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        placeholder="name@example.com"
+                        sx={inputStyle}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-mono uppercase text-slate-300 tracking-wider mb-1 font-semibold">
+                        Mobile Number (Optional)
+                      </label>
+                      <TextField
+                        fullWidth
+                        name="mobileNumber"
+                        value={formData.mobileNumber}
+                        onChange={handleChange}
+                        placeholder="9876543210"
+                        sx={inputStyle}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-mono uppercase text-slate-300 tracking-wider mb-1 font-semibold">
+                        Subject
+                      </label>
+                      <FormControl fullWidth sx={inputStyle}>
+                        <Select
+                          name="subject"
+                          value={formData.subject}
+                          onChange={handleChange}
+                          MenuProps={{ PaperProps: { sx: { bgcolor: "#0a1426", color: "#fff" } } }}
+                        >
+                          <MenuItem value="General Inquiry">General Inquiry</MenuItem>
+                          <MenuItem value="Credit Score Repair">Credit Score Repair</MenuItem>
+                          <MenuItem value="Corporate CMR Dispute">Corporate CMR Dispute</MenuItem>
+                          <MenuItem value="Franchise Opportunity">Franchise Partnership</MenuItem>
+                          <MenuItem value="Technical Support">Technical Support</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-mono uppercase text-slate-300 tracking-wider mb-1 font-semibold">
+                      Your Message *
+                    </label>
                     <TextField
                       fullWidth
-                      label="Message"
+                      required
+                      multiline
+                      rows={4}
                       name="message"
                       value={formData.message}
                       onChange={handleChange}
-                      required
-                      multiline
-                      rows={6}
-                      variant="outlined"
-                      sx={{
-                        "& .MuiOutlinedInput-root": {
-                          "& fieldset": {
-                            borderColor: "#e2e8f0",
-                          },
-                          "&:hover fieldset": {
-                            borderColor: "#cbd5e1",
-                          },
-                          "&.Mui-focused fieldset": {
-                            borderColor: "#0891b2",
-                          },
-                        },
-                      }}
+                      placeholder="How can our team assist you today?"
+                      sx={inputStyle}
                     />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <Button
+                  </div>
+
+                  <div className="pt-2">
+                    <button
                       type="submit"
-                      variant="contained"
                       disabled={isSubmitting}
-                      sx={{
-                        background:
-                          "linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)",
-                        color: "white",
-                        fontWeight: 700,
-                        textTransform: "none",
-                        padding: "12px 32px",
-                        borderRadius: "50px",
-                        fontSize: "1rem",
-                        boxShadow: "0 4px 20px rgba(8, 145, 178, 0.3)",
-                        transition: "all 0.3s ease",
-                        "&:hover": {
-                          transform: "translateY(-2px)",
-                          boxShadow: "0 6px 25px rgba(8, 145, 178, 0.4)",
-                          background:
-                            "linear-gradient(135deg, #0e7490 0%, #0891b2 100%)",
-                        },
-                        "&.Mui-disabled": {
-                          background:
-                            "linear-gradient(135deg, #94a3b8 0%, #cbd5e1 100%)",
-                          color: "white",
-                        },
-                      }}
+                      className="w-full py-4 px-6 rounded-xl bg-gradient-to-r from-cyan-400 via-sky-500 to-blue-600 text-slate-950 font-bold text-base shadow-[0_0_30px_rgba(0,210,255,0.4)] hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                     >
-                      {isSubmitting ? "Sending..." : "Send Message"}
-                    </Button>
-                  </Grid>
-                </Grid>
-              </Box>
-            </Paper>
-          </Grid>
+                      {isSubmitting ? (
+                        <>
+                          <CircularProgress size={20} sx={{ color: "#080E1B" }} />
+                          <span>Delivering Message...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="material-symbols-outlined text-xl">send</span>
+                          <span>Send Message</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
 
-          {/* Contact Information */}
-          <Grid
-            item
-            xs={12}
-            md={5}
-            style={{ flex: "1", flexDirection: "column" }}
-          >
-            <Paper
-              sx={{
-                p: 4,
-                borderRadius: 2,
-                boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-                height: "100%",
-              }}
-            >
-              <Typography
-                variant="h4"
-                sx={{
-                  fontWeight: 700,
-                  mb: 4,
-                  color: "#1e3a5f",
-                  position: "relative",
-                  pb: 2,
-                  "&::after": {
-                    content: '""',
-                    position: "absolute",
-                    bottom: 0,
-                    left: 0,
-                    width: "60px",
-                    height: "4px",
-                    background:
-                      "linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)",
-                    borderRadius: "2px",
-                  },
-                }}
-              >
-                Contact Information
-              </Typography>
+            {/* Right Column: Contact Details Cards */}
+            <div className="lg:col-span-5 space-y-6">
+              <div className="p-6 sm:p-8 rounded-[24px] bg-[#0a1426]/90 border border-cyan-500/25 shadow-[0_0_30px_rgba(0,210,255,0.1)] backdrop-blur-xl space-y-6">
+                <div className="pb-4 border-b border-cyan-500/20">
+                  <h3 className="text-xl font-bold font-['Sora'] text-white">Contact Information</h3>
+                  <p className="text-xs text-slate-400 font-mono mt-0.5">National support channels</p>
+                </div>
 
-              <Grid container spacing={4}>
-                {contactInfo.map((info, index) => (
-                  <Grid item xs={12} key={index} style={{ width: "100%" }}>
-                    <Box sx={{ display: "flex", gap: 3 }}>
-                      <Box
-                        sx={{
-                          width: 70,
-                          height: 70,
-                          borderRadius: "50%",
-                          background:
-                            "linear-gradient(135deg, rgba(8, 145, 178, 0.1) 0%, rgba(6, 182, 212, 0.1) 100%)",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          flexShrink: 0,
-                        }}
+                <div className="space-y-5">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-cyan-500/15 border border-cyan-500/30 text-cyan-400 flex items-center justify-center shrink-0">
+                      <span className="material-symbols-outlined text-2xl">mail</span>
+                    </div>
+                    <div>
+                      <div className="text-xs font-mono uppercase text-slate-400">Direct Email</div>
+                      <a href="mailto:info@creditdost.co.in" className="text-white font-bold font-mono text-base hover:text-cyan-400 transition-colors">
+                        info@creditdost.co.in
+                      </a>
+                      <div className="text-[11px] text-slate-400 mt-0.5">Official enquiries & dispute desk</div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center shrink-0">
+                      <span className="material-symbols-outlined text-2xl">call</span>
+                    </div>
+                    <div>
+                      <div className="text-xs font-mono uppercase text-slate-400">Telephone Helpline</div>
+                      <a href="tel:+919217469202" className="text-white font-bold font-mono text-base hover:text-cyan-400 transition-colors">
+                        +91 92174-69202
+                      </a>
+                      <div className="text-[11px] text-slate-400 mt-0.5">Mon - Sat: 10:00 AM - 6:30 PM IST</div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-sky-500/15 border border-sky-500/30 text-sky-400 flex items-center justify-center shrink-0">
+                      <span className="material-symbols-outlined text-2xl">verified_user</span>
+                    </div>
+                    <div>
+                      <div className="text-xs font-mono uppercase text-slate-400">Statutory Office</div>
+                      <div className="text-white font-bold text-sm">Credit Dost Financial Services</div>
+                      <div className="text-[11px] text-slate-400 mt-0.5">CICRA 2005 Dispute Framework (Pan-India)</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-6 border-t border-slate-800">
+                  <div className="text-xs font-mono uppercase text-slate-400 mb-3 font-semibold">Social Channels</div>
+                  <div className="flex gap-3">
+                    {[
+                      { href: "https://facebook.com", icon: "public" },
+                      { href: "https://twitter.com", icon: "alternate_email" },
+                      { href: "https://linkedin.com", icon: "share" },
+                      { href: "https://instagram.com", icon: "photo_camera" },
+                    ].map((item, idx) => (
+                      <a
+                        key={idx}
+                        href={item.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-700 hover:border-cyan-400 text-slate-300 hover:text-cyan-400 flex items-center justify-center transition-all"
                       >
-                        {info.icon}
-                      </Box>
-                      <Box>
-                        <Typography
-                          variant="h6"
-                          sx={{
-                            fontWeight: 600,
-                            mb: 1,
-                            color: "#1e3a5f",
-                          }}
-                        >
-                          {info.title}
-                        </Typography>
-                        {Array.isArray(info.content) ? (
-                          info.content.map((item, i) => (
-                            <Typography
-                              key={i}
-                              variant="body1"
-                              sx={{
-                                color: "#64748b",
-                                mb: 0.5,
-                                textDecoration: "none",
-                                display: "block",
-                                "&:hover": { color: "#0891b2" },
-                              }}
-                              component="a"
-                              href={
-                                info.title === "Mail Us"
-                                  ? `mailto:${item}`
-                                  : info.title === "Telephone"
-                                  ? `tel:${item}`
-                                  : undefined
-                              }
-                            >
-                              {item}
-                            </Typography>
-                          ))
-                        ) : (
-                          <Typography
-                            variant="body1"
-                            sx={{
-                              color: "#64748b",
-                            }}
-                          >
-                            {info.content}
-                          </Typography>
-                        )}
-                      </Box>
-                    </Box>
-                  </Grid>
-                ))}
-              </Grid>
+                        <span className="material-symbols-outlined text-lg">{item.icon}</span>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
 
-              {/* Social Media */}
-              <Box sx={{ mt: 6 }}>
-                <Typography
-                  variant="h6"
-                  sx={{
-                    fontWeight: 600,
-                    mb: 3,
-                    color: "#1e3a5f",
-                  }}
-                >
-                  Follow Us
-                </Typography>
-                <Box sx={{ display: "flex", gap: 2 }}>
-                  <IconButton
-                    sx={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: "50%",
-                      background:
-                        "linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)",
-                      color: "white",
-                      "&:hover": {
-                        transform: "translateY(-3px)",
-                        boxShadow: "0 4px 15px rgba(8, 145, 178, 0.4)",
-                      },
-                      transition: "all 0.3s ease",
-                    }}
-                    href="https://www.facebook.com/aapkacreditdost"
-                    target="_blank"
-                  >
-                    <Facebook />
-                  </IconButton>
-                  <IconButton
-                    sx={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: "50%",
-                      background:
-                        "linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)",
-                      color: "white",
-                      "&:hover": {
-                        transform: "translateY(-3px)",
-                        boxShadow: "0 4px 15px rgba(8, 145, 178, 0.4)",
-                      },
-                      transition: "all 0.3s ease",
-                    }}
-                    href="https://x.com/aapkacreditdost"
-                    target="_blank"
-                  >
-                    <X />
-                  </IconButton>
-                  <IconButton
-                    sx={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: "50%",
-                      background:
-                        "linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)",
-                      color: "white",
-                      "&:hover": {
-                        transform: "translateY(-3px)",
-                        boxShadow: "0 4px 15px rgba(8, 145, 178, 0.4)",
-                      },
-                      transition: "all 0.3s ease",
-                    }}
-                    href="https://www.instagram.com/aapkacreditdost"
-                    target="_blank"
-                  >
-                    <Instagram />
-                  </IconButton>
-                  <IconButton
-                    sx={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: "50%",
-                      background:
-                        "linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)",
-                      color: "white",
-                      "&:hover": {
-                        transform: "translateY(-3px)",
-                        boxShadow: "0 4px 15px rgba(8, 145, 178, 0.4)",
-                      },
-                      transition: "all 0.3s ease",
-                    }}
-                    href="https://www.linkedin.com/company/aapkacreditdost"
-                    target="_blank"
-                  >
-                    <LinkedIn />
-                  </IconButton>
-                  <IconButton
-                    sx={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: "50%",
-                      background:
-                        "linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)",
-                      color: "white",
-                      "&:hover": {
-                        transform: "translateY(-3px)",
-                        boxShadow: "0 4px 15px rgba(8, 145, 178, 0.4)",
-                      },
-                      transition: "all 0.3s ease",
-                    }}
-                    href="https://www.youtube.com/@aapkacreditdost"
-                    target="_blank"
-                  >
-                    <YouTube />
-                  </IconButton>
-                </Box>
-              </Box>
-            </Paper>
-          </Grid>
-        </Grid>
-      </Container>
+          </div>
+        </div>
+      </main>
 
       <HomePageFooter />
-    </Box>
+    </div>
   );
 };
 

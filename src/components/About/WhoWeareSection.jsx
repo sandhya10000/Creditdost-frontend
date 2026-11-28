@@ -1,250 +1,110 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
+import { Link } from "react-router-dom";
 
 const WhoWeAreSection = () => {
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
-
   return (
-    <div
-      style={{
-        padding: isMobile ? "40px 16px" : "80px 20px",
-        backgroundColor: "#ffffff",
-        position: "relative",
-        overflow: "hidden",
-      }}
-    >
-      {/* Animated Background Elements - Hide on mobile */}
-      {!isMobile && (
-        <>
-          <div
-            style={{
-              position: "absolute",
-              top: "10%",
-              right: "5%",
-              width: "300px",
-              height: "300px",
-              background:
-                "radial-gradient(circle, rgba(8, 145, 178, 0.05) 0%, transparent 70%)",
-              borderRadius: "50%",
-              animation: "float 8s ease-in-out infinite",
-            }}
-          />
+    <section className="w-full py-16 lg:py-20 bg-[#060c1d]/60 border-y border-slate-800/80 relative">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+          {/* Left Column - Content */}
+          <div className="lg:col-span-7 flex flex-col gap-6">
+            <div>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 font-label-code text-xs text-cyan-400 mb-3">
+                <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+                <span>WHO WE ARE</span>
+              </div>
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white font-['Sora'] tracking-tight leading-tight">
+                Your Trusted Partner in Credit Score Improvement
+              </h2>
+            </div>
 
-          <div
-            style={{
-              position: "absolute",
-              bottom: "15%",
-              left: "10%",
-              width: "400px",
-              height: "400px",
-              background:
-                "radial-gradient(circle, rgba(6, 182, 212, 0.04) 0%, transparent 70%)",
-              borderRadius: "50%",
-              animation: "float 10s ease-in-out infinite reverse",
-            }}
-          />
-        </>
-      )}
+            <div className="space-y-4 text-slate-300 text-sm sm:text-base leading-relaxed">
+              <p>
+                At <strong className="text-white font-semibold">Credit Dost</strong>, we firmly believe that a past financial stumble or a bureaucratic reporting glitch should never define your future. Everyone deserves an honest, transparent second chance to rebuild their financial creditworthiness.
+              </p>
+              <p>
+                We are India's premier dedicated credit repair and dispute advocacy firm. Our specialized team coordinates directly with lending institutions and all four RBI-licensed bureaus (CIBIL, Experian, Equifax, and CRIF High Mark) to ensure that erroneous late entries, outdated settlement records, and fraudulent inquiries are permanently removed.
+              </p>
+            </div>
 
-      <div
-        style={{
-          maxWidth: "1200px",
-          margin: "0 auto",
-          display: "grid",
-          gridTemplateColumns: isMobile
-            ? "1fr"
-            : "repeat(auto-fit, minmax(300px, 1fr))",
-          gap: isMobile ? "40px" : "60px",
-          alignItems: "center",
-          position: "relative",
-          zIndex: 1,
-        }}
-      >
-        {/* Left Side - Content */}
-        <div
-          style={{
-            padding: isMobile ? "0" : "20px",
-            order: isMobile ? 2 : 1, // Content after image on mobile
-          }}
-        >
-          <div
-            style={{
-              color: "#0891b2",
-              fontSize: isMobile ? "0.8rem" : "0.9rem",
-              fontWeight: "600",
-              letterSpacing: "2px",
-              marginBottom: isMobile ? "8px" : "12px",
-              textAlign: isMobile ? "center" : "left",
-            }}
-          >
-            WHO WE ARE
+            {/* Core Capability Checklist */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+              <div className="flex items-start gap-3 p-3.5 rounded-xl bg-[#09152e]/80 border border-slate-800/80">
+                <span className="material-symbols-outlined text-emerald-400 text-lg mt-0.5 shrink-0">
+                  check_circle
+                </span>
+                <span className="text-xs sm:text-sm text-slate-200">
+                  Statutory dispute authority under Section 21 of CICRA 2005
+                </span>
+              </div>
+              <div className="flex items-start gap-3 p-3.5 rounded-xl bg-[#09152e]/80 border border-slate-800/80">
+                <span className="material-symbols-outlined text-cyan-400 text-lg mt-0.5 shrink-0">
+                  check_circle
+                </span>
+                <span className="text-xs sm:text-sm text-slate-200">
+                  Line-by-line report audits covering all 4 licensed Indian bureaus
+                </span>
+              </div>
+              <div className="flex items-start gap-3 p-3.5 rounded-xl bg-[#09152e]/80 border border-slate-800/80">
+                <span className="material-symbols-outlined text-sky-400 text-lg mt-0.5 shrink-0">
+                  check_circle
+                </span>
+                <span className="text-xs sm:text-sm text-slate-200">
+                  Zero score impact—all bureau checks performed as Soft Inquiries
+                </span>
+              </div>
+              <div className="flex items-start gap-3 p-3.5 rounded-xl bg-[#09152e]/80 border border-slate-800/80">
+                <span className="material-symbols-outlined text-purple-400 text-lg mt-0.5 shrink-0">
+                  check_circle
+                </span>
+                <span className="text-xs sm:text-sm text-slate-200">
+                  Direct submission to Bank Principal Nodal &amp; Ombudsman Desks
+                </span>
+              </div>
+            </div>
+
+            <div className="pt-2">
+              <Link
+                to="/credit-check"
+                className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-gradient-to-r from-cyan-400 via-[#0084ff] to-[#0052ff] text-slate-950 font-bold text-sm shadow-[0_0_20px_rgba(0,210,255,0.35)] hover:scale-[1.02] active:scale-95 transition-all w-fit"
+              >
+                <span>Check Your Credit Report Now</span>
+                <span className="material-symbols-outlined text-lg">arrow_forward</span>
+              </Link>
+            </div>
           </div>
 
-          <h2
-            style={{
-              fontSize: isMobile ? "1.75rem" : "2.1rem",
-              fontWeight: "700",
-              color: "#0f172a",
-              marginBottom: isMobile ? "16px" : "24px",
-              lineHeight: 1.2,
-              textAlign: isMobile ? "center" : "left",
-            }}
-          >
-            Your Trusted Partner in Credit Score Improvement in India
-          </h2>
-
-          <p
-            style={{
-              color: "#64748b",
-              fontSize: isMobile ? "1rem" : "1.1rem",
-              lineHeight: 1.7,
-              marginBottom: isMobile ? "20px" : "24px",
-              fontWeight: "500",
-              textAlign: isMobile ? "justify" : "left",
-            }}
-          >
-            At <strong>Credit Dost</strong>, we believe everyone deserves a
-            second chance to rebuild their credit and financial confidence.
-          </p>
-
-          <p
-            style={{
-              color: "#64748b",
-              fontSize: isMobile ? "0.95rem" : "1rem",
-              lineHeight: 1.7,
-              marginBottom: isMobile ? "24px" : "32px",
-              textAlign: isMobile ? "justify" : "left",
-            }}
-          >
-            We are India's dedicated{" "}
-            <strong>
-              Credit Score Improvement and Dispute Resolution Company
-            </strong>
-            , helping individuals repair, rebuild, and manage their credit
-            health with transparency, accuracy, and trust.
-          </p>
-
-          <div
-            style={{
-              backgroundColor: "#f8f9fa",
-              padding: isMobile ? "20px" : "24px",
-              borderRadius: "12px",
-              borderLeft: "4px solid #0891b2",
-            }}
-          >
-            <p
-              style={{
-                color: "#475569",
-                fontSize: isMobile ? "0.95rem" : "1rem",
-                lineHeight: 1.6,
-                margin: 0,
-                fontStyle: "italic",
-                textAlign: isMobile ? "justify" : "left",
-              }}
-            >
-              <strong>
-                Credit Dost is a division of Optimystic Auxiliary Services Pvt.
-                Ltd.
-              </strong>
-              , a compliance-driven financial services organization. We bring
-              together a team of trained credit professionals, finance experts,
-              and customer support specialists committed to simplifying credit
-              score challenges.
-            </p>
-          </div>
-        </div>
-
-        {/* Right Side - Image/Graphic */}
-        <div
-          style={{
-            position: "relative",
-            height: isMobile ? "300px" : "500px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            order: isMobile ? 1 : 2, // Image before content on mobile
-          }}
-        >
-          {/* Main Graphic */}
-          <div
-            style={{
-              width: "100%",
-              height: isMobile ? "100%" : "470px",
-
-              backgroundImage: 'url("./images/website image.jpg")',
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-              borderRadius: "20px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              position: "relative",
-              overflow: "hidden",
-              boxShadow: isMobile ? "0 4px 12px rgba(0, 0, 0, 0.08)" : "none",
-            }}
-          >
-            <div
-              style={{
-                textAlign: "center",
-                color: "#0891b2",
-                padding: isMobile ? "20px" : "40px",
-              }}
-            ></div>
-
-            {/* Decorative Elements - Hide on mobile */}
-            {!isMobile && (
-              <>
-                <div
-                  style={{
-                    position: "absolute",
-                    top: "20px",
-                    right: "20px",
-                    width: "60px",
-                    height: "60px",
-                    backgroundColor: "#0891b2",
-                    borderRadius: "50%",
-                    opacity: 0.1,
+          {/* Right Column - Visual Graphic Card */}
+          <div className="lg:col-span-5 flex justify-center">
+            <div className="w-full max-w-md rounded-3xl overflow-hidden glass-panel-elevated border border-slate-700/80 relative shadow-2xl">
+              <div className="w-full h-80 relative overflow-hidden">
+                <img
+                  src="/images/about-hero.jpg"
+                  alt="Every Point Matters - Credit Dost"
+                  className="w-full h-full object-cover brightness-90 hover:scale-105 transition-transform duration-500"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = "/images/hero-new.png";
                   }}
                 />
-                <div
-                  style={{
-                    position: "absolute",
-                    bottom: "30px",
-                    left: "30px",
-                    width: "40px",
-                    height: "40px",
-                    backgroundColor: "#0891b2",
-                    borderRadius: "50%",
-                    opacity: 0.1,
-                  }}
-                />
-              </>
-            )}
+                <div className="absolute inset-0 bg-gradient-to-t from-[#060c1d] via-[#060c1d]/30 to-transparent" />
+                <div className="absolute bottom-6 left-6 right-6">
+                  <span className="px-3 py-1 rounded-full bg-cyan-500/20 border border-cyan-500/40 text-cyan-400 font-mono text-xs font-semibold">
+                    DISPUTE RESOLUTION
+                  </span>
+                  <h4 className="text-xl font-bold text-white font-['Sora'] mt-2">
+                    Every Point Matters.
+                  </h4>
+                  <p className="text-xs text-slate-300 mt-1">
+                    We turn unfair credit rejections into clear bank approvals.
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-
-      <style>{`
-        @keyframes float {
-          0%, 100% {
-            transform: translateY(0px);
-          }
-          50% {
-            transform: translateY(-20px);
-          }
-        }
-      `}</style>
-    </div>
+    </section>
   );
 };
 

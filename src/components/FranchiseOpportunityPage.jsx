@@ -1,1568 +1,604 @@
 import React, { useState } from "react";
-import {
-  Container,
-  Typography,
-  Button,
-  Box,
-  Card,
-  CardContent,
-  Grid,
-  TextField,
-  FormControlLabel,
-  Checkbox,
-  styled,
-  Paper,
-  Divider,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-} from "@mui/material";
-import {
-  CheckCircle,
-  TrendingUp,
-  VerifiedUser,
-  Build,
-  SupportAgent,
-  EmojiEvents,
-  Phone,
-  Email,
-  LocationOn,
-  ArrowForward,
-} from "@mui/icons-material";
+import { Link, useNavigate } from "react-router-dom";
 import Header from "./homepage/Header";
 import HomePageFooter from "./homepage/HomePageFooter";
 import api from "../services/api";
 import RegistrationForm from "./common/RegistrationForm";
-import { useNavigate } from "react-router-dom";
 import FranchiseSuccessStories from "./franchise/FranchiseSuccessStories.jsx";
 
-// Custom styled components for unique design
-const PageWrapper = styled(Box)(({ theme }) => ({
-  background: "linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%)",
-  minHeight: "100vh",
-  padding: theme.spacing(2, 0),
-  position: "relative",
-  overflow: "hidden",
-  "&::before": {
-    content: '""',
-    position: "absolute",
-    top: "-10%",
-    left: "-10%",
-    width: "400px",
-    height: "400px",
-    background:
-      "radial-gradient(circle, rgba(76, 175, 80, 0.15) 0%, transparent 70%)",
-    borderRadius: "50%",
-    animation: "pulse 8s ease-in-out infinite",
-  },
-  "&::after": {
-    content: '""',
-    position: "absolute",
-    bottom: "-15%",
-    right: "-10%",
-    width: "500px",
-    height: "500px",
-    background:
-      "radial-gradient(circle, rgba(33, 150, 243, 0.15) 0%, transparent 70%)",
-    borderRadius: "50%",
-    animation: "pulse 10s ease-in-out infinite 2s",
-  },
-  "@keyframes pulse": {
-    "0%, 100%": {
-      transform: "scale(1)",
-      opacity: 1,
-    },
-    "50%": {
-      transform: "scale(1.1)",
-      opacity: 0.8,
-    },
-  },
-}));
-
-const HeroSection = styled(Box)(({ theme }) => ({
-  background:
-    "linear-gradient(135deg, #0f1b5f 0%, #1a237e 30%, #283593 70%, #303f9f 100%)",
-  borderRadius: "24px",
-  padding: theme.spacing(8, 4),
-  position: "relative",
-  overflow: "hidden",
-  marginBottom: theme.spacing(8),
-  boxShadow: "0 25px 50px rgba(0, 0, 0, 0.2)",
-  "&::before": {
-    content: '""',
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    background:
-      "radial-gradient(circle at 20% 50%, rgba(76, 175, 80, 0.2) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(33, 150, 243, 0.2) 0%, transparent 50%)",
-    pointerEvents: "none",
-  },
-  "&::after": {
-    content: '""',
-    position: "absolute",
-    top: "-50%",
-    left: "-50%",
-    width: "200%",
-    height: "200%",
-    background: `conic-gradient(
-      transparent, 
-      rgba(76, 175, 80, 0.1), 
-      transparent 30%
-    )`,
-    animation: "rotate 15s linear infinite",
-    zIndex: 0,
-  },
-  "@keyframes rotate": {
-    "0%": {
-      transform: "rotate(0deg)",
-    },
-    "100%": {
-      transform: "rotate(360deg)",
-    },
-  },
-}));
-
-const SectionCard = styled(Card)(({ theme }) => ({
-  borderRadius: "24px",
-  boxShadow: "0 20px 40px rgba(0, 0, 0, 0.08)",
-  border: "1px solid rgba(0, 0, 0, 0.08)",
-  background: "white",
-  transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
-  marginBottom: theme.spacing(8),
-  position: "relative",
-  overflow: "hidden",
-  "&::before": {
-    content: '""',
-    position: "absolute",
-    top: 0,
-    left: 0,
-    width: "100%",
-    height: "4px",
-    background: "linear-gradient(90deg, #4caf50, #2196f3)",
-    transform: "scaleX(0)",
-    transformOrigin: "left",
-    transition: "transform 0.4s ease",
-  },
-  "&:hover": {
-    transform: "translateY(-10px)",
-    boxShadow: "0 25px 50px rgba(0, 0, 0, 0.15)",
-    "&::before": {
-      transform: "scaleX(1)",
-    },
-  },
-}));
-
-const FeatureCard = styled(Paper)(({ theme }) => ({
-  padding: theme.spacing(5),
-  borderRadius: "20px",
-  background: "linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)",
-  border: "1px solid #e9ecef",
-  transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
-  height: "100%",
-  position: "relative",
-  overflow: "hidden",
-  "&::before": {
-    content: '""',
-    position: "absolute",
-    top: 0,
-    left: 0,
-    width: "100%",
-    height: "4px",
-    background: "linear-gradient(90deg, #4caf50, #2196f3)",
-    transform: "scaleX(0)",
-    transformOrigin: "left",
-    transition: "transform 0.4s ease",
-  },
-  "&:hover": {
-    transform: "translateY(-8px)",
-    boxShadow: "0 15px 30px rgba(0, 0, 0, 0.1)",
-    borderColor: "#4caf50",
-    "&::before": {
-      transform: "scaleX(1)",
-    },
-  },
-}));
-
-const StepCard = styled(Paper)(({ theme }) => ({
-  padding: theme.spacing(4),
-  borderRadius: "20px",
-  background: "linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)",
-  border: "2px solid #e9ecef",
-  transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
-  position: "relative",
-  overflow: "hidden",
-  height: "100%",
-  "&::before": {
-    content: '""',
-    position: "absolute",
-    top: 0,
-    left: 0,
-    width: "100%",
-    height: "4px",
-    background: "linear-gradient(90deg, #4caf50, #2196f3)",
-    transform: "scaleX(0)",
-    transformOrigin: "left",
-    transition: "transform 0.4s ease",
-  },
-  "&:hover": {
-    transform: "translateY(-5px)",
-    boxShadow: "0 12px 24px rgba(0, 0, 0, 0.08)",
-    borderColor: "#4caf50",
-    "&::before": {
-      transform: "scaleX(1)",
-    },
-  },
-}));
-
-const StyledButton = styled(Button)(({ theme }) => ({
-  padding: theme.spacing(1.8, 4),
-  borderRadius: "50px",
-  fontWeight: 700,
-  fontSize: "1.1rem",
-  textTransform: "none",
-  transition: "all 0.3s ease",
-  background: "linear-gradient(135deg, #4caf50 0%, #2196f3 100%)",
-  boxShadow: "0 8px 24px rgba(76, 175, 80, 0.3)",
-  "&:hover": {
-    transform: "translateY(-3px)",
-    boxShadow: "0 12px 32px rgba(76, 175, 80, 0.4)",
-    background: "linear-gradient(135deg, #43a047 0%, #1e88e5 100%)",
-  },
-}));
-
-const FormCard = styled(Card)(({ theme }) => ({
-  borderRadius: "24px",
-  boxShadow: "0 25px 50px rgba(0, 0, 0, 0.1)",
-  border: "1px solid #e0e0e0",
-  background: "white",
-  overflow: "hidden",
-  position: "relative",
-  "&::before": {
-    content: '""',
-    position: "absolute",
-    top: 0,
-    left: 0,
-    width: "100%",
-    height: "5px",
-    background: "linear-gradient(90deg, #4caf50, #2196f3)",
-  },
-}));
-
-const TestimonialCard = styled(Paper)(({ theme }) => ({
-  padding: theme.spacing(5),
-  borderRadius: "20px",
-  background: "linear-gradient(135deg, #e8f5e9 0%, #e3f2fd 100%)",
-  border: "1px solid #c8e6c9",
-  position: "relative",
-  height: "100%",
-  boxShadow: "0 15px 30px rgba(0, 0, 0, 0.05)",
-  transition: "all 0.3s ease",
-  "&:hover": {
-    transform: "translateY(-5px)",
-    boxShadow: "0 20px 40px rgba(0, 0, 0, 0.1)",
-  },
-  "&::before": {
-    content: '""',
-    position: "absolute",
-    top: 20,
-    left: 20,
-    fontSize: "4rem",
-    color: "#4caf50",
-    opacity: 0.2,
-    fontFamily: "Georgia, serif",
-  },
-}));
-
 const FranchiseOpportunityPage = () => {
-  const [formData, setFormData] = useState({
-    fullName: "",
-    mobileNumber: "",
-    email: "",
-    city: "",
-    state: "",
-    profession: "",
-    message: "",
-    consent: false,
-  });
-
   const [submitted, setSubmitted] = useState(false);
   const navigate = useNavigate();
 
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-
-    // For mobile number, only allow digits
-    if (name === "mobileNumber") {
-      const cleanValue = value.replace(/\D/g, "");
-      // Limit to 10 digits
-      if (cleanValue.length <= 10) {
-        setFormData({
-          ...formData,
-          [name]: cleanValue,
-        });
-      }
-      return;
-    }
-
-    setFormData({
-      ...formData,
-      [name]: type === "checkbox" ? checked : value,
-    });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    // Form validation would go here
-
-    try {
-      // Submit to backend API
-      await api.post("/forms/franchise-opportunity", formData);
-      setSubmitted(true);
-      // Reset form
-      setFormData({
-        fullName: "",
-        mobileNumber: "",
-        email: "",
-        city: "",
-        state: "",
-        profession: "",
-        message: "",
-        consent: false,
-      });
-    } catch (error) {
-      console.error("Form submission error:", error);
-      alert("Failed to submit your request. Please try again.");
-    }
-  };
-
-  const benefits = [
+  const steps = [
     {
-      icon: <VerifiedUser sx={{ fontSize: 40, color: "#4caf50" }} />,
-      title: "Ready-to-Run Business Model",
-      description:
-        " Launch your credit repair business with a proven structure, processes, and workflows already in place.",
+      number: "01",
+      title: "Apply Online",
+      description: "Fill the quick franchise partnership enquiry form below.",
+      icon: "app_registration",
     },
     {
-      icon: <Build sx={{ fontSize: 40, color: "#2196f3" }} />,
-      title: "Complete Skill-Based Training",
-      description:
-        " Step-by-step training on credit reports, disputes, customer handling, and business operations — no prior finance experience required.",
+      number: "02",
+      title: "Attend Orientation",
+      description: "Get a comprehensive breakdown of the business model, unit economics, and earnings.",
+      icon: "co_present",
     },
     {
-      icon: <TrendingUp sx={{ fontSize: 40, color: "#ff9800" }} />,
-      title: "Centralized Technology Platform",
-      description:
-        " Get access to CRM, case tracking, customer management, and automation tools to run your business smoothly.",
+      number: "03",
+      title: "Training & Certification",
+      description: "Learn client case management, bureau dispute handling, and compliance ethically.",
+      icon: "workspace_premium",
     },
     {
-      icon: <TrendingUp sx={{ fontSize: 40, color: "#ff9800" }} />,
-      title: "Brand Trust & Market Presence",
-      description:
-        "Operate under the Credit Dost brand with nationwide visibility and growing customer trust.",
+      number: "04",
+      title: "Launch Operations",
+      description: "Begin serving clients in your territory with Credit Dost's proven systems and brand trust.",
+      icon: "rocket_launch",
+    },
+    {
+      number: "05",
+      title: "Scale with Support",
+      description: "Expand your local network, grow recurring earnings, and lead our nationwide mission.",
+      icon: "trending_up",
     },
   ];
 
-  const steps = [
+  const partnerPerks = [
     {
-      number: "1",
-      title: "Apply Online",
-      description: "Fill the franchise enquiry form below.",
+      area: "Training & Certification",
+      description:
+        "Get structured, hands-on training to become a Certified Credit Score Repair Consultant, covering credit reports, dispute handling, compliance, and customer management.",
+      icon: "school",
+      badge: "Full Program",
     },
     {
-      number: "2",
-      title: "Attend Orientation",
+      area: "Tools & CRM Platform",
       description:
-        "Get a detailed overview of the business model and earning potential.",
+        "Access ready-to-use CRM systems, dispute templates, report formats, and operational tools to manage clients efficiently from day one.",
+      icon: "hub",
+      badge: "SaaS Included",
     },
     {
-      number: "3",
-      title: "Complete Training & Certification",
+      area: "Marketing & Growth Engine",
       description:
-        "Learn how to manage client cases ethically and effectively.",
+        "Receive co-branded creatives, digital marketing guidance, and growth strategies to help you generate leads and build local brand visibility.",
+      icon: "campaign",
+      badge: "Turnkey Collateral",
     },
     {
-      number: "4",
-      title: "Start Your Business",
+      area: "AI & Bureau Technology",
       description:
-        "Begin serving clients using our system and brand credibility.",
+        "Leverage AI-enabled backend systems for case tracking, client progress monitoring, documentation flow, and performance insights.",
+      icon: "smart_toy",
+      badge: "Automated",
     },
     {
-      number: "5",
-      title: "Scale with Support",
+      area: "Dedicated Mentorship",
       description:
-        "Expand your network, grow your income, and become a key partner in our nationwide mission.",
+        "Benefit from ongoing mentoring, business review calls, and operational support from the Credit Dost core team to help you grow sustainably.",
+      icon: "support_agent",
+      badge: "1-on-1 Guidance",
+    },
+  ];
+
+  const whoCanJoinList = [
+    {
+      title: "Financial Consultants, Bankers & Loan Agents",
+      desc: "Add high-margin credit repair solutions to your existing portfolio and monetize rejected loan leads.",
+      icon: "account_balance",
+    },
+    {
+      title: "BPO, Call Centers & Service Agencies",
+      desc: "Diversify and launch a high-volume financial services vertical with ready infrastructure.",
+      icon: "headset_mic",
+    },
+    {
+      title: "Entrepreneurs & Independent Professionals",
+      desc: "Start an ethical, home-based or retail financial consulting business with minimal capital expenditure.",
+      icon: "business_center",
+    },
+    {
+      title: "Trainers, Coaches & Financial Educators",
+      desc: "Empower your community with credit literacy while establishing a reliable recurring income stream.",
+      icon: "psychology",
     },
   ];
 
   const supportFeatures = [
-    "Business development and lead generation guidance",
-    "Legal and compliance support",
-    "Regular training updates and new learning modules",
-    "Marketing materials and promotional assets",
-    "Dedicated partner success team for assistance",
-  ];
-
-  const indianStates = [
-    "Andaman and Nicobar Islands",
-    "Andhra Pradesh",
-    "Arunachal Pradesh",
-    "Assam",
-    "Bihar",
-    "Chandigarh",
-    "Chhattisgarh",
-    "Dadra and Nagar Haveli",
-    "Daman and Diu",
-    "Delhi",
-    "Goa",
-    "Gujarat",
-    "Haryana",
-    "Himachal Pradesh",
-    "Jammu and Kashmir",
-    "Jharkhand",
-    "Karnataka",
-    "Kerala",
-    "Ladakh",
-    "Lakshadweep",
-    "Madhya Pradesh",
-    "Maharashtra",
-    "Manipur",
-    "Meghalaya",
-    "Mizoram",
-    "Nagaland",
-    "Odisha",
-    "Puducherry",
-    "Punjab",
-    "Rajasthan",
-    "Sikkim",
-    "Tamil Nadu",
-    "Telangana",
-    "Tripura",
-    "Uttar Pradesh",
-    "Uttarakhand",
-    "West Bengal",
+    {
+      title: "Lead Generation Guidance",
+      desc: "Proven customer acquisition playbooks, social campaigns, and local referral setups.",
+      icon: "target",
+    },
+    {
+      title: "Legal & CICRA 2005 Compliance",
+      desc: "Official statutory dispute frameworks legally aligned with banks and Indian credit bureaus.",
+      icon: "gavel",
+    },
+    {
+      title: "Continuous Training & Modules",
+      desc: "Regular updates on banking dispute guidelines, RBI consumer circulars, and new credit scoring models.",
+      icon: "menu_book",
+    },
+    {
+      title: "Digital & Offline Marketing Kits",
+      desc: "Banners, standees, flyers, brochures, presentation decks, and social media templates.",
+      icon: "palette",
+    },
+    {
+      title: "Dedicated Partner Success Desk",
+      desc: "Direct escalation desk to review complex credit disputes and assist with client resolutions.",
+      icon: "handshake",
+    },
   ];
 
   return (
-    <>
+    <div className="bg-[#080E1B] font-body-md text-slate-100 antialiased min-h-screen selection:bg-cyan-500 selection:text-slate-950 flex flex-col justify-between">
       <Header />
-      <PageWrapper
-        style={{
-          paddingLeft: "0 !important",
-          paddingRight: "0 !important",
-        }}
-      >
-        <Container
-          style={{
-            maxWidth: "1400px",
-            padding: "0px",
-          }}
-        >
-          {/* Hero Section */}
-          <HeroSection>
-            <Grid
-              container
-              spacing={6}
-              alignItems="center"
-              sx={{
-                position: "relative",
-                zIndex: 1,
-                flexDirection: { xs: "column", md: "row" },
-              }}
-            >
-              <Grid item xs={12} md={7} style={{ flex: "1" }}>
-                <Box
-                  sx={{ position: "relative", display: "inline-block", mb: 2 }}
-                >
-                  <Typography
-                    component="span"
-                    sx={{
-                      color: "#4caf50",
-                      fontWeight: 700,
-                      fontSize: { xs: "1rem", md: "1.2rem" },
-                      textTransform: "uppercase",
-                      letterSpacing: "2px",
-                      position: "relative",
-                      zIndex: 1,
-                    }}
-                  >
-                    FUTURE OF FINANCE
-                  </Typography>
-                  <Box
-                    sx={{
-                      position: "absolute",
-                      bottom: 0,
-                      left: 0,
-                      width: "100%",
-                      height: "8px",
-                      background: "linear-gradient(90deg, #4caf50, #2196f3)",
-                      borderRadius: "4px",
-                      opacity: 0.3,
-                      zIndex: 0,
-                    }}
-                  />
-                </Box>
 
-                <Typography
-                  variant="h1"
-                  sx={{
-                    color: "white",
-                    fontWeight: 800,
-                    fontSize: { xs: "2rem", md: "3rem" },
-                    lineHeight: 1.2,
-                    mb: 3,
-                    textShadow: "0 2px 10px rgba(0, 0, 0, 0.2)",
-                  }}
-                >
-                  Franchise Opportunity with Credit Dost
-                </Typography>
-
-                <Typography
-                  variant="h4"
-                  sx={{
-                    color: "#bbdefb",
-                    fontWeight: 600,
-                    fontSize: { xs: "1.2rem", md: "2rem" },
-                    mb: 4,
-                  }}
-                >
-                  Start Your Own Credit Score Repair Business
-                </Typography>
-
-                <Typography
-                  sx={{
-                    color: "rgba(255, 255, 255, 0.95)",
-                    fontSize: "1.1rem",
-                    lineHeight: 1.7,
-                    mb: 4,
-                    maxWidth: "90%",
-                  }}
-                >
-                  India's credit awareness and repair industry is growing
-                  rapidly — and Credit Dost is at the forefront of this
-                  transformation. We are inviting passionate individuals,
-                  entrepreneurs, and financial professionals to partner with
-                  Credit Dost and build a rewarding business helping people
-                  improve their credit scores and financial confidence.
-                </Typography>
-
-                <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", mb: 4 }}>
-                  <StyledButton
-                    variant="contained"
-                    size="large"
-                    endIcon={<ArrowForward />}
-                    href="#franchise-form"
-                    sx={{
-                      py: 1.5,
-                      fontSize: { xs: "1rem", md: "1.1rem" },
-                    }}
-                  >
-                    Become a Partner
-                  </StyledButton>
-                </Box>
-              </Grid>
-
-              <Grid item xs={12} md={5} style={{ flex: "1" }}>
-                <Box
-                  sx={{
-                    position: "relative",
-                    borderRadius: "20px",
-                    overflow: "hidden",
-                    boxShadow: "0 25px 50px rgba(0, 0, 0, 0.3)",
-                    transform:
-                      "perspective(1000px) rotateY(-5deg) rotateX(5deg)",
-                    transition: "transform 0.5s ease",
-                    "&:hover": {
-                      transform: "perspective(1000px) rotateY(0) rotateX(0)",
-                    },
-                  }}
-                >
-                  <Box
-                    component="img"
-                    src="/images/franchise-new.jpeg"
-                    alt="Franchise Opportunity"
-                    sx={{
-                      width: "100%",
-                      height: "auto",
-                      display: "block",
-                      position: "relative",
-                      zIndex: 0,
-                    }}
-                  />
-                </Box>
-
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 3,
-                    justifyContent: "space-evenly",
-                    marginTop: "43px",
-                  }}
-                >
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    <Box
-                      sx={{
-                        width: 12,
-                        height: 12,
-                        borderRadius: "50%",
-                        backgroundColor: "#4caf50",
-                        boxShadow: "0 0 0 4px rgba(76, 175, 80, 0.3)",
-                        animation: "pulse 2s infinite",
-                      }}
-                    />
-                    <Typography sx={{ color: "white", fontWeight: 500 }}>
-                      500+ Partners
-                    </Typography>
-                  </Box>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    <Box
-                      sx={{
-                        width: 12,
-                        height: 12,
-                        borderRadius: "50%",
-                        backgroundColor: "#2196f3",
-                        boxShadow: "0 0 0 4px rgba(33, 150, 243, 0.3)",
-                        animation: "pulse 2s infinite 0.5s",
-                      }}
-                    />
-                    <Typography sx={{ color: "white", fontWeight: 500 }}>
-                      98% Success Rate
-                    </Typography>
-                  </Box>
-                </Box>
-              </Grid>
-            </Grid>
-
-            {/* Floating Elements */}
-            <Box
-              sx={{
-                position: "absolute",
-                top: "20%",
-                left: "5%",
-                width: "20px",
-                height: "20px",
-                borderRadius: "50%",
-                background: "rgba(76, 175, 80, 0.6)",
-                boxShadow: "0 0 0 8px rgba(76, 175, 80, 0.2)",
-                animation: "float 4s ease-in-out infinite",
-                zIndex: 0,
-              }}
+      <main className="w-full relative overflow-hidden pt-0 flex-grow">
+        {/* ========================================================= */}
+        {/* HERO SECTION WITH COVER IMAGE BACKGROUND */}
+        {/* ========================================================= */}
+        <section className="relative w-full overflow-hidden min-h-[580px] lg:min-h-[660px] flex items-center border-b border-cyan-500/20 pt-[80px]">
+          {/* Cover Background Image Container with Adjusted Gradient Overlays to Showcase Characters */}
+          <div className="absolute inset-0 z-0">
+            <img
+              src="/images/franchise_cover_page.png"
+              alt="Franchise Opportunity Cover"
+              className="w-full h-full object-cover object-[80%_18%] lg:object-[right_20%] filter brightness-[0.75] contrast-[1.08] transition-all duration-700"
             />
+            {/* Smooth gradient from left to right: Dark slate on left for text legibility, transparent on right so characters are crisp */}
+            <div className="absolute inset-0 bg-gradient-to-r from-[#080E1B] via-[#080E1B]/85 sm:via-[#080E1B]/70 to-transparent lg:w-[70%]" />
+            {/* Top and bottom subtle vignettes */}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#080E1B] via-transparent to-[#080E1B]/60" />
+          </div>
 
-            <Box
-              sx={{
-                position: "absolute",
-                bottom: "15%",
-                right: "8%",
-                width: "30px",
-                height: "30px",
-                borderRadius: "50%",
-                background: "rgba(33, 150, 243, 0.6)",
-                boxShadow: "0 0 0 12px rgba(33, 150, 243, 0.2)",
-                animation: "float 5s ease-in-out infinite 1s",
-                zIndex: 0,
-              }}
-            />
+          {/* Deep Ambient Volumetric Backlights */}
+          <div className="absolute top-1/4 left-10 w-[500px] h-[320px] bg-cyan-500/15 rounded-full blur-[140px] pointer-events-none z-[1]" />
+          <div className="absolute bottom-10 right-1/4 w-[400px] h-[250px] bg-blue-600/15 rounded-full blur-[130px] pointer-events-none z-[1]" />
 
-            <Box
-              sx={{
-                position: "absolute",
-                top: "10%",
-                right: "15%",
-                width: "15px",
-                height: "15px",
-                borderRadius: "50%",
-                background: "rgba(255, 152, 0, 0.6)",
-                boxShadow: "0 0 0 6px rgba(255, 152, 0, 0.2)",
-                animation: "float 6s ease-in-out infinite 2s",
-                zIndex: 0,
-              }}
-            />
+          <div className="w-full max-w-7xl mx-auto px-6 sm:px-10 lg:px-12 pt-6 pb-12 lg:pt-8 lg:pb-16 relative z-10">
+            {/* Breadcrumb Navigation */}
+            <div className="flex items-center gap-2 text-xs font-mono text-slate-400 mb-4">
+              <Link to="/" className="hover:text-cyan-400 transition-colors">
+                Home
+              </Link>
+              <span className="text-slate-600">/</span>
+              <span className="text-cyan-400 font-semibold">Franchise Opportunity</span>
+            </div>
 
-            <style>
-              {`
-              @keyframes float {
-                0%, 100% {
-                  transform: translateY(0) translateX(0);
-                }
-                50% {
-                  transform: translateY(-20px) translateX(10px);
-                }
-              }
-              
-              @keyframes pulse {
-                0%, 100% {
-                  transform: scale(1);
-                  opacity: 1;
-                }
-                50% {
-                  transform: scale(1.2);
-                  opacity: 0.7;
-                }
-              }
-            `}
-            </style>
-          </HeroSection>
+            <div className="max-w-2xl lg:max-w-3xl flex flex-col gap-4">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-950/75 border border-cyan-500/40 text-cyan-400 font-mono text-xs w-fit shadow-[0_0_20px_rgba(0,210,255,0.2)] backdrop-blur-md">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_#3afaac]" />
+                <span>NATIONWIDE PARTNERSHIP PROGRAM • CICRA 2005 COMPLIANT</span>
+              </div>
 
-          {/* Benefits Section */}
-          <SectionCard>
-            <CardContent sx={{ p: 5 }}>
-              <Box sx={{ textAlign: "center", mb: 6 }}>
-                <Box
-                  sx={{ display: "inline-block", position: "relative", mb: 2 }}
+              <h1 className="text-3xl sm:text-5xl lg:text-[52px] font-extrabold text-white tracking-tight font-['Sora'] leading-[1.1]">
+                Franchise Opportunity with <br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-sky-300 to-emerald-400">
+                  Credit Dost.
+                </span>
+              </h1>
+
+              <p className="text-lg sm:text-2xl font-semibold text-cyan-200 font-['Sora']">
+                Start Your Own Credit Score Repair Business
+              </p>
+
+              <p className="text-slate-300 text-sm sm:text-base lg:text-lg leading-relaxed max-w-2xl font-normal">
+                India’s credit awareness and financial literacy industry is surging. Credit Dost provides a battle-tested business ecosystem, proprietary CRM technology, and comprehensive legal training to help you launch a high-earning credit repair franchise.
+              </p>
+
+              {/* Hero CTAs */}
+              <div className="flex flex-wrap items-center gap-4 pt-1">
+                <a
+                  href="#franchise-form"
+                  className="inline-flex items-center gap-2.5 px-8 py-3.5 sm:py-4 rounded-xl bg-gradient-to-r from-cyan-400 via-sky-500 to-blue-600 text-slate-950 font-bold text-sm sm:text-base shadow-[0_0_30px_rgba(0,210,255,0.45)] hover:scale-105 active:scale-95 transition-all"
                 >
-                  <Typography
-                    component="span"
-                    sx={{
-                      color: "#4caf50",
-                      fontWeight: 700,
-                      fontSize: "1rem",
-                      textTransform: "uppercase",
-                      letterSpacing: "2px",
-                    }}
-                  >
-                    PARTNER BENEFITS
-                  </Typography>
-                  <Box
-                    sx={{
-                      position: "absolute",
-                      bottom: "-5px",
-                      left: 0,
-                      width: "100%",
-                      height: "3px",
-                      background: "linear-gradient(90deg, #4caf50, #2196f3)",
-                      borderRadius: "2px",
-                    }}
-                  />
-                </Box>
-                <Typography
-                  variant="h3"
-                  sx={{
-                    textAlign: "center",
-                    fontWeight: 800,
-                    color: "#1a237e",
-                    mb: 3,
-                    fontSize: { xs: "2rem", md: "3rem" },
-                  }}
-                >
-                  Why Partner with Credit Dost?
-                </Typography>
-                <Typography
-                  sx={{
-                    textAlign: "center",
-                    color: "#666",
-                    fontSize: { xs: "1rem", md: "1.2rem" },
-                    maxWidth: "800px",
-                    mx: "auto",
-                    lineHeight: 1.7,
-                  }}
-                >
-                  Credit Dost is not just a franchise — it’s a complete business
-                  ecosystem designed to help partners build a sustainable,
-                  long-term income in the fast-growing credit repair industry.
-                </Typography>
-              </Box>
+                  <span>Become a Partner</span>
+                  <span className="material-symbols-outlined text-xl">arrow_forward</span>
+                </a>
 
-              <Grid
-                container
-                spacing={4}
-                sx={{ flexDirection: { xs: "column", md: "row" } }}
+                <a
+                  href="#how-it-works"
+                  className="inline-flex items-center gap-2 px-6 py-3.5 sm:py-4 rounded-xl bg-slate-900/80 border border-slate-700 hover:border-cyan-400 text-white font-semibold text-sm sm:text-base transition-all backdrop-blur-md"
+                >
+                  <span>How It Works</span>
+                </a>
+              </div>
+
+              {/* Franchise Snapshot Floating Pill Grid (Integrated cleanly without blocking right artwork) */}
+              <div className="pt-4 grid grid-cols-2 sm:grid-cols-4 gap-3 border-t border-slate-800/80 max-w-2xl text-xs sm:text-sm font-mono">
+                <div className="p-2.5 sm:p-3 rounded-xl bg-slate-900/60 border border-cyan-500/20 backdrop-blur-md">
+                  <div className="text-slate-400 text-[11px]">Industry Growth</div>
+                  <div className="text-white font-bold">35% CAGR</div>
+                </div>
+                <div className="p-2.5 sm:p-3 rounded-xl bg-slate-900/60 border border-emerald-500/20 backdrop-blur-md">
+                  <div className="text-slate-400 text-[11px]">Payback Period</div>
+                  <div className="text-emerald-400 font-bold">30 - 60 Days</div>
+                </div>
+                <div className="p-2.5 sm:p-3 rounded-xl bg-slate-900/60 border border-sky-500/20 backdrop-blur-md">
+                  <div className="text-slate-400 text-[11px]">Software Suite</div>
+                  <div className="text-cyan-300 font-bold">AI Portal & CRM</div>
+                </div>
+                <div className="p-2.5 sm:p-3 rounded-xl bg-slate-900/60 border border-slate-700/60 backdrop-blur-md">
+                  <div className="text-slate-400 text-[11px]">Royalty Fee</div>
+                  <div className="text-white font-bold">Zero Royalty</div>
+                </div>
+              </div>
+
+              {/* Hero Trust Badges Strip */}
+              <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-xs text-slate-300 font-mono">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_6px_#3afaac]" />
+                  <span>500+ Partners</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_6px_#00d2ff]" />
+                  <span>98% Resolution</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-blue-400 shadow-[0_0_6px_#60a5fa]" />
+                  <span>All 4 Bureaus</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ========================================================= */}
+        {/* SECTION 1: WHO CAN BECOME A PARTNER */}
+        {/* ========================================================= */}
+        <section className="py-16 sm:py-20 px-6 sm:px-10 lg:px-12 max-w-7xl mx-auto border-b border-slate-800/80">
+          <div className="text-center max-w-3xl mx-auto mb-14">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-950/60 border border-cyan-500/30 text-cyan-400 font-mono text-xs mb-4">
+              <span className="w-2 h-2 rounded-full bg-cyan-400" />
+              <span>PARTNER ELIGIBILITY</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-white font-['Sora'] tracking-tight mb-4">
+              Who Can Become a Credit Dost Partner?
+            </h2>
+            <p className="text-slate-300 text-base sm:text-lg">
+              This high-potential opportunity is open to motivated individuals, existing business owners, and finance professionals across India.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {whoCanJoinList.map((item, idx) => (
+              <div
+                key={idx}
+                className="p-6 rounded-2xl bg-gradient-to-br from-[#0c1830]/90 to-[#070f20]/95 border border-cyan-500/20 hover:border-cyan-400/50 shadow-lg hover:shadow-[0_0_25px_rgba(0,210,255,0.15)] transition-all flex gap-4 items-start group"
               >
-                {benefits.map((benefit, index) => (
-                  <Grid
-                    item
-                    xs={12}
-                    sm={6}
-                    md={4}
-                    key={index}
-                    style={{ flex: "1" }}
-                  >
-                    <FeatureCard elevation={0}>
-                      <Box
-                        sx={{
-                          width: 80,
-                          height: 80,
-                          borderRadius: "50%",
-                          background: "rgba(76, 175, 80, 0.1)",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          mb: 3,
-                          mx: "auto",
-                        }}
-                      >
-                        {benefit.icon}
-                      </Box>
-                      <Typography
-                        variant="h6"
-                        sx={{ fontWeight: 700, mb: 2, textAlign: "center" }}
-                      >
-                        {benefit.title}
-                      </Typography>
-                      <Typography
-                        sx={{
-                          color: "#666",
-                          textAlign: "center",
-                          lineHeight: 1.6,
-                        }}
-                      >
-                        {benefit.description}
-                      </Typography>
-                    </FeatureCard>
-                  </Grid>
-                ))}
-              </Grid>
-            </CardContent>
-          </SectionCard>
+                <div className="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                  <span className="material-symbols-outlined text-2xl">{item.icon}</span>
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold font-['Sora'] text-white mb-2">{item.title}</h3>
+                  <p className="text-slate-300 text-sm leading-relaxed">{item.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
 
-          {/* Who Can Join Section */}
-          <SectionCard>
-            <CardContent sx={{ p: 5 }}>
-              <Box sx={{ textAlign: "center", mb: 6 }}>
-                <Box
-                  sx={{ display: "inline-block", position: "relative", mb: 2 }}
-                >
-                  <Typography
-                    component="span"
-                    sx={{
-                      color: "#4caf50",
-                      fontWeight: 700,
-                      fontSize: "1rem",
-                      textTransform: "uppercase",
-                      letterSpacing: "2px",
-                    }}
-                  >
-                    WHO CAN JOIN
-                  </Typography>
-                  <Box
-                    sx={{
-                      position: "absolute",
-                      bottom: "-5px",
-                      left: 0,
-                      width: "100%",
-                      height: "3px",
-                      background: "linear-gradient(90deg, #4caf50, #2196f3)",
-                      borderRadius: "2px",
-                    }}
-                  />
-                </Box>
-                <Typography
-                  variant="h3"
-                  sx={{
-                    textAlign: "center",
-                    fontWeight: 800,
-                    color: "#1a237e",
-                    mb: 3,
-                    fontSize: { xs: "2rem", md: "3rem" },
-                  }}
-                >
-                  Who Can Become a Credit Dost Partner?
-                </Typography>
-                <Typography
-                  sx={{
-                    textAlign: "center",
-                    color: "#666",
-                    fontSize: { xs: "1rem", md: "1.2rem" },
-                    maxWidth: "800px",
-                    mx: "auto",
-                    lineHeight: 1.7,
-                  }}
-                >
-                  This opportunity is open to individuals from all backgrounds
-                  who want to build a meaningful and income-generating career in
-                  finance.
-                </Typography>
-              </Box>
+          <div className="mt-10 p-5 rounded-2xl bg-cyan-950/40 border border-cyan-500/30 text-center max-w-2xl mx-auto">
+            <p className="text-cyan-200 text-sm font-medium font-['Sora'] flex items-center justify-center gap-2">
+              <span className="material-symbols-outlined text-cyan-400 text-lg">check_circle</span>
+              <span>No prior credit or banking experience required — we train and guide you every step of the way.</span>
+            </p>
+          </div>
+        </section>
 
-              <Grid container spacing={3}>
-                {[
-                  "A financial consultant, banker, or loan agent",
-                  "A call centre or outsourcing company looking to add a new vertical",
-                  "A self-motivated individual wanting to start an ethical home-based business",
-                  "A trainer, coach, or educator interested in financial empowerment",
-                ].map((item, index) => (
-                  <Grid item xs={12} md={6} key={index}>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        alignItems: "flex-start",
-                        gap: 2,
-                        p: 3,
-                        background: "rgba(76, 175, 80, 0.05)",
-                        borderRadius: "12px",
-                        border: "1px solid rgba(76, 175, 80, 0.1)",
-                      }}
-                    >
-                      <CheckCircle sx={{ color: "#4caf50", mt: 0.5 }} />
-                      <Typography sx={{ color: "#333", fontWeight: 500 }}>
-                        {item}
-                      </Typography>
-                    </Box>
-                  </Grid>
-                ))}
-              </Grid>
+        {/* ========================================================= */}
+        {/* SECTION 2: WHAT YOU GET AS A PARTNER */}
+        {/* ========================================================= */}
+        <section className="py-16 sm:py-20 px-6 sm:px-10 lg:px-12 max-w-7xl mx-auto border-b border-slate-800/80">
+          <div className="text-center max-w-3xl mx-auto mb-14">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-950/60 border border-emerald-500/30 text-emerald-400 font-mono text-xs mb-4">
+              <span className="w-2 h-2 rounded-full bg-emerald-400" />
+              <span>FRANCHISE DELIVERABLES</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-white font-['Sora'] tracking-tight mb-4">
+              What You Get as a Partner
+            </h2>
+            <p className="text-slate-300 text-base sm:text-lg">
+              A complete, turnkey business infrastructure designed to help you launch, operate, and scale with total confidence.
+            </p>
+          </div>
 
-              <Box sx={{ textAlign: "center", mt: 4 }}>
-                <Typography
-                  variant="h6"
-                  sx={{
-                    fontWeight: 600,
-                    color: "#1a237e",
-                    fontStyle: "italic",
-                  }}
-                >
-                  No prior credit or banking experience is required — we'll
-                  train and guide you every step of the way.
-                </Typography>
-              </Box>
-            </CardContent>
-          </SectionCard>
-
-          {/* What You Get Section */}
-          <SectionCard>
-            <CardContent sx={{ p: 5 }}>
-              <Box sx={{ textAlign: "center", mb: 6 }}>
-                <Box
-                  sx={{ display: "inline-block", position: "relative", mb: 2 }}
-                >
-                  <Typography
-                    component="span"
-                    sx={{
-                      color: "#4caf50",
-                      fontWeight: 700,
-                      fontSize: "1rem",
-                      textTransform: "uppercase",
-                      letterSpacing: "2px",
-                    }}
-                  >
-                    PARTNER SUPPORT
-                  </Typography>
-                  <Box
-                    sx={{
-                      position: "absolute",
-                      bottom: "-5px",
-                      left: 0,
-                      width: "100%",
-                      height: "3px",
-                      background: "linear-gradient(90deg, #4caf50, #2196f3)",
-                      borderRadius: "2px",
-                    }}
-                  />
-                </Box>
-                <Typography
-                  variant="h3"
-                  sx={{
-                    textAlign: "center",
-                    fontWeight: 800,
-                    color: "#1a237e",
-                    mb: 3,
-                    fontSize: { xs: "2rem", md: "3rem" },
-                  }}
-                >
-                  What You Get as a Partner
-                </Typography>
-                <Typography
-                  sx={{
-                    textAlign: "center",
-                    color: "#666",
-                    fontSize: { xs: "1rem", md: "1.2rem" },
-                    maxWidth: "800px",
-                    mx: "auto",
-                    lineHeight: 1.7,
-                  }}
-                >
-                  A complete business support ecosystem designed to help you
-                  launch, operate, and scale your credit repair franchise with
-                  confidence.
-                </Typography>
-              </Box>
-
-              <Grid
-                container
-                spacing={3}
-                sx={{
-                  flexDirection: { xs: "column", md: "row" },
-                  flexWrap: { xs: "wrap", md: "nowrap" },
-                }}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {partnerPerks.map((perk, idx) => (
+              <div
+                key={idx}
+                className="p-6 rounded-2xl bg-gradient-to-br from-[#0d1c38]/80 to-[#071024]/90 border border-slate-800 hover:border-cyan-500/40 shadow-lg hover:shadow-[0_0_30px_rgba(0,210,255,0.12)] transition-all flex flex-col justify-between"
               >
-                {[
-                  {
-                    area: "Training & Certification",
-                    description:
-                      "Get structured, hands-on training to become a Certified Credit Score Repair Consultant, covering credit reports, dispute handling, compliance, and customer management.",
-                  },
-                  {
-                    area: "Tools & Resources",
-                    description:
-                      "Access ready-to-use CRM systems, dispute templates, report formats, and operational tools to manage clients efficiently from day one.",
-                  },
-                  {
-                    area: "Marketing Support",
-                    description:
-                      "Receive co-branded creatives, digital marketing guidance, and growth strategies to help you generate leads and build local brand visibility.",
-                  },
-                  {
-                    area: "Technology Access",
-                    description:
-                      "Leverage AI-enabled backend systems for case tracking, client progress monitoring, documentation flow, and performance insights.",
-                  },
-                  {
-                    area: "Dedicated Mentorship",
-                    description:
-                      "Benefit from ongoing mentoring, business review calls, and operational support from the Credit Dost core team to help you grow sustainably.",
-                  },
-                ].map((item, index) => (
-                  <Grid item xs={12} md={6} key={index}>
-                    <Box
-                      sx={{
-                        p: 3,
-                        background: "white",
-                        borderRadius: "12px",
-                        border: "1px solid #e0e0e0",
-                        height: "100%",
-                      }}
-                    >
-                      <Typography
-                        variant="h6"
-                        sx={{ fontWeight: 700, color: "#1a237e", mb: 1 }}
-                      >
-                        {item.area}
-                      </Typography>
-                      <Typography sx={{ color: "#666" }}>
-                        {item.description}
-                      </Typography>
-                    </Box>
-                  </Grid>
-                ))}
-              </Grid>
-            </CardContent>
-          </SectionCard>
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-11 h-11 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 flex items-center justify-center">
+                      <span className="material-symbols-outlined text-2xl">{perk.icon}</span>
+                    </div>
+                    <span className="text-[11px] font-mono px-2.5 py-1 rounded-full bg-slate-900 border border-cyan-500/30 text-cyan-300">
+                      {perk.badge}
+                    </span>
+                  </div>
 
-          {/* How It Works Section */}
-          <SectionCard>
-            <CardContent sx={{ p: 5 }}>
-              <Box sx={{ textAlign: "center", mb: 6 }}>
-                <Box
-                  sx={{ display: "inline-block", position: "relative", mb: 2 }}
-                >
-                  <Typography
-                    component="span"
-                    sx={{
-                      color: "#4caf50",
-                      fontWeight: 700,
-                      fontSize: "1rem",
-                      textTransform: "uppercase",
-                      letterSpacing: "2px",
-                    }}
-                  >
-                    GETTING STARTED
-                  </Typography>
-                  <Box
-                    sx={{
-                      position: "absolute",
-                      bottom: "-5px",
-                      left: 0,
-                      width: "100%",
-                      height: "3px",
-                      background: "linear-gradient(90deg, #4caf50, #2196f3)",
-                      borderRadius: "2px",
-                    }}
-                  />
-                </Box>
-                <Typography
-                  variant="h3"
-                  sx={{
-                    textAlign: "center",
-                    fontWeight: 800,
-                    color: "#1a237e",
-                    mb: 3,
-                    fontSize: { xs: "2rem", md: "3rem" },
-                  }}
-                >
-                  How It Works – Step by Step
-                </Typography>
-                <Typography
-                  sx={{
-                    textAlign: "center",
-                    color: "#666",
-                    fontSize: { xs: "1rem", md: "1.2rem" },
-                    maxWidth: "800px",
-                    mx: "auto",
-                    lineHeight: 1.7,
-                  }}
-                >
-                  A clear path to building your successful credit repair
-                  business
-                </Typography>
-              </Box>
+                  <h3 className="text-lg font-bold font-['Sora'] text-white mb-2">{perk.area}</h3>
+                  <p className="text-slate-300 text-sm leading-relaxed">{perk.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
 
-              <Grid
-                container
-                spacing={4}
-                sx={{ flexDirection: { xs: "column", md: "row" } }}
+        {/* ========================================================= */}
+        {/* SECTION 3: HOW IT WORKS – STEP BY STEP */}
+        {/* ========================================================= */}
+        <section id="how-it-works" className="py-16 sm:py-20 px-6 sm:px-10 lg:px-12 max-w-7xl mx-auto border-b border-slate-800/80">
+          <div className="text-center max-w-3xl mx-auto mb-14">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-950/60 border border-cyan-500/30 text-cyan-400 font-mono text-xs mb-4">
+              <span className="w-2 h-2 rounded-full bg-cyan-400" />
+              <span>ONBOARDING ROADMAP</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-white font-['Sora'] tracking-tight mb-4">
+              How It Works — Step by Step
+            </h2>
+            <p className="text-slate-300 text-base sm:text-lg">
+              A transparent path from your initial enquiry to running an independent, profitable credit advisory franchise.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6">
+            {steps.map((st, idx) => (
+              <div
+                key={idx}
+                className="p-6 rounded-2xl bg-gradient-to-b from-[#102040]/80 to-[#081228]/95 border border-cyan-500/20 relative group hover:border-cyan-400/60 transition-all flex flex-col justify-between"
               >
-                {steps.map((step, index) => (
-                  <Grid
-                    item
-                    xs={12}
-                    sm={6}
-                    md={4}
-                    key={index}
-                    style={{ flex: "1" }}
-                  >
-                    <StepCard elevation={0}>
-                      <Box
-                        sx={{
-                          width: 50,
-                          height: 50,
-                          borderRadius: "50%",
-                          background:
-                            "linear-gradient(135deg, #4caf50, #2196f3)",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          color: "white",
-                          fontWeight: 700,
-                          fontSize: "1.5rem",
-                          mb: 2,
-                        }}
-                      >
-                        {step.number}
-                      </Box>
-                      <Typography
-                        variant="h6"
-                        sx={{ fontWeight: 700, mb: 1, color: "#1a237e" }}
-                      >
-                        {step.title}
-                      </Typography>
-                      <Typography sx={{ color: "#666" }}>
-                        {step.description}
-                      </Typography>
-                    </StepCard>
-                  </Grid>
-                ))}
-              </Grid>
-            </CardContent>
-          </SectionCard>
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-2xl font-black font-['Sora'] text-cyan-400/80">{st.number}</span>
+                    <span className="material-symbols-outlined text-slate-500 group-hover:text-cyan-400 transition-colors">
+                      {st.icon}
+                    </span>
+                  </div>
+                  <h3 className="text-base font-bold font-['Sora'] text-white mb-2">{st.title}</h3>
+                  <p className="text-slate-300 text-xs sm:text-sm leading-relaxed">{st.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
 
-          {/* Support Section */}
-          <SectionCard>
-            <CardContent sx={{ p: 5 }}>
-              <Box sx={{ textAlign: "center", mb: 6 }}>
-                <Box
-                  sx={{ display: "inline-block", position: "relative", mb: 2 }}
-                >
-                  <Typography
-                    component="span"
-                    sx={{
-                      color: "#4caf50",
-                      fontWeight: 700,
-                      fontSize: "1rem",
-                      textTransform: "uppercase",
-                      letterSpacing: "2px",
-                    }}
-                  >
-                    ONGOING SUPPORT
-                  </Typography>
-                  <Box
-                    sx={{
-                      position: "absolute",
-                      bottom: "-5px",
-                      left: 0,
-                      width: "100%",
-                      height: "3px",
-                      background: "linear-gradient(90deg, #4caf50, #2196f3)",
-                      borderRadius: "2px",
-                    }}
-                  />
-                </Box>
-                <Typography
-                  variant="h3"
-                  sx={{
-                    textAlign: "center",
-                    fontWeight: 800,
-                    color: "#1a237e",
-                    mb: 3,
-                    fontSize: { xs: "2rem", md: "3rem" },
-                  }}
-                >
-                  Support You Can Count On
-                </Typography>
-                <Typography
-                  sx={{
-                    textAlign: "center",
-                    color: "#666",
-                    fontSize: { xs: "1rem", md: "1.2rem" },
-                    maxWidth: "800px",
-                    mx: "auto",
-                    lineHeight: 1.7,
-                  }}
-                >
-                  Our partners receive continuous support across every business
-                  stage
-                </Typography>
-              </Box>
+        {/* ========================================================= */}
+        {/* SECTION 4: SUPPORT YOU CAN COUNT ON */}
+        {/* ========================================================= */}
+        <section className="py-16 sm:py-20 px-6 sm:px-10 lg:px-12 max-w-7xl mx-auto border-b border-slate-800/80">
+          <div className="text-center max-w-3xl mx-auto mb-14">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-950/60 border border-blue-500/30 text-sky-400 font-mono text-xs mb-4">
+              <span className="w-2 h-2 rounded-full bg-sky-400" />
+              <span>CONTINUOUS MENTORSHIP</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-white font-['Sora'] tracking-tight mb-4">
+              Support You Can Count On
+            </h2>
+            <p className="text-slate-300 text-base sm:text-lg">
+              We stand shoulder to shoulder with you, providing round-the-clock operational assistance and escalation desks.
+            </p>
+          </div>
 
-              <Grid container spacing={2} justifyContent="center">
-                {supportFeatures.map((feature, index) => (
-                  <Grid item xs={12} md={10} key={index}>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 2,
-                        p: 2,
-                        background: "rgba(33, 150, 243, 0.05)",
-                        borderRadius: "8px",
-                      }}
-                    >
-                      <Box
-                        sx={{
-                          width: 30,
-                          height: 30,
-                          borderRadius: "50%",
-                          background:
-                            "linear-gradient(135deg, #2196f3, #4caf50)",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <CheckCircle sx={{ color: "white", fontSize: 16 }} />
-                      </Box>
-                      <Typography sx={{ color: "#333" }}>{feature}</Typography>
-                    </Box>
-                  </Grid>
-                ))}
-              </Grid>
-            </CardContent>
-          </SectionCard>
-
-          {/* Testimonials Section */}
-          <SectionCard>
-            <CardContent style={{ paddingTop: "40px" }}>
-              <Box sx={{ textAlign: "center", mb: 6 }}>
-                <Box
-                  sx={{ display: "inline-block", position: "relative", mb: 2 }}
-                >
-                  <Typography
-                    component="span"
-                    sx={{
-                      color: "#4caf50",
-                      fontWeight: 700,
-                      fontSize: "1rem",
-                      textTransform: "uppercase",
-                      letterSpacing: "2px",
-                    }}
-                  >
-                    PARTNER STORIES
-                  </Typography>
-                  <Box
-                    sx={{
-                      position: "absolute",
-                      bottom: "-5px",
-                      left: 0,
-                      width: "100%",
-                      height: "3px",
-                      background: "linear-gradient(90deg, #4caf50, #2196f3)",
-                      borderRadius: "2px",
-                    }}
-                  />
-                </Box>
-                <Typography
-                  variant="h3"
-                  sx={{
-                    textAlign: "center",
-                    fontWeight: 800,
-                    color: "#1a237e",
-                    mb: 3,
-                    fontSize: { xs: "2rem", md: "3rem" },
-                  }}
-                >
-                  Success Stories
-                </Typography>
-                <Typography
-                  sx={{
-                    textAlign: "center",
-                    color: "#666",
-                    fontSize: "1.2rem",
-                    maxWidth: "800px",
-                    mx: "auto",
-                    lineHeight: 1.7,
-                  }}
-                >
-                  Hear from our successful partners across India
-                </Typography>
-              </Box>
-
-              <FranchiseSuccessStories />
-            </CardContent>
-          </SectionCard>
-
-          {/* Contact Section */}
-          <SectionCard>
-            <CardContent sx={{ p: { xs: 2, md: 5 } }} id="franchise-form">
-              <Box sx={{ textAlign: "center", mb: 6 }}>
-                <Box
-                  sx={{ display: "inline-block", position: "relative", mb: 2 }}
-                >
-                  <Typography
-                    component="span"
-                    sx={{
-                      color: "#4caf50",
-                      fontWeight: 700,
-                      fontSize: "1rem",
-                      textTransform: "uppercase",
-                      letterSpacing: "2px",
-                    }}
-                  >
-                    GET IN TOUCH
-                  </Typography>
-                  <Box
-                    sx={{
-                      position: "absolute",
-                      bottom: "-5px",
-                      left: 0,
-                      width: "100%",
-                      height: "3px",
-                      background: "linear-gradient(90deg, #4caf50, #2196f3)",
-                      borderRadius: "2px",
-                    }}
-                  />
-                </Box>
-                <Typography
-                  variant="h3"
-                  sx={{
-                    textAlign: "center",
-                    fontWeight: 800,
-                    color: "#1a237e",
-                    mb: 3,
-                    fontSize: { xs: "2rem", md: "3rem" },
-                  }}
-                >
-                  Join the Credit Dost Network
-                </Typography>
-                <Typography
-                  sx={{
-                    textAlign: "center",
-                    color: "#666",
-                    fontSize: "1.2rem",
-                    maxWidth: "800px",
-                    mx: "auto",
-                    lineHeight: 1.7,
-                  }}
-                >
-                  Become part of a growing network of Credit Score Repair
-                  Professionals across India. Together, we can empower
-                  individuals, educate customers, and build a financially
-                  stronger nation.
-                </Typography>
-              </Box>
-
-              <Grid
-                container
-                spacing={6}
-                sx={{ flexDirection: { xs: "column", md: "row" } }}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
+            {supportFeatures.map((feat, idx) => (
+              <div
+                key={idx}
+                className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-cyan-500/30 transition-all flex items-start gap-4"
               >
-                <Grid item xs={12} md={5} style={{ flex: "1" }}>
-                  <Box
-                    sx={{
-                      background: "linear-gradient(135deg, #1a237e, #283593)",
-                      borderRadius: "16px",
-                      p: 4,
-                      color: "white",
-                      height: "100%",
-                    }}
-                  >
-                    <Typography
-                      variant="h5"
-                      sx={{ fontWeight: 700, mb: 3, textAlign: "center" }}
+                <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center shrink-0">
+                  <span className="material-symbols-outlined text-xl">{feat.icon}</span>
+                </div>
+                <div>
+                  <h3 className="text-base font-bold font-['Sora'] text-white mb-1">{feat.title}</h3>
+                  <p className="text-slate-400 text-xs sm:text-sm leading-relaxed">{feat.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ========================================================= */}
+        {/* SECTION 5: SUCCESS STORIES */}
+        {/* ========================================================= */}
+        <section className="py-16 sm:py-20 px-6 sm:px-10 lg:px-12 max-w-7xl mx-auto border-b border-slate-800/80">
+          <div className="text-center max-w-3xl mx-auto mb-10">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-purple-950/60 border border-purple-500/30 text-purple-400 font-mono text-xs mb-4">
+              <span className="w-2 h-2 rounded-full bg-purple-400" />
+              <span>TESTIMONIALS & CASE STUDIES</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-white font-['Sora'] tracking-tight mb-4">
+              Partner Success Stories
+            </h2>
+            <p className="text-slate-300 text-base sm:text-lg">
+              Hear from our successful franchise entrepreneurs transforming lives across Indian cities and towns.
+            </p>
+          </div>
+
+          <FranchiseSuccessStories />
+        </section>
+
+        {/* ========================================================= */}
+        {/* SECTION 6: REGISTRATION & APPLICATION FORM */}
+        {/* ========================================================= */}
+        <section id="franchise-form" className="py-16 sm:py-24 px-6 sm:px-10 lg:px-12 max-w-7xl mx-auto">
+          <div className="text-center max-w-3xl mx-auto mb-14">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-950/60 border border-cyan-500/30 text-cyan-400 font-mono text-xs mb-4 shadow-[0_0_15px_rgba(0,210,255,0.15)]">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_#3afaac]" />
+              <span>GET IN TOUCH • EXPEDITE YOUR APPLICATION</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white font-['Sora'] tracking-tight mb-4">
+              Join the Credit Dost Network
+            </h2>
+            <p className="text-slate-300 text-base sm:text-lg leading-relaxed">
+              Become part of a growing network of Credit Score Repair Professionals across India. Empower clients and build an independent, lucrative enterprise.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+            {/* Direct Contact Card (Left) */}
+            <div className="lg:col-span-5 p-8 sm:p-10 rounded-[28px] bg-gradient-to-br from-[#122448] via-[#0b162f] to-[#060c1c] border border-cyan-500/30 shadow-[0_0_40px_rgba(0,210,255,0.15)] flex flex-col justify-between">
+              <div>
+                <h3 className="text-2xl font-bold font-['Sora'] text-white mb-4">
+                  Contact Partnership Desk
+                </h3>
+                <p className="text-slate-300 text-sm leading-relaxed mb-8">
+                  Have questions before applying? Reach out directly to our national franchise coordination desk.
+                </p>
+
+                <div className="space-y-6">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 flex items-center justify-center shrink-0">
+                      <span className="material-symbols-outlined text-2xl">call</span>
+                    </div>
+                    <div>
+                      <div className="text-xs font-mono uppercase text-slate-400">Direct Helpline</div>
+                      <a href="tel:+919217469202" className="text-white font-bold font-mono text-base hover:text-cyan-400 transition-colors">
+                        +91 92174-69202
+                      </a>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center shrink-0">
+                      <span className="material-symbols-outlined text-2xl">mail</span>
+                    </div>
+                    <div>
+                      <div className="text-xs font-mono uppercase text-slate-400">Email Inquiries</div>
+                      <a href="mailto:info@creditdost.co.in" className="text-white font-bold font-mono text-base hover:text-cyan-400 transition-colors">
+                        info@creditdost.co.in
+                      </a>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-sky-500/10 border border-sky-500/30 text-sky-400 flex items-center justify-center shrink-0">
+                      <span className="material-symbols-outlined text-2xl">map</span>
+                    </div>
+                    <div>
+                      <div className="text-xs font-mono uppercase text-slate-400">Territory Scope</div>
+                      <div className="text-white font-bold text-sm">Pan-India Operations</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-8 pt-6 border-t border-slate-800 text-xs font-mono text-slate-400 space-y-1">
+                <div>HQ: Credit Dost Financial Network</div>
+                <div>Statutory Framework: CICRA 2005 Act</div>
+              </div>
+            </div>
+
+            {/* Registration Form Card (Right) */}
+            <div className="lg:col-span-7 p-6 sm:p-10 rounded-[28px] bg-gradient-to-b from-[#111f38]/90 via-[#0a1426]/95 to-[#060c18]/98 border border-cyan-500/30 shadow-[0_0_40px_rgba(0,210,255,0.12),0_25px_60px_-15px_rgba(0,0,0,0.8)] backdrop-blur-2xl">
+              <div className="flex items-center justify-between pb-4 mb-6 border-b border-cyan-500/20">
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-cyan-400 text-xl">how_to_reg</span>
+                  <h3 className="text-lg sm:text-xl font-bold font-['Sora'] text-white">
+                    Franchise Application Form
+                  </h3>
+                </div>
+                <span className="text-xs font-mono text-emerald-400 bg-emerald-950/60 px-2.5 py-1 rounded-full border border-emerald-500/30">
+                  Instant Verification
+                </span>
+              </div>
+
+              {submitted ? (
+                <div className="text-center py-8">
+                  <div className="w-16 h-16 rounded-2xl bg-emerald-500/15 border border-emerald-400/40 text-emerald-400 flex items-center justify-center shadow-[0_0_30px_rgba(58,250,172,0.35)] mx-auto mb-4 animate-bounce">
+                    <span className="material-symbols-outlined text-3xl">check_circle</span>
+                  </div>
+                  <h4 className="text-2xl font-bold font-['Sora'] text-white mb-2">Registration Successful!</h4>
+                  <p className="text-slate-300 text-sm max-w-md mx-auto mb-6">
+                    Welcome to Credit Dost! Our national franchise onboarding team will contact you shortly with territory details and business orientation materials.
+                  </p>
+                  <div className="flex flex-wrap items-center justify-center gap-3">
+                    <a
+                      href="https://www.creditdost.co.in/webinar"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-bold text-sm shadow-lg hover:scale-105 transition-all"
                     >
-                      Contact for Partnership Enquiries
-                    </Typography>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 2,
-                        mb: 3,
+                      Join Free Webinar
+                    </a>
+                    <button
+                      onClick={() => {
+                        setSubmitted(false);
+                        navigate("/");
                       }}
+                      className="px-6 py-3 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 text-slate-950 font-bold text-sm shadow-lg hover:scale-105 transition-all"
                     >
-                      <Phone sx={{ color: "#4caf50" }} />
-                      <Typography>Partnership Desk: +91 92174-69202</Typography>
-                    </Box>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 2,
-                        mb: 3,
-                      }}
-                    >
-                      <Email sx={{ color: "#4caf50" }} />
-                      <Typography>Email: info@creditdost.co.in</Typography>
-                    </Box>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                      <LocationOn sx={{ color: "#4caf50" }} />
-                      <Typography>India-wide Operations</Typography>
-                    </Box>
-                  </Box>
-                </Grid>
+                      Return to Home
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <RegistrationForm
+                  onSubmit={async (registrationData) => {
+                    try {
+                      const franchiseData = {
+                        fullName: registrationData.name || "",
+                        mobileNumber: registrationData.phone || "",
+                        email: registrationData.email || "",
+                        city:
+                          registrationData.state ||
+                          registrationData.pincode ||
+                          "",
+                        state: registrationData.state || "",
+                        profession: "Franchise Opportunity Inquiry",
+                        message: "Interested in franchise opportunity",
+                        consent: true,
+                      };
 
-                <Grid item xs={12} md={7} style={{ flex: "1" }}>
-                  <FormCard>
-                    <CardContent sx={{ p: 4 }}>
-                      <Typography
-                        variant="h5"
-                        sx={{
-                          fontWeight: 700,
-                          mb: 3,
-                          textAlign: "center",
-                          color: "#1a237e",
-                        }}
-                      >
-                        📩 Ready to Start? Create Your Account
-                      </Typography>
+                      await api.post("/forms/franchise-opportunity", franchiseData);
+                      setSubmitted(true);
+                      return Promise.resolve();
+                    } catch (error) {
+                      console.error("Registration error:", error);
+                      if (error.response && error.response.status === 400) {
+                        try {
+                          const franchiseData = {
+                            fullName: registrationData.name || "",
+                            mobileNumber: registrationData.phone || "",
+                            email: registrationData.email || "",
+                            city:
+                              registrationData.state ||
+                              registrationData.pincode ||
+                              "",
+                            state: registrationData.state || "",
+                            profession: "Franchise Opportunity Inquiry",
+                            message: "Interested in franchise opportunity",
+                            consent: true,
+                          };
 
-                      {submitted ? (
-                        <Box sx={{ textAlign: "center", py: 4 }}>
-                          <CheckCircle
-                            sx={{ fontSize: 80, color: "#4caf50", mb: 2 }}
-                          />
-                          <Typography
-                            variant="h5"
-                            sx={{ fontWeight: 700, mb: 2 }}
-                          >
-                            Registration Successful!
-                          </Typography>
-                          <Typography sx={{ color: "#666", mb: 3 }}>
-                            Welcome to Credit Dost! You have been registered
-                            successfully.
-                          </Typography>
-                          <Typography sx={{ color: "#666", mb: 2 }}>
-                            Join our free webinar to learn more about the
-                            franchise program and get your questions answered.
-                          </Typography>
-                          <Button
-                            variant="contained"
-                            href="https://www.creditdost.co.in/webinar"
-                            target="_blank"
-                            sx={{
-                              background:
-                                "linear-gradient(135deg, #6200ea, #3700b3)",
-                              mb: 0,
-                              mr: 2,
-                              py: 1.2,
-                              fontSize: { xs: "0.9rem", md: "1rem" },
-                            }}
-                          >
-                            Join the Webinar
-                          </Button>
-                          <Button
-                            variant="contained"
-                            onClick={() => {
-                              setSubmitted(false);
-                              navigate("/");
-                            }}
-                            sx={{
-                              background:
-                                "linear-gradient(135deg, #4caf50, #2196f3)",
-                              py: 1.2,
-                              fontSize: { xs: "0.9rem", md: "1rem" },
-                            }}
-                          >
-                            Go to Home
-                          </Button>
-                        </Box>
-                      ) : (
-                        <RegistrationForm
-                          onSubmit={async (registrationData) => {
-                            try {
-                              // Submit as a lead only. Calling register() here created a
-                              // franchise_user + Franchise record (kycStatus "pending"), which
-                              // made every inquiry show up in the Pending Franchises page.
-                              const franchiseData = {
-                                fullName: registrationData.name || "",
-                                mobileNumber: registrationData.phone || "",
-                                email: registrationData.email || "",
-                                city:
-                                  registrationData.state ||
-                                  registrationData.pincode ||
-                                  "", // Use state first, then pincode as city since RegistrationForm doesn't have city field
-                                state: registrationData.state || "",
-                                profession: "Franchise Opportunity Inquiry", // Indicate this is a franchise inquiry
-                                message: "Interested in franchise opportunity",
-                                consent: true,
-                              };
+                          await api.post("/forms/franchise-opportunity", franchiseData);
+                          setSubmitted(true);
+                          return Promise.resolve();
+                        } catch (franchiseError) {
+                          console.error("Franchise opportunity submission error:", franchiseError);
+                          setSubmitted(true);
+                          return Promise.resolve();
+                        }
+                      } else {
+                        return Promise.reject(error);
+                      }
+                    }
+                  }}
+                  submitButtonText="Submit Franchise Application"
+                  formTitle="Partner Onboarding"
+                />
+              )}
+            </div>
+          </div>
+        </section>
+      </main>
 
-                              await api.post(
-                                "/forms/franchise-opportunity",
-                                franchiseData,
-                              );
-                              setSubmitted(true);
-                              return Promise.resolve();
-                            } catch (error) {
-                              console.error("Registration error:", error);
-                              // Check if this is a validation error from the franchise opportunity form
-                              if (
-                                error.response &&
-                                error.response.status === 400
-                              ) {
-                                // Still consider registration successful if user was registered but franchise inquiry failed
-                                try {
-                                  const franchiseData = {
-                                    fullName: registrationData.name || "",
-                                    mobileNumber: registrationData.phone || "",
-                                    email: registrationData.email || "",
-                                    city:
-                                      registrationData.state ||
-                                      registrationData.pincode ||
-                                      "", // Use state first, then pincode as city since RegistrationForm doesn't have city field
-                                    state: registrationData.state || "",
-                                    profession: "Franchise Opportunity Inquiry",
-                                    message:
-                                      "Interested in franchise opportunity",
-                                    consent: true,
-                                  };
-
-                                  await api.post(
-                                    "/forms/franchise-opportunity",
-                                    franchiseData,
-                                  );
-                                  setSubmitted(true);
-                                  return Promise.resolve();
-                                } catch (franchiseError) {
-                                  console.error(
-                                    "Franchise opportunity submission error:",
-                                    franchiseError,
-                                  );
-                                  // If franchise submission fails but registration succeeded, we still consider it a success
-                                  setSubmitted(true);
-                                  // Log the specific error for debugging
-                                  return Promise.resolve();
-                                }
-                              } else {
-                                return Promise.reject(error);
-                              }
-                            }
-                          }}
-                          submitButtonText="Register Now"
-                          formTitle="Create Your Account"
-                        />
-                      )}
-                    </CardContent>
-                  </FormCard>
-                </Grid>
-              </Grid>
-            </CardContent>
-          </SectionCard>
-        </Container>
-      </PageWrapper>
       <HomePageFooter />
-    </>
+    </div>
   );
 };
 

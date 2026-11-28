@@ -10,7 +10,6 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  FormHelperText,
   Radio,
   RadioGroup,
   FormControlLabel,
@@ -65,6 +64,47 @@ const indianStates = [
   "Lakshadweep",
   "Puducherry",
 ];
+
+// Common reusable MUI sx styling for Obsidian Lumina Dark Theme
+const inputSx = {
+  "& .MuiOutlinedInput-root": {
+    color: "#ffffff",
+    backgroundColor: "rgba(10, 20, 38, 0.75)",
+    backdropFilter: "blur(8px)",
+    borderRadius: "12px",
+    fontFamily: "'Inter', sans-serif",
+    fontSize: "0.95rem",
+    transition: "all 0.2s ease-in-out",
+    "& fieldset": {
+      borderColor: "rgba(0, 210, 255, 0.22)",
+      borderWidth: "1.5px",
+    },
+    "&:hover fieldset": {
+      borderColor: "rgba(0, 210, 255, 0.55)",
+    },
+    "&.Mui-focused fieldset": {
+      borderColor: "#00d2ff !important",
+      boxShadow: "0 0 16px rgba(0, 210, 255, 0.25)",
+      borderWidth: "2px",
+    },
+    "& input::placeholder": {
+      color: "rgba(148, 163, 184, 0.7)",
+      opacity: 1,
+    },
+  },
+  "& .MuiInputLabel-root": {
+    color: "rgba(203, 213, 225, 0.9)", // slate-300 high contrast
+    fontSize: "0.9rem",
+    fontWeight: 500,
+    "&.Mui-focused": {
+      color: "#00d2ff !important",
+      fontWeight: 600,
+    },
+  },
+  "& .MuiInputAdornment-root": {
+    color: "#38bdf8", // electric sky/cyan icon
+  },
+};
 
 const RegistrationForm = ({
   onSubmit,
@@ -144,7 +184,6 @@ const RegistrationForm = ({
       await onSubmit(registrationData);
 
       setSuccess(true);
-      setSuccess(true);
     } catch (err) {
       setError(
         err.response?.data?.message || "Registration failed. Please try again.",
@@ -157,22 +196,52 @@ const RegistrationForm = ({
   return (
     <Box component="form" onSubmit={handleSubmit} noValidate>
       {error && (
-        <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
+        <Alert
+          severity="error"
+          sx={{
+            mb: 2.5,
+            borderRadius: "12px",
+            backgroundColor: "rgba(153, 27, 27, 0.4)",
+            border: "1px solid rgba(248, 113, 113, 0.4)",
+            color: "#fca5a5",
+            fontSize: "0.875rem",
+          }}
+        >
           {error}
         </Alert>
       )}
 
       {success && (
-        <Alert severity="success" sx={{ mb: 2, borderRadius: 2 }}>
+        <Alert
+          severity="success"
+          sx={{
+            mb: 2.5,
+            borderRadius: "12px",
+            backgroundColor: "rgba(6, 78, 59, 0.4)",
+            border: "1px solid rgba(52, 211, 153, 0.4)",
+            color: "#6ee7b7",
+            fontSize: "0.875rem",
+          }}
+        >
           {successMessage}
         </Alert>
       )}
 
-      <Typography component="h2" variant="h6" mb={3} fontWeight="700">
+      <Typography
+        component="h2"
+        variant="h6"
+        mb={3}
+        fontWeight="700"
+        sx={{
+          color: "#f8fafc",
+          fontFamily: "'Sora', sans-serif",
+          letterSpacing: "-0.01em",
+        }}
+      >
         {formTitle}
       </Typography>
 
-      <Grid container spacing={2}>
+      <Grid container spacing={2.5}>
         <Grid item xs={12} sm={6}>
           <TextField
             fullWidth
@@ -181,13 +250,13 @@ const RegistrationForm = ({
             label="Full Name"
             name="name"
             autoComplete="name"
-            autoFocus
             value={name}
             onChange={(e) => setName(e.target.value)}
+            sx={inputSx}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <PersonIcon />
+                  <PersonIcon sx={{ color: "#00d2ff" }} />
                 </InputAdornment>
               ),
             }}
@@ -204,10 +273,11 @@ const RegistrationForm = ({
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            sx={inputSx}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <EmailIcon />
+                  <EmailIcon sx={{ color: "#00d2ff" }} />
                 </InputAdornment>
               ),
             }}
@@ -224,10 +294,11 @@ const RegistrationForm = ({
             autoComplete="tel"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
+            sx={inputSx}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <PhoneIcon />
+                  <PhoneIcon sx={{ color: "#00d2ff" }} />
                 </InputAdornment>
               ),
             }}
@@ -243,47 +314,93 @@ const RegistrationForm = ({
             name="pincode"
             value={pincode}
             onChange={(e) => setPincode(e.target.value)}
+            sx={inputSx}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <LocationIcon />
+                  <LocationIcon sx={{ color: "#00d2ff" }} />
                 </InputAdornment>
               ),
             }}
           />
         </Grid>
 
-        <Grid item xs={12} sm={12}>
-          <FormControl fullWidth required>
-            <InputLabel id="state-label">State</InputLabel>
+        <Grid item xs={12}>
+          <FormControl fullWidth required sx={inputSx}>
+            <InputLabel
+              id="state-label"
+              sx={{
+                color: "rgba(203, 213, 225, 0.9)",
+                "&.Mui-focused": { color: "#00d2ff !important" },
+              }}
+            >
+              State / Union Territory
+            </InputLabel>
             <Select
               labelId="state-label"
               id="state"
               value={state}
-              label="State"
+              label="State / Union Territory"
               onChange={(e) => setState(e.target.value)}
               startAdornment={
                 <InputAdornment position="start">
-                  <LocationIcon />
+                  <LocationIcon sx={{ color: "#00d2ff", ml: 0.5 }} />
                 </InputAdornment>
               }
+              MenuProps={{
+                PaperProps: {
+                  sx: {
+                    bgcolor: "#0a1426",
+                    color: "#f8fafc",
+                    border: "1px solid rgba(0, 210, 255, 0.3)",
+                    borderRadius: "12px",
+                    boxShadow: "0 20px 40px rgba(0,0,0,0.8)",
+                    maxHeight: 320,
+                    "& .MuiMenuItem-root": {
+                      fontSize: "0.9rem",
+                      py: 1,
+                      "&:hover": {
+                        bgcolor: "rgba(0, 210, 255, 0.12)",
+                        color: "#38bdf8",
+                      },
+                      "&.Mui-selected": {
+                        bgcolor: "rgba(0, 210, 255, 0.2)",
+                        color: "#00d2ff",
+                        fontWeight: 600,
+                      },
+                    },
+                  },
+                },
+              }}
             >
               <MenuItem value="">
                 <em>Select State</em>
               </MenuItem>
-              {indianStates.map((state) => (
-                <MenuItem key={state} value={state}>
-                  {state}
+              {indianStates.map((s) => (
+                <MenuItem key={s} value={s}>
+                  {s}
                 </MenuItem>
               ))}
             </Select>
           </FormControl>
         </Grid>
 
-        <Grid item xs={12} sm={6}>
-          <FormControl component="fieldset" fullWidth margin="normal" required>
-            <Typography component="legend" variant="body1" sx={{ mb: 1 }}>
-              Preferred Language
+        <Grid item xs={12}>
+          <FormControl component="fieldset" fullWidth sx={{ mt: 1 }}>
+            <Typography
+              component="legend"
+              variant="body2"
+              sx={{
+                mb: 1,
+                color: "rgba(203, 213, 225, 0.9)",
+                fontWeight: 600,
+                fontSize: "0.85rem",
+                textTransform: "uppercase",
+                letterSpacing: "0.05em",
+                fontFamily: "monospace",
+              }}
+            >
+              Preferred Communication Language
             </Typography>
             <RadioGroup
               row
@@ -291,62 +408,80 @@ const RegistrationForm = ({
               name="language"
               value={language}
               onChange={(e) => setLanguage(e.target.value)}
+              sx={{ gap: 2 }}
             >
-              <FormControlLabel
-                value="english"
-                control={<Radio />}
-                label="English"
-              />
-              <FormControlLabel
-                value="hindi"
-                control={<Radio />}
-                label="Hindi"
-              />
-              <FormControlLabel
-                value="other"
-                control={<Radio />}
-                label="Other"
-              />
+              {[
+                { val: "english", label: "English" },
+                { val: "hindi", label: "Hindi" },
+                { val: "other", label: "Other" },
+              ].map((item) => (
+                <FormControlLabel
+                  key={item.val}
+                  value={item.val}
+                  control={
+                    <Radio
+                      sx={{
+                        color: "rgba(148, 163, 184, 0.6)",
+                        "&.Mui-checked": {
+                          color: "#00d2ff !important",
+                        },
+                      }}
+                    />
+                  }
+                  label={
+                    <Typography
+                      sx={{
+                        color: language === item.val ? "#ffffff" : "rgba(203, 213, 225, 0.8)",
+                        fontSize: "0.9rem",
+                        fontWeight: language === item.val ? 600 : 400,
+                      }}
+                    >
+                      {item.label}
+                    </Typography>
+                  }
+                />
+              ))}
             </RadioGroup>
           </FormControl>
         </Grid>
 
         {language === "other" && (
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12}>
             <TextField
               fullWidth
-              margin="normal"
               id="other-language"
               label="Specify Language"
               value={otherLanguage}
               onChange={(e) => setOtherLanguage(e.target.value)}
+              sx={inputSx}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <LanguageIcon />
+                    <LanguageIcon sx={{ color: "#00d2ff" }} />
                   </InputAdornment>
                 ),
               }}
             />
           </Grid>
         )}
+
         <Grid item xs={12}>
           <FormControlLabel
             control={
               <Checkbox
-                checked={true} // Consent is always true by default
+                defaultChecked
                 required
                 sx={{
-                  color: "#4caf50",
+                  color: "#00e599",
                   "&.Mui-checked": {
-                    color: "#4caf50",
+                    color: "#00e599 !important",
                   },
                 }}
               />
             }
             label={
-              <Typography sx={{ color: "#666" }}>
-                I agree to receive communication from Credit Dost.
+              <Typography sx={{ color: "rgba(203, 213, 225, 0.8)", fontSize: "0.85rem" }}>
+                I agree to receive franchise communication & updates from Credit Dost. *
               </Typography>
             }
           />
@@ -359,19 +494,33 @@ const RegistrationForm = ({
         variant="contained"
         size="large"
         sx={{
-          mt: 3,
-          mb: 2,
-          py: 1.5,
-          borderRadius: 3,
-          fontWeight: 600,
-          background: "linear-gradient(135deg, #4caf50, #2196f3)",
+          mt: 3.5,
+          mb: 1.5,
+          py: 1.6,
+          borderRadius: "14px",
+          fontWeight: 700,
+          fontSize: "1rem",
+          letterSpacing: "0.02em",
+          color: "#040d1a",
+          background: "linear-gradient(135deg, #00d2ff 0%, #0099ff 50%, #00e599 100%)",
+          boxShadow: "0 0 25px rgba(0, 210, 255, 0.4)",
+          textTransform: "none",
+          transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+          "&:hover": {
+            background: "linear-gradient(135deg, #38bdf8 0%, #0284c7 50%, #10b981 100%)",
+            boxShadow: "0 0 35px rgba(0, 210, 255, 0.6)",
+            transform: "translateY(-1px)",
+          },
+          "&:active": {
+            transform: "translateY(1px)",
+          },
         }}
         disabled={loading}
       >
         {loading ? (
           <>
-            <CircularProgress size={24} sx={{ mr: 1 }} />
-            Submitting...
+            <CircularProgress size={22} sx={{ mr: 1.5, color: "#040d1a" }} />
+            Submitting Application...
           </>
         ) : (
           submitButtonText

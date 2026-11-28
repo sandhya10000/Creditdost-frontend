@@ -1,752 +1,356 @@
-import React, { useState, useEffect } from "react";
-import {
-  AppBar,
-  Toolbar,
-  Typography,
-  Button,
-  Box,
-  IconButton,
-  Drawer,
-  List,
-  ListItem,
-  ListItemText,
-  Divider,
-  useMediaQuery,
-  styled,
-  Menu,
-  MenuItem,
-  Container,
-  Avatar,
-  Tooltip,
-  Badge,
-  Fade,
-  Zoom,
-} from "@mui/material";
-import {
-  Menu as MenuIcon,
-  Close as CloseIcon,
-  Dashboard as DashboardIcon,
-  KeyboardArrowDown,
-  Search as SearchIcon,
-  Phone as PhoneIcon,
-  Facebook,
-  Twitter,
-  LinkedIn,
-  YouTube,
-  ArrowForward,
-  Person as PersonIcon,
-  Login as LoginIcon,
-  Logout as LogoutIcon,
-  AccountCircle,
-} from "@mui/icons-material";
+import React, { useState, useRef, useEffect } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
-import { useNavigate, useLocation } from "react-router-dom";
-
-const HeaderAppBar = styled(AppBar)(({ theme, scrolled }) => ({
-  backgroundColor: scrolled ? "rgba(255, 255, 255, 0.98)" : "#ffffff",
-  backdropFilter: "blur(10px)",
-  boxShadow: scrolled
-    ? "0 4px 30px rgba(0, 0, 0, 0.08)"
-    : "0 2px 20px rgba(0, 0, 0, 0.05)",
-  color: "#1a2744",
-  position: "sticky",
-  top: 0,
-  zIndex: 1200,
-  transition: "all 0.3s ease",
-}));
-
-const TopBar = styled(Box)(({ theme }) => ({
-  background: "linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)",
-  color: "white",
-  padding: "8px 0",
-  fontSize: "0.875rem",
-}));
-
-const LogoBox = styled(Box)(({ theme }) => ({
-  display: "flex",
-  alignItems: "center",
-  cursor: "pointer",
-  position: "relative",
-}));
-
-const LogoIcon = styled(Box)(({ theme }) => ({
-  width: 40,
-  height: 40,
-  background: "linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)",
-  borderRadius: "50%",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  color: "white",
-  fontWeight: 700,
-  fontSize: "1.2rem",
-  marginRight: theme.spacing(1.5),
-  boxShadow: "0 4px 15px rgba(8, 145, 178, 0.3)",
-}));
-
-const LogoText = styled(Typography)(({ theme }) => ({
-  fontWeight: 800,
-  fontSize: "1.75rem",
-  background: "linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)",
-  WebkitBackgroundClip: "text",
-  WebkitTextFillColor: "transparent",
-  letterSpacing: "-0.5px",
-}));
-
-const NavButton = styled(Button)(({ theme, active }) => ({
-  color: active ? "#0891b2" : "#1a2744",
-  fontWeight: active ? 700 : 600,
-  textTransform: "none",
-  margin: theme.spacing(0, 0.5),
-  padding: theme.spacing(1, 2),
-  borderRadius: "8px",
-  fontSize: "0.95rem",
-  position: "relative",
-  transition: "color 0.2s ease, background-color 0.2s ease",
-  backgroundColor: active ? "rgba(8, 145, 178, 0.08)" : "transparent",
-  "&:hover": {
-    color: "#0891b2",
-    backgroundColor: "rgba(8, 145, 178, 0.08)",
-    "&::after": {
-      width: "100%",
-      height: "2px",
-    },
-  },
-  "&::after": {
-    content: '""',
-    position: "absolute",
-    bottom: 0,
-    left: "50%",
-    transform: "translateX(-50%)",
-    width: active ? "100%" : 0,
-    height: active ? "3px" : "2px",
-    background: "linear-gradient(90deg, #0891b2, #06b6d4)",
-    borderRadius: "2px",
-    transition: "width 0.25s ease",
-  },
-}));
-
-const ServicesDropdown = styled(Box)(({ theme }) => ({
-  position: "relative",
-  display: "inline-block",
-}));
-
-const ServicesButton = styled(Button)(({ theme }) => ({
-  color: "#1a2744",
-  fontWeight: 600,
-  textTransform: "none",
-  margin: theme.spacing(0, 0.5),
-  padding: theme.spacing(1, 2),
-  borderRadius: "8px",
-  fontSize: "0.95rem",
-  position: "relative",
-  backgroundColor: "transparent",
-  transition: "all 0.3s ease",
-  "&:hover": {
-    backgroundColor: "rgba(8, 145, 178, 0.08)",
-    "&::after": {
-      width: "100%",
-    },
-  },
-  "&::after": {
-    content: '""',
-    position: "absolute",
-    bottom: 0,
-    left: "50%",
-    transform: "translateX(-50%)",
-    width: 0,
-    height: "2px",
-    background: "linear-gradient(90deg, #0891b2, #06b6d4)",
-    transition: "width 0.3s ease",
-  },
-}));
-
-const DropdownMenu = styled(Box)(({ theme, open }) => ({
-  position: "absolute",
-  top: "100%",
-  left: "50%",
-  transform: "translateX(-50%)",
-  width: "260px",
-  backgroundColor: "white",
-  borderRadius: "12px",
-  boxShadow: "0 10px 30px rgba(0, 0, 0, 0.15)",
-  padding: theme.spacing(1.5),
-  zIndex: 1300,
-  opacity: open ? 1 : 0,
-  visibility: open ? "visible" : "hidden",
-  transition: "all 0.3s ease",
-  marginTop: open ? theme.spacing(1) : 0,
-}));
-
-const DropdownItem = styled(Button)(({ theme }) => ({
-  justifyContent: "flex-start",
-  textTransform: "none",
-  fontWeight: 500,
-  color: "#1a2744",
-  padding: theme.spacing(1.2, 2),
-  borderRadius: "8px",
-  width: "100%",
-  margin: theme.spacing(0.2, 0),
-  transition: "all 0.2s ease",
-  "&:hover": {
-    backgroundColor: "rgba(8, 145, 178, 0.1)",
-    color: "#0891b2",
-    transform: "translateX(5px)",
-  },
-  "& .MuiButton-startIcon": {
-    marginRight: theme.spacing(1.5),
-  },
-}));
-
-const AuthButton = styled(Button)(({ theme }) => ({
-  background: "linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)",
-  color: "white",
-  fontWeight: 700,
-  textTransform: "none",
-  padding: theme.spacing(1.5, 3),
-  borderRadius: "50px",
-  fontSize: "0.95rem",
-  boxShadow: "0 4px 20px rgba(8, 145, 178, 0.3)",
-  transition: "all 0.3s ease",
-  "&:hover": {
-    transform: "translateY(-2px)",
-    boxShadow: "0 6px 25px rgba(8, 145, 178, 0.4)",
-    background: "linear-gradient(135deg, #0e7490 0%, #0891b2 100%)",
-  },
-}));
-
-const ContactBox = styled(Box)(({ theme }) => ({
-  display: "flex",
-  alignItems: "center",
-  gap: theme.spacing(1.5),
-  marginRight: theme.spacing(3),
-  padding: theme.spacing(1, 2),
-  borderRadius: "50px",
-  backgroundColor: "rgba(8, 145, 178, 0.08)",
-  transition: "all 0.3s ease",
-  "&:hover": {
-    backgroundColor: "rgba(8, 145, 178, 0.12)",
-  },
-}));
-
-const PhoneIconBox = styled(Box)(({ theme }) => ({
-  width: 40,
-  height: 40,
-  borderRadius: "50%",
-  background: "linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  animation: "pulse 2s infinite",
-  "@keyframes pulse": {
-    "0%, 100%": {
-      boxShadow: "0 0 0 0 rgba(8, 145, 178, 0.4)",
-    },
-    "50%": {
-      boxShadow: "0 0 0 10px rgba(8, 145, 178, 0)",
-    },
-  },
-}));
-
-const SocialIcon = styled(IconButton)(({ theme }) => ({
-  color: "white",
-  fontSize: "0.9rem",
-  padding: theme.spacing(0.5),
-  transition: "all 0.3s ease",
-  "&:hover": {
-    color: "#fff",
-    transform: "translateY(-2px)",
-  },
-}));
-
-const SearchIconButton = styled(IconButton)(({ theme }) => ({
-  color: "#1a2744",
-  marginRight: theme.spacing(1),
-  transition: "all 0.3s ease",
-  "&:hover": {
-    color: "#0891b2",
-    transform: "rotate(90deg)",
-  },
-}));
-
-const UserProfileButton = styled(IconButton)(({ theme }) => ({
-  width: 40,
-  height: 40,
-  borderRadius: "50%",
-  background: "linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)",
-  color: "white",
-  marginLeft: theme.spacing(1),
-  transition: "all 0.3s ease",
-  "&:hover": {
-    transform: "scale(1.05)",
-    boxShadow: "0 4px 15px rgba(8, 145, 178, 0.4)",
-  },
-}));
 
 const Header = () => {
-  const { user, logout } = useAuth();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [servicesDropdownOpen, setServicesDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-  const [anchorEl, setAnchorEl] = useState({});
-  const [userMenuAnchor, setUserMenuAnchor] = useState(null);
-  const isMobile = useMediaQuery((theme) => theme.breakpoints.down("lg"));
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  const handleDrawerToggle = () => {
-    setMobileOpen(!mobileOpen);
-  };
-
-  const handleMenuClick = (event, menuName) => {
-    setAnchorEl({ ...anchorEl, [menuName]: event.currentTarget });
-  };
-
-  const handleMenuClose = (menuName) => {
-    setAnchorEl({ ...anchorEl, [menuName]: null });
-  };
-
-  const handleUserMenuOpen = (event) => {
-    setUserMenuAnchor(event.currentTarget);
-  };
-
-  const handleUserMenuClose = () => {
-    setUserMenuAnchor(null);
-  };
-
-  const handleLogout = async () => {
-    await logout();
-    handleUserMenuClose();
+  const handleLogout = () => {
+    logout();
     navigate("/");
   };
 
-  const handleLogin = () => {
-    navigate("/login");
-  };
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setServicesDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
-  const handleRegister = () => {
-    navigate("/register");
-  };
+  // Close dropdown on route change
+  useEffect(() => {
+    setServicesDropdownOpen(false);
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
 
-  const handleDashboard = () => {
-    if (user?.role === "admin") {
-      navigate("/admin");
-    } else {
-      navigate("/franchise");
-    }
-    handleUserMenuClose();
-  };
-
-  const navItems = [
-    { text: "Home", path: "/" },
-    { text: "About Us", path: "/about" },
-    { text: "Credit Score Repair", path: "/credit-score-repair" },
-    { text: "Download Free Credit Report", path: "/credit-check" },
-    // { text: "Apply for loan", path: "/apply-for-loan" },
-   
-    // { text: "Suvidha Centre", path: "/suvidha-centre" },
+  // Dropdown items matching Obsidian Lumina theme
+  const serviceDropdownItems = [
+    {
+      title: "Credit Score Repair",
+      subtitle: "RETAIL & INDIVIDUAL",
+      description: "Purge bureau errors, dispute 90+ DPD & late tags",
+      path: "/credit-score-repair",
+      icon: "build_circle",
+      iconBg: "bg-cyan-500/15 text-cyan-400 border border-cyan-500/30",
+    },
+    {
+      title: "Corporate CMR & Commercial",
+      subtitle: "COMPANIES",
+      description: "Improve CMR rank, dispute commercial NPA flags",
+      path: "/credit-score-repair",
+      icon: "corporate_fare",
+      iconBg: "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30",
+    },
+    {
+      title: "Credit Bureau Check",
+      subtitle: "OFFICIAL SOFT PULL",
+      description: "Instant score across CIBIL, Experian, Equifax & CRIF",
+      path: "/credit-check",
+      icon: "credit_card",
+      iconBg: "bg-sky-500/15 text-sky-400 border border-sky-500/30",
+    },
+    {
+      title: "EMI Calculator",
+      subtitle: "FINANCIAL TOOL",
+      description: "Loan amortization & monthly repayment schedule",
+      path: "/emi-calculator",
+      icon: "calculate",
+      iconBg: "bg-amber-500/15 text-amber-400 border border-amber-500/30",
+    },
   ];
 
-  const drawer = (
-    <Box sx={{ width: 280 }} role="presentation">
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          p: 2,
-          justifyContent: "space-between",
-        }}
-      >
-        <Box sx={{ display: "flex", alignItems: "center" }}>
-          <a href="/">
-            <img src="/images/cred.png" style={{ width: "150px" }} />
-          </a>
-        </Box>
-        <IconButton onClick={handleDrawerToggle}>
-          <CloseIcon />
-        </IconButton>
-      </Box>
-      <Divider />
-      <List>
-        {navItems.map((item) => (
-          <ListItem
-            button
-            key={item.text}
-            onClick={() => {
-              navigate(item.path);
-              handleDrawerToggle();
-            }}
-          >
-            <ListItemText primary={item.text} />
-          </ListItem>
-        ))}
-        <ListItem
-          button
-          onClick={() => {
-            navigate("/credit-check");
-            handleDrawerToggle();
-          }}
-        >
-          <ListItemText primary="Credit Check" />
-        </ListItem>
-        <ListItem
-          button
-          onClick={() => {
-            navigate("/emi-calculator");
-            handleDrawerToggle();
-          }}
-        >
-          <ListItemText primary="EMI Calculator" />
-        </ListItem>
-        <ListItem
-          button
-          onClick={() => {
-            navigate("/ifsc-finder");
-            handleDrawerToggle();
-          }}
-        >
-          <ListItemText primary="IFSC Finder" />
-        </ListItem>
-      </List>
-      <Divider />
-      <Box sx={{ p: 2 }}>
-        {user ? (
-          <Box sx={{ textAlign: "center" }}>
-            <Avatar sx={{ width: 56, height: 56, margin: "0 auto 16px" }}>
-              {user.name?.charAt(0) || "U"}
-            </Avatar>
-            <Typography variant="h6" sx={{ mb: 1 }}>
-              {user.name || "User"}
-            </Typography>
-            <Button
-              fullWidth
-              variant="contained"
-              onClick={handleDashboard}
-              sx={{ mb: 1 }}
-            >
-              Dashboard
-            </Button>
-            <Button fullWidth variant="outlined" onClick={handleLogout}>
-              Logout
-            </Button>
-          </Box>
-        ) : (
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-            <Button
-              fullWidth
-              variant="contained"
-              onClick={handleLogin}
-              sx={{ mb: 1 }}
-            >
-              Login
-            </Button>
-            <Button
-              fullWidth
-              variant="outlined"
-              onClick={() => {
-                navigate("/franchise-opportunity");
-                handleDrawerToggle();
-              }}
-            >
-              Franchise Opportunity
-            </Button>
-          </Box>
-        )}
-      </Box>
-    </Box>
-  );
+  const isServicesActive =
+    location.pathname === "/credit-score-repair" ||
+    location.pathname === "/credit-check" ||
+    location.pathname === "/emi-calculator";
 
   return (
-    <>
-      <HeaderAppBar scrolled={scrolled} elevation={0}>
-        <Container maxWidth="xl">
-          <Toolbar
-            sx={{ padding: "0 !important", minHeight: "80px !important" }}
+    <header className="fixed top-0 left-0 w-full z-50 bg-[#080E1B]/95 backdrop-blur-xl border-b border-outline-variant/30 shadow-[0_4px_30px_rgba(0,0,0,0.6)]">
+      {/* Main Nav Bar */}
+      <div className="h-20 max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between gap-4">
+        {/* Brand Logo */}
+        <div className="flex items-center shrink-0">
+          <Link to="/" className="flex items-center group">
+            <img
+              src="/images/white-logo.png"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = "/images/cred.png";
+              }}
+              alt="Credit Dost Logo"
+              className="h-10 sm:h-12 w-auto object-contain transition-transform group-hover:scale-105"
+            />
+          </Link>
+        </div>
+
+        {/* Navigation Links: Home, Credit score repair (Dropdown), Franchise Partner, About Us */}
+        <nav className="hidden md:flex items-center gap-1 font-title-md text-sm">
+          {/* Home */}
+          <Link
+            to="/"
+            className={`px-4 py-2 rounded-lg transition-all text-sm font-medium ${
+              location.pathname === "/"
+                ? "bg-surface-container-high text-primary-container border border-primary-container/30 shadow-[0_0_12px_rgba(0,210,255,0.15)]"
+                : "text-on-surface-variant hover:text-white hover:bg-surface-container/50"
+            }`}
           >
-            {isMobile && (
-              <IconButton
-                edge="start"
-                onClick={handleDrawerToggle}
-                sx={{ mr: 1, color: "#1a2744" }}
+            Home
+          </Link>
+
+          {/* Credit Score Repair / Services Dropdown */}
+          <div className="relative" ref={dropdownRef}>
+            <button
+              onClick={() => setServicesDropdownOpen((prev) => !prev)}
+              onMouseEnter={() => setServicesDropdownOpen(true)}
+              className={`px-4 py-2 rounded-lg transition-all text-sm font-medium flex items-center gap-1.5 ${
+                isServicesActive || servicesDropdownOpen
+                  ? "bg-surface-container-high text-primary-container border border-primary-container/30 shadow-[0_0_12px_rgba(0,210,255,0.15)]"
+                  : "text-on-surface-variant hover:text-white hover:bg-surface-container/50"
+              }`}
+            >
+              <span>Credit Score Repair</span>
+              <span
+                className={`material-symbols-outlined text-base transition-transform duration-200 ${
+                  servicesDropdownOpen ? "rotate-180" : ""
+                }`}
               >
-                <MenuIcon />
-              </IconButton>
+                keyboard_arrow_down
+              </span>
+            </button>
+
+            {/* Obsidian Lumina Dropdown Card */}
+            {servicesDropdownOpen && (
+              <div
+                onMouseLeave={() => setServicesDropdownOpen(false)}
+                className="absolute top-full left-0 mt-3 w-84 sm:w-96 rounded-2xl bg-[#0a1426]/95 text-slate-100 shadow-[0_25px_60px_rgba(0,0,0,0.85),0_0_35px_rgba(0,210,255,0.18)] border border-cyan-500/35 p-2.5 z-50 backdrop-blur-2xl animate-in fade-in slide-in-from-top-2 duration-200"
+              >
+                <div className="flex flex-col gap-1.5">
+                  {serviceDropdownItems.map((item, idx) => (
+                    <Link
+                      key={idx}
+                      to={item.path}
+                      onClick={() => setServicesDropdownOpen(false)}
+                      className="flex items-start gap-3.5 p-3 rounded-xl hover:bg-cyan-950/40 border border-transparent hover:border-cyan-500/25 transition-all group"
+                    >
+                      <div
+                        className={`w-10 h-10 rounded-xl ${item.iconBg} flex items-center justify-center shrink-0 shadow-sm transition-transform group-hover:scale-105`}
+                      >
+                        <span className="material-symbols-outlined text-xl">
+                          {item.icon}
+                        </span>
+                      </div>
+                      <div className="flex flex-col flex-grow">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-semibold text-white group-hover:text-cyan-300 transition-colors">
+                            {item.title}
+                          </span>
+                          {item.subtitle && (
+                            <span className="text-[10px] font-mono text-cyan-400/80 bg-cyan-950/60 px-1.5 py-0.5 rounded border border-cyan-500/20">
+                              {item.subtitle}
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-xs text-slate-400 font-normal mt-0.5 leading-snug">
+                          {item.description}
+                        </span>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
             )}
+          </div>
 
-            <LogoBox>
-              <a href="/">
-                <img src="/images/cred.png" style={{ width: "150px" }} />
-              </a>
-            </LogoBox>
+          {/* Franchise Partner */}
+          <Link
+            to="/franchise-opportunity"
+            className={`px-4 py-2 rounded-lg transition-all text-sm font-medium ${
+              location.pathname === "/franchise-opportunity"
+                ? "bg-surface-container-high text-primary-container border border-primary-container/30 shadow-[0_0_12px_rgba(0,210,255,0.15)]"
+                : "text-on-surface-variant hover:text-white hover:bg-surface-container/50"
+            }`}
+          >
+            Franchise Partner
+          </Link>
 
-            {!isMobile && (
-              <>
-                <Box
-                  sx={{
-                    ml: 6,
-                    display: "flex",
-                    alignItems: "center",
-                    flexGrow: 1,
-                  }}
-                >
-                  {navItems.map((item) => {
-                  const isActive =
-                    item.path === "/"
-                      ? location.pathname === "/"
-                      : location.pathname.startsWith(item.path);
-                  return (
-                  <Box key={item.text}>
-                    {item.hasDropdown ? (
-                      <ServicesDropdown
-                        onMouseEnter={(e) => handleMenuClick(e, "services")}
-                        onMouseLeave={() => handleMenuClose("services")}
-                      >
-                        <ServicesButton endIcon={<KeyboardArrowDown />}>
-                          {item.text}
-                        </ServicesButton>
-                          <DropdownMenu open={Boolean(anchorEl["services"])}>
-                            <DropdownItem
-                              onClick={() => {
-                                navigate("/credit-score-repair");
-                                handleMenuClose("services");
-                              }}
-                              startIcon={
-                                <Box
-                                  sx={{
-                                    width: 16,
-                                    height: 16,
-                                    borderRadius: "50%",
-                                    backgroundColor: "#8b5cf6",
-                                  }}
-                                />
-                              }
-                            >
-                              Credit Score Repair
-                            </DropdownItem>
-                            {/* Apply for Loan dropdown item - temporarily removed from Services menu [2026-07-03] */}
-                            {/* <DropdownItem
-                              onClick={() => {
-                                navigate("/apply-for-loan");
-                                handleMenuClose("services");
-                              }}
-                              startIcon={
-                                <Box
-                                  sx={{
-                                    width: 16,
-                                    height: 16,
-                                    borderRadius: "50%",
-                                    backgroundColor: "#0ea5e9",
-                                  }}
-                                />
-                              }
-                            >
-                              Apply for Loan
-                            </DropdownItem> */}
-                            <DropdownItem
-                              onClick={() => {
-                                navigate("/franchise-opportunity");
-                                handleMenuClose("services");
-                              }}
-                              startIcon={
-                                <Box
-                                  sx={{
-                                    width: 16,
-                                    height: 16,
-                                    borderRadius: "50%",
-                                    backgroundColor: "#ef4444",
-                                  }}
-                                />
-                              }
-                            >
-                              Franchise Opportunity
-                            </DropdownItem>
-                            <DropdownItem
-                              onClick={() => {
-                                navigate("/careers");
-                                handleMenuClose("services");
-                              }}
-                              startIcon={
-                                <Box
-                                  sx={{
-                                    width: 16,
-                                    height: 16,
-                                    borderRadius: "50%",
-                                    backgroundColor: "#10b981",
-                                  }}
-                                />
-                              }
-                            >
-                              Careers
-                            </DropdownItem>
-                            <DropdownItem
-                              onClick={() => {
-                                navigate("/suvidha-centre");
-                                handleMenuClose("services");
-                              }}
-                              startIcon={
-                                <Box
-                                  sx={{
-                                    width: 16,
-                                    height: 16,
-                                    borderRadius: "50%",
-                                    backgroundColor: "#f59e0b",
-                                  }}
-                                />
-                              }
-                            >
-                              Suvidha Centre
-                            </DropdownItem>
-                          </DropdownMenu>
-                        </ServicesDropdown>
-                      ) : (
-                        <NavButton active={isActive} onClick={() => navigate(item.path)}>
-                          {item.text}
-                        </NavButton>
-                      )}
-                    </Box>
-                  );
-                })}
-                </Box>
+          {/* About Us */}
+          <Link
+            to="/about"
+            className={`px-4 py-2 rounded-lg transition-all text-sm font-medium ${
+              location.pathname === "/about"
+                ? "bg-surface-container-high text-primary-container border border-primary-container/30 shadow-[0_0_12px_rgba(0,210,255,0.15)]"
+                : "text-on-surface-variant hover:text-white hover:bg-surface-container/50"
+            }`}
+          >
+            About Us
+          </Link>
+        </nav>
 
-                <Box sx={{ display: "flex", alignItems: "center" }}>
-                  <ContactBox>
-                    <PhoneIconBox>
-                      <PhoneIcon sx={{ color: "white", fontSize: "1.2rem" }} />
-                    </PhoneIconBox>
-                    <Box>
-                      <Typography
-                        variant="caption"
-                        sx={{
-                          color: "#64748b",
-                          display: "block",
-                          lineHeight: 1.2,
-                        }}
-                      >
-                        Requesting A Call:
-                      </Typography>
-                      <Typography
-                        variant="body2"
-                        sx={{
-                          fontWeight: 700,
-                          color: "#1a2744",
-                          fontSize: "1rem",
-                        }}
-                      >
-                        +91 9217469202
-                      </Typography>
-                    </Box>
-                  </ContactBox>
+        {/* Action CTA Header */}
+        <div className="hidden sm:flex items-center gap-3 shrink-0">
+          <Link
+            to="/credit-check"
+            className="px-4 py-2 rounded-lg border border-primary/40 text-primary font-title-md text-xs sm:text-sm hover:bg-primary-container/10 hover:border-primary-container transition-all flex items-center gap-1.5"
+          >
+            <span className="material-symbols-outlined text-base">speed</span>
+            <span>Check Credit Score</span>
+          </Link>
 
-                  {user ? (
-                    <Zoom in={true}>
-                      <Box sx={{ display: "flex", alignItems: "center" }}>
-                        <Tooltip title={user.name || "User"}>
-                          <UserProfileButton onClick={handleUserMenuOpen}>
-                            <Avatar
-                              sx={{
-                                width: 32,
-                                height: 32,
-                                bgcolor: "transparent",
-                                color: "white",
-                                fontSize: "1rem",
-                              }}
-                            >
-                              {user.name?.charAt(0) || "U"}
-                            </Avatar>
-                          </UserProfileButton>
-                        </Tooltip>
-                        <Menu
-                          anchorEl={userMenuAnchor}
-                          open={Boolean(userMenuAnchor)}
-                          onClose={handleUserMenuClose}
-                          TransitionComponent={Fade}
-                          transitionDuration={300}
-                          sx={{ mt: 1 }}
-                        >
-                          <MenuItem>
-                            <Box sx={{ display: "flex", alignItems: "center" }}>
-                              <Avatar sx={{ width: 32, height: 32, mr: 1 }}>
-                                {user.name?.charAt(0) || "U"}
-                              </Avatar>
-                              <Box>
-                                <Typography variant="body2" fontWeight="bold">
-                                  {user.name || "User"}
-                                </Typography>
-                                <Typography
-                                  variant="caption"
-                                  color="textSecondary"
-                                >
-                                  {user.email}
-                                </Typography>
-                              </Box>
-                            </Box>
-                          </MenuItem>
-                          <Divider />
-                          <MenuItem onClick={handleDashboard}>
-                            <DashboardIcon sx={{ mr: 1 }} />
-                            Dashboard
-                          </MenuItem>
-                          <MenuItem onClick={handleLogout}>
-                            <LogoutIcon sx={{ mr: 1 }} />
-                            Logout
-                          </MenuItem>
-                        </Menu>
-                      </Box>
-                    </Zoom>
-                  ) : (
-                    <Zoom in={true}>
-                      <Box sx={{ display: "flex", alignItems: "center" }}>
-                        <AuthButton
-                          startIcon={<LoginIcon />}
-                          onClick={handleLogin}
-                          sx={{ mr: 1 }}
-                        >
-                          Login
-                        </AuthButton>
-                        <AuthButton
-                          variant="outlined"
-                          sx={{
-                            background: "white",
-                            color: "black",
-                            border: "2px solid",
-                            borderColor: "primary.main",
-                            "&:hover": {
-                              background: "rgba(8, 145, 178, 0.1)",
-                            },
-                          }}
-                          onClick={() => navigate("/franchise-opportunity")}
-                        >
-                          Franchise Opportunity
-                        </AuthButton>
-                      </Box>
-                    </Zoom>
-                  )}
-                </Box>
-              </>
-            )}
-          </Toolbar>
-        </Container>
-      </HeaderAppBar>
+          {isAuthenticated ? (
+            <div className="flex items-center gap-2">
+              <Link
+                to={user?.role === "admin" ? "/admin/dashboard" : "/franchise/dashboard"}
+                className="px-4 py-2 rounded-lg bg-surface-container-high border border-outline-variant/60 text-white font-title-md text-xs sm:text-sm hover:border-primary-container/80 transition-all flex items-center gap-1"
+              >
+                <span className="material-symbols-outlined text-base text-primary-container">
+                  dashboard
+                </span>
+                <span>Dashboard</span>
+              </Link>
+              <button
+                onClick={handleLogout}
+                className="p-2 rounded-lg bg-surface-container-low border border-outline-variant/40 text-on-surface-variant hover:text-error transition-all"
+                title="Logout"
+              >
+                <span className="material-symbols-outlined text-lg">logout</span>
+              </button>
+            </div>
+          ) : (
+            <Link
+              to="/login"
+              className="px-4 py-2 rounded-lg bg-gradient-to-r from-primary-container to-[#0070f3] text-surface-container-lowest font-title-md text-xs sm:text-sm font-bold neon-glow-cyan hover:brightness-110 active:scale-95 transition-all flex items-center gap-1.5"
+            >
+              <span className="material-symbols-outlined text-base">login</span>
+              <span>Login</span>
+            </Link>
+          )}
+        </div>
 
-      {isMobile && (
-        <Drawer
-          anchor="left"
-          open={mobileOpen}
-          onClose={handleDrawerToggle}
-          ModalProps={{ keepMounted: true }}
-          sx={{ "& .MuiDrawer-paper": { width: 280 } }}
+        {/* Mobile Hamburger Button */}
+        <button
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className="md:hidden p-2.5 rounded-xl bg-surface-container-high border border-outline-variant/50 text-white"
+          aria-label="Toggle mobile menu"
         >
-          {drawer}
-        </Drawer>
+          <span className="material-symbols-outlined text-2xl">
+            {mobileMenuOpen ? "close" : "menu"}
+          </span>
+        </button>
+      </div>
+
+      {/* Mobile Drawer Navigation */}
+      {mobileMenuOpen && (
+        <div className="md:hidden border-t border-outline-variant/30 bg-[#080E1B] px-6 py-6 flex flex-col gap-4">
+          <nav className="flex flex-col gap-2">
+            <Link
+              to="/"
+              onClick={() => setMobileMenuOpen(false)}
+              className={`px-4 py-2.5 rounded-xl text-sm font-medium ${
+                location.pathname === "/"
+                  ? "bg-surface-container-high text-primary-container border border-primary-container/30"
+                  : "text-on-surface-variant hover:text-white"
+              }`}
+            >
+              Home
+            </Link>
+
+            {/* Mobile Dropdown Options */}
+            <div className="flex flex-col gap-1 pl-2 border-l-2 border-primary-container/30 my-1">
+              <span className="text-xs uppercase font-label-code text-primary-container tracking-wider px-2 py-1">
+                Credit Score Repair &amp; Tools
+              </span>
+              {serviceDropdownItems.map((item) => (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="px-3 py-2 rounded-lg text-xs sm:text-sm text-on-surface-variant hover:text-white flex items-center gap-2"
+                >
+                  <span className="material-symbols-outlined text-base text-primary-container">
+                    {item.icon}
+                  </span>
+                  <span>{item.title}</span>
+                </Link>
+              ))}
+            </div>
+
+            <Link
+              to="/franchise-opportunity"
+              onClick={() => setMobileMenuOpen(false)}
+              className={`px-4 py-2.5 rounded-xl text-sm font-medium ${
+                location.pathname === "/franchise-opportunity"
+                  ? "bg-surface-container-high text-primary-container border border-primary-container/30"
+                  : "text-on-surface-variant hover:text-white"
+              }`}
+            >
+              Franchise Partner
+            </Link>
+
+            <Link
+              to="/about"
+              onClick={() => setMobileMenuOpen(false)}
+              className={`px-4 py-2.5 rounded-xl text-sm font-medium ${
+                location.pathname === "/about"
+                  ? "bg-surface-container-high text-primary-container border border-primary-container/30"
+                  : "text-on-surface-variant hover:text-white"
+              }`}
+            >
+              About Us
+            </Link>
+          </nav>
+
+          <div className="pt-4 border-t border-outline-variant/20 flex flex-col gap-3">
+            <Link
+              to="/credit-check"
+              onClick={() => setMobileMenuOpen(false)}
+              className="w-full py-3 rounded-xl border border-primary/40 text-primary font-title-md text-sm text-center flex items-center justify-center gap-2"
+            >
+              <span className="material-symbols-outlined text-base">speed</span>
+              <span>Check Free Credit Score</span>
+            </Link>
+            {isAuthenticated ? (
+              <div className="flex gap-2">
+                <Link
+                  to={user?.role === "admin" ? "/admin/dashboard" : "/franchise/dashboard"}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex-1 py-3 rounded-xl bg-surface-container-high text-white text-center text-sm font-semibold"
+                >
+                  Dashboard
+                </Link>
+                <button
+                  onClick={() => {
+                    handleLogout();
+                    setMobileMenuOpen(false);
+                  }}
+                  className="px-4 py-3 rounded-xl bg-error/20 text-error text-center text-sm font-semibold"
+                >
+                  Logout
+                </button>
+              </div>
+            ) : (
+              <Link
+                to="/login"
+                onClick={() => setMobileMenuOpen(false)}
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-primary-container to-[#0070f3] text-surface-container-lowest font-title-md text-sm font-bold text-center flex items-center justify-center gap-2"
+              >
+                <span className="material-symbols-outlined text-base">login</span>
+                <span>Login</span>
+              </Link>
+            )}
+          </div>
+        </div>
       )}
-    </>
+    </header>
   );
 };
 

@@ -1,24 +1,13 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import {
-  Box,
-  Container,
-  Grid,
-  Typography,
-  Button,
-  Card,
-  CardContent,
-  CardActions,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   TextField,
-  IconButton,
-  Snackbar,
-  Alert,
   CircularProgress,
 } from "@mui/material";
-import { Close as CloseIcon, Upload as UploadIcon } from "@mui/icons-material";
 import Header from "./homepage/Header";
 import HomePageFooter from "./homepage/HomePageFooter";
 import { careersAPI } from "../services/api";
@@ -32,12 +21,9 @@ const CareersPage = () => {
     email: "",
     phone: "",
   });
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: "",
-    severity: "success",
-  });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [error, setError] = useState("");
 
   const positions = [
     {
@@ -100,19 +86,17 @@ const CareersPage = () => {
   ];
 
   const hiringSteps = [
-    { step: "01", title: "Apply", description: "Send your CV via email." },
-    { step: "02", title: "Screening", description: "Brief call with HR." },
-    {
-      step: "03",
-      title: "Interview",
-      description: "Technical & Culture round.",
-    },
-    { step: "04", title: "Offer", description: "Welcome to the team!" },
+    { step: "01", title: "Apply", description: "Submit your resume through our career portal." },
+    { step: "02", title: "Screening", description: "Introductory evaluation call with our HR desk." },
+    { step: "03", title: "Interview", description: "Technical dispute & culture alignment round." },
+    { step: "04", title: "Offer", description: "Competitive compensation & immediate onboarding." },
   ];
 
   const handleApplyClick = (positionTitle) => {
     setSelectedPosition(positionTitle);
     setOpenModal(true);
+    setSubmitSuccess(false);
+    setError("");
   };
 
   const handleCloseModal = () => {
@@ -134,824 +118,360 @@ const CareersPage = () => {
   };
 
   const handleSubmitApplication = async () => {
+    if (!formData.name || !formData.email || !formData.phone) {
+      setError("Please fill in your name, email, and phone number.");
+      return;
+    }
+    if (!resume) {
+      setError("Please upload your resume (PDF or DOCX).");
+      return;
+    }
+
     try {
       setIsSubmitting(true);
+      setError("");
 
-      // Create FormData object to send file
-      const submitData = new FormData();
-      submitData.append("name", formData.name);
-      submitData.append("email", formData.email);
-      submitData.append("phone", formData.phone);
-      submitData.append("position", selectedPosition);
-      submitData.append("resume", resume);
+      const appData = new FormData();
+      appData.append("name", formData.name);
+      appData.append("email", formData.email);
+      appData.append("phone", formData.phone);
+      appData.append("position", selectedPosition);
+      appData.append("resume", resume);
 
-      // Submit application via API
-      await careersAPI.submitApplication(submitData);
-
-      setSnackbar({
-        open: true,
-        message:
-          "Application submitted successfully! We will contact you soon.",
-        severity: "success",
-      });
-
-      handleCloseModal();
-    } catch (error) {
-      console.error("Error submitting application:", error);
-      setSnackbar({
-        open: true,
-        message:
-          error.response?.data?.message ||
-          "Failed to submit application. Please try again.",
-        severity: "error",
-      });
+      await careersAPI.submitApplication(appData);
+      setSubmitSuccess(true);
+    } catch (err) {
+      console.error("Application error:", err);
+      setError(err.response?.data?.message || "Failed to submit application. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleSnackbarClose = () => {
-    setSnackbar((prev) => ({ ...prev, open: false }));
-  };
-
   return (
-    <Box sx={{ backgroundColor: "#f8f9fa", minHeight: "100vh" }}>
+    <div className="bg-[#080E1B] font-body-md text-slate-100 antialiased min-h-screen flex flex-col justify-between selection:bg-cyan-500 selection:text-slate-950">
       <Header />
 
-      {/* Hero Section */}
-      <Box
-        sx={{
-          background: "linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%)",
-          color: "white",
-          py: { xs: 4, md: 11 },
-          position: "relative",
-          overflow: "hidden",
-          "&::before": {
-            content: '""',
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background:
-              "url(\"data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0L50 50L0 100' fill='none' stroke='rgba(255,255,255,0.05)' stroke-width='2'/%3E%3Cpath d='M50 0L100 50L50 100' fill='none' stroke='rgba(255,255,255,0.05)' stroke-width='2'/%3E%3C/svg%3E\")",
-            opacity: 0.3,
-          },
-        }}
-      >
-        <Container maxWidth="lg" sx={{ position: "relative", zIndex: 1 }}>
-          <Grid
-            container
-            alignItems="center"
-            justifyContent="space-between"
-            style={{ flexWrap: "wrap", gap: "50px" }}
-          >
-            <Grid item xs={12} md={8} style={{ flex: "1" }}>
-              <Typography
-                variant="h2"
-                sx={{
-                  fontWeight: 700,
-                  fontSize: { xs: "2rem", md: "3.5rem" },
-                  mb: 2,
-                  textAlign: { xs: "center", md: "left" },
-                }}
-              >
-                Shape the Future of Financial Health
-              </Typography>
-              <Typography
-                variant="h5"
-                sx={{
-                  fontWeight: 400,
-                  mb: 4,
-                  textAlign: { xs: "center", md: "left" },
-                  opacity: 0.9,
-                }}
-              >
-                Join Credit Dost and help millions of Indians build a better
-                financial reputation.
-              </Typography>
-              <Box sx={{ textAlign: { xs: "center", md: "left" } }}>
-                <Button
-                  variant="contained"
-                  size="large"
-                  sx={{
-                    background:
-                      "linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)",
-                    color: "white",
-                    fontWeight: 700,
-                    textTransform: "none",
-                    padding: "12px 32px",
-                    borderRadius: "50px",
-                    fontSize: "1rem",
-                    boxShadow: "0 4px 20px rgba(8, 145, 178, 0.3)",
-                    transition: "all 0.3s ease",
-                    "&:hover": {
-                      transform: "translateY(-2px)",
-                      boxShadow: "0 6px 25px rgba(8, 145, 178, 0.4)",
-                      background:
-                        "linear-gradient(135deg, #0e7490 0%, #0891b2 100%)",
-                    },
+      <main className="relative flex-grow pt-24 pb-20 overflow-hidden">
+        {/* Volumetric Backlights */}
+        <div className="absolute top-1/4 left-1/4 w-[600px] h-[350px] bg-cyan-500/15 rounded-full blur-[140px] pointer-events-none" />
+        <div className="absolute bottom-1/3 right-1/4 w-[500px] h-[350px] bg-blue-600/15 rounded-full blur-[140px] pointer-events-none" />
+
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Breadcrumbs */}
+          <div className="flex items-center gap-2 text-xs font-mono text-slate-400 mb-6">
+            <Link to="/" className="hover:text-cyan-400 transition-colors">Home</Link>
+            <span className="text-slate-600">/</span>
+            <span className="text-cyan-400 font-semibold">Careers</span>
+          </div>
+
+          {/* Hero Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center mb-16">
+            <div className="lg:col-span-7">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-950/70 border border-cyan-500/30 text-cyan-400 font-mono text-xs mb-4 shadow-[0_0_20px_rgba(0,210,255,0.2)]">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_#3afaac]" />
+                <span>WE ARE EXPANDING • NATIONAL FINTECH TEAM</span>
+              </div>
+
+              <h1 className="text-3xl sm:text-5xl lg:text-[54px] font-extrabold text-white font-['Sora'] tracking-tight leading-[1.12] mb-4">
+                Shape the Future of <br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-sky-300 to-emerald-400">
+                  Financial Health.
+                </span>
+              </h1>
+
+              <p className="text-slate-300 text-base sm:text-lg leading-relaxed max-w-xl mb-6">
+                Join India's fastest-growing credit score restoration platform. Help millions of borrowers correct unfair bureau reporting and regain access to formal banking credit.
+              </p>
+
+              <div className="flex gap-4">
+                <a
+                  href="#open-positions"
+                  className="px-8 py-3.5 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 text-slate-950 font-bold text-sm shadow-[0_0_25px_rgba(0,210,255,0.4)] hover:scale-105 active:scale-95 transition-all"
+                >
+                  View Open Positions ↓
+                </a>
+              </div>
+            </div>
+
+            <div className="lg:col-span-5 relative">
+              <div className="rounded-[28px] overflow-hidden border border-cyan-500/30 p-2 bg-[#0a1426]/80 backdrop-blur-xl shadow-[0_0_40px_rgba(0,210,255,0.15)]">
+                <img
+                  src="/images/about/about-2.png"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = "/images/white-logo.png";
                   }}
-                  onClick={() =>
-                    document
-                      .getElementById("positions")
-                      .scrollIntoView({ behavior: "smooth" })
-                  }
-                >
-                  View Open Positions
-                </Button>
-              </Box>
-            </Grid>
-            <Grid
-              item
-              xs={12}
-              md={4}
-              sx={{ display: { xs: "none", md: "block" } }}
-              style={{ flex: "1" }}
-            >
-              <Box
-                sx={{
-                  width: "100%",
-                  height: "400px",
-                  backgroundImage: 'url("./images/join our team.jpg")',
-                  backgroundSize: "cover",
-                  backgroundPosition: "center",
-                  borderRadius: "16px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                }}
-              >
-                <Typography
-                  variant="h4"
-                  sx={{ fontWeight: 700, textAlign: "center" }}
-                >
-                  
-                </Typography>
-              </Box>
-            </Grid>
-          </Grid>
-        </Container>
-      </Box>
+                  alt="Team Credit Dost"
+                  className="w-full h-72 sm:h-80 object-cover rounded-[22px] filter brightness-[0.9]"
+                />
+              </div>
+            </div>
+          </div>
 
-      {/* Why Work at Credit Dost */}
-      <Container sx={{ py: { xs: 4, md: 8 } }} style={{ maxWidth: "1300px" }}>
-        <Box sx={{ textAlign: "center", mb: 6 }}>
-          <Typography
-            variant="h3"
-            sx={{
-              fontWeight: 700,
-              mb: 2,
-              color: "#1e3a5f",
-              position: "relative",
-              pb: 2,
-              display: "inline-block",
-              fontSize: { xs: "1.8rem", md: "2.2rem" },
-              "&::after": {
-                content: '""',
-                position: "absolute",
-                bottom: 0,
-                left: "50%",
-                transform: "translateX(-50%)",
-                width: "80px",
-                height: "4px",
-                background: "linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)",
-                borderRadius: "2px",
-              },
-            }}
-          >
-            Why Work at Credit Dost?
-          </Typography>
-        </Box>
+          {/* Why Work at Credit Dost */}
+          <div className="mb-20">
+            <div className="text-center mb-10">
+              <h2 className="text-2xl sm:text-3xl font-bold font-['Sora'] text-white">Why Build Your Career with Us?</h2>
+              <p className="text-slate-400 text-sm mt-1">High impact, collaborative culture, and fast-track learning</p>
+            </div>
 
-        <Grid
-          container
-          spacing={4}
-          sx={{ flexWrap: { xs: "wrap", md: "nowrap" } }}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {[
+                {
+                  title: "Real Consumer Impact",
+                  desc: "We don't just write dispute letters; we solve life-altering financial obstacles, helping families qualify for homes and education.",
+                  icon: "volunteer_activism",
+                },
+                {
+                  title: "Exponential Career Growth",
+                  desc: "Work closely with banking leaders, dispute attorneys, and statutory credit specialists in an agile, merit-based environment.",
+                  icon: "rocket_launch",
+                },
+                {
+                  title: "Competitive Incentives",
+                  desc: "Industry-benchmark salary packages, milestone bonuses, and health coverage for you and your family.",
+                  icon: "workspace_premium",
+                },
+              ].map((item, idx) => (
+                <div
+                  key={idx}
+                  className="p-6 sm:p-8 rounded-[24px] bg-[#0a1426]/85 border border-slate-800 hover:border-cyan-500/30 transition-all backdrop-blur-xl"
+                >
+                  <div className="w-12 h-12 rounded-xl bg-cyan-500/15 border border-cyan-500/30 text-cyan-400 flex items-center justify-center mb-4">
+                    <span className="material-symbols-outlined text-2xl">{item.icon}</span>
+                  </div>
+                  <h3 className="text-lg font-bold font-['Sora'] text-white mb-2">{item.title}</h3>
+                  <p className="text-slate-400 text-xs sm:text-sm leading-relaxed">{item.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Open Positions Section */}
+          <div id="open-positions" className="mb-20 pt-8">
+            <div className="text-center mb-10">
+              <span className="text-xs font-mono uppercase text-cyan-400 font-bold">CURRENT OPENINGS</span>
+              <h2 className="text-2xl sm:text-4xl font-extrabold font-['Sora'] text-white mt-1">
+                Explore Available Roles
+              </h2>
+            </div>
+
+            <div className="space-y-6 max-w-4xl mx-auto">
+              {positions.map((pos) => (
+                <div
+                  key={pos.id}
+                  className="p-6 sm:p-8 rounded-[24px] bg-[#0a1426]/90 border border-cyan-500/25 hover:border-cyan-400/50 transition-all shadow-[0_0_30px_rgba(0,0,0,0.5)] backdrop-blur-xl"
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+                    <div>
+                      <h3 className="text-xl font-bold font-['Sora'] text-white">{pos.title}</h3>
+                      <div className="flex flex-wrap items-center gap-3 text-xs font-mono text-slate-400 mt-1">
+                        <span className="text-cyan-400 font-semibold">{pos.location}</span>
+                        <span>•</span>
+                        <span>{pos.type}</span>
+                        <span>•</span>
+                        <span className="text-emerald-400">{pos.department}</span>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleApplyClick(pos.title)}
+                      className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 text-slate-950 font-bold text-xs sm:text-sm hover:scale-105 active:scale-95 transition-all self-start sm:self-auto shrink-0"
+                    >
+                      Apply Now →
+                    </button>
+                  </div>
+
+                  <p className="text-slate-300 text-xs sm:text-sm my-4 leading-relaxed">{pos.description}</p>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 text-xs">
+                    <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80">
+                      <div className="font-mono text-cyan-300 font-semibold uppercase mb-2">Key Responsibilities:</div>
+                      <ul className="space-y-1.5 text-slate-400 list-disc list-inside">
+                        {pos.responsibilities.map((r, i) => (
+                          <li key={i}>{r}</li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80">
+                      <div className="font-mono text-emerald-300 font-semibold uppercase mb-2">Requirements:</div>
+                      <ul className="space-y-1.5 text-slate-400 list-disc list-inside">
+                        {pos.requirements.map((req, i) => (
+                          <li key={i}>{req}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Hiring Process Steps */}
+          <div className="pt-10 border-t border-slate-800/80">
+            <div className="text-center mb-10">
+              <h3 className="text-2xl font-bold font-['Sora'] text-white">Our 4-Step Hiring Protocol</h3>
+              <p className="text-slate-400 text-xs sm:text-sm font-mono mt-1">Transparent, fast, and structured</p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {hiringSteps.map((st) => (
+                <div key={st.step} className="p-5 rounded-2xl bg-[#0a1426]/60 border border-slate-800 text-center">
+                  <div className="text-xs font-mono text-cyan-400 font-bold mb-1">{st.step} // STAGE</div>
+                  <div className="text-white font-bold text-base mb-1">{st.title}</div>
+                  <div className="text-slate-400 text-xs">{st.description}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Application Modal */}
+        <Dialog
+          open={openModal}
+          onClose={handleCloseModal}
+          maxWidth="sm"
+          fullWidth
+          PaperProps={{
+            sx: {
+              bgcolor: "#0a1426",
+              color: "#fff",
+              border: "1px solid rgba(0, 210, 255, 0.3)",
+              borderRadius: "24px",
+              p: 2,
+            },
+          }}
         >
-          <Grid item xs={12} md={4} sx={{ mb: { xs: 3, md: 0 } }}>
-            <Box
-              sx={{
-                background: "white",
-                borderRadius: "16px",
-                p: 4,
-                height: "100%",
-                boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-                textAlign: "center",
-                transition: "all 0.3s ease",
-                "&:hover": {
-                  transform: "translateY(-10px)",
-                  boxShadow: "0 10px 30px rgba(0,0,0,0.15)",
-                },
-              }}
-            >
-              <Box
-                sx={{
-                  width: 80,
-                  height: 80,
-                  borderRadius: "50%",
-                  background:
-                    "linear-gradient(135deg, rgba(8, 145, 178, 0.1) 0%, rgba(6, 182, 212, 0.1) 100%)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  margin: "0 auto 24px",
-                  fontSize: "2rem",
-                }}
-              >
-                📈
-              </Box>
-              <Typography
-                variant="h5"
-                sx={{ fontWeight: 700, mb: 2, color: "#1e3a5f" }}
-              >
-                Real Impact
-              </Typography>
-              <Typography variant="body1" sx={{ color: "#64748b" }}>
-                We don't just sell services; we solve problems. Your work
-                directly helps people get loans for homes, cars, and
-                emergencies.
-              </Typography>
-            </Box>
-          </Grid>
+          <DialogTitle sx={{ color: "#fff", fontFamily: "'Sora', sans-serif", fontWeight: 700 }}>
+            Apply for {selectedPosition}
+          </DialogTitle>
+          <DialogContent>
+            {submitSuccess ? (
+              <div className="text-center py-6">
+                <div className="w-14 h-14 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto mb-3">
+                  <span className="material-symbols-outlined text-3xl">check_circle</span>
+                </div>
+                <h4 className="text-xl font-bold text-white mb-2">Application Received!</h4>
+                <p className="text-slate-300 text-xs sm:text-sm">
+                  Our talent acquisition team will review your profile and reach out if your background matches our needs.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4 pt-2">
+                {error && (
+                  <div className="p-3 rounded-xl bg-red-950/60 border border-red-500/40 text-red-200 text-xs">
+                    {error}
+                  </div>
+                )}
 
-          <Grid item xs={12} md={4} sx={{ mb: { xs: 3, md: 0 } }}>
-            <Box
-              sx={{
-                background: "white",
-                borderRadius: "16px",
-                p: 4,
-                height: "100%",
-                boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-                textAlign: "center",
-                transition: "all 0.3s ease",
-                "&:hover": {
-                  transform: "translateY(-10px)",
-                  boxShadow: "0 10px 30px rgba(0,0,0,0.15)",
-                },
-              }}
-            >
-              <Box
-                sx={{
-                  width: 80,
-                  height: 80,
-                  borderRadius: "50%",
-                  background:
-                    "linear-gradient(135deg, rgba(8, 145, 178, 0.1) 0%, rgba(6, 182, 212, 0.1) 100%)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  margin: "0 auto 24px",
-                  fontSize: "2rem",
-                }}
-              >
-                🚀
-              </Box>
-              <Typography
-                variant="h5"
-                sx={{ fontWeight: 700, mb: 2, color: "#1e3a5f" }}
-              >
-                Rapid Growth
-              </Typography>
-              <Typography variant="body1" sx={{ color: "#64748b" }}>
-                We are a fast-moving Fintech company. High performers are
-                rewarded with fast-track promotions and competitive incentives.
-              </Typography>
-            </Box>
-          </Grid>
-
-          <Grid item xs={12} md={4}>
-            <Box
-              sx={{
-                background: "white",
-                borderRadius: "16px",
-                p: 4,
-                height: "100%",
-                boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-                textAlign: "center",
-                transition: "all 0.3s ease",
-                "&:hover": {
-                  transform: "translateY(-10px)",
-                  boxShadow: "0 10px 30px rgba(0,0,0,0.15)",
-                },
-              }}
-            >
-              <Box
-                sx={{
-                  width: 80,
-                  height: 80,
-                  borderRadius: "50%",
-                  background:
-                    "linear-gradient(135deg, rgba(8, 145, 178, 0.1) 0%, rgba(6, 182, 212, 0.1) 100%)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  margin: "0 auto 24px",
-                  fontSize: "2rem",
-                }}
-              >
-                🤝
-              </Box>
-              <Typography
-                variant="h5"
-                sx={{ fontWeight: 700, mb: 2, color: "#1e3a5f" }}
-              >
-                Inclusive Culture
-              </Typography>
-              <Typography variant="body1" sx={{ color: "#64748b" }}>
-                We believe in transparency and teamwork. Whether you are in
-                sales or ops, your voice matters in shaping our products.
-              </Typography>
-            </Box>
-          </Grid>
-        </Grid>
-
-        {/* Current Opportunities */}
-        <Box id="positions" sx={{ mt: 8 }}>
-          <Box sx={{ textAlign: "center", mb: 6 }}>
-            <Typography
-              variant="h3"
-              sx={{
-                fontWeight: 700,
-                mb: 2,
-                color: "#1e3a5f",
-                position: "relative",
-                pb: 2,
-                display: "inline-block",
-                fontSize: { xs: "1.8rem", md: "2.2rem" },
-                "&::after": {
-                  content: '""',
-                  position: "absolute",
-                  bottom: 0,
-                  left: "50%",
-                  transform: "translateX(-50%)",
-                  width: "80px",
-                  height: "4px",
-                  background:
-                    "linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)",
-                  borderRadius: "2px",
-                },
-              }}
-            >
-              Current Opportunities
-            </Typography>
-          </Box>
-
-          <Grid container spacing={4}>
-            {positions.map((position) => (
-              <Grid item xs={12} key={position.id} style={{ width: "100%" }}>
-                <Card
-                  sx={{
-                    borderRadius: "16px",
-                    boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-                    border: "1px solid rgba(0,0,0,0.05)",
-                    transition: "all 0.3s ease",
-                    "&:hover": {
-                      boxShadow: "0 10px 30px rgba(0,0,0,0.15)",
-                      transform: "translateY(-5px)",
-                    },
-                  }}
-                >
-                  <CardContent sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "flex-start",
-                        flexWrap: "wrap",
-                        gap: 2,
-                      }}
-                    >
-                      <Box>
-                        <Typography
-                          variant="h4"
-                          sx={{
-                            fontWeight: 700,
-                            mb: 1,
-                            color: "#1e3a5f",
-                            fontSize: { xs: "1.5rem", md: "inherit" },
-                          }}
-                        >
-                          {position.title}
-                        </Typography>
-                        <Box
-                          sx={{
-                            display: "flex",
-                            flexWrap: "wrap",
-                            gap: 2,
-                            mb: 2,
-                          }}
-                        >
-                          <Typography
-                            variant="body2"
-                            sx={{
-                              display: "flex",
-                              alignItems: "center",
-                              color: "#64748b",
-                            }}
-                          >
-                            📍 {position.location}
-                          </Typography>
-                          <Typography
-                            variant="body2"
-                            sx={{
-                              display: "flex",
-                              alignItems: "center",
-                              color: "#64748b",
-                            }}
-                          >
-                            💼 {position.type}
-                          </Typography>
-                          <Typography
-                            variant="body2"
-                            sx={{
-                              display: "flex",
-                              alignItems: "center",
-                              color: "#64748b",
-                            }}
-                          >
-                            🏢 {position.department}
-                          </Typography>
-                        </Box>
-                      </Box>
-                    </Box>
-
-                    <Typography
-                      variant="h6"
-                      sx={{
-                        fontWeight: 600,
-                        mb: 1,
-                        color: "#1e3a5f",
-                        fontSize: { xs: "1.2rem", md: "inherit" },
-                      }}
-                    >
-                      About the Role
-                    </Typography>
-                    <Typography
-                      variant="body1"
-                      sx={{ mb: 3, color: "#64748b" }}
-                    >
-                      {position.description}
-                    </Typography>
-
-                    <Typography
-                      variant="h6"
-                      sx={{
-                        fontWeight: 600,
-                        mb: 1,
-                        color: "#1e3a5f",
-                        fontSize: { xs: "1.2rem", md: "inherit" },
-                      }}
-                    >
-                      Responsibilities
-                    </Typography>
-                    <Box component="ul" sx={{ pl: 3, mb: 3 }}>
-                      {position.responsibilities.map((resp, idx) => (
-                        <Typography
-                          component="li"
-                          variant="body1"
-                          key={idx}
-                          sx={{ mb: 1, color: "#64748b" }}
-                        >
-                          {resp}
-                        </Typography>
-                      ))}
-                    </Box>
-
-                    <Typography
-                      variant="h6"
-                      sx={{
-                        fontWeight: 600,
-                        mb: 1,
-                        color: "#1e3a5f",
-                        fontSize: { xs: "1.2rem", md: "inherit" },
-                      }}
-                    >
-                      Requirements
-                    </Typography>
-                    <Box component="ul" sx={{ pl: 3, mb: 3 }}>
-                      {position.requirements.map((req, idx) => (
-                        <Typography
-                          component="li"
-                          variant="body1"
-                          key={idx}
-                          sx={{ mb: 1, color: "#64748b" }}
-                        >
-                          {req}
-                        </Typography>
-                      ))}
-                    </Box>
-                  </CardContent>
-                  <CardActions
-                    sx={{ px: { xs: 2, sm: 3, md: 4 }, pb: 3, pt: 0 }}
-                  >
-                    <Button
-                      variant="contained"
-                      size="large"
-                      sx={{
-                        background:
-                          "linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)",
-                        color: "white",
-                        fontWeight: 700,
-                        textTransform: "none",
-                        padding: "10px 24px",
-                        borderRadius: "50px",
-                        fontSize: "1rem",
-                        boxShadow: "0 4px 20px rgba(8, 145, 178, 0.3)",
-                        transition: "all 0.3s ease",
-                        "&:hover": {
-                          transform: "translateY(-2px)",
-                          boxShadow: "0 6px 25px rgba(8, 145, 178, 0.4)",
-                          background:
-                            "linear-gradient(135deg, #0e7490 0%, #0891b2 100%)",
-                        },
-                      }}
-                      onClick={() => handleApplyClick(position.title)}
-                    >
-                      Apply Now
-                    </Button>
-                  </CardActions>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
-        </Box>
-
-        {/* Hiring Process */}
-        <Box sx={{ mt: 8, mb: 6 }}>
-          <Box sx={{ textAlign: "center", mb: 6 }}>
-            <Typography
-              variant="h3"
-              sx={{
-                fontWeight: 700,
-                mb: 2,
-                color: "#1e3a5f",
-                position: "relative",
-                pb: 2,
-                display: "inline-block",
-                fontSize: { xs: "1.8rem", md: "2.2rem" },
-                "&::after": {
-                  content: '""',
-                  position: "absolute",
-                  bottom: 0,
-                  left: "50%",
-                  transform: "translateX(-50%)",
-                  width: "80px",
-                  height: "4px",
-                  background:
-                    "linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)",
-                  borderRadius: "2px",
-                },
-              }}
-            >
-              Our Hiring Process
-            </Typography>
-          </Box>
-
-          <Grid
-            container
-            spacing={4}
-            sx={{ flexDirection: { xs: "column", md: "row" } }}
-          >
-            {hiringSteps.map((step, index) => (
-              <Grid
-                item
-                xs={12}
-                sm={6}
-                md={3}
-                key={index}
-                style={{ flex: "1" }}
-              >
-                <Box
-                  sx={{
-                    background: "white",
-                    borderRadius: "16px",
-                    p: { xs: 2, sm: 3, md: 4 },
-                    height: "100%",
-                    boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-                    textAlign: "center",
-                    position: "relative",
-                    border: "1px solid rgba(0,0,0,0.05)",
-                    transition: "all 0.3s ease",
-                    "&:hover": {
-                      transform: "translateY(-5px)",
-                      boxShadow: "0 10px 30px rgba(0,0,0,0.15)",
-                    },
-                    "&::before": {
-                      content: `"${step.step}"`,
-                      position: "absolute",
-                      top: "-20px",
-                      left: "50%",
-                      transform: "translateX(-50%)",
-                      width: "40px",
-                      height: "40px",
-                      background:
-                        "linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)",
-                      borderRadius: "50%",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: "white",
-                      fontWeight: 700,
-                      fontSize: "1rem",
-                    },
-                  }}
-                >
-                  <Typography
-                    variant="h5"
+                <div>
+                  <label className="block text-xs font-mono uppercase text-slate-300 mb-1">Full Name *</label>
+                  <TextField
+                    fullWidth
+                    required
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    placeholder="e.g. Priyanshu Verma"
                     sx={{
-                      fontWeight: 700,
-                      mb: 2,
-                      color: "#1e3a5f",
-                      fontSize: { xs: "1.3rem", md: "inherit" },
+                      "& .MuiOutlinedInput-root": {
+                        color: "#fff",
+                        bgcolor: "#071120",
+                        borderRadius: "12px",
+                        "& fieldset": { borderColor: "rgba(0, 210, 255, 0.25)" },
+                      },
                     }}
-                  >
-                    {step.title}
-                  </Typography>
-                  <Typography variant="body1" sx={{ color: "#64748b" }}>
-                    {step.description}
-                  </Typography>
-                </Box>
-              </Grid>
-            ))}
-          </Grid>
-        </Box>
-      </Container>
+                  />
+                </div>
 
-      <HomePageFooter />
+                <div>
+                  <label className="block text-xs font-mono uppercase text-slate-300 mb-1">Email Address *</label>
+                  <TextField
+                    fullWidth
+                    required
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    placeholder="name@example.com"
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        color: "#fff",
+                        bgcolor: "#071120",
+                        borderRadius: "12px",
+                        "& fieldset": { borderColor: "rgba(0, 210, 255, 0.25)" },
+                      },
+                    }}
+                  />
+                </div>
 
-      {/* Application Modal */}
-      <Dialog
-        open={openModal}
-        onClose={handleCloseModal}
-        maxWidth="sm"
-        fullWidth
-        sx={{
-          "& .MuiDialog-paper": {
-            m: { xs: 2, sm: 4 },
-            maxHeight: { xs: "90vh", sm: "80vh" },
-            maxWidth: "550px",
-            width: "100%",
-          },
-        }}
-      >
-        <DialogTitle sx={{ pb: 1 }}>
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <Typography variant="h5" sx={{ fontWeight: 700, color: "#1e3a5f" }}>
-              Apply for Position
-            </Typography>
-            <IconButton onClick={handleCloseModal}>
-              <CloseIcon />
-            </IconButton>
-          </Box>
-          <Typography variant="body1" sx={{ color: "#64748b" }}>
-            {selectedPosition}
-          </Typography>
-        </DialogTitle>
-        <DialogContent
-          sx={{ overflowY: "auto", maxHeight: "calc(80vh - 200px)" }}
-        >
-          <Box component="form" sx={{ mt: 1 }}>
-            <Grid container spacing={2}>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Full Name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  required
-                  variant="outlined"
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Email Address"
-                  name="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  required
-                  variant="outlined"
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Phone Number"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleInputChange}
-                  required
-                  variant="outlined"
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <Button
-                  variant="outlined"
-                  component="label"
-                  fullWidth
-                  sx={{
-                    justifyContent: "flex-start",
-                    textTransform: "none",
-                    padding: { xs: "12px", sm: "15px" },
-                    borderColor: "#e2e8f0",
-                    color: "#64748b",
-                    "&:hover": {
-                      borderColor: "#cbd5e1",
-                      backgroundColor: "rgba(8, 145, 178, 0.03)",
-                    },
-                  }}
-                  startIcon={<UploadIcon />}
-                >
-                  {resume ? resume.name : "Upload Resume"}
+                <div>
+                  <label className="block text-xs font-mono uppercase text-slate-300 mb-1">Phone Number *</label>
+                  <TextField
+                    fullWidth
+                    required
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    placeholder="9876543210"
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        color: "#fff",
+                        bgcolor: "#071120",
+                        borderRadius: "12px",
+                        "& fieldset": { borderColor: "rgba(0, 210, 255, 0.25)" },
+                      },
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-mono uppercase text-slate-300 mb-1">Resume / CV * (PDF, DOCX)</label>
                   <input
                     type="file"
-                    hidden
                     accept=".pdf,.doc,.docx"
                     onChange={handleFileChange}
+                    className="block w-full text-xs text-slate-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-cyan-500/20 file:text-cyan-300 hover:file:bg-cyan-500/30 cursor-pointer"
                   />
-                </Button>
-                {resume && (
-                  <Typography variant="body2" sx={{ mt: 1, color: "#64748b" }}>
-                    Selected: {resume.name}
-                  </Typography>
-                )}
-              </Grid>
-            </Grid>
-          </Box>
-        </DialogContent>
-        <DialogActions sx={{ px: { xs: 2, sm: 3 }, py: 2 }}>
-          <Button onClick={handleCloseModal} sx={{ color: "#64748b" }}>
-            Cancel
-          </Button>
-          <Button
-            variant="contained"
-            onClick={handleSubmitApplication}
-            disabled={
-              !formData.name ||
-              !formData.email ||
-              !formData.phone ||
-              !resume ||
-              isSubmitting
-            }
-            sx={{
-              background: "linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)",
-              color: "white",
-              fontWeight: 700,
-              textTransform: "none",
-              padding: "8px 24px",
-              borderRadius: "50px",
-              boxShadow: "0 4px 20px rgba(8, 145, 178, 0.3)",
-              transition: "all 0.3s ease",
-              minWidth: "150px",
-              "&:hover": {
-                transform: "translateY(-2px)",
-                boxShadow: "0 6px 25px rgba(8, 145, 178, 0.4)",
-                background: "linear-gradient(135deg, #0e7490 0%, #0891b2 100%)",
-              },
-              "&.Mui-disabled": {
-                background: "linear-gradient(135deg, #94a3b8 0%, #cbd5e1 100%)",
-                color: "white",
-              },
-            }}
-          >
-            {isSubmitting ? (
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <CircularProgress size={20} sx={{ color: "white" }} />
-                <span>Uploading...</span>
-              </Box>
-            ) : (
-              "Submit Application"
+                </div>
+              </div>
             )}
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </DialogContent>
+          <DialogActions sx={{ px: 3, pb: 2 }}>
+            {submitSuccess ? (
+              <button
+                onClick={handleCloseModal}
+                className="px-5 py-2.5 rounded-xl bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-xs font-bold"
+              >
+                Close
+              </button>
+            ) : (
+              <>
+                <button
+                  onClick={handleCloseModal}
+                  className="px-4 py-2 rounded-xl text-slate-400 hover:text-white text-xs font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSubmitApplication}
+                  disabled={isSubmitting}
+                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 text-slate-950 text-xs font-bold shadow-lg disabled:opacity-50"
+                >
+                  {isSubmitting ? "Uploading..." : "Submit Application"}
+                </button>
+              </>
+            )}
+          </DialogActions>
+        </Dialog>
+      </main>
 
-      {/* Snackbar for notifications */}
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={handleSnackbarClose}
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-      >
-        <Alert
-          onClose={handleSnackbarClose}
-          severity={snackbar.severity}
-          sx={{ width: "100%" }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
-    </Box>
+      <HomePageFooter />
+    </div>
   );
 };
 

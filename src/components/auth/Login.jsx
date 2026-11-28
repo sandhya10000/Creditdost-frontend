@@ -1,138 +1,27 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import {
-  Container,
-  Typography,
   TextField,
-  Button,
-  Box,
-  Paper,
-  Alert,
-  Card,
-  CardContent,
-  styled,
   InputAdornment,
   IconButton,
-  Grid,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   Chip,
+  CircularProgress,
 } from "@mui/material";
 import { useAuth } from "../../hooks/useAuth.jsx";
 import { authAPI } from "../../services/api.jsx";
 import { trackEvent, trackException } from "../../hooks/useAnalytics";
 import Header from "../homepage/Header.jsx";
+import HomePageFooter from "../homepage/HomePageFooter.jsx";
 import {
   Email as EmailIcon,
   Lock as LockIcon,
   Visibility,
   VisibilityOff,
 } from "@mui/icons-material";
-import HomePageFooter from "../homepage/HomePageFooter.jsx";
-
-const GradientBackground = styled(Box)(({ theme }) => ({
-  minHeight: "80vh",
-  display: "flex",
-  background: "url('/images/reg.jpg')",
-  alignItems: "center",
-  justifyContent: "center",
-  padding: theme.spacing(2),
-  backgroundSize: "cover",
-  backgroundRepeat: "no-repeat",
-  backgroundPosition: "center center",
-}));
-
-const StyledCard = styled(Card)(({ theme }) => ({
-  width: "100%",
-  borderRadius: theme.shape.borderRadius * 3,
-  boxShadow: theme.shadows[15],
-  overflow: "visible",
-  position: "relative",
-  "&::before": {
-    content: '""',
-    position: "absolute",
-    top: -2,
-    left: -2,
-    right: -2,
-    bottom: -2,
-    background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-    borderRadius: theme.shape.borderRadius * 3.5,
-    zIndex: -1,
-  },
-}));
-
-const IllustrationSection = styled(Box)(({ theme }) => ({
-  background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main}, ${theme.palette.primary.dark}, ${theme.palette.secondary.dark})`,
-  backgroundSize: "400% 400%",
-  animation: "gradientShift 8s ease infinite",
-  minHeight: "100%",
-  borderRadius: `${theme.shape.borderRadius * 3}px 0 0 ${
-    theme.shape.borderRadius * 3
-  }px`,
-  display: "flex",
-  flexDirection: "column",
-  justifyContent: "center",
-  alignItems: "center",
-  padding: theme.spacing(4),
-  color: "white",
-  position: "relative",
-  overflow: "hidden",
-  [theme.breakpoints.down("md")]: {
-    borderRadius: `${theme.shape.borderRadius * 3}px ${
-      theme.shape.borderRadius * 3
-    }px 0 0`,
-  },
-  "&::before": {
-    content: '""',
-    position: "absolute",
-    width: "200px",
-    height: "200px",
-    background: "rgba(255, 255, 255, 0.15)",
-    borderRadius: "50%",
-    top: "20%",
-    left: "10%",
-    filter: "blur(20px)",
-    animation: "blobOne 12s ease-in-out infinite",
-    zIndex: 0,
-  },
-  "&::after": {
-    content: '""',
-    position: "absolute",
-    width: "150px",
-    height: "150px",
-    background: "rgba(255, 255, 255, 0.2)",
-    borderRadius: "50%",
-    top: "60%",
-    right: "15%",
-    filter: "blur(20px)",
-    animation: "blobTwo 15s ease-in-out infinite",
-    zIndex: 0,
-  },
-}));
-
-const LogoBox = styled(Box)(({ theme }) => ({
-  textAlign: "center",
-  marginBottom: theme.spacing(3),
-  "& svg": {
-    width: 80,
-    height: 80,
-    backgroundColor: "rgba(255,255,255,0.2)",
-    borderRadius: "50%",
-    padding: theme.spacing(2),
-    color: "white",
-    position: "relative",
-    zIndex: 1,
-  },
-}));
-
-const FormSection = styled(Box)(({ theme }) => ({
-  padding: theme.spacing(4),
-  [theme.breakpoints.down("md")]: {
-    padding: theme.spacing(3),
-  },
-}));
 
 const Login = () => {
   const location = useLocation();
@@ -150,20 +39,19 @@ const Login = () => {
   const [forgotSuccess, setForgotSuccess] = useState("");
   const [forgotError, setForgotError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
-  const { login, user } = useAuth();
+  const { login } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
-    // Basic validation
     if (!email || !password) {
       setError("Please enter both email and password");
       return;
     }
 
-    // Email format validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       setError("Please enter a valid email address");
@@ -171,55 +59,47 @@ const Login = () => {
     }
 
     try {
-      // Track login attempt
+      setSubmitting(true);
       trackEvent("User Authentication", "Login Attempt", "Login Page");
 
       const response = await login({ email, password });
-      // ADD THIS
       localStorage.setItem("user", JSON.stringify(response.user));
-      // Track successful login
       trackEvent("User Authentication", "Login Successful", "Login Page");
 
-      // Redirect based on user role from the response
       if (response.user?.role === "admin") {
         navigate("/admin");
       } else if (selectedPackage) {
-        // If user came from packages page, redirect to payment with selected package
         navigate("/franchise/payment", { state: { package: selectedPackage } });
       } else {
         navigate("/franchise");
       }
     } catch (err) {
       console.error("Login component error:", err);
-
-      // Track login failure
       trackException(
         `Login failed: ${err.response?.data?.message || err.message}`,
-        false,
+        false
       );
       trackEvent("User Authentication", "Login Failed", "Login Page");
 
       if (err.response) {
-        // Server responded with error status
         setError(
           err.response.data?.message ||
             err.response.data?.details ||
-            "Login failed. Please check your credentials.",
+            "Invalid email or password. Please verify and try again."
         );
       } else if (err.request) {
-        // Request was made but no response received
         setError(
-          "Unable to connect to server. Please check your internet connection.",
+          "Unable to connect to server. Please check your internet connection."
         );
       } else {
-        // Something else happened
         setError("An unexpected error occurred. Please try again.");
       }
+    } finally {
+      setSubmitting(false);
     }
   };
 
   const handleForgotPassword = async () => {
-    // Email format validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(forgotEmail)) {
       setForgotError("Please enter a valid email address");
@@ -232,12 +112,12 @@ const Login = () => {
 
     try {
       const response = await authAPI.forgotPassword(forgotEmail);
-      setForgotSuccess(response.data.message);
+      setForgotSuccess(response.data.message || "Password reset link sent to your email.");
     } catch (err) {
       console.error("Forgot password error:", err);
       if (err.response) {
         setForgotError(
-          err.response.data?.message || "Failed to reset password",
+          err.response.data?.message || "Failed to reset password. Email not found."
         );
       } else {
         setForgotError("Unable to connect to server. Please try again.");
@@ -248,237 +128,298 @@ const Login = () => {
   };
 
   return (
-    <>
+    <div className="bg-[#080E1B] font-body-md text-slate-100 antialiased min-h-screen flex flex-col justify-between selection:bg-cyan-500 selection:text-slate-950">
       <Header />
-      <GradientBackground>
-        <style>
-          {`
-          @keyframes gradientShift {
-            0% {
-              background-position: 0% 50%;
-            }
-            50% {
-              background-position: 100% 50%;
-            }
-            100% {
-              background-position: 0% 50%;
-            }
-          }
-          
-          @keyframes blobOne {
-            0% {
-              transform: translate(0px, 0px) scale(1);
-            }
-            33% {
-              transform: translate(130px, -50px) scale(1.1);
-            }
-            66% {
-              transform: translate(-20px, 120px) scale(0.9);
-            }
-            100% {
-              transform: translate(10px, 0px) scale(1);
-            }
-          }
-          
-          @keyframes blobTwo {
-            0% {
-              transform: translate(0px, 0px) scale(1);
-            }
-            33% {
-              transform: translate(-40px, 30px) scale(1.2);
-            }
-            66% {
-              transform: translate(20px, -20px) scale(0.8);
-            }
-            100% {
-              transform: translate(0px, 0px) scale(1);
-            }
-          }
-        `}
-        </style>
-        <Container maxWidth="lg">
-          <StyledCard>
-            <Grid
-              container
-              style={{ flexWrap: "nowrap", minHeight: "60vh" }}
-              sx={{ flexDirection: { xs: "column", md: "row" } }}
-            >
-              <Grid item xs={12} md={5} flex={1}>
-                <IllustrationSection>
-                  <LogoBox>
-                    <img
-                      src="/images/cred.png"
-                      alt="Logo"
-                      style={{ width: "290px" }}
-                    />
-                  </LogoBox>
-                  <Typography
-                    variant="h4"
-                    fontWeight="700"
-                    textAlign="center"
-                    mb={2}
-                    sx={{
-                      position: "relative",
-                      zIndex: 1,
-                      fontSize: { xs: "1.9rem", md: "2.2rem" },
+
+      <main className="relative flex-grow flex items-center justify-center px-4 sm:px-6 lg:px-8 pt-24 pb-16 overflow-hidden min-h-[calc(100vh-80px)]">
+        {/* Full-width Background Cover Image */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src="/images/login_cover.jpg"
+            alt="Login Background"
+            className="w-full h-full object-cover object-center filter brightness-[0.80] contrast-[1.05]"
+          />
+          {/* Subtle gradient overlays to ensure page background merges smoothly while keeping the photo fully visible */}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#080E1B] via-[#080E1B]/35 to-[#080E1B]/60" />
+          <div className="absolute inset-0 bg-[#080E1B]/20" />
+        </div>
+
+        {/* Ambient Glows */}
+        <div className="absolute top-1/4 left-1/4 w-[500px] h-[350px] bg-cyan-500/10 rounded-full blur-[140px] pointer-events-none z-[1]" />
+        <div className="absolute bottom-10 right-1/4 w-[450px] h-[350px] bg-blue-600/10 rounded-full blur-[130px] pointer-events-none z-[1]" />
+
+        <div className="w-full max-w-5xl relative z-10 my-auto">
+          <div className="rounded-[28px] overflow-hidden border border-cyan-500/35 bg-[#0a1426]/90 backdrop-blur-2xl shadow-[0_0_60px_rgba(0,210,255,0.18),0_30px_70px_rgba(0,0,0,0.85)] grid grid-cols-1 lg:grid-cols-12">
+            
+            {/* Left Brand Showcase Column */}
+            <div className="lg:col-span-5 relative p-8 sm:p-10 lg:p-12 flex flex-col justify-between overflow-hidden bg-gradient-to-br from-[#0c2242] via-[#09172e] to-[#060c18] border-b lg:border-b-0 lg:border-r border-cyan-500/20">
+              {/* Inner Decorative Background Rings */}
+              <div className="absolute -top-20 -left-20 w-64 h-64 rounded-full border border-cyan-500/20 animate-[spin_60s_linear_infinite]" />
+              <div className="absolute -bottom-24 -right-24 w-80 h-80 rounded-full border border-sky-400/10" />
+
+              <div className="relative z-10">
+                <Link to="/" className="inline-block mb-8 group">
+                  <img
+                    src="/images/white-logo.png"
+                    alt="Credit Dost"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = "/images/cred.png";
                     }}
-                  >
-                    Welcome Back
-                  </Typography>
-                  <Typography
-                    variant="body1"
-                    textAlign="center"
-                    sx={{
-                      maxWidth: 300,
-                      opacity: 0.9,
-                      position: "relative",
-                      zIndex: 1,
-                    }}
-                  >
-                    Sign in to access your franchise dashboard and manage your
-                    business
-                  </Typography>
-                </IllustrationSection>
-              </Grid>
-              <Grid item xs={12} md={7} flex={1}>
-                <FormSection
-                  style={{
-                    justifyItems: "center",
-                    alignContent: "center",
-                    height: "100%",
-                  }}
-                >
-                  <Typography
-                    component="h1"
-                    variant="h4"
-                    align="center"
-                    mb={3}
-                    fontWeight="700"
-                    sx={{ fontSize: { xs: "1.9rem", md: "2.1rem" } }}
-                  >
+                    className="h-10 sm:h-12 w-auto object-contain transition-transform group-hover:scale-105"
+                  />
+                </Link>
+
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-950/70 border border-cyan-500/30 text-cyan-300 font-mono text-xs mb-4">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_#3afaac]" />
+                  <span>SECURE PARTNER PORTAL</span>
+                </div>
+
+                <h2 className="text-2xl sm:text-3xl font-extrabold text-white font-['Sora'] tracking-tight leading-snug mb-3">
+                  Welcome to Your <br />
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-sky-300 to-emerald-400">
+                    Partner Workspace.
+                  </span>
+                </h2>
+
+                <p className="text-slate-300 text-sm leading-relaxed mb-6">
+                  Sign in to manage client disputes, track bureau resolution status, and access real-time performance analytics.
+                </p>
+
+                {/* Trust Badges List */}
+                <div className="space-y-3 pt-2 text-xs font-mono">
+                  <div className="flex items-center gap-2.5 text-slate-300">
+                    <span className="w-5 h-5 rounded-md bg-cyan-500/15 text-cyan-400 flex items-center justify-center shrink-0 border border-cyan-500/30">
+                      ✓
+                    </span>
+                    <span>256-Bit Bank-Grade Data Vault</span>
+                  </div>
+                  <div className="flex items-center gap-2.5 text-slate-300">
+                    <span className="w-5 h-5 rounded-md bg-emerald-500/15 text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/30">
+                      ✓
+                    </span>
+                    <span>Direct CICRA 2005 Dispute Sync</span>
+                  </div>
+                  <div className="flex items-center gap-2.5 text-slate-300">
+                    <span className="w-5 h-5 rounded-md bg-sky-500/15 text-sky-400 flex items-center justify-center shrink-0 border border-sky-500/30">
+                      ✓
+                    </span>
+                    <span>All 4 National Bureaus Integrated</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bottom Support Callout */}
+              <div className="relative z-10 pt-8 mt-6 border-t border-slate-800/80 flex items-center justify-between text-xs font-mono text-slate-400">
+                <span>Need support?</span>
+                <a href="tel:+919217469202" className="text-cyan-400 font-bold hover:underline">
+                  +91 92174-69202
+                </a>
+              </div>
+            </div>
+
+            {/* Right Login Form Column */}
+            <div className="lg:col-span-7 p-8 sm:p-10 lg:p-12 flex flex-col justify-center">
+              <div className="max-w-md w-full mx-auto">
+                <div className="mb-6">
+                  <h3 className="text-2xl sm:text-3xl font-bold font-['Sora'] text-white tracking-tight mb-2">
                     Login to Your Account
-                  </Typography>
+                  </h3>
+                  <p className="text-slate-400 text-sm">
+                    Enter your authorized credentials to access your dashboard.
+                  </p>
+                </div>
 
-                  {selectedPackage && (
-                    <Alert
-                      severity="info"
-                      sx={{ mb: 2, borderRadius: 2 }}
-                      action={
-                        <Chip
-                          label={`${selectedPackage.creditsIncluded} Credits - ₹${selectedPackage.price}`}
-                          color="primary"
-                          size="small"
-                        />
-                      }
-                    >
-                      <strong>{selectedPackage.name}</strong> package selected
-                    </Alert>
-                  )}
+                {selectedPackage && (
+                  <div className="mb-4 p-3 rounded-xl bg-cyan-950/40 border border-cyan-500/30 flex items-center justify-between text-xs font-mono text-cyan-300">
+                    <span>
+                      Package: <strong>{selectedPackage.name}</strong>
+                    </span>
+                    <span className="px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-200">
+                      {selectedPackage.creditsIncluded} Credits
+                    </span>
+                  </div>
+                )}
 
-                  {error && (
-                    <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
-                      {error}
-                    </Alert>
-                  )}
+                {error && (
+                  <div className="mb-4 p-3.5 rounded-xl bg-red-950/50 border border-red-500/40 text-red-200 text-xs sm:text-sm flex items-center gap-2">
+                    <span className="material-symbols-outlined text-red-400 text-lg shrink-0">error</span>
+                    <span>{error}</span>
+                  </div>
+                )}
 
-                  <Box component="form" onSubmit={handleSubmit} noValidate>
-                    <Grid container spacing={2}>
-                      <Grid item xs={12} width={"100%"}>
-                        <TextField
-                          fullWidth
-                          required
-                          id="email"
-                          label="Email Address"
-                          name="email"
-                          autoComplete="email"
-                          autoFocus
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          InputProps={{
-                            startAdornment: (
-                              <InputAdornment position="start">
-                                <EmailIcon />
-                              </InputAdornment>
-                            ),
-                          }}
-                        />
-                      </Grid>
-
-                      <Grid item xs={12} width={"100%"}>
-                        <TextField
-                          fullWidth
-                          required
-                          name="password"
-                          label="Password"
-                          type={showPassword ? "text" : "password"}
-                          id="password"
-                          autoComplete="current-password"
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          InputProps={{
-                            startAdornment: (
-                              <InputAdornment position="start">
-                                <LockIcon />
-                              </InputAdornment>
-                            ),
-                            endAdornment: (
-                              <InputAdornment position="end">
-                                <IconButton
-                                  onClick={() => setShowPassword(!showPassword)}
-                                  edge="end"
-                                >
-                                  {showPassword ? (
-                                    <VisibilityOff />
-                                  ) : (
-                                    <Visibility />
-                                  )}
-                                </IconButton>
-                              </InputAdornment>
-                            ),
-                          }}
-                        />
-                      </Grid>
-                    </Grid>
-
-                    <Button
-                      type="submit"
+                <form onSubmit={handleSubmit} noValidate className="space-y-4">
+                  {/* Email Input */}
+                  <div>
+                    <label className="block text-xs font-mono uppercase text-slate-300 tracking-wider mb-1.5 font-semibold">
+                      Email Address *
+                    </label>
+                    <TextField
                       fullWidth
-                      variant="contained"
-                      size="large"
-                      sx={{
-                        mt: 3,
-                        mb: 2,
-                        py: 1.5,
-                        borderRadius: 3,
-                        fontWeight: 600,
-                        boxShadow: "0 4px 12px rgba(98, 0, 234, 0.3)",
+                      required
+                      id="email"
+                      placeholder="name@example.com"
+                      name="email"
+                      autoComplete="email"
+                      autoFocus
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <EmailIcon sx={{ color: "#00d2ff", fontSize: 20 }} />
+                          </InputAdornment>
+                        ),
                       }}
-                    >
-                      Sign In
-                    </Button>
+                      sx={{
+                        "& .MuiOutlinedInput-root": {
+                          color: "#ffffff !important",
+                          backgroundColor: "#071120 !important",
+                          borderRadius: "12px",
+                          fontFamily: "'Inter', sans-serif",
+                          "& fieldset": {
+                            borderColor: "rgba(0, 210, 255, 0.3)",
+                            borderWidth: "1.5px",
+                          },
+                          "&:hover fieldset": {
+                            borderColor: "rgba(0, 210, 255, 0.65)",
+                          },
+                          "&.Mui-focused fieldset": {
+                            borderColor: "#00d2ff !important",
+                            boxShadow: "0 0 16px rgba(0, 210, 255, 0.35)",
+                            borderWidth: "2px",
+                          },
+                          "& input": {
+                            color: "#ffffff !important",
+                            backgroundColor: "transparent !important",
+                            fontSize: "0.95rem",
+                            WebkitTextFillColor: "#ffffff !important",
+                            "&:-webkit-autofill": {
+                              WebkitBoxShadow: "0 0 0 1000px #071120 inset !important",
+                              WebkitTextFillColor: "#ffffff !important",
+                              caretColor: "#ffffff",
+                              borderRadius: "12px",
+                            },
+                          },
+                        },
+                      }}
+                    />
+                  </div>
 
-                    <Box textAlign="center" sx={{ mt: 1 }}>
-                      <Button
+                  {/* Password Input */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-xs font-mono uppercase text-slate-300 tracking-wider font-semibold">
+                        Password *
+                      </label>
+                      <button
+                        type="button"
                         onClick={() => setOpenForgotPassword(true)}
-                        sx={{ textTransform: "none" }}
+                        className="text-xs text-cyan-400 hover:text-cyan-300 font-mono transition-colors"
                       >
-                        <Typography
-                          variant="body2"
-                          color="primary.main"
-                          fontWeight="500"
-                        >
-                          Forgot Password?
-                        </Typography>
-                      </Button>
-                    </Box>
+                        Forgot Password?
+                      </button>
+                    </div>
+                    <TextField
+                      fullWidth
+                      required
+                      name="password"
+                      placeholder="••••••••"
+                      type={showPassword ? "text" : "password"}
+                      id="password"
+                      autoComplete="current-password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <LockIcon sx={{ color: "#00d2ff", fontSize: 20 }} />
+                          </InputAdornment>
+                        ),
+                        endAdornment: (
+                          <InputAdornment position="end">
+                            <IconButton
+                              onClick={() => setShowPassword(!showPassword)}
+                              edge="end"
+                              sx={{ color: "rgba(148, 163, 184, 0.8)" }}
+                            >
+                              {showPassword ? <VisibilityOff /> : <Visibility />}
+                            </IconButton>
+                          </InputAdornment>
+                        ),
+                      }}
+                      sx={{
+                        "& .MuiOutlinedInput-root": {
+                          color: "#ffffff !important",
+                          backgroundColor: "#071120 !important",
+                          borderRadius: "12px",
+                          fontFamily: "'Inter', sans-serif",
+                          "& fieldset": {
+                            borderColor: "rgba(0, 210, 255, 0.3)",
+                            borderWidth: "1.5px",
+                          },
+                          "&:hover fieldset": {
+                            borderColor: "rgba(0, 210, 255, 0.65)",
+                          },
+                          "&.Mui-focused fieldset": {
+                            borderColor: "#00d2ff !important",
+                            boxShadow: "0 0 16px rgba(0, 210, 255, 0.35)",
+                            borderWidth: "2px",
+                          },
+                          "& input": {
+                            color: "#ffffff !important",
+                            backgroundColor: "transparent !important",
+                            fontSize: "0.95rem",
+                            WebkitTextFillColor: "#ffffff !important",
+                            "&:-webkit-autofill": {
+                              WebkitBoxShadow: "0 0 0 1000px #071120 inset !important",
+                              WebkitTextFillColor: "#ffffff !important",
+                              caretColor: "#ffffff",
+                              borderRadius: "12px",
+                            },
+                          },
+                        },
+                      }}
+                    />
+                  </div>
 
-                    {/* Registration is closed for now; link hidden */}
-                  </Box>
-                </FormSection>
-              </Grid>
-            </Grid>
-          </StyledCard>
-        </Container>
+                  {/* Submit Button */}
+                  <div className="pt-2">
+                    <button
+                      type="submit"
+                      disabled={submitting}
+                      className="w-full py-4 px-6 rounded-xl bg-gradient-to-r from-cyan-400 via-sky-500 to-blue-600 text-slate-950 font-bold text-base shadow-[0_0_30px_rgba(0,210,255,0.45)] hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      {submitting ? (
+                        <>
+                          <CircularProgress size={20} sx={{ color: "#080E1B" }} />
+                          <span>Verifying Credentials...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>Sign In to Dashboard</span>
+                          <span className="material-symbols-outlined text-xl">login</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </form>
+
+                {/* Franchise Partnership Link */}
+                <div className="mt-8 pt-6 border-t border-slate-800/80 text-center text-xs font-mono text-slate-400">
+                  <span>Want to become a Credit Dost partner? </span>
+                  <Link
+                    to="/franchise-opportunity"
+                    className="text-cyan-400 hover:text-cyan-300 font-bold transition-colors ml-1"
+                  >
+                    Apply for Franchise →
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
 
         {/* Forgot Password Dialog */}
         <Dialog
@@ -486,63 +427,91 @@ const Login = () => {
           onClose={() => setOpenForgotPassword(false)}
           maxWidth="sm"
           fullWidth
+          PaperProps={{
+            sx: {
+              bgcolor: "#0a1426",
+              color: "#ffffff",
+              border: "1px solid rgba(0, 210, 255, 0.3)",
+              borderRadius: "20px",
+              boxShadow: "0 25px 60px rgba(0,0,0,0.9)",
+              p: 2,
+            },
+          }}
         >
-          <DialogTitle>Forgot Password</DialogTitle>
+          <DialogTitle sx={{ color: "#ffffff", fontFamily: "'Sora', sans-serif", fontWeight: 700 }}>
+            Reset Password
+          </DialogTitle>
           <DialogContent>
             {forgotSuccess ? (
-              <Alert severity="success">{forgotSuccess}</Alert>
+              <div className="p-3.5 rounded-xl bg-emerald-950/60 border border-emerald-400/40 text-emerald-300 text-sm">
+                {forgotSuccess}
+              </div>
             ) : (
-              <>
-                <Typography variant="body1" sx={{ mb: 2 }}>
-                  Enter your email address and we'll send you a new password.
-                </Typography>
+              <div className="space-y-4">
+                <p className="text-slate-300 text-sm">
+                  Enter your registered partner email address and we will dispatch a password recovery link.
+                </p>
                 {forgotError && (
-                  <Alert severity="error" sx={{ mb: 2 }}>
+                  <div className="p-3 rounded-xl bg-red-950/60 border border-red-500/40 text-red-200 text-xs">
                     {forgotError}
-                  </Alert>
+                  </div>
                 )}
                 <TextField
                   fullWidth
                   required
-                  label="Email Address"
+                  label="Registered Email Address"
                   type="email"
                   value={forgotEmail}
                   onChange={(e) => setForgotEmail(e.target.value)}
-                  sx={{ mt: 1 }}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      color: "#ffffff",
+                      backgroundColor: "rgba(10, 20, 38, 0.75)",
+                      borderRadius: "12px",
+                      "& fieldset": { borderColor: "rgba(0, 210, 255, 0.3)" },
+                      "&.Mui-focused fieldset": { borderColor: "#00d2ff !important" },
+                    },
+                    "& .MuiInputLabel-root": { color: "rgba(203, 213, 225, 0.8)" },
+                  }}
                 />
-              </>
+              </div>
             )}
           </DialogContent>
-          <DialogActions>
+          <DialogActions sx={{ px: 3, pb: 2 }}>
             {forgotSuccess ? (
-              <Button
+              <button
                 onClick={() => {
                   setOpenForgotPassword(false);
                   setForgotEmail("");
                   setForgotSuccess("");
                 }}
+                className="px-5 py-2.5 rounded-xl bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-sm font-semibold hover:bg-cyan-500/30 transition-all"
               >
                 Close
-              </Button>
+              </button>
             ) : (
               <>
-                <Button onClick={() => setOpenForgotPassword(false)}>
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleForgotPassword}
-                  variant="contained"
-                  disabled={loading}
+                <button
+                  onClick={() => setOpenForgotPassword(false)}
+                  className="px-4 py-2 rounded-xl text-slate-400 hover:text-white text-sm font-medium transition-all"
                 >
-                  {loading ? "Sending..." : "Send Password"}
-                </Button>
+                  Cancel
+                </button>
+                <button
+                  onClick={handleForgotPassword}
+                  disabled={loading}
+                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 text-slate-950 text-sm font-bold shadow-[0_0_20px_rgba(0,210,255,0.3)] hover:scale-105 transition-all disabled:opacity-50"
+                >
+                  {loading ? "Sending..." : "Send Reset Link"}
+                </button>
               </>
             )}
           </DialogActions>
         </Dialog>
-      </GradientBackground>
+      </main>
+
       <HomePageFooter />
-    </>
+    </div>
   );
 };
 

@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Sleek Minimalist Scrollbar */
+html {
+  background-color: #080e1b;
+}
+
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 210, 255, 0.2);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 210, 255, 0.45);
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 210, 255, 0.2) transparent;
+}
+
+@layer utilities {
+  .neon-glow-cyan {
+    box-shadow: 0 0 25px rgba(0, 210, 255, 0.35);
+  }
+  .neon-border-glow {
+    box-shadow: 0 0 0 1px rgba(0, 210, 255, 0.25), 0 8px 30px rgba(0, 0, 0, 0.5);
+  }
+  .glass-panel {
+    background: rgba(22, 27, 41, 0.72);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(0, 210, 255, 0.12);
+  }
+  .glass-panel-elevated {
+    background: rgba(36, 42, 56, 0.75);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(0, 210, 255, 0.2);
+  }
+  .mesh-glow-bg {
+    background-image: 
+      radial-gradient(at 15% 20%, rgba(0, 210, 255, 0.12) 0px, transparent 50%),
+      radial-gradient(at 85% 15%, rgba(0, 70, 189, 0.18) 0px, transparent 50%),
+      radial-gradient(at 50% 60%, rgba(0, 220, 147, 0.08) 0px, transparent 60%);
+  }
+}

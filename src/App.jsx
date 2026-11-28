@@ -42,7 +42,6 @@ const PrivacyPolicyPage = lazy(() => import("./components/PrivacyPolicyPage"));
 const DisclaimerPage = lazy(() => import("./components/DisclaimerPage"));
 const RefundPolicyPage = lazy(() => import("./components/RefundPolicyPage"));
 const ApplyForLoanPage = lazy(() => import("./components/ApplyForLoanPage"));
-const SuvidhaCentrePage = lazy(() => import("./components/SuvidhaCentrePage"));
 const CareersPage = lazy(() => import("./components/CareersPage"));
 const BankStatementAnalyzer = lazy(() => import("./components/bsa/BankStatementAnalyzer"));
 
@@ -208,7 +207,7 @@ function App() {
             <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
             <Route path="/disclaimer" element={<DisclaimerPage />} />
             <Route path="/refund-policy" element={<RefundPolicyPage />} />
-            <Route path="/suvidha-centre" element={<SuvidhaCentrePage />} />
+            <Route path="/suvidha-centre" element={<Navigate to="/" replace />} />
             <Route path="/careers" element={<CareersPage />} />
             <Route
               path="/franchise/*"

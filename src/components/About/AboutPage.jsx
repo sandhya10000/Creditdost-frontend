@@ -1,34 +1,33 @@
-import React from 'react';
-import { Box } from '@mui/material';
-import HeroSection from './HeroSection';
-import HistorySection from './HistorySection';
-import MissionSection from './MissionSection';
-import TeamSection from './TeamSection';
-import StatsSection from './StatsSection';
-import Header from '../homepage/Header';
-import HomePageFooter from '../homepage/HomePageFooter';
-import FAQSection from '../homepage/FAQSection';
-import TestimonialSection from '../homepage/TestimonialsSection';
-import WhoWeAreSection from './WhoWeareSection';
-import WhatWeDoSection from './WhatWeDoSection';
-import WhyChooseUsSection from './WhyChooseUsSection';
+import React from "react";
+import Header from "../homepage/Header";
+import HomePageFooter from "../homepage/HomePageFooter";
+import FAQSection from "../homepage/FAQSection";
+import TestimonialSection from "../homepage/TestimonialsSection";
+import HeroSection from "./HeroSection";
+import HistorySection from "./HistorySection";
+import WhoWeAreSection from "./WhoWeareSection";
+import WhatWeDoSection from "./WhatWeDoSection";
+import MissionSection from "./MissionSection";
+import WhyChooseUsSection from "./WhyChooseUsSection";
 
 const AboutPage = () => {
   return (
-    <Box sx={{ flexGrow: 1 }}>
+    <div className="bg-[#080E1B] font-body-md text-on-surface antialiased mesh-glow-bg min-h-screen selection:bg-primary-container selection:text-surface-container-lowest">
       <Header />
-      <HeroSection />
-      <HistorySection />
-      <WhoWeAreSection />
-      <WhatWeDoSection/>
-      <MissionSection />
-      <WhyChooseUsSection/>
-      <FAQSection/>
-      <TestimonialSection/>
-      {/* <TeamSection /> */}
-     
-      <HomePageFooter/>
-    </Box>
+      <main className="w-full min-h-screen relative overflow-hidden">
+        <div className="flex flex-col w-full relative z-10">
+          <HeroSection />
+          <HistorySection />
+          <WhoWeAreSection />
+          <WhatWeDoSection />
+          <MissionSection />
+          <WhyChooseUsSection />
+          <FAQSection />
+          <TestimonialSection />
+        </div>
+      </main>
+      <HomePageFooter />
+    </div>
   );
 };
 
