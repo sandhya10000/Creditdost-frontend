@@ -32,6 +32,8 @@ import SendIcon from "@mui/icons-material/Send";
 import { adminAPI, getAttachmentUrl } from "../../services/api";
 import { useAuth } from "../../hooks/useAuth.jsx";
 import { notifySupportCountsChanged } from "./useSupportUnreadCount";
+import { PageHeader, SectionCard, TableToolbar, SearchField, EmptyRow, LoadingBar, TableFooter } from "./ui/AdminTable";
+import { headRowSx, bodyRowSx, primaryButtonSx } from "./ui/tableStyles";
 
 const STATUS_OPTIONS = ["Pending", "In Progress", "Resolved", "Closed"];
 const CATEGORY_OPTIONS = [
@@ -277,7 +279,7 @@ const AdminTickets = () => {
       setDraftNotes(full.internalNotes || "");
       setReplies(res.data.data.replies);
       // Opening a ticket clears its unread badge
-      adminAPI.markTicketRead(ticket._id).then(notifyInboxCountsChanged).catch(() => {});
+      adminAPI.markTicketRead(ticket._id).then(notifySupportCountsChanged).catch(() => {});
     } catch (err) {
       alert(err.response?.data?.message || "Failed to load ticket");
       setSelected(null);
@@ -360,95 +362,90 @@ const AdminTickets = () => {
   const f = franchiseDialog.data;
 
   return (
-    <Box p={3}>
-      <Typography variant="h5" fontWeight="bold" mb={2}>
-        Support Tickets ({pagination.total})
-      </Typography>
+    <Box>
+      <PageHeader
+        title="Support tickets"
+        subtitle={`${pagination.total} ${pagination.total === 1 ? "ticket" : "tickets"} from partners`}
+      />
 
-      {/* Filters */}
-      <Paper sx={{ p: 2, mb: 2, borderRadius: 2 }}>
-        <Stack
-          component="form"
-          onSubmit={applySearch}
-          direction={{ xs: "column", md: "row" }}
-          spacing={2}
-        >
-          <TextField
-            select
-            size="small"
-            label="Status"
-            value={filters.status}
-            onChange={updateFilter("status")}
-            sx={{ minWidth: 150 }}
+      <SectionCard>
+        <TableToolbar>
+          <Stack
+            component="form"
+            onSubmit={applySearch}
+            direction={{ xs: "column", md: "row" }}
+            spacing={1.5}
+            alignItems={{ md: "center" }}
+            sx={{ flex: 1, width: "100%" }}
           >
-            <MenuItem value="">All</MenuItem>
-            {STATUS_OPTIONS.map((s) => (
-              <MenuItem key={s} value={s}>
-                {s}
-              </MenuItem>
-            ))}
-          </TextField>
-          <TextField
-            select
-            size="small"
-            label="Category"
-            value={filters.category}
-            onChange={updateFilter("category")}
-            sx={{ minWidth: 180 }}
-          >
-            <MenuItem value="">All</MenuItem>
-            {CATEGORY_OPTIONS.map((c) => (
-              <MenuItem key={c} value={c}>
-                {c}
-              </MenuItem>
-            ))}
-          </TextField>
-          <TextField
-            size="small"
-            label="Search subject or ticket no."
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            sx={{ flex: 1 }}
-          />
-          <Button type="submit" variant="contained" sx={{ minWidth: 100 }}>
-            Search
-          </Button>
-        </Stack>
-      </Paper>
+            <TextField
+              select
+              size="small"
+              label="Status"
+              value={filters.status}
+              onChange={updateFilter("status")}
+              sx={{ minWidth: 150 }}
+            >
+              <MenuItem value="">All</MenuItem>
+              {STATUS_OPTIONS.map((s) => (
+                <MenuItem key={s} value={s}>
+                  {s}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              select
+              size="small"
+              label="Category"
+              value={filters.category}
+              onChange={updateFilter("category")}
+              sx={{ minWidth: 180 }}
+            >
+              <MenuItem value="">All</MenuItem>
+              {CATEGORY_OPTIONS.map((c) => (
+                <MenuItem key={c} value={c}>
+                  {c}
+                </MenuItem>
+              ))}
+            </TextField>
+            <SearchField
+              value={searchInput}
+              onChange={setSearchInput}
+              placeholder="Search subject or ticket no."
+              onSubmit={() => setFilters((prev) => ({ ...prev, search: searchInput.trim() }))}
+              sx={{ maxWidth: { md: 360 } }}
+            />
+            <Button type="submit" variant="contained" disableElevation sx={{ ...primaryButtonSx, minWidth: 100 }}>
+              Search
+            </Button>
+          </Stack>
+        </TableToolbar>
+        <LoadingBar loading={loading} />
 
-      {loading ? (
-        <Box display="flex" justifyContent="center" mt={4}>
-          <CircularProgress />
-        </Box>
-      ) : tickets.length === 0 ? (
-        <Typography color="text.secondary">No tickets found.</Typography>
-      ) : (
-        <TableContainer component={Paper} sx={{ borderRadius: 2 }}>
-          <Table>
+        <TableContainer>
+          <Table size="small">
             <TableHead>
-              <TableRow>
-                {[
-                  "Date & Time",
-                  "Name",
-                  "Franchise ID",
-                  "Subject",
-                  "Reference ID",
-                  "Status",
-                  "",
-                ].map((h, i) => (
-                  <TableCell key={i}>
-                    <strong>{h}</strong>
-                  </TableCell>
-                ))}
+              <TableRow sx={headRowSx}>
+                <TableCell>Date & time</TableCell>
+                <TableCell>Name</TableCell>
+                <TableCell>Franchise ID</TableCell>
+                <TableCell>Subject</TableCell>
+                <TableCell>Reference ID</TableCell>
+                <TableCell>Status</TableCell>
+                <TableCell align="right" />
               </TableRow>
             </TableHead>
             <TableBody>
+              {!loading && tickets.length === 0 && (
+                <EmptyRow colSpan={7} title="No tickets found" hint="Try a different status, category or search." />
+              )}
               {tickets.map((ticket) => (
                 <TableRow
                   key={ticket._id}
                   hover
                   onClick={() => openTicket(ticket)}
                   sx={{
+                    ...bodyRowSx,
                     cursor: "pointer",
                     bgcolor: ticket.isRead === false ? "#fffbeb" : "inherit",
                   }}
@@ -456,9 +453,9 @@ const AdminTickets = () => {
                   <TableCell sx={{ whiteSpace: "nowrap" }}>
                     {formatDate(ticket.createdAt)}
                     <br />
-                    <span style={{ color: "#666", fontSize: "12px" }}>
+                    <Typography component="span" variant="caption" color="text.secondary">
                       {formatTime(ticket.createdAt)}
-                    </span>
+                    </Typography>
                   </TableCell>
 
                   <TableCell>
@@ -475,7 +472,6 @@ const AdminTickets = () => {
                       <Link
                         component="button"
                         variant="body2"
-                        fontWeight={700}
                         underline="hover"
                         sx={{ fontFamily: "monospace", fontWeight: 700 }}
                         onClick={(e) => {
@@ -490,19 +486,18 @@ const AdminTickets = () => {
                     )}
                   </TableCell>
 
-                  <TableCell>
-                    {ticket.isRead === false && (
-                      <Chip
-                        size="small"
-                        color="error"
-                        label="New"
-                        sx={{ mr: 1, height: 20 }}
-                      />
-                    )}
-                    {ticket.subject}
+                  <TableCell sx={{ maxWidth: 280 }}>
+                    <Stack direction="row" spacing={1} alignItems="center" sx={{ minWidth: 0 }}>
+                      {ticket.isRead === false && (
+                        <Chip size="small" color="error" label="New" sx={{ height: 20, flexShrink: 0 }} />
+                      )}
+                      <Typography variant="body2" noWrap title={ticket.subject}>
+                        {ticket.subject}
+                      </Typography>
+                    </Stack>
                   </TableCell>
 
-                  <TableCell sx={{ fontFamily: "monospace" }}>
+                  <TableCell sx={{ fontFamily: "monospace", whiteSpace: "nowrap" }}>
                     {ticket.referenceId || "—"}
                   </TableCell>
 
@@ -524,7 +519,7 @@ const AdminTickets = () => {
                         setMenu({ anchor: e.currentTarget, ticket });
                       }}
                     >
-                      <MoreVertIcon />
+                      <MoreVertIcon fontSize="small" />
                     </IconButton>
                   </TableCell>
                 </TableRow>
@@ -542,18 +537,14 @@ const AdminTickets = () => {
             </MenuItem>
           </Menu>
         </TableContainer>
-      )}
 
-      {pagination.pages > 1 && (
-        <Box display="flex" justifyContent="center" mt={2}>
-          <Pagination
-            count={pagination.pages}
-            page={pagination.page}
-            onChange={(_, page) => fetchTickets(page)}
-            color="primary"
-          />
-        </Box>
-      )}
+        <TableFooter
+          page={pagination.page}
+          rowsPerPage={20}
+          total={pagination.total}
+          onPageChange={(page) => fetchTickets(page)}
+        />
+      </SectionCard>
 
       {/* Franchise details */}
       <Dialog
@@ -773,6 +764,8 @@ const AdminTickets = () => {
               </Button>
               <Button
                 variant="contained"
+                disableElevation
+                sx={{ ...primaryButtonSx, px: 3 }}
                 onClick={saveChanges}
                 disabled={saving}
                 sx={{ px: 3 }}

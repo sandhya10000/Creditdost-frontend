@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { PageHeader, SectionCard, TableToolbar, SearchField, EmptyRow, LoadingBar } from "./ui/AdminTable";
+import { headRowSx, bodyRowSx, primaryButtonSx } from "./ui/tableStyles";
 import {
   Box,
   Button,
@@ -27,6 +29,7 @@ import {
   Chip,
   Tooltip,
   Snackbar,
+  Stack,
   Alert,
   FormControlLabel,
   Switch,
@@ -44,7 +47,6 @@ import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import { adminAPI } from "../../services/api";
-import { getImagePreviewUrl } from "../../utils/googleDriveUtils";
 
 // Import Tiptap editor styles
 // import '@tiptap/react/dist/ReactEditor.css';
@@ -114,7 +116,7 @@ const ManageBlogs = () => {
         }
       });
       setCategories(allCategories);
-    } catch (error) {
+    } catch {
       showSnackbar("Error fetching blogs", "error");
     } finally {
       setLoading(false);
@@ -301,7 +303,7 @@ const ManageBlogs = () => {
         await adminAPI.deleteBlog(id);
         showSnackbar("Blog deleted successfully");
         fetchBlogs();
-      } catch (error) {
+      } catch {
         showSnackbar("Error deleting blog", "error");
       }
     }
@@ -323,206 +325,146 @@ const ManageBlogs = () => {
   };
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Grid container spacing={3} style={{ flexDirection: "column" }}>
-        <Grid item xs={12}>
-          <Box
-            display="flex"
-            justifyContent="space-between"
-            alignItems="center"
-            mb={3}
+    <Box>
+      <PageHeader
+        title="Blogs"
+        subtitle="Articles published on the website."
+        actions={
+          <Button
+            variant="contained"
+            disableElevation
+            startIcon={<AddIcon />}
+            onClick={() => handleOpenDialog()}
+            sx={primaryButtonSx}
           >
-            <Typography variant="h4">Manage Blogs</Typography>
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={() => handleOpenDialog()}
+            New blog
+          </Button>
+        }
+      />
+
+      <SectionCard>
+        <TableToolbar>
+          <Stack direction={{ xs: "column", md: "row" }} spacing={1.5} alignItems={{ md: "center" }} flexWrap="wrap" useFlexGap sx={{ width: "100%" }}>
+            <SearchField
+              value={filters.search}
+              onChange={(value) => handleFilterChange("search", value)}
+              placeholder="Search blogs"
+            />
+            <TextField
+              select
+              size="small"
+              label="Status"
+              value={filters.status}
+              onChange={(e) => handleFilterChange("status", e.target.value)}
+              sx={{ minWidth: 160 }}
             >
-              Add New Blog
+              <MenuItem value="">All</MenuItem>
+              <MenuItem value="draft">Draft</MenuItem>
+              <MenuItem value="published">Published</MenuItem>
+            </TextField>
+            <TextField
+              select
+              size="small"
+              label="Category"
+              value={filters.category}
+              onChange={(e) => handleFilterChange("category", e.target.value)}
+              sx={{ minWidth: 180 }}
+            >
+              <MenuItem value="">All</MenuItem>
+              {categories.map((category, index) => (
+                <MenuItem key={index} value={category}>
+                  {category}
+                </MenuItem>
+              ))}
+            </TextField>
+            <Button variant="outlined" onClick={fetchBlogs} sx={{ ...primaryButtonSx, color: "text.primary", borderColor: "divider" }}>
+              Refresh
             </Button>
-          </Box>
-        </Grid>
+          </Stack>
+        </TableToolbar>
+        <LoadingBar loading={loading} />
 
-        <Grid item xs={12}>
-          <Card>
-            <CardContent>
-              <Box display="flex" gap={2} mb={3} flexWrap="wrap">
-                <TextField
-                  label="Search Blogs"
-                  variant="outlined"
-                  size="small"
-                  value={filters.search}
-                  onChange={(e) => handleFilterChange("search", e.target.value)}
-                  sx={{ minWidth: 200 }}
-                />
-                <FormControl sx={{ minWidth: 200 }} size="small">
-                  <InputLabel>Status</InputLabel>
-                  <Select
-                    value={filters.status}
-                    label="Status"
-                    onChange={(e) =>
-                      handleFilterChange("status", e.target.value)
-                    }
-                  >
-                    <MenuItem value="">All</MenuItem>
-                    <MenuItem value="draft">Draft</MenuItem>
-                    <MenuItem value="published">Published</MenuItem>
-                  </Select>
-                </FormControl>
-                <FormControl sx={{ minWidth: 200 }} size="small">
-                  <InputLabel>Category</InputLabel>
-                  <Select
-                    value={filters.category}
-                    label="Category"
-                    onChange={(e) =>
-                      handleFilterChange("category", e.target.value)
-                    }
-                  >
-                    <MenuItem value="">All</MenuItem>
-                    {categories.map((category, index) => (
-                      <MenuItem key={index} value={category}>
-                        {category}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-                <Button variant="outlined" onClick={fetchBlogs} size="small">
-                  Refresh
-                </Button>
-              </Box>
-
-              {loading ? (
-                <Box display="flex" justifyContent="center" my={4}>
-                  <CircularProgress />
-                </Box>
-              ) : (
-                <TableContainer component={Paper}>
-                  <Table>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>Title</TableCell>
-                        <TableCell>Author</TableCell>
-                        <TableCell>Status</TableCell>
-                        <TableCell>Categories</TableCell>
-                        <TableCell>Tags</TableCell>
-                        <TableCell align="center">Views</TableCell>
-                        <TableCell>Created At</TableCell>
-                        <TableCell align="center">Actions</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {blogs.map((blog) => (
-                        <TableRow key={blog._id} hover>
-                          <TableCell>
-                            <Typography variant="subtitle2">
-                              {blog.title}
-                            </Typography>
-                            <Typography
-                              variant="body2"
-                              color="textSecondary"
-                              noWrap
-                              sx={{ maxWidth: 300 }}
-                            >
-                              {blog.excerpt}
-                            </Typography>
-                          </TableCell>
-                          <TableCell>
-                            <Typography variant="body2">
-                              {blog.author?.name || "Unknown"}
-                            </Typography>
-                          </TableCell>
-                          <TableCell>
-                            <Chip
-                              label={blog.status}
-                              color={getStatusColor(blog.status)}
-                              size="small"
-                            />
-                          </TableCell>
-                          <TableCell>
-                            {blog.categories &&
-                              blog.categories
-                                .slice(0, 3)
-                                .map((category, index) => (
-                                  <Chip
-                                    key={index}
-                                    label={category}
-                                    size="small"
-                                    variant="outlined"
-                                    sx={{ mr: 0.5, mb: 0.5 }}
-                                    color="primary"
-                                  />
-                                ))}
-                            {blog.categories && blog.categories.length > 3 && (
-                              <Chip
-                                label={`+${blog.categories.length - 3}`}
-                                size="small"
-                                variant="outlined"
-                                sx={{ mr: 0.5, mb: 0.5 }}
-                              />
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {blog.tags &&
-                              blog.tags
-                                .slice(0, 3)
-                                .map((tag, index) => (
-                                  <Chip
-                                    key={index}
-                                    label={tag}
-                                    size="small"
-                                    variant="outlined"
-                                    sx={{ mr: 0.5, mb: 0.5 }}
-                                  />
-                                ))}
-                            {blog.tags && blog.tags.length > 3 && (
-                              <Chip
-                                label={`+${blog.tags.length - 3}`}
-                                size="small"
-                                variant="outlined"
-                                sx={{ mr: 0.5, mb: 0.5 }}
-                              />
-                            )}
-                          </TableCell>
-                          <TableCell align="center">
-                            <Typography variant="body2">
-                              {blog.views || 0}
-                            </Typography>
-                          </TableCell>
-                          <TableCell>
-                            <Typography variant="body2">
-                              {new Date(blog.createdAt).toLocaleDateString()}
-                            </Typography>
-                          </TableCell>
-                          <TableCell align="center">
-                            <Tooltip title="Edit">
-                              <IconButton
-                                size="small"
-                                onClick={() => handleOpenDialog(blog)}
-                                color="primary"
-                              >
-                                <EditIcon />
-                              </IconButton>
-                            </Tooltip>
-                            <Tooltip title="Delete">
-                              <IconButton
-                                size="small"
-                                onClick={() => handleDelete(blog._id)}
-                                color="error"
-                              >
-                                <DeleteIcon />
-                              </IconButton>
-                            </Tooltip>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
+        <TableContainer>
+          <Table size="small">
+            <TableHead>
+              <TableRow sx={headRowSx}>
+                <TableCell>Title</TableCell>
+                <TableCell>Author</TableCell>
+                <TableCell>Status</TableCell>
+                <TableCell>Categories</TableCell>
+                <TableCell>Tags</TableCell>
+                <TableCell align="center">Views</TableCell>
+                <TableCell>Created</TableCell>
+                <TableCell align="center">Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {(loading || blogs.length === 0) && (
+                <EmptyRow colSpan={8} loading={loading} title="No blogs found" hint="Create a blog or change the filters." />
               )}
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
+              {!loading &&
+                blogs.map((blog) => (
+                  <TableRow key={blog._id} hover sx={bodyRowSx}>
+                    <TableCell sx={{ maxWidth: 360 }}>
+                      <Typography variant="body2" fontWeight={600} noWrap title={blog.title}>
+                        {blog.title}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary" noWrap display="block">
+                        {blog.excerpt}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2">{blog.author?.name || "Unknown"}</Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Chip label={blog.status} color={getStatusColor(blog.status)} size="small" variant="outlined" />
+                    </TableCell>
+                    <TableCell>
+                      <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
+                        {blog.categories &&
+                          blog.categories.slice(0, 3).map((category, index) => (
+                            <Chip key={index} label={category} size="small" variant="outlined" color="primary" />
+                          ))}
+                        {blog.categories && blog.categories.length > 3 && (
+                          <Chip label={`+${blog.categories.length - 3}`} size="small" variant="outlined" />
+                        )}
+                      </Stack>
+                    </TableCell>
+                    <TableCell>
+                      <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
+                        {blog.tags &&
+                          blog.tags.slice(0, 3).map((tag, index) => (
+                            <Chip key={index} label={tag} size="small" variant="outlined" />
+                          ))}
+                        {blog.tags && blog.tags.length > 3 && (
+                          <Chip label={`+${blog.tags.length - 3}`} size="small" variant="outlined" />
+                        )}
+                      </Stack>
+                    </TableCell>
+                    <TableCell align="center" sx={{ fontVariantNumeric: "tabular-nums" }}>
+                      {blog.views || 0}
+                    </TableCell>
+                    <TableCell sx={{ whiteSpace: "nowrap" }}>
+                      {new Date(blog.createdAt).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell align="center" sx={{ whiteSpace: "nowrap" }}>
+                      <Tooltip title="Edit">
+                        <IconButton size="small" onClick={() => handleOpenDialog(blog)}>
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Delete">
+                        <IconButton size="small" color="error" onClick={() => handleDelete(blog._id)}>
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    </TableCell>
+                  </TableRow>
+                ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </SectionCard>
 
       {/* Blog Form Dialog */}
       <Dialog
@@ -623,7 +565,7 @@ const ManageBlogs = () => {
                         borderRadius: "4px",
                         border: "1px solid #ddd",
                       }}
-                      onError={(e) => {
+                      onError={() => {
                         console.error(
                           "Image preview failed to load:",
                           imagePreview

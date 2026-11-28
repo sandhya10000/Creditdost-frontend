@@ -3,20 +3,18 @@ import {
   Alert,
   Box,
   Button,
-  Card,
-  CardContent,
   Chip,
   CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
-  FormControl,
+  Divider,
   IconButton,
-  InputLabel,
+  ListItemIcon,
+  ListItemText,
+  Menu,
   MenuItem,
-  Pagination,
-  Paper,
   Select,
   Snackbar,
   Stack,
@@ -27,16 +25,21 @@ import {
   TableHead,
   TableRow,
   TextField,
+  Tooltip,
   Typography,
 } from "@mui/material";
+import { Link as RouterLink } from "react-router-dom";
 import {
   Edit,
   Autorenew,
   History,
   CheckCircle,
   Cancel as CancelIcon,
+  Download as DownloadIcon,
+  MoreVert,
 } from "@mui/icons-material";
 import { adminAPI } from "../../services/api";
+import { useAuth } from "../../hooks/useAuth.jsx";
 import AmcDialog from "./AmcDialog";
 import {
   AMC_STATUS_CONFIG,
@@ -46,16 +49,39 @@ import {
   formatDaysLeft,
 } from "../../utils/amc";
 import { AmcPaymentChip, AmcStatusChip } from "./AmcChips";
+import {
+  CardAlerts,
+  CellText,
+  EmptyRow,
+  FilterChips,
+  LoadingBar,
+  SearchField,
+  SectionCard,
+  TableFooter,
+  TableToolbar,
+} from "./ui/AdminTable";
+import { bodyRowSx, headRowSx, statusSelectSx } from "./ui/tableStyles";
 
 const WORK_STATUS_COLORS = {
   newly_logged: { bg: "#ef6c00", color: "#fff" },
   in_progress: { bg: "#0288d1", color: "#fff" },
   closed: { bg: "#2e7d32", color: "#fff" },
+  refunded: { bg: "#c62828", color: "#fff" }, // set or changed only by a full admin
+};
+const WORK_STATUS_LABELS = {
+  newly_logged: "Newly Logged",
+  in_progress: "In Progress",
+  pending: "Pending",
+  closed: "Closed",
+  refunded: "Refunded",
 };
 
 const rowsPerPage = 20;
 
-const AmcCustomers = () => {
+const AmcCustomers = ({ embedded = false }) => {
+  // Same rule as Business MIS: only a full admin can set or undo Refunded
+  const { user } = useAuth();
+  const isFullAdmin = user?.subRole === "super_admin";
   const [records, setRecords] = useState([]);
   const [counts, setCounts] = useState({});
   const [loading, setLoading] = useState(false);
@@ -73,6 +99,8 @@ const AmcCustomers = () => {
   const [cancelCustomer, setCancelCustomer] = useState(null);
   const [cancelReason, setCancelReason] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
+  // Row "more actions" menu; the record is kept while the menu animates closed
+  const [rowMenu, setRowMenu] = useState({ anchor: null, record: null });
 
   const showToast = (message, severity = "success") =>
     setToast({ open: true, message, severity });
@@ -116,19 +144,22 @@ const AmcCustomers = () => {
     }
   };
 
-  const handleStatusChipClick = (status) => {
-    setAmcStatus((prev) => (prev === status ? "" : status));
-    setPage(1);
-  };
-
   const updateWorkStatus = async (id, newStatus) => {
+    if (
+      newStatus === "refunded" &&
+      !window.confirm(
+        "Mark this case as Refunded? It will be removed from customer package revenue, and only Admin can change it afterwards.",
+      )
+    ) {
+      return;
+    }
     try {
       await adminAPI.updateBusinessWorkStatus(id, { workStatus: newStatus });
       showToast("Work status has been updated.");
       fetchRecords();
     } catch (err) {
       console.error(err);
-      showToast("Failed to update status. Please try again.", "error");
+      showToast(err.response?.data?.message || "Failed to update status. Please try again.", "error");
     }
   };
 
@@ -210,285 +241,274 @@ const AmcCustomers = () => {
     }
   };
 
-  const totalPages = Math.max(Math.ceil(totalRecords / rowsPerPage), 1);
+  const closeRowMenu = () => setRowMenu((prev) => ({ ...prev, anchor: null }));
+  const menuRecord = rowMenu.record;
 
   return (
     <Box>
-      <Typography variant="h4" sx={{ mb: 2, fontSize: { xs: "1.5rem", md: "2rem" } }}>
-        AMC
-      </Typography>
-
-      {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
+      {!embedded && (
+        <Typography variant="h4" sx={{ mb: 2, fontSize: { xs: "1.5rem", md: "2rem" } }}>
+          AMC
+        </Typography>
       )}
 
-      {/* Status summary — click to filter */}
-      <Stack direction="row" spacing={1} sx={{ mb: 2, flexWrap: "wrap", rowGap: 1 }}>
-        {Object.entries(AMC_STATUS_CONFIG).map(([key, config]) => (
-          <Chip
-            key={key}
-            label={`${config.label}: ${counts[key] ?? 0}`}
-            color={config.color}
-            variant={amcStatus === key ? "filled" : "outlined"}
-            onClick={() => handleStatusChipClick(key)}
+      <SectionCard>
+        <TableToolbar>
+          <SearchField
+            value={searchInput}
+            onChange={setSearchInput}
+            placeholder="Search by customer name, email, phone, ID or franchise"
           />
-        ))}
-      </Stack>
-
-      <Card sx={{ mt: 2, borderRadius: 2, overflow: "visible" }}>
-        <CardContent>
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: { xs: "column", md: "row" },
-              gap: 2,
-              justifyContent: "space-between",
-              mb: 3,
-            }}
+          <Button
+            variant="outlined"
+            color="success"
+            startIcon={<DownloadIcon />}
+            onClick={handleDownloadCSV}
+            sx={{ whiteSpace: "nowrap" }}
           >
-            <Box sx={{ display: "flex", gap: 2, flexDirection: { xs: "column", sm: "row" }, flex: 1 }}>
-              <TextField
-                fullWidth
-                placeholder="Search by customer name, email, phone, ID or franchise"
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                sx={{ maxWidth: { xs: "100%", sm: 400 } }}
-              />
-              <FormControl sx={{ minWidth: 160 }}>
-                <InputLabel>AMC Status</InputLabel>
-                <Select
-                  label="AMC Status"
-                  value={amcStatus}
-                  onChange={(e) => {
-                    setAmcStatus(e.target.value);
-                    setPage(1);
-                  }}
-                >
-                  <MenuItem value="">All</MenuItem>
-                  {Object.entries(AMC_STATUS_CONFIG).map(([key, config]) => (
-                    <MenuItem key={key} value={key}>
-                      {config.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              <FormControl sx={{ minWidth: 160 }}>
-                <InputLabel>AMC Payment</InputLabel>
-                <Select
-                  label="AMC Payment"
-                  value={paymentStatus}
-                  onChange={(e) => {
-                    setPaymentStatus(e.target.value);
-                    setPage(1);
-                  }}
-                >
-                  <MenuItem value="">All</MenuItem>
-                  <MenuItem value="paid">Paid</MenuItem>
-                  <MenuItem value="pending">Pending</MenuItem>
-                </Select>
-              </FormControl>
-            </Box>
-            <Button
-              variant="contained"
-              color="success"
-              onClick={handleDownloadCSV}
-              sx={{ color: "#fff", width: { xs: "100%", md: "auto" } }}
-            >
-              Download CSV
-            </Button>
-          </Box>
+            Download CSV
+          </Button>
+        </TableToolbar>
 
-          {loading && records.length === 0 ? (
-            <Box display="flex" justifyContent="center" my={4}>
-              <CircularProgress />
-            </Box>
-          ) : (
-            <TableContainer component={Paper} sx={{ width: "100%", overflowX: "auto" }}>
-              <Table size="small" sx={{ minWidth: 1500 }} aria-label="amc customers table">
-                <TableHead
-                  sx={{
-                    "& .MuiTableCell-root": {
-                      fontWeight: 700,
-                      whiteSpace: "nowrap",
-                      backgroundColor: "#f8f9fa",
-                    },
-                  }}
-                >
-                  <TableRow>
-                    <TableCell>Customer ID</TableCell>
-                    <TableCell>Customer Name</TableCell>
-                    <TableCell>Email</TableCell>
-                    <TableCell>Phone</TableCell>
-                    <TableCell>Franchise</TableCell>
-                    <TableCell>AMC From</TableCell>
-                    <TableCell>AMC To</TableCell>
-                    <TableCell>Days Left</TableCell>
-                    <TableCell>AMC Amount</TableCell>
-                    <TableCell>AMC Payment</TableCell>
-                    <TableCell>AMC Status</TableCell>
-                    <TableCell>Work Status</TableCell>
-                    <TableCell align="center">Action</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody sx={{ "& td": { padding: "6px 8px" } }}>
-                  {records.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={13} align="center" sx={{ py: 4 }}>
-                        No AMC customers found
+        <Stack
+          direction={{ xs: "column", lg: "row" }}
+          spacing={2}
+          justifyContent="space-between"
+          sx={{ px: 2, pb: 2 }}
+        >
+          <FilterChips
+            label="Status:"
+            options={[
+              { value: "", label: "All" },
+              ...Object.entries(AMC_STATUS_CONFIG).map(([key, config]) => ({
+                value: key,
+                label: config.label,
+                count: counts[key] ?? 0,
+                color: config.color === "default" ? undefined : config.color,
+              })),
+            ]}
+            value={amcStatus}
+            onChange={(value) => {
+              setAmcStatus(value);
+              setPage(1);
+            }}
+          />
+          <FilterChips
+            label="Payment:"
+            options={[
+              { value: "", label: "All" },
+              { value: "paid", label: "Paid" },
+              { value: "pending", label: "Pending" },
+            ]}
+            value={paymentStatus}
+            onChange={(value) => {
+              setPaymentStatus(value);
+              setPage(1);
+            }}
+          />
+        </Stack>
+
+        <CardAlerts error={error} onCloseError={() => setError("")} />
+        <LoadingBar loading={loading} />
+
+        <TableContainer>
+          <Table size="small" sx={{ minWidth: 1200 }} aria-label="amc customers table">
+            <TableHead>
+              <TableRow sx={headRowSx}>
+                <TableCell>Customer ID</TableCell>
+                <TableCell>Contact</TableCell>
+                <TableCell>Franchise</TableCell>
+                <TableCell>AMC Term</TableCell>
+                <TableCell align="right">Amount</TableCell>
+                <TableCell>Payment</TableCell>
+                <TableCell>AMC Status</TableCell>
+                <TableCell>Work Status</TableCell>
+                <TableCell align="right">Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {records.length === 0 ? (
+                <EmptyRow
+                  colSpan={9}
+                  loading={loading}
+                  title="No AMC customers found"
+                  hint={
+                    searchTerm || amcStatus || paymentStatus
+                      ? "Try a different search or filter."
+                      : "Customers enrolled in AMC appear here."
+                  }
+                />
+              ) : (
+                records.map((record) => {
+                  const currentWork = record.workStatus || "newly_logged";
+                  const workColors = WORK_STATUS_COLORS[currentWork] || {
+                    bg: "#757575",
+                    color: "#fff",
+                  };
+                  const needsRenewal =
+                    record.amcStatus === "expiring" || record.amcStatus === "expired";
+                  return (
+                    <TableRow key={record._id} hover sx={bodyRowSx}>
+                      {/* Customer ID; the name shows on hover */}
+                      <TableCell sx={{ whiteSpace: "nowrap" }}>
+                        <Tooltip title={record.customerName || ""} placement="top-start" arrow>
+                          <Typography
+                            component={RouterLink}
+                            to={`/admin/customer/${record.customerId}`}
+                            variant="body2"
+                            sx={{
+                              fontWeight: 700,
+                              color: "primary.main",
+                              textDecoration: "none",
+                              "&:hover": { textDecoration: "underline" },
+                            }}
+                          >
+                            {record.customerId}
+                          </Typography>
+                        </Tooltip>
                       </TableCell>
-                    </TableRow>
-                  )}
-                  {records.map((record) => {
-                    const currentWork = record.workStatus || "newly_logged";
-                    const workColors = WORK_STATUS_COLORS[currentWork] || {
-                      bg: "#757575",
-                      color: "#fff",
-                    };
-                    const needsRenewal =
-                      record.amcStatus === "expiring" || record.amcStatus === "expired";
-                    return (
-                      <TableRow key={record._id}>
-                        <TableCell sx={{ fontWeight: "bold" }}>
-                          <a href={`customer/${record.customerId}`}>{record.customerId}</a>
-                        </TableCell>
-                        <TableCell>{record.customerName}</TableCell>
-                        <TableCell
-                          sx={{
-                            maxWidth: 180,
-                            whiteSpace: "nowrap",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                          }}
-                        >
-                          {record.customerEmail}
-                        </TableCell>
-                        <TableCell>{record.customerPhone}</TableCell>
-                        <TableCell sx={{ minWidth: 120 }}>
+                      <TableCell sx={{ maxWidth: 220 }}>
+                        <CellText variant="body2">{record.customerEmail}</CellText>
+                        <Typography variant="caption" color="text.secondary">
+                          {record.customerPhone}
+                        </Typography>
+                      </TableCell>
+                      <TableCell sx={{ maxWidth: 180 }}>
+                        <CellText variant="body2">
                           {record.franchiseId?.businessName || "Direct"}
-                        </TableCell>
-                        <TableCell sx={{ whiteSpace: "nowrap" }}>
-                          {formatAmcDate(record.amc?.startDate)}
-                        </TableCell>
-                        <TableCell sx={{ whiteSpace: "nowrap" }}>
+                        </CellText>
+                      </TableCell>
+                      <TableCell sx={{ whiteSpace: "nowrap" }}>
+                        <Typography variant="body2">
+                          {formatAmcDate(record.amc?.startDate)} →{" "}
                           {formatAmcDate(record.amc?.endDate)}
-                        </TableCell>
-                        <TableCell
-                          sx={{
-                            whiteSpace: "nowrap",
-                            color: record.amcDaysLeft < 0 ? "error.main" : undefined,
-                          }}
+                        </Typography>
+                        <Typography
+                          variant="caption"
+                          color={record.amcDaysLeft < 0 ? "error.main" : "text.secondary"}
                         >
                           {formatDaysLeft(record.amcDaysLeft)}
-                        </TableCell>
-                        <TableCell>{formatAmount(record.amc?.amount)}</TableCell>
-                        <TableCell>
-                          <AmcPaymentChip status={record.amc?.paymentStatus} />
-                        </TableCell>
-                        <TableCell>
-                          <AmcStatusChip status={record.amcStatus} />
-                        </TableCell>
-                        <TableCell>
-                          <FormControl size="small" sx={{ minWidth: 130 }}>
-                            <Select
-                              value={currentWork}
-                              onChange={(e) => updateWorkStatus(record._id, e.target.value)}
-                              sx={{
-                                backgroundColor: workColors.bg,
-                                color: workColors.color,
-                                fontWeight: 600,
-                                fontSize: "0.78rem",
-                                borderRadius: "6px",
-                                "& .MuiSelect-icon": { color: workColors.color },
-                                "& .MuiOutlinedInput-notchedOutline": { border: "none" },
-                              }}
-                            >
-                              <MenuItem value="newly_logged">Newly Logged</MenuItem>
-                              <MenuItem value="in_progress">In Progress</MenuItem>
-                              <MenuItem value="closed">Closed</MenuItem>
-                            </Select>
-                          </FormControl>
-                        </TableCell>
-                        <TableCell align="center" sx={{ whiteSpace: "nowrap" }}>
+                        </Typography>
+                      </TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 600, whiteSpace: "nowrap" }}>
+                        {formatAmount(record.amc?.amount)}
+                      </TableCell>
+                      <TableCell>
+                        <AmcPaymentChip status={record.amc?.paymentStatus} />
+                      </TableCell>
+                      <TableCell>
+                        <AmcStatusChip status={record.amcStatus} />
+                      </TableCell>
+                      <TableCell>
+                        <Select
+                          size="small"
+                          value={currentWork}
+                          disabled={currentWork === "refunded" && !isFullAdmin}
+                          renderValue={(value) => WORK_STATUS_LABELS[value] || value}
+                          onChange={(e) => updateWorkStatus(record._id, e.target.value)}
+                          sx={{ minWidth: 140, ...statusSelectSx(workColors.bg, workColors.color) }}
+                        >
+                          <MenuItem value="newly_logged">Newly Logged</MenuItem>
+                          <MenuItem value="in_progress">In Progress</MenuItem>
+                          <MenuItem value="closed">Closed</MenuItem>
+                          <MenuItem value="refunded" disabled={!isFullAdmin}>
+                            Refunded{!isFullAdmin ? " (Admin only)" : ""}
+                          </MenuItem>
+                        </Select>
+                      </TableCell>
+                      <TableCell align="right" sx={{ whiteSpace: "nowrap" }}>
+                        <Tooltip title="Edit AMC">
                           <IconButton
                             size="small"
-                            title="Edit AMC"
                             onClick={() => setDialog({ open: true, mode: "edit", customer: record })}
                           >
-                            <Edit />
+                            <Edit fontSize="small" />
                           </IconButton>
-                          {record.amc?.paymentStatus !== "paid" && (
-                            <IconButton
-                              size="small"
-                              title="Mark AMC as paid"
-                              sx={{ color: "success.main" }}
-                              disabled={actionLoading}
-                              onClick={() => handleMarkPaid(record)}
-                            >
-                              <CheckCircle />
-                            </IconButton>
-                          )}
+                        </Tooltip>
+                        <Tooltip title={needsRenewal ? "Renew AMC (due)" : "Renew AMC"}>
                           <IconButton
                             size="small"
-                            title="Renew AMC"
                             sx={{ color: needsRenewal ? "warning.main" : "primary.main" }}
                             onClick={() => setDialog({ open: true, mode: "renew", customer: record })}
                           >
-                            <Autorenew />
+                            <Autorenew fontSize="small" />
                           </IconButton>
+                        </Tooltip>
+                        <Tooltip title="More actions">
                           <IconButton
                             size="small"
-                            title="AMC history"
-                            onClick={() => setHistoryCustomer(record)}
+                            aria-label="More actions"
+                            onClick={(e) => setRowMenu({ anchor: e.currentTarget, record })}
                           >
-                            <History />
+                            <MoreVert fontSize="small" />
                           </IconButton>
-                          <IconButton
-                            size="small"
-                            title="Cancel AMC"
-                            sx={{ color: "error.main" }}
-                            onClick={() => {
-                              setCancelReason("");
-                              setCancelCustomer(record);
-                            }}
-                          >
-                            <CancelIcon />
-                          </IconButton>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: { xs: "column", sm: "row" },
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  gap: 2,
-                  p: 3,
-                }}
-              >
-                <Typography>Total Records: {totalRecords}</Typography>
-                <Pagination
-                  count={totalPages}
-                  page={page}
-                  onChange={(e, value) => setPage(value)}
-                  color="primary"
-                  shape="rounded"
-                  showFirstButton
-                  showLastButton
-                />
-                <Typography>
-                  Page {page} of {totalPages}
-                </Typography>
-              </Box>
-            </TableContainer>
-          )}
-        </CardContent>
-      </Card>
+                        </Tooltip>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+
+        <TableFooter
+          page={page}
+          rowsPerPage={rowsPerPage}
+          total={totalRecords}
+          onPageChange={setPage}
+        />
+      </SectionCard>
+
+      {/* Row "more actions" menu */}
+      <Menu
+        anchorEl={rowMenu.anchor}
+        open={Boolean(rowMenu.anchor)}
+        onClose={closeRowMenu}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
+        PaperProps={{ sx: { minWidth: 210 } }}
+      >
+        {menuRecord?.amc?.paymentStatus !== "paid" && (
+          <MenuItem
+            disabled={actionLoading}
+            onClick={() => {
+              closeRowMenu();
+              handleMarkPaid(menuRecord);
+            }}
+          >
+            <ListItemIcon>
+              <CheckCircle fontSize="small" color="success" />
+            </ListItemIcon>
+            <ListItemText>Mark AMC as paid</ListItemText>
+          </MenuItem>
+        )}
+        <MenuItem
+          onClick={() => {
+            closeRowMenu();
+            setHistoryCustomer(menuRecord);
+          }}
+        >
+          <ListItemIcon>
+            <History fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>AMC history</ListItemText>
+        </MenuItem>
+        <Divider />
+        <MenuItem
+          sx={{ color: "error.main" }}
+          onClick={() => {
+            closeRowMenu();
+            setCancelReason("");
+            setCancelCustomer(menuRecord);
+          }}
+        >
+          <ListItemIcon>
+            <CancelIcon fontSize="small" color="error" />
+          </ListItemIcon>
+          <ListItemText>Cancel AMC</ListItemText>
+        </MenuItem>
+      </Menu>
 
       <AmcDialog
         open={dialog.open}
@@ -508,6 +528,7 @@ const AmcCustomers = () => {
         onClose={() => setHistoryCustomer(null)}
         maxWidth="md"
         fullWidth
+        PaperProps={{ sx: { borderRadius: 3 } }}
       >
         <DialogTitle>
           AMC History — {historyCustomer?.customerName} ({historyCustomer?.customerId})
@@ -525,9 +546,9 @@ const AmcCustomers = () => {
           </Typography>
           <Typography variant="subtitle2">Previous terms</Typography>
           {historyCustomer?.amcHistory?.length ? (
-            <Table size="small">
+            <Table size="small" sx={{ mt: 1 }}>
               <TableHead>
-                <TableRow>
+                <TableRow sx={headRowSx}>
                   <TableCell>From</TableCell>
                   <TableCell>To</TableCell>
                   <TableCell>Amount</TableCell>
@@ -579,6 +600,7 @@ const AmcCustomers = () => {
         onClose={() => !actionLoading && setCancelCustomer(null)}
         maxWidth="sm"
         fullWidth
+        PaperProps={{ sx: { borderRadius: 3 } }}
       >
         <DialogTitle>Cancel AMC</DialogTitle>
         <DialogContent>

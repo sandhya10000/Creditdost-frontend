@@ -4,20 +4,14 @@ import {
   Box,
   Button,
   Chip,
-  CircularProgress,
   IconButton,
-  MenuItem,
-  Pagination,
-  Paper,
   Snackbar,
-  Stack,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  TextField,
   Tooltip,
   Typography,
 } from "@mui/material";
@@ -27,8 +21,20 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import AddIcon from "@mui/icons-material/Add";
 import ManualPaymentDialog from "./ManualPaymentDialog";
 import { adminAPI } from "../../services/api";
+import {
+  PageHeader,
+  SectionCard,
+  TableToolbar,
+  SearchField,
+  FilterChips,
+  EmptyRow,
+  LoadingBar,
+  TableFooter,
+} from "./ui/AdminTable";
+import { headRowSx, bodyRowSx, primaryButtonSx } from "./ui/tableStyles";
 
 const PAGE_SIZE = 20;
+const COLUMN_COUNT = 9;
 const AUTO_REFRESH_MS = 15 * 1000;
 
 const STATUS_META = {
@@ -174,108 +180,133 @@ const ManualPayments = () => {
     }
   };
 
-  const totalPages = Math.max(Math.ceil(total / PAGE_SIZE), 1);
-
   return (
-    <Box sx={{ p: 3 }}>
-      <Stack direction={{ xs: "column", md: "row" }} spacing={2} justifyContent="space-between" alignItems={{ md: "center" }} sx={{ mb: 3 }}>
-        <Typography variant="h5" fontWeight={600}>
-          Manual Payments
-        </Typography>
-        <Stack direction="row" spacing={2} alignItems="center">
-          {hasOpenLinks && (
-            <Typography variant="caption" color="text.secondary">
-              Auto-updating
-            </Typography>
-          )}
-          <Button variant="contained" startIcon={<AddIcon />} onClick={() => setDialogOpen(true)}>
-            Create Payment
-          </Button>
-        </Stack>
-      </Stack>
+    <Box>
+      <PageHeader
+        title="Manual Payments"
+        subtitle="Payment links created for customers who pay outside the partner flow."
+        actions={
+          <>
+            {hasOpenLinks && (
+              <Typography variant="caption" color="text.secondary" sx={{ alignSelf: "center", mr: 1 }}>
+                Auto-updating
+              </Typography>
+            )}
+            <Button
+              variant="contained"
+              disableElevation
+              startIcon={<AddIcon />}
+              onClick={() => setDialogOpen(true)}
+              sx={primaryButtonSx}
+            >
+              Create payment
+            </Button>
+          </>
+        }
+      />
 
-      <Stack direction={{ xs: "column", md: "row" }} spacing={2} sx={{ mb: 2 }}>
-        <TextField
-          size="small"
-          label="Search name, mobile, city"
-          value={searchInput}
-          onChange={(e) => setSearchInput(e.target.value)}
-          sx={{ minWidth: 300 }}
-        />
-        <TextField
-          select
-          size="small"
-          label="Status"
-          value={status}
-          onChange={(e) => {
-            setStatus(e.target.value);
-            setPage(1);
-          }}
-          sx={{ minWidth: 180 }}
-        >
-          <MenuItem value="">All</MenuItem>
-          {Object.entries(STATUS_META).map(([value, meta]) => (
-            <MenuItem key={value} value={value}>
-              {meta.label}
-            </MenuItem>
-          ))}
-        </TextField>
-      </Stack>
+      {error && (
+        <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
+          {error}
+        </Alert>
+      )}
 
-      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+      <SectionCard>
+        <TableToolbar>
+          <SearchField value={searchInput} onChange={setSearchInput} placeholder="Search name or city" />
+          <FilterChips
+            value={status}
+            onChange={(value) => {
+              setStatus(value);
+              setPage(1);
+            }}
+            options={[
+              { value: "", label: "All" },
+              ...Object.entries(STATUS_META).map(([value, meta]) => ({
+                value,
+                label: meta.label,
+                color: meta.color === "default" ? undefined : meta.color,
+              })),
+            ]}
+          />
+        </TableToolbar>
+        <LoadingBar loading={loading} />
 
-      <TableContainer component={Paper}>
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>Name</TableCell>
-              <TableCell>Mobile</TableCell>
-              <TableCell>Gateway</TableCell>
-              <TableCell>City</TableCell>
-              <TableCell align="right">Amount</TableCell>
-              <TableCell>Remarks</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell>Created</TableCell>
-              <TableCell>Expires</TableCell>
-              <TableCell align="center">Actions</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {loading ? (
-              <TableRow>
-                <TableCell colSpan={10} align="center">
-                  <CircularProgress size={24} />
-                </TableCell>
+        <TableContainer>
+          <Table size="small">
+            <TableHead>
+              <TableRow sx={headRowSx}>
+                <TableCell>Name</TableCell>
+                <TableCell>City</TableCell>
+                <TableCell align="right">Amount</TableCell>
+                <TableCell>Remarks</TableCell>
+                <TableCell>Status</TableCell>
+                <TableCell>Created by</TableCell>
+                <TableCell>Created</TableCell>
+                <TableCell>Expires</TableCell>
+                <TableCell align="center">Actions</TableCell>
               </TableRow>
-            ) : payments.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={10} align="center">
-                  No manual payments yet
-                </TableCell>
-              </TableRow>
-            ) : (
-              payments.map((p) => {
+            </TableHead>
+            <TableBody>
+              {!loading && payments.length === 0 && (
+                <EmptyRow colSpan={COLUMN_COUNT} title="No manual payments yet" hint="Create a payment link to get started." />
+              )}
+              {payments.map((p) => {
                 const meta = STATUS_META[p.status] || { label: p.status, color: "default" };
                 const isOpen = p.status === "created";
                 const busy = busyId === p._id;
                 return (
-                  <TableRow key={p._id} hover>
-                    <TableCell>{p.name}</TableCell>
-                    <TableCell>{p.mobile}</TableCell>
-                    <TableCell>{p.gateway === "cashfree" ? "Cashfree" : "Razorpay"}</TableCell>
-                    <TableCell>{p.city || "-"}</TableCell>
-                    <TableCell align="right">₹{p.amount}</TableCell>
-                    <TableCell sx={{ maxWidth: 200 }}>{p.remarks || "-"}</TableCell>
+                  <TableRow key={p._id} hover sx={bodyRowSx}>
                     <TableCell>
-                      <Chip size="small" label={meta.label} color={meta.color} />
-                      {p.status === "paid" && p.paidAt && (
-                        <Typography variant="caption" display="block">
-                          {formatDate(p.paidAt)}
+                      <Typography variant="body2" fontWeight={600}>
+                        {p.name}
+                      </Typography>
+                      {/* Older links were created with a mobile number */}
+                      {p.mobile && (
+                        <Typography variant="caption" color="text.secondary" display="block">
+                          {p.mobile}
                         </Typography>
                       )}
                     </TableCell>
-                    <TableCell>{formatDate(p.createdAt)}</TableCell>
-                    <TableCell>{formatDate(p.expireBy)}</TableCell>
+                    <TableCell>{p.city || "-"}</TableCell>
+                    <TableCell align="right" sx={{ fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>
+                      ₹{p.amount}
+                    </TableCell>
+                    <TableCell sx={{ maxWidth: 200 }}>
+                      <Typography variant="body2" noWrap title={p.remarks || ""}>
+                        {p.remarks || "-"}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Chip size="small" variant="outlined" label={meta.label} color={meta.color} />
+                      {p.status === "paid" && p.paidAt && (
+                        <Typography variant="caption" display="block" sx={{ mt: 0.5 }}>
+                          {formatDate(p.paidAt)}
+                        </Typography>
+                      )}
+                      {/* New links are Razorpay-only; flag the older Cashfree ones */}
+                      {p.gateway === "cashfree" && (
+                        <Typography variant="caption" color="text.secondary" display="block">
+                          via Cashfree
+                        </Typography>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {p.createdBy ? (
+                        <>
+                          {p.createdBy.name || "-"}
+                          {p.createdBy.roleLabel && (
+                            <Typography variant="caption" color="text.secondary" display="block">
+                              {p.createdBy.roleLabel}
+                            </Typography>
+                          )}
+                        </>
+                      ) : (
+                        "-"
+                      )}
+                    </TableCell>
+                    <TableCell sx={{ whiteSpace: "nowrap" }}>{formatDate(p.createdAt)}</TableCell>
+                    <TableCell sx={{ whiteSpace: "nowrap" }}>{formatDate(p.expireBy)}</TableCell>
                     <TableCell align="center" sx={{ whiteSpace: "nowrap" }}>
                       <Tooltip title="Copy link">
                         <span>
@@ -301,15 +332,13 @@ const ManualPayments = () => {
                     </TableCell>
                   </TableRow>
                 );
-              })
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
+              })}
+            </TableBody>
+          </Table>
+        </TableContainer>
 
-      <Stack alignItems="center" sx={{ mt: 2 }}>
-        <Pagination count={totalPages} page={page} onChange={(_, value) => setPage(value)} />
-      </Stack>
+        <TableFooter page={page} rowsPerPage={PAGE_SIZE} total={total} onPageChange={setPage} />
+      </SectionCard>
 
       <ManualPaymentDialog
         open={dialogOpen}

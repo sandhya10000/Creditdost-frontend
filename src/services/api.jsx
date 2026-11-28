@@ -41,6 +41,16 @@ api.interceptors.response.use(
       // Unauthorized - remove token and redirect to login
       localStorage.removeItem("token");
       window.location.href = "/login";
+    } else if (
+      error.response?.status === 403 &&
+      error.response.data?.code === "ACCOUNT_SUSPENDED" &&
+      localStorage.getItem("token")
+    ) {
+      // Partner was blacklisted while signed in: sign out and explain on the login page
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      sessionStorage.setItem("loginNotice", error.response.data.message);
+      window.location.href = "/login";
     }
     return Promise.reject(error);
   },
@@ -156,6 +166,10 @@ export const franchiseAPI = {
     }),
   //api for mobiled prefilled data
   getfetchPrefillData: (mobile) => api.post("/prefill", { mobile }),
+  // Matches name, mobile and PAN against prefill-by-mobile; locks them for 48h on mismatch
+  checkPrefillMatch: (data) => api.post("/credit/prefill-check", data),
+  // Lock status for a mobile + PAN pair, read from the database (no provider call)
+  getPrefillLock: (params) => api.get("/credit/prefill-lock", { params }),
   savePrefillFailure: (data) => api.post("/save-prefill-failure", data),
   getPrefillFailedLog: (params) => api.get("/prefill-failed-logs", { params }),
   //get marketing material
@@ -211,6 +225,8 @@ export const adminAPI = {
     api.get("/analytics/visitors/trends", { params }),
   // Franchise management
   getAllFranchises: (params) => api.get("/franchises", { params }),
+  // Tab counts for the Franchises page: { active, pending, deleted, byStatus }
+  getFranchiseCounts: () => api.get("/franchises/counts"),
   /**
    * Export ALL matching franchise records as a streamed CSV.
    * Pass the same `search` / `kycStatus` params that are active in the list view
@@ -422,6 +438,9 @@ export const adminAPI = {
   assignBusinessManagersToPartners: () => api.post("/franchises/assign-business-managers"),
   setFranchiseCreditHold: (franchiseId, hold) =>
     api.put(`/franchises/${franchiseId}/credit-hold`, { hold }),
+  // Admin / Business Manager: blacklisted partners can't log in ({ blacklisted, reason })
+  setFranchiseBlacklist: (franchiseId, blacklisted, reason = "") =>
+    api.put(`/franchises/${franchiseId}/blacklist`, { blacklisted, reason }),
   reassignFranchiseManager: (franchiseId, businessManagerId) =>
     api.put(`/franchises/${franchiseId}/business-manager`, { businessManagerId }),
   assignStaffMember: (data) => api.post("/admin/staff", data),
@@ -503,6 +522,16 @@ export const careersAPI = {
     };
     return api.post("/careers/apply", formData, config);
   },
+};
+
+// Monthly Working & Business Tracking (permission: work_tracking)
+// Staff see their own entries; full administrators can filter by role and user.
+export const workTrackingAPI = {
+  getEntries: (params) => api.get("/work-tracking/entries", { params }),
+  getSummary: (params) => api.get("/work-tracking/summary", { params }),
+  createEntry: (data) => api.post("/work-tracking/entries", data),
+  updateEntry: (id, data) => api.put(`/work-tracking/entries/${id}`, data),
+  deleteEntry: (id) => api.delete(`/work-tracking/entries/${id}`),
 };
 
 export default api;

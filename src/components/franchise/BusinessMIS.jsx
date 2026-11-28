@@ -94,6 +94,8 @@ const BusinessMIS = () => {
         return <Chip label="Closed" color="success" sx={{ color: "#fff" }} />;
       case "pending":
         return <Chip label="Pending" color="secondary" sx={{ color: "#fff" }} />;
+      case "refunded":
+        return <Chip label="Refunded" sx={{ color: "#fff", backgroundColor: "#c62828" }} />;
       case "newly_logged":
       case undefined:
       case null:

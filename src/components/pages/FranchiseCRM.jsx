@@ -7,9 +7,17 @@ import FranchiseReportsTab from "../admin/Franchisecrm/FranchiseReportsTab";
 import FranchiseAITab from "../admin/Franchisecrm/FranchiseAITab";
 import { useParams, useNavigate } from "react-router-dom";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import BlockIcon from "@mui/icons-material/Block";
 import { Button } from "@mui/material";
+import { useAuth } from "../../hooks/useAuth.jsx";
+import BlacklistPartnerDialog from "../admin/BlacklistPartnerDialog";
+import { canBlacklistPartners } from "../../utils/blacklist";
 
 const FranchiseTabs = () => {
+  const { user } = useAuth();
+  const canBlacklist = canBlacklistPartners(user);
+  const [blacklistOpen, setBlacklistOpen] = useState(false);
+  const [notice, setNotice] = useState("");
   const [tab, setTab] = useState(0);
   const [loading, setLoading] = useState(true);
   const [franchiseInfo, setFranchiseInfo] = useState(null);
@@ -81,7 +89,7 @@ const FranchiseTabs = () => {
   }
   return (
     <Card sx={{ p: 2 }}>
-      <Box mb={2}>
+      <Box mb={2} display="flex" justifyContent="space-between" alignItems="center" gap={2}>
         <Button
           startIcon={<ArrowBackIcon />}
           variant="outlined"
@@ -89,7 +97,59 @@ const FranchiseTabs = () => {
         >
           Back
         </Button>
+        {canBlacklist && franchiseInfo && !franchiseInfo.isDeleted && !franchiseInfo.isBlacklisted && (
+          <Button
+            startIcon={<BlockIcon />}
+            variant="outlined"
+            color="error"
+            onClick={() => setBlacklistOpen(true)}
+          >
+            Blacklist partner
+          </Button>
+        )}
       </Box>
+      {notice && (
+        <Alert severity="success" sx={{ mb: 2 }} onClose={() => setNotice("")}>
+          {notice}
+        </Alert>
+      )}
+      {franchiseInfo?.isBlacklisted && (
+        <Alert
+          severity="error"
+          icon={<BlockIcon />}
+          sx={{ mb: 2 }}
+          action={
+            canBlacklist && !franchiseInfo.isDeleted ? (
+              <Button color="inherit" size="small" onClick={() => setBlacklistOpen(true)}>
+                Remove from blacklist
+              </Button>
+            ) : undefined
+          }
+        >
+          <strong>Blacklisted</strong> — this partner can't log in and sees "Your account is
+          suspended".
+          {franchiseInfo.blacklistReason && (
+            <Box component="span" display="block" mt={0.5}>
+              Reason: {franchiseInfo.blacklistReason}
+            </Box>
+          )}
+          {franchiseInfo.blacklistedAt && (
+            <Box component="span" display="block" mt={0.5} sx={{ opacity: 0.8 }}>
+              On {new Date(franchiseInfo.blacklistedAt).toLocaleString("en-IN")}
+              {franchiseInfo.blacklistedBy?.name ? ` by ${franchiseInfo.blacklistedBy.name}` : ""}
+            </Box>
+          )}
+        </Alert>
+      )}
+      <BlacklistPartnerDialog
+        franchise={blacklistOpen ? franchiseInfo : null}
+        onClose={() => setBlacklistOpen(false)}
+        onSaved={(message) => {
+          setBlacklistOpen(false);
+          setNotice(message);
+          fetchFranchise();
+        }}
+      />
       {franchiseInfo?.isDeleted && (
         <Box mb={2}>
           <Alert severity="error">

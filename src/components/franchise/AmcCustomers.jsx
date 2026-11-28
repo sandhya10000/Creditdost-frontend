@@ -38,6 +38,7 @@ const WORK_STATUS_CONFIG = {
   in_progress: { label: "In Progress", color: "info" },
   closed: { label: "Closed", color: "success" },
   on_hold: { label: "On Hold", color: "warning" },
+  refunded: { label: "Refunded", color: "error" },
 };
 
 const rowsPerPage = 20;

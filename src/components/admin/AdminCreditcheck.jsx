@@ -2,8 +2,6 @@ import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
-  Card,
-  CardContent,
   TextField,
   Button,
   Grid,
@@ -15,66 +13,125 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
-  FormControl,
-  InputLabel,
-  Select,
   MenuItem,
-  Tabs,
-  Tab,
   Chip,
   Link,
-  Backdrop,
-  Pagination,
+  Stack,
+  ButtonBase,
+  Divider,
+  InputAdornment,
+  ToggleButton,
+  ToggleButtonGroup,
 } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import {
-  Search,
   CreditScore,
   PictureAsPdf,
   Download,
   Info,
+  CheckCircle,
+  RadioButtonUnchecked,
 } from "@mui/icons-material";
 import { franchiseAPI, adminAPI } from "../../services/api";
+import {
+  CardAlerts,
+  CellText,
+  DateCell,
+  EmptyRow,
+  FilterChips,
+  LoadingBar,
+  ScoreChip,
+  SectionCard,
+  SectionHeader,
+  TableFooter,
+} from "./ui/AdminTable";
+import { bodyRowSx, headRowSx } from "./ui/tableStyles";
 
-const AdminCreditBureau = ({ defaultBureau = "" }) => {
-  const bureauOptions = [
-    { value: "cibil-finpass", label: "CIBIL (Finpass)" },
-    { value: "cibil-indiconnect", label: "CIBIL (IndiConnect)" },
-    { value: "cibil-digi", label: "CIBIL (Digi)" },
-    { value: "cibil-finpass", label: "CIBIL (Finpass)" },
-    { value: "crif-indiconnect", label: "CRIF (IndiConnect)" },
-    { value: "crif-surepass", label: "CRIF (Surepass)" },
-    { value: "experian-indiconnect", label: "Experian (IndiConnect)" },
-    { value: "crif-indiconnect", label: "CRIF (IndiConnect)" },
-    { value: "equifax", label: "Equifax" },
-  ];
-  // CIBIL standalone options route through /credit/credit-check-v2
-  const CIBIL_V2_MAP = {
-    "cibil-finpass": "finpass",
-    "cibil-indiconnect": "indiconnect",
-    "cibil-digi": "digi",
-  };
-  // CRIF / Experian Surepass options route through V2 with their own picker
-  // keys; IndiConnect variants keep the existing V1 (/credit/check) flow.
-  const V2_PROVIDER_MAP = {
-    ...Object.fromEntries(
-      Object.entries(CIBIL_V2_MAP).map(([opt, value]) => [
-        opt,
-        { bureau: "cibil", key: "cibilApiType", value },
-      ]),
-    ),
-    "crif-surepass": { bureau: "crif", key: "crifApiType", value: "surepass" },
-    "experian-surepass": {
-      bureau: "experian",
-      key: "experianApiType",
-      value: "surepass",
-    },
-  };
-  // V1 (/credit/check) bureau values for the IndiConnect variants
-  const V1_BUREAU_MAP = {
-    "crif-indiconnect": "crif",
-    "experian-indiconnect": "experian",
-  };
+// Bureaus the admin can pull, and the provider(s) each one goes through.
+// Every Finpass option calls the same Finpass multi-bureau API; only `bureau` differs.
+const BUREAUS = [
+  {
+    key: "cibil",
+    label: "CIBIL",
+    description: "TransUnion CIBIL",
+    providers: [{ value: "cibil-finpass", label: "Finpass" }],
+  },
+  {
+    key: "crif",
+    label: "CRIF",
+    description: "CRIF High Mark",
+    providers: [
+      { value: "crif-indiconnect", label: "IndiConnect" },
+      { value: "crif-finpass", label: "Finpass" },
+    ],
+  },
+  {
+    key: "experian",
+    label: "Experian",
+    description: "Experian India",
+    providers: [
+      { value: "experian-indiconnect", label: "IndiConnect" },
+      { value: "experian-finpass", label: "Finpass" },
+    ],
+  },
+  {
+    key: "equifax",
+    label: "Equifax",
+    description: "Equifax India",
+    providers: [{ value: "equifax", label: "Equifax" }],
+  },
+];
+
+// Every selectable option with a readable label, e.g. "CRIF (Finpass)"
+const BUREAU_OPTIONS = BUREAUS.flatMap((bureau) =>
+  bureau.providers.map((provider) => ({
+    ...provider,
+    bureau,
+    label:
+      bureau.providers.length > 1 || provider.label !== bureau.label
+        ? `${bureau.label} (${provider.label})`
+        : bureau.label,
+  })),
+);
+const DEFAULT_OPTION = "cibil-finpass";
+
+// Options sent to the admin V2 endpoint (/credit/credit-check-v2)
+const V2_PROVIDER_MAP = {
+  "cibil-finpass": { bureau: "cibil", key: "cibilApiType", value: "finpass" },
+  "crif-finpass": { bureau: "crif", key: "crifApiType", value: "finpass" },
+  "experian-finpass": { bureau: "experian", key: "experianApiType", value: "finpass" },
+};
+// V1 (/credit/check) bureau values for the IndiConnect variants
+const V1_BUREAU_MAP = {
+  "crif-indiconnect": "crif",
+  "experian-indiconnect": "experian",
+};
+
+const StepLabel = ({ number, children }) => (
+  <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.5 }}>
+    <Box
+      sx={{
+        width: 22,
+        height: 22,
+        borderRadius: "50%",
+        bgcolor: "primary.main",
+        color: "primary.contrastText",
+        fontSize: 12,
+        fontWeight: 700,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      {number}
+    </Box>
+    <Typography variant="subtitle2" fontWeight={700}>
+      {children}
+    </Typography>
+  </Stack>
+);
+
+const AdminCreditBureau = ({ defaultBureau = "", embedded = false }) => {
   const [activeTab, setActiveTab] = useState(0);
   const [formData, setFormData] = useState({
     name: "",
@@ -84,7 +141,8 @@ const AdminCreditBureau = ({ defaultBureau = "" }) => {
     dob: "",
     gender: "",
     pincode: "",
-    bureau: defaultBureau || "cibil-indiconnect", // CIBIL via V2 provider picker
+    // Falls back to CIBIL (Finpass) if the requested option no longer exists
+    bureau: BUREAU_OPTIONS.some((o) => o.value === defaultBureau) ? defaultBureau : DEFAULT_OPTION,
   });
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -113,10 +171,6 @@ const AdminCreditBureau = ({ defaultBureau = "" }) => {
     } catch (err) {
       console.error("Error loading dashboard stats:", err);
     }
-  };
-
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
   };
 
   const loadCreditReports = async () => {
@@ -150,12 +204,39 @@ const AdminCreditBureau = ({ defaultBureau = "" }) => {
     });
   };
 
-  const handleBureauChange = (e) => {
-    setFormData({
-      ...formData,
-      bureau: e.target.value,
-    });
+  const selectOption = (value) => setFormData((prev) => ({ ...prev, bureau: value }));
+
+  // Keeps the current provider when it belongs to the bureau, else picks the bureau's first
+  const selectBureau = (bureau) => {
+    if (bureau.providers.some((p) => p.value === formData.bureau)) return;
+    selectOption(bureau.providers[0].value);
   };
+
+  const selectedOption =
+    BUREAU_OPTIONS.find((o) => o.value === formData.bureau) || BUREAU_OPTIONS[0];
+  const selectedBureau = selectedOption.bureau;
+  const isFinpass = formData.bureau.endsWith("-finpass");
+  const isExperianIndiconnect = formData.bureau === "experian-indiconnect";
+
+  // Fields the chosen bureau/provider insists on (mirrors the checks in handleCheckCredit)
+  const needs = {
+    pan: isFinpass || isExperianIndiconnect || formData.bureau === "equifax",
+    dob: isExperianIndiconnect,
+    pincode: isExperianIndiconnect,
+    fullName: isExperianIndiconnect,
+  };
+  const checklist = [
+    { label: "Customer name", ok: formData.name.trim().length >= 2 },
+    ...(needs.fullName
+      ? [{ label: "First and last name", ok: formData.name.trim().split(/\s+/).length >= 2 }]
+      : []),
+    { label: "10-digit mobile number", ok: /^[0-9]{10}$/.test(formData.mobile) },
+    ...(needs.pan
+      ? [{ label: "PAN number", ok: /^[A-Za-z0-9]{10}$/.test(formData.pan) }]
+      : []),
+    ...(needs.dob ? [{ label: "Date of birth", ok: Boolean(formData.dob) }] : []),
+    ...(needs.pincode ? [{ label: "6-digit pincode", ok: /^[0-9]{6}$/.test(formData.pincode) }] : []),
+  ];
 
   const handleCheckCredit = async (e) => {
     e.preventDefault();
@@ -201,7 +282,7 @@ const AdminCreditBureau = ({ defaultBureau = "" }) => {
     }
 
     // Experian Soft-Pull (IndiConnect) requires PAN + pincode + DOB + two-word name.
-    // Experian via Surepass needs none of these.
+    // Experian via Finpass only needs PAN (checked below with the other Finpass options).
     if (formData.bureau === "experian-indiconnect") {
       if (!formData.pan || !/^[A-Za-z0-9]{10}$/.test(formData.pan)) {
         setError("PAN number is required for Experian (10 characters)");
@@ -231,8 +312,7 @@ const AdminCreditBureau = ({ defaultBureau = "" }) => {
 
     const attemptRequest = async () => {
       try {
-        // Provider-picker options go through the admin V2 endpoint
-        // (CIBIL indiconnect/digi/surepass, CRIF/Experian surepass)
+        // Finpass options (CIBIL / CRIF / Experian) go through the admin V2 endpoint
         const v2Route = V2_PROVIDER_MAP[formData.bureau];
         if (v2Route) {
           const v2Payload = {
@@ -245,7 +325,7 @@ const AdminCreditBureau = ({ defaultBureau = "" }) => {
           if (v2Route.value === "finpass") {
             // Finpass requires PAN and takes gender (optional on our side)
             if (!v2Payload.pan) {
-              setError("PAN is required for CIBIL (Finpass)");
+              setError(`PAN is required for ${selectedOption.label}`);
               setSaving(false);
               return;
             }
@@ -376,28 +456,6 @@ const AdminCreditBureau = ({ defaultBureau = "" }) => {
     setSaving(false);
   };
 
-  const getScoreColor = (score) => {
-    // Handle null/undefined scores
-    if (score === null || score === undefined) {
-      return "default";
-    }
-    if (score >= 750) return "success";
-    if (score >= 700) return "info";
-    if (score >= 650) return "warning";
-    return "error";
-  };
-
-  const getScoreLabel = (score) => {
-    // Handle null/undefined scores
-    if (score === null || score === undefined) {
-      return "No Credit History";
-    }
-    if (score >= 750) return "Excellent";
-    if (score >= 700) return "Good";
-    if (score >= 650) return "Fair";
-    return "Poor";
-  };
-
   const getReportUrl = (report) => {
     // Use local path if available, otherwise use the original report URL
     if (report.localPath) {
@@ -421,458 +479,438 @@ const AdminCreditBureau = ({ defaultBureau = "" }) => {
       console.log("Calling API..."); //  MUST print
     }
   };
+  // Label above a value in the "Latest result" strip
+  const ResultField = ({ label, children }) => (
+    <Grid item xs={6} md={3}>
+      <Typography variant="caption" color="text.secondary" display="block">
+        {label}
+      </Typography>
+      <Box sx={{ mt: 0.25 }}>{children}</Box>
+    </Grid>
+  );
+
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>
-        Credit Check
-      </Typography>
-
-      <Tabs
-        value={activeTab}
-        onChange={handleTabChange}
-        sx={{ mb: 3, borderBottom: 1, borderColor: "divider" }}
-      >
-        <Tab label="Check Credit" />
-        <Tab label="Recent Reports" />
-      </Tabs>
-
-      {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
+      {!embedded && (
+        <Typography variant="h4" gutterBottom>
+          Credit Check
+        </Typography>
       )}
 
-      {success && (
-        <Alert severity="success" sx={{ mb: 2 }}>
-          {success}
-        </Alert>
-      )}
+      <Box sx={{ mb: 2 }}>
+        <FilterChips
+          options={[
+            { value: "check", label: "Check credit" },
+            { value: "recent", label: "Recent reports" },
+          ]}
+          value={activeTab === 0 ? "check" : "recent"}
+          onChange={(value) => handleTabChange(null, value === "check" ? 0 : 1)}
+        />
+      </Box>
 
       {activeTab === 0 && (
-        <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>
-              Check Customer Credit
-            </Typography>
+        <Grid container spacing={3}>
+          <Grid item xs={12} lg={8}>
+            <SectionCard>
+              <SectionHeader
+                title="Check customer credit"
+                subtitle="Choose a bureau, fill in the customer's details and pull a fresh report."
+              />
+              <Box component="form" onSubmit={handleCheckCredit} sx={{ p: 2.5 }}>
+                {error && (
+                  <Alert severity="error" onClose={() => setError("")} sx={{ mb: 2 }}>
+                    {error}
+                  </Alert>
+                )}
+                {success && (
+                  <Alert severity="success" onClose={() => setSuccess("")} sx={{ mb: 2 }}>
+                    {success}
+                  </Alert>
+                )}
 
-            <Box component="form" onSubmit={handleCheckCredit}>
-              <Grid container spacing={3}>
-                <Grid
-                  item
-                  xs={12}
-                  sm={6}
-                  sx={{ minWidth: { xs: "0px", md: "500px" } }}
+                {/* 1. Bureau */}
+                <StepLabel number={1}>Credit bureau</StepLabel>
+                <Box
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: { xs: "repeat(2, 1fr)", md: "repeat(4, 1fr)" },
+                    gap: 1.5,
+                  }}
                 >
-                  <TextField
-                    required
-                    id="name"
-                    name="name"
-                    label="Customer Name"
-                    fullWidth
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    helperText="Enter the full name of the customer"
-                  />
-                </Grid>
-                <Grid
-                  item
-                  xs={12}
-                  sm={6}
-                  sx={{ minWidth: { xs: "0px", md: "500px" } }}
-                >
-                  <TextField
-                    required
-                    id="mobile"
-                    name="mobile"
-                    label="Mobile Number"
-                    fullWidth
-                    value={formData.mobile}
-                    onChange={handleMobileChange}
-                    inputProps={{
-                      maxLength: 10,
-                      pattern: "[0-9]{10}",
-                    }}
-                    helperText="Enter exactly 10 digits without spaces or dashes"
-                  />
-                </Grid>
-                <Grid
-                  item
-                  xs={12}
-                  sm={6}
-                  sx={{ minWidth: { xs: "0px", md: "500px" } }}
-                >
-                  <TextField
-                    id="pan"
-                    name="pan"
-                    label="PAN Number"
-                    fullWidth
-                    value={formData.pan}
-                    onChange={handleInputChange}
-                    inputProps={{
-                      style: { textTransform: "uppercase" },
-                      maxLength: 10,
-                      pattern: "[A-Za-z0-9]{10}",
-                    }}
-                    sx={{
-                      "& .MuiInputBase-root.Mui-disabled": {
-                        backgroundColor: "#f5f5f5", //  grey background
-                      },
-                      "& .MuiInputBase-input.Mui-disabled": {
-                        WebkitTextFillColor: "#999", //  text grey
-                      },
-                    }}
-                    helperText="PAN number (e.g., ABCDE1234F)"
-                  />
-                </Grid>
+                  {BUREAUS.map((bureau) => {
+                    const selected = selectedBureau.key === bureau.key;
+                    return (
+                      <ButtonBase
+                        key={bureau.key}
+                        onClick={() => selectBureau(bureau)}
+                        aria-pressed={selected}
+                        sx={(theme) => ({
+                          display: "block",
+                          textAlign: "left",
+                          p: 1.75,
+                          borderRadius: 2,
+                          border: `1.5px solid ${
+                            selected ? theme.palette.primary.main : theme.palette.divider
+                          }`,
+                          bgcolor: selected
+                            ? alpha(theme.palette.primary.main, 0.06)
+                            : "background.paper",
+                          transition: "border-color 0.15s, background-color 0.15s",
+                          "&:hover": {
+                            borderColor: selected
+                              ? theme.palette.primary.main
+                              : theme.palette.grey[400],
+                          },
+                        })}
+                      >
+                        <Stack direction="row" justifyContent="space-between" alignItems="center">
+                          <Typography fontWeight={700} color={selected ? "primary.main" : "text.primary"}>
+                            {bureau.label}
+                          </Typography>
+                          {selected && <CheckCircle color="primary" sx={{ fontSize: 18 }} />}
+                        </Stack>
+                        <Typography variant="caption" color="text.secondary" display="block">
+                          {bureau.description}
+                        </Typography>
+                      </ButtonBase>
+                    );
+                  })}
+                </Box>
 
-                <Grid
-                  item
-                  xs={12}
-                  sm={6}
-                  sx={{ minWidth: { xs: "0px", md: "500px" } }}
+                <Stack
+                  direction={{ xs: "column", sm: "row" }}
+                  spacing={1.5}
+                  alignItems={{ xs: "flex-start", sm: "center" }}
+                  sx={{ mt: 2 }}
                 >
-                  <TextField
-                    id="dob"
-                    name="dob"
-                    label="Date of Birth"
-                    type="date"
-                    fullWidth
-                    value={formData.dob}
-                    onChange={handleInputChange}
-                    InputLabelProps={{
-                      shrink: true,
-                    }}
-                  />
-                </Grid>
-                {formData.bureau === "experian-indiconnect" && (
-                  <Grid
-                    item
-                    xs={12}
-                    sm={6}
-                    sx={{ minWidth: { xs: "0px", md: "500px" } }}
-                  >
+                  <Typography variant="body2" color="text.secondary">
+                    Provider:
+                  </Typography>
+                  {selectedBureau.providers.length > 1 ? (
+                    <ToggleButtonGroup
+                      exclusive
+                      size="small"
+                      color="primary"
+                      value={formData.bureau}
+                      onChange={(_, value) => value && selectOption(value)}
+                    >
+                      {selectedBureau.providers.map((provider) => (
+                        <ToggleButton
+                          key={provider.value}
+                          value={provider.value}
+                          sx={{ px: 2, textTransform: "none", fontWeight: 600 }}
+                        >
+                          {provider.label}
+                        </ToggleButton>
+                      ))}
+                    </ToggleButtonGroup>
+                  ) : (
+                    <Chip
+                      size="small"
+                      color="primary"
+                      variant="outlined"
+                      label={selectedBureau.providers[0].label}
+                    />
+                  )}
+                </Stack>
+
+                <Divider sx={{ my: 3 }} />
+
+                {/* 2. Customer */}
+                <StepLabel number={2}>Customer details</StepLabel>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={6}>
                     <TextField
                       required
-                      id="pincode"
-                      name="pincode"
-                      label="Pincode"
+                      id="name"
+                      name="name"
+                      label="Customer Name"
                       fullWidth
-                      value={formData.pincode}
+                      value={formData.name}
                       onChange={handleInputChange}
-                      inputProps={{
-                        maxLength: 6,
-                        pattern: "[0-9]{6}",
-                      }}
-                      helperText="6-digit pincode (required for Experian)"
+                      helperText={
+                        needs.fullName ? "First and last name, as on PAN" : "Full name as on PAN"
+                      }
                     />
                   </Grid>
-                )}
-                <Grid
-                  item
-                  xs={12}
-                  sm={6}
-                  sx={{ minWidth: { xs: "0px", md: "500px" } }}
-                >
-                  <FormControl fullWidth style={{ minWidth: "200px" }}>
-                    <InputLabel>Gender</InputLabel>
-                    <Select
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      required
+                      id="mobile"
+                      name="mobile"
+                      label="Mobile Number"
+                      fullWidth
+                      value={formData.mobile}
+                      onChange={handleMobileChange}
+                      inputProps={{ maxLength: 10, pattern: "[0-9]{10}", inputMode: "numeric" }}
+                      InputProps={{
+                        startAdornment: <InputAdornment position="start">+91</InputAdornment>,
+                      }}
+                      helperText="10 digits, no spaces or dashes"
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      required={needs.pan}
+                      id="pan"
+                      name="pan"
+                      label={needs.pan ? "PAN Number" : "PAN Number (optional)"}
+                      fullWidth
+                      value={formData.pan}
+                      onChange={handleInputChange}
+                      inputProps={{
+                        style: { textTransform: "uppercase" },
+                        maxLength: 10,
+                        pattern: "[A-Za-z0-9]{10}",
+                      }}
+                      helperText={
+                        needs.pan ? `Required for ${selectedOption.label}` : "e.g. ABCDE1234F"
+                      }
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      required={needs.dob}
+                      id="dob"
+                      name="dob"
+                      label={needs.dob ? "Date of Birth" : "Date of Birth (optional)"}
+                      type="date"
+                      fullWidth
+                      value={formData.dob}
+                      onChange={handleInputChange}
+                      InputLabelProps={{ shrink: true }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      select
                       id="gender"
                       name="gender"
+                      label="Gender (optional)"
+                      fullWidth
                       value={formData.gender}
-                      label="Gender (Optional)"
                       onChange={handleInputChange}
+                      helperText={isFinpass ? "Sent to Finpass when provided" : " "}
                     >
                       <MenuItem value="">
-                        <em>None</em>
+                        <em>Not specified</em>
                       </MenuItem>
                       <MenuItem value="Male">Male</MenuItem>
                       <MenuItem value="Female">Female</MenuItem>
                       <MenuItem value="Other">Other</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
-                <Grid
-                  item
-                  xs={12}
-                  sm={6}
-                  sx={{ minWidth: { xs: "0px", md: "500px" } }}
-                >
-                  <FormControl fullWidth style={{ minWidth: "200px" }}>
-                    <InputLabel id="bureau-label">Credit Bureau</InputLabel>
-                    <Select
-                      labelId="bureau-label"
-                      id="bureau"
-                      name="bureau"
-                      value={formData.bureau}
-                      label="Credit Bureau"
-                      onChange={handleBureauChange}
-                    >
-                      {bureauOptions.map((option) => (
-                        <MenuItem key={option.value} value={option.value}>
-                          {option.label}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12}>
-                  <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-                    <Button
-                      type="submit"
-                      variant="contained"
-                      startIcon={<CreditScore />}
-                      disabled={saving}
-                      sx={{ py: 1.5, px: 4 }}
-                    >
-                      {saving ? <CircularProgress size={24} /> : "Check Credit"}
-                    </Button>
-                  </Box>
-                </Grid>
-              </Grid>
-            </Box>
-
-            {recentReport && (
-              <Card sx={{ mt: 3, bgcolor: "background.default" }}>
-                <CardContent>
-                  <Typography variant="h6" gutterBottom>
-                    Recent Credit Report
-                  </Typography>
-                  <Grid container spacing={2}>
-                    <Grid item xs={12} sm={6}>
-                      <Typography variant="body2" color="textSecondary">
-                        Name
-                      </Typography>
-                      <Typography variant="body1">
-                        {recentReport.name}
-                      </Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <Typography variant="body2" color="textSecondary">
-                        Bureau
-                      </Typography>
-                      <Typography
-                        variant="body1"
-                        sx={{ textTransform: "uppercase" }}
-                      >
-                        {recentReport.bureau}
-                      </Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <Typography variant="body2" color="textSecondary">
-                        Mobile
-                      </Typography>
-                      <Typography variant="body1">
-                        {recentReport.mobile}
-                      </Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <Typography variant="body2" color="textSecondary">
-                        Credit Score
-                      </Typography>
-                      <Chip
-                        label={`${recentReport.score} (${getScoreLabel(
-                          recentReport.score,
-                        )})`}
-                        color={getScoreColor(recentReport.score)}
-                        variant="outlined"
+                    </TextField>
+                  </Grid>
+                  {needs.pincode && (
+                    <Grid item xs={12} md={6}>
+                      <TextField
+                        required
+                        id="pincode"
+                        name="pincode"
+                        label="Pincode"
+                        fullWidth
+                        value={formData.pincode}
+                        onChange={handleInputChange}
+                        inputProps={{ maxLength: 6, pattern: "[0-9]{6}", inputMode: "numeric" }}
+                        helperText="6-digit pincode (required for Experian IndiConnect)"
                       />
                     </Grid>
-                    <Grid item xs={12}>
-                      {getReportUrl(recentReport) ? (
-                        <Button
-                          variant="outlined"
-                          startIcon={<PictureAsPdf />}
-                          endIcon={<Download />}
-                          component={Link}
-                          href={getReportUrl(recentReport)}
-                          target="_blank"
-                        >
-                          Download PDF Report
-                        </Button>
-                      ) : (
-                        <Typography variant="body2" color="textSecondary">
-                          No PDF report available for this credit check
-                        </Typography>
-                      )}
-                    </Grid>
+                  )}
+                </Grid>
+
+                <Stack
+                  direction={{ xs: "column-reverse", sm: "row" }}
+                  justifyContent="space-between"
+                  alignItems={{ xs: "stretch", sm: "center" }}
+                  spacing={2}
+                  sx={{ mt: 3 }}
+                >
+                  <Typography variant="body2" color="text.secondary">
+                    Pulling from <strong>{selectedOption.label}</strong>
+                  </Typography>
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    size="large"
+                    disableElevation
+                    startIcon={
+                      saving ? <CircularProgress size={18} color="inherit" /> : <CreditScore />
+                    }
+                    disabled={saving}
+                    sx={{ px: 4 }}
+                  >
+                    {saving ? "Checking..." : "Check credit"}
+                  </Button>
+                </Stack>
+              </Box>
+
+              {recentReport && (
+                <Box sx={{ p: 2.5, borderTop: 1, borderColor: "divider", bgcolor: "grey.50" }}>
+                  <Typography
+                    variant="overline"
+                    color="text.secondary"
+                    sx={{ fontWeight: 700, letterSpacing: 0.8 }}
+                  >
+                    Latest result
+                  </Typography>
+                  <Grid container spacing={2} sx={{ mt: 0 }}>
+                    <ResultField label="Name">
+                      <Typography variant="body2" fontWeight={600}>
+                        {recentReport.name}
+                      </Typography>
+                    </ResultField>
+                    <ResultField label="Mobile">
+                      <Typography variant="body2">{recentReport.mobile}</Typography>
+                    </ResultField>
+                    <ResultField label="Bureau">
+                      <Chip
+                        size="small"
+                        variant="outlined"
+                        label={recentReport.bureau ? recentReport.bureau.toUpperCase() : "N/A"}
+                      />
+                    </ResultField>
+                    <ResultField label="Credit Score">
+                      <ScoreChip score={recentReport.score} emptyLabel="No Credit History" />
+                    </ResultField>
                   </Grid>
-                </CardContent>
-              </Card>
-            )}
-          </CardContent>
-        </Card>
+                  <Box sx={{ mt: 2 }}>
+                    {getReportUrl(recentReport) ? (
+                      <Button
+                        variant="outlined"
+                        startIcon={<PictureAsPdf />}
+                        endIcon={<Download />}
+                        component={Link}
+                        href={getReportUrl(recentReport)}
+                        target="_blank"
+                      >
+                        Download PDF report
+                      </Button>
+                    ) : (
+                      <Typography variant="body2" color="text.secondary">
+                        No PDF report available for this credit check
+                      </Typography>
+                    )}
+                  </Box>
+                </Box>
+              )}
+            </SectionCard>
+          </Grid>
+
+          {/* Live checklist for the chosen bureau and provider */}
+          <Grid item xs={12} lg={4}>
+            <SectionCard sx={{ position: { lg: "sticky" }, top: { lg: 88 } }}>
+              <SectionHeader title="Before you check" subtitle={selectedOption.label} />
+              <Stack spacing={1.25} sx={{ p: 2.5 }}>
+                {checklist.map((item) => (
+                  <Stack key={item.label} direction="row" spacing={1.25} alignItems="center">
+                    {item.ok ? (
+                      <CheckCircle color="success" sx={{ fontSize: 20 }} />
+                    ) : (
+                      <RadioButtonUnchecked sx={{ fontSize: 20, color: "text.disabled" }} />
+                    )}
+                    <Typography
+                      variant="body2"
+                      color={item.ok ? "text.primary" : "text.secondary"}
+                    >
+                      {item.label}
+                    </Typography>
+                  </Stack>
+                ))}
+                <Alert severity="info" icon={<Info fontSize="small" />} sx={{ mt: 1 }}>
+                  {isFinpass
+                    ? "Finpass pulls the report from the selected bureau using the customer's PAN."
+                    : "Adding PAN, date of birth and gender improves the accuracy of the report."}
+                </Alert>
+              </Stack>
+            </SectionCard>
+          </Grid>
+        </Grid>
       )}
 
       {activeTab === 1 && (
-        <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
-          <CardContent>
-            {loading && (
-              <Backdrop
-                open={loading}
-                sx={{
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  width: "100%",
-                  height: "100%",
-                  zIndex: 10,
-                  color: "#fff",
-                  backgroundColor: "rgba(255,255,255,0.5)",
-                }}
-              >
-                <CircularProgress color="primary" />
-              </Backdrop>
-            )}
-            <Typography variant="h6" gutterBottom>
-              Recent Credit Reports
-            </Typography>
+        <SectionCard>
+          <SectionHeader
+            title="Recent credit reports"
+            subtitle="Credit checks run from this account."
+          />
+          <CardAlerts error={error} onCloseError={() => setError("")} />
+          <LoadingBar loading={loading} />
 
-            {creditReports.length === 0 && !loading ? (
-              <Typography variant="body1" sx={{ textAlign: "center", py: 4 }}>
-                No credit reports found. Check a customer's credit to see
-                reports here.
-              </Typography>
-            ) : (
-              <TableContainer component={Paper}>
-                <Table sx={{ minWidth: 650 }} aria-label="credit reports table">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Name</TableCell>
-                      <TableCell>Mobile</TableCell>
-                      <TableCell>Bureau</TableCell>
-                      <TableCell>Credit Score</TableCell>
-                      <TableCell>Date</TableCell>
-                      <TableCell>Actions</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {creditReports.map((report) => (
-                      <TableRow
-                        key={report.id}
-                        sx={{
-                          "&:last-child td, &:last-child th": { border: 0 },
-                        }}
-                      >
-                        <TableCell component="th" scope="row">
+          <TableContainer>
+            <Table size="small" sx={{ minWidth: 800 }} aria-label="credit reports table">
+              <TableHead>
+                <TableRow sx={headRowSx}>
+                  <TableCell>Customer</TableCell>
+                  <TableCell>Bureau</TableCell>
+                  <TableCell>Credit Score</TableCell>
+                  <TableCell>Date</TableCell>
+                  <TableCell align="right">Report</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {creditReports.length === 0 ? (
+                  <EmptyRow
+                    colSpan={5}
+                    loading={loading}
+                    title="No credit reports yet"
+                    hint="Check a customer's credit to see reports here."
+                  />
+                ) : (
+                  creditReports.map((report) => (
+                    <TableRow key={report.id || report._id} hover sx={bodyRowSx}>
+                      <TableCell sx={{ maxWidth: 260 }}>
+                        <CellText variant="body2" fontWeight={600}>
                           {report.name}
-                        </TableCell>
-                        <TableCell>{report.mobile}</TableCell>
-                        <TableCell>
-                          <Chip
-                            label={
-                              report.bureau
-                                ? report.bureau.toUpperCase()
-                                : "N/A"
-                            }
+                        </CellText>
+                        <Typography variant="caption" color="text.secondary">
+                          {report.mobile || "No mobile"}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={report.bureau ? report.bureau.toUpperCase() : "N/A"}
+                          size="small"
+                          variant="outlined"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <ScoreChip score={report.score} emptyLabel="No Credit History" />
+                      </TableCell>
+                      <TableCell>
+                        <DateCell value={report.createdAt} />
+                      </TableCell>
+                      <TableCell align="right">
+                        {getReportUrl(report) ? (
+                          <Button
                             size="small"
                             variant="outlined"
-                          />
-                        </TableCell>
-                        <TableCell>
-                          {report.score !== null &&
-                          report.score !== undefined ? (
-                            <Chip
-                              label={`${report.score} (${getScoreLabel(report.score)})`}
-                              color={getScoreColor(report.score)}
-                              size="small"
-                            />
-                          ) : (
-                            <Chip
-                              label={getScoreLabel(report.score)}
-                              color={getScoreColor(report.score)}
-                              size="small"
-                              variant="outlined"
-                            />
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {new Date(report.createdAt).toLocaleDateString()}
-                        </TableCell>
-                        <TableCell>
-                          {getReportUrl(report) ? (
-                            <Button
-                              size="small"
-                              startIcon={<PictureAsPdf />}
-                              component={Link}
-                              href={getReportUrl(report)}
-                              target="_blank"
-                            >
-                              PDF
-                            </Button>
-                          ) : (
-                            <Typography variant="caption" color="textSecondary">
-                              No PDF
-                            </Typography>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-                <Box
-                  sx={{
-                    display: "flex",
-                    flexDirection: { xs: "column", sm: "row" }, // Stacks on mobile, side-by-side on desktop
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    gap: 2,
-                    p: 3,
-                  }}
-                >
-                  <Typography variant="body2" color="text.secondary">
-                    Total Records: {totalRecords}
-                  </Typography>
+                            startIcon={<PictureAsPdf fontSize="small" />}
+                            component={Link}
+                            href={getReportUrl(report)}
+                            target="_blank"
+                          >
+                            PDF
+                          </Button>
+                        ) : (
+                          <Typography variant="caption" color="text.secondary">
+                            No PDF
+                          </Typography>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
 
-                  <Pagination
-                    count={Math.ceil(totalRecords / rowsPerPage)}
-                    page={page}
-                    onChange={handleChangePage}
-                    color="primary"
-                    variant="outlined"
-                    shape="rounded"
-                    showFirstButton
-                    showLastButton
-                  />
-                  <Typography></Typography>
-                </Box>
-              </TableContainer>
-            )}
-          </CardContent>
-        </Card>
+          <TableFooter
+            page={page}
+            rowsPerPage={rowsPerPage}
+            total={totalRecords}
+            onPageChange={setPage}
+          />
+        </SectionCard>
       )}
-
-      <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
-        <CardContent>
-          <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-            <Info color="info" sx={{ mr: 1 }} />
-            <Typography variant="h6">Credit Bureau Information</Typography>
-          </Box>
-          <Typography variant="body2" color="textSecondary">
-            Select the credit bureau you want to check:
-          </Typography>
-          <ul>
-            <li>
-              <strong>Equifax</strong> - One of India's leading credit bureaus.
-              Requires either PAN or Aadhaar for verification.
-            </li>
-            <li>
-              <strong>Experian</strong> - Global credit reporting agency with
-              operations in India
-            </li>
-            <li>
-              <strong>CIBIL</strong> - TransUnion CIBIL, India's first credit
-              information company
-            </li>
-            <li>
-              <strong>CRIF</strong> - Credit rating and information company
-            </li>
-          </ul>
-          <Typography variant="body2" color="textSecondary">
-            Providing additional information like PAN, Aadhaar, DOB, and Gender
-            can improve the accuracy of credit reports.
-          </Typography>
-        </CardContent>
-      </Card>
     </Box>
   );
 };

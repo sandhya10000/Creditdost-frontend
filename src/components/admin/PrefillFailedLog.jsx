@@ -2,42 +2,41 @@ import React, { useEffect, useState } from "react";
 import {
   Box,
   Typography,
-  Paper,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  CircularProgress,
-  Pagination,
   Chip,
 } from "@mui/material";
 
 import { franchiseAPI } from "../../services/api";
+import {
+  CellText,
+  DateCell,
+  EmptyRow,
+  LoadingBar,
+  SectionCard,
+  SectionHeader,
+  TableFooter,
+} from "./ui/AdminTable";
+import { bodyRowSx, headRowSx } from "./ui/tableStyles";
 
-const formatDateTime = (value) => {
-  const d = new Date(value);
-  const date = d.toLocaleDateString("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
-  const time = d.toLocaleTimeString("en-IN", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-  return { date, time };
-};
+// Credit-report failures carry their bureau; everything else is a prefill lookup
+const TypeChip = ({ log }) =>
+  log.source === "credit-report" ? (
+    <Chip
+      size="small"
+      color="primary"
+      variant="outlined"
+      label={`Credit · ${(log.bureau || "").toUpperCase()}`}
+    />
+  ) : (
+    <Chip size="small" variant="outlined" label="Prefill" />
+  );
 
-const getType = (log) => {
-  if (log.source === "credit-report") {
-    return `Credit · ${(log.bureau || "").toUpperCase()}`;
-  }
-  return "Prefill";
-};
-
-const PrefillFailedLog = () => {
+const PrefillFailedLog = ({ embedded = false }) => {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [totalRecords, setTotalRecords] = useState(0);
@@ -66,125 +65,95 @@ const PrefillFailedLog = () => {
     fetchPrefillLogs();
   }, [page]);
 
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  const headers = [
-    "Date & Time",
-    "Partner ID",
-    "Type",
-    "Name",
-    "Phone",
-    "PAN",
-    "Reason",
-  ];
-
   return (
-    <Box p={3}>
-      <Typography variant="h5" fontWeight="bold" mb={3}>
-        Prefill Failed Logs
-      </Typography>
+    <Box p={embedded ? 0 : 3}>
+      {!embedded && (
+        <Typography variant="h5" fontWeight="bold" mb={3}>
+          Prefill Failed Logs
+        </Typography>
+      )}
 
-      <Paper elevation={3}>
-        {loading ? (
-          <Box display="flex" justifyContent="center" alignItems="center" p={5}>
-            <CircularProgress />
-          </Box>
-        ) : (
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  {headers.map((h) => (
-                    <TableCell key={h}>
-                      <strong>{h}</strong>
+      <SectionCard>
+        <SectionHeader
+          title="Failed attempts"
+          subtitle="Prefill lookups and credit report pulls that returned an error."
+        />
+        <LoadingBar loading={loading} />
+
+        <TableContainer>
+          <Table size="small" sx={{ minWidth: 1000 }} aria-label="prefill failed logs table">
+            <TableHead>
+              <TableRow sx={headRowSx}>
+                <TableCell>Date</TableCell>
+                <TableCell>Partner ID</TableCell>
+                <TableCell>Type</TableCell>
+                <TableCell>Customer</TableCell>
+                <TableCell>PAN</TableCell>
+                <TableCell>Reason</TableCell>
+              </TableRow>
+            </TableHead>
+
+            <TableBody>
+              {logs.length === 0 ? (
+                <EmptyRow
+                  colSpan={6}
+                  loading={loading}
+                  title="No failed attempts"
+                  hint="Prefill and credit report errors will be listed here."
+                />
+              ) : (
+                logs.map((log) => (
+                  <TableRow key={log._id} hover sx={bodyRowSx}>
+                    <TableCell sx={{ whiteSpace: "nowrap" }}>
+                      <DateCell value={log.createdAt} />
                     </TableCell>
-                  ))}
-                </TableRow>
-              </TableHead>
-
-              <TableBody>
-                {logs.length > 0 ? (
-                  logs.map((log) => {
-                    const { date, time } = formatDateTime(log.createdAt);
-                    return (
-                      <TableRow key={log._id}>
-                        <TableCell>
-                          {date}
-                          <br />
-                          <span style={{ color: "#666", fontSize: "12px" }}>
-                            {time}
-                          </span>
-                        </TableCell>
-
-                        <TableCell>
-                          {log.franchiseId?.franchiseCode || "—"}
-                        </TableCell>
-
-                        <TableCell>{getType(log)}</TableCell>
-
-                        <TableCell>
-                          {log.name || log.customerName || "—"}
-                        </TableCell>
-
-                        <TableCell>{log.mobile || "—"}</TableCell>
-
-                        <TableCell>{log.pan || "—"}</TableCell>
-
-                        <TableCell>
-                          {log.statusCode && (
-                            <Chip
-                              label={log.statusCode}
-                              size="small"
-                              color="error"
-                              variant="outlined"
-                              sx={{ mr: 1 }}
-                            />
-                          )}
+                    <TableCell>
+                      <Typography variant="body2" fontWeight={600} color="primary.main">
+                        {log.franchiseId?.franchiseCode || "—"}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <TypeChip log={log} />
+                    </TableCell>
+                    <TableCell sx={{ maxWidth: 200 }}>
+                      <CellText variant="body2">{log.name || log.customerName || "—"}</CellText>
+                      <Typography variant="caption" color="text.secondary">
+                        {log.mobile || "No mobile"}
+                      </Typography>
+                    </TableCell>
+                    <TableCell sx={{ fontFamily: "monospace", whiteSpace: "nowrap" }}>
+                      {log.pan || "—"}
+                    </TableCell>
+                    <TableCell sx={{ minWidth: 260 }}>
+                      <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1 }}>
+                        {log.statusCode && (
+                          <Chip
+                            label={log.statusCode}
+                            size="small"
+                            color="error"
+                            variant="outlined"
+                            sx={{ flexShrink: 0 }}
+                          />
+                        )}
+                        <Typography variant="body2" color="text.secondary">
                           {log.message || "—"}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={headers.length} align="center">
-                      No Logs Found
+                        </Typography>
+                      </Box>
                     </TableCell>
                   </TableRow>
-                )}
-              </TableBody>
-            </Table>
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: { xs: "column", sm: "row" },
-                justifyContent: "space-between",
-                alignItems: "center",
-                gap: 2,
-                p: 3,
-              }}
-            >
-              <Typography variant="body2" color="text.secondary">
-                Total Records: {totalRecords}
-              </Typography>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
 
-              <Pagination
-                count={Math.ceil(totalRecords / rowsPerPage)}
-                page={page}
-                onChange={handleChangePage}
-                color="primary"
-                variant="outlined"
-                shape="rounded"
-                showFirstButton
-                showLastButton
-              />
-              <Box />
-            </Box>
-          </TableContainer>
-        )}
-      </Paper>
+        <TableFooter
+          page={page}
+          rowsPerPage={rowsPerPage}
+          total={totalRecords}
+          onPageChange={setPage}
+        />
+      </SectionCard>
     </Box>
   );
 };

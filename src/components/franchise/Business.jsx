@@ -62,6 +62,20 @@ const COMPANY_TYPES = [
 const PAN_REGEX = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
 const GSTIN_REGEX = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
 
+// Admin (Manual Business) look: outlined fields, rounded flat buttons and a quieter stepper.
+// Partner forms use the default look.
+const ADMIN_FORM_SX = {
+  "& .MuiOutlinedInput-root": { borderRadius: 2, bgcolor: "background.paper" },
+  "& .MuiInputLabel-root": { fontSize: "0.9rem" },
+  "& .MuiButton-root": { textTransform: "none", fontWeight: 600, borderRadius: 2 },
+  "& .MuiButton-contained": { boxShadow: "none", "&:hover": { boxShadow: "none" } },
+  "& .MuiStepLabel-label": { fontWeight: 600, color: "text.secondary" },
+  "& .MuiStepLabel-label.Mui-active, & .MuiStepLabel-label.Mui-completed": { color: "text.primary" },
+  "& .MuiStepConnector-line": { borderColor: "divider" },
+  "& .MuiStepContent-root": { borderColor: "divider", ml: 1.25, pl: 3 },
+};
+const ADMIN_CARD_SX = { mt: 0, borderRadius: 3, border: 1, borderColor: "divider", boxShadow: "none" };
+
 // fixedCustomerType ("individual" | "business") locks the form to one customer type
 // and hides the Customer Type dropdown. Omit it to let the user pick.
 const Business = ({
@@ -696,8 +710,8 @@ const Business = ({
       if (key === "bankAccountNumber" || key === "ifscCode") {
         continue;
       }
-      // Client issues are optional
-      if (key === "clientIssues") {
+      // Client issues and father's name are optional
+      if (key === "clientIssues" || key === "fatherName") {
         continue;
       }
 
@@ -746,11 +760,19 @@ const Business = ({
     handleNext();
   };
 
+  const isAdminForm = userType === "admin";
+
   return (
-    <Box>
-      <Typography variant="h4" gutterBottom>
-        {amcEnabled ? "AMC" : "Business Form"}
-      </Typography>
+    <Box sx={isAdminForm ? ADMIN_FORM_SX : undefined}>
+      {isAdminForm ? (
+        <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 1 }}>
+          {amcEnabled ? "AMC enrolment" : "Customer form"}
+        </Typography>
+      ) : (
+        <Typography variant="h4" gutterBottom>
+          {amcEnabled ? "AMC" : "Business Form"}
+        </Typography>
+      )}
 
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
@@ -764,7 +786,7 @@ const Business = ({
         </Alert>
       )}
 
-      <Card sx={{ mt: 3, boxShadow: 3, borderRadius: 2 }}>
+      <Card sx={isAdminForm ? ADMIN_CARD_SX : { mt: 3, boxShadow: 3, borderRadius: 2 }}>
         <CardContent>
           <Stepper activeStep={activeStep} orientation="vertical">
             {steps.map((step, index) => (
