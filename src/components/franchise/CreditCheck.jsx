@@ -35,8 +35,9 @@ import {
   Info,
 } from "@mui/icons-material";
 import { franchiseAPI } from "../../services/api";
+import { EMBEDDED_FORM_SX } from "./creditBureau/embeddedFormSx";
 
-const CreditCheck = () => {
+const CreditCheck = ({ embedded = false, onCreditsChange } = {}) => {
   // TEMP: CIBIL maintenance — hides the Generation form and shows a notice. Set false to restore.
   const CIBIL_MAINTENANCE = false;
   // No-record text from the bureau (CIBIL/Equifax). The backend locks the PAN for 48h.
@@ -59,8 +60,18 @@ const CreditCheck = () => {
   const [creditReports, setCreditReports] = useState([]);
   const [recentReport, setRecentReport] = useState(null);
   const [availableCredits, setAvailableCredits] = useState(0);
-  // Set when the prefill match failed: mobile + PAN are locked until prefillLock.until
+  // Count shown in the Credit Check page header when embedded there
+  const updateCredits = (value) => {
+    setAvailableCredits(value);
+    onCreditsChange?.(value);
+  };
+  // Set when the prefill match failed. Stores the pair it applies to and the unlock time.
   const [prefillLock, setPrefillLock] = useState(null);
+  const lockApplies = Boolean(
+    prefillLock &&
+      prefillLock.mobile === formData.mobile &&
+      prefillLock.pan === formData.pan.trim().toUpperCase(),
+  );
   // Last name|mobile|PAN sent for a match, so blurring a field doesn't repeat the call
   const lastPrefillKeyRef = useRef("");
 
@@ -80,7 +91,7 @@ const CreditCheck = () => {
 
   // Load recent credit reports and available credits on component mount
   useEffect(() => {
-    loadDashboardStats();
+    if (!embedded) loadDashboardStats();
   }, []);
 
   useEffect(() => {
@@ -140,7 +151,7 @@ const CreditCheck = () => {
   const loadDashboardStats = async () => {
     try {
       const response = await franchiseAPI.getDashboardStats();
-      setAvailableCredits(response.data.stats.credits);
+      updateCredits(response.data.stats.credits);
     } catch (err) {
       console.error("Error loading dashboard stats:", err);
     }
@@ -236,6 +247,19 @@ const CreditCheck = () => {
       return;
     }
 
+    // Clear the form once the check is sent. The request below already holds these values.
+    setFormData((prev) => ({
+      name: "",
+      mobile: "",
+      pan: "",
+      aadhaar: "",
+      dob: "",
+      gender: "",
+      bureau: prev.bureau,
+    }));
+    setPrefillLock(null);
+    lastPrefillKeyRef.current = "";
+
     const attemptRequest = async () => {
       try {
         // Prepare data for API call
@@ -282,7 +306,7 @@ const CreditCheck = () => {
         console.log("Credit report data:", response.data.creditReport);
         setRecentReport(response.data.creditReport);
         if (response.data.remainingCredits != null) {
-          setAvailableCredits(response.data.remainingCredits);
+          updateCredits(response.data.remainingCredits);
         }
         // Re-sync the badge from the server so it always matches the database
         await loadDashboardStats();
@@ -429,7 +453,9 @@ const CreditCheck = () => {
   const fetchPrefillLock = async (mobile, pan) => {
     const { data } = await franchiseAPI.getPrefillLock({ mobile, pan });
     setPrefillLock(
-      data.locked ? { until: data.lockedUntil, message: data.message } : null,
+      data.locked
+        ? { until: data.lockedUntil, message: data.message, mobile, pan }
+        : null,
     );
     return Boolean(data.locked);
   };
@@ -455,7 +481,7 @@ const CreditCheck = () => {
 
       const { data } = await franchiseAPI.checkPrefillMatch({ mobile, name, pan });
       if (data.locked) {
-        setPrefillLock({ until: data.lockedUntil, message: data.message });
+        setPrefillLock({ until: data.lockedUntil, message: data.message, mobile, pan });
       } else if (data.matched) {
         setPrefillLock(null);
       }
@@ -472,12 +498,15 @@ const CreditCheck = () => {
   };
 
   return (
-    <Box>
-      <Typography variant="h4" gutterBottom>
-        Credit Check
-      </Typography>
+    <Box sx={embedded ? EMBEDDED_FORM_SX : undefined}>
+      {!embedded && (
+        <Typography variant="h4" gutterBottom>
+          Credit Check
+        </Typography>
+      )}
 
-      {/* Credits Display */}
+      {/* Credits Display: hidden when embedded (shown in the page header) */}
+      {!embedded && (
       <Card
         sx={{
           mb: 3,
@@ -512,7 +541,9 @@ const CreditCheck = () => {
           </Box>
         </CardContent>
       </Card>
+      )}
 
+      {!embedded && (
       <Tabs
         value={activeTab}
         onChange={handleTabChange}
@@ -521,6 +552,7 @@ const CreditCheck = () => {
         <Tab label="Check Credit" />
         <Tab label="Recent Reports" />
       </Tabs>
+      )}
 
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
@@ -571,7 +603,7 @@ const CreditCheck = () => {
                 <CircularProgress color="primary" />
               </Backdrop>
               {/* Hidden once a check reports an error, so only the top alert shows */}
-              {prefillLock && !error && (
+              {lockApplies && !error && (
                 <Alert severity="warning" sx={{ mb: 3 }}>
                   No Data Found
                 </Alert>
@@ -610,13 +642,13 @@ const CreditCheck = () => {
                     value={formData.mobile}
                     onChange={handleMobileChange}
                     onBlur={checkPrefill}
-                    disabled={!!prefillLock}
+                    disabled={lockApplies}
                     inputProps={{
                       maxLength: 10,
                       pattern: "[0-9]{10}",
                     }}
                     helperText={
-                      prefillLock ? "" : "Enter exactly 10 digits without spaces or dashes"
+                      lockApplies ? "" : "Enter exactly 10 digits without spaces or dashes"
                     }
                   />
                 </Grid>
@@ -635,7 +667,7 @@ const CreditCheck = () => {
                     value={formData.pan}
                     onChange={handleInputChange}
                     onBlur={checkPrefill}
-                    disabled={!!prefillLock}
+                    disabled={lockApplies}
                     inputProps={{
                       style: { textTransform: "uppercase" },
                       maxLength: 10,
@@ -649,7 +681,7 @@ const CreditCheck = () => {
                         WebkitTextFillColor: "#999", //  text grey
                       },
                     }}
-                    helperText={prefillLock ? "" : "PAN number (e.g., ABCDE1234F)"}
+                    helperText={lockApplies ? "" : "PAN number (e.g., ABCDE1234F)"}
                   />
                 </Grid>
 

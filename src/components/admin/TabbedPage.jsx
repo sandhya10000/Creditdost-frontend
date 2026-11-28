@@ -42,7 +42,7 @@ const CountChip = ({ count }) => (
 // A page made of tabs (e.g. Credit Check / View Reports / Prefill Failed Logs).
 // The open tab is kept in the URL as ?tab=<key>, and staff only see tabs their role allows.
 // Each tab: { key, label, icon, permission, badge, render }. Only the open tab is mounted.
-const TabbedPage = ({ title, subtitle, tabs }) => {
+const TabbedPage = ({ title, subtitle, tabs, actions }) => {
   const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -62,16 +62,25 @@ const TabbedPage = ({ title, subtitle, tabs }) => {
 
   return (
     <Box>
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h4" fontWeight={700}>
-          {title}
-        </Typography>
-        {subtitle && (
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-            {subtitle}
+      <Stack
+        direction={{ xs: "column", sm: "row" }}
+        justifyContent="space-between"
+        alignItems={{ xs: "flex-start", sm: "center" }}
+        spacing={2}
+        sx={{ mb: 3 }}
+      >
+        <Box>
+          <Typography variant="h4" fontWeight={700}>
+            {title}
           </Typography>
-        )}
-      </Box>
+          {subtitle && (
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+              {subtitle}
+            </Typography>
+          )}
+        </Box>
+        {actions && <Box sx={{ flexShrink: 0 }}>{actions}</Box>}
+      </Stack>
 
       {visibleTabs.length > 1 && (
         <Paper

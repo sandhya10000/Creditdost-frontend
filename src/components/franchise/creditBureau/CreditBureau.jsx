@@ -34,8 +34,9 @@ import {
   Info,
 } from "@mui/icons-material";
 import { franchiseAPI } from "../../../services/api";
+import { EMBEDDED_FORM_SX } from "./embeddedFormSx";
 
-const CreditBureau = ({ bureauOptions = [], defaultBureau }) => {
+const CreditBureau = ({ bureauOptions = [], defaultBureau, embedded = false, onCreditsChange }) => {
   const [activeTab, setActiveTab] = useState(0);
   const [formData, setFormData] = useState({
     name: "",
@@ -54,6 +55,11 @@ const CreditBureau = ({ bureauOptions = [], defaultBureau }) => {
   const [creditReports, setCreditReports] = useState([]);
   const [recentReport, setRecentReport] = useState(null);
   const [availableCredits, setAvailableCredits] = useState(0);
+  // Count shown in the Credit Check page header when embedded there
+  const updateCredits = (value) => {
+    setAvailableCredits(value);
+    onCreditsChange?.(value);
+  };
   const [totalRecords, setTotalRecords] = useState(0);
   const [page, setPage] = useState(1);
   const rowsPerPage = 10;
@@ -65,7 +71,7 @@ const CreditBureau = ({ bureauOptions = [], defaultBureau }) => {
   // Load recent credit reports and available credits on component mount
   useEffect(() => {
     // loadCreditReports();
-    loadDashboardStats();
+    if (!embedded) loadDashboardStats();
   }, []);
 
   useEffect(() => {
@@ -125,7 +131,7 @@ const CreditBureau = ({ bureauOptions = [], defaultBureau }) => {
   const loadDashboardStats = async () => {
     try {
       const response = await franchiseAPI.getDashboardStats();
-      setAvailableCredits(response.data.stats.credits);
+      updateCredits(response.data.stats.credits);
     } catch (err) {
       console.error("Error loading dashboard stats:", err);
     }
@@ -317,7 +323,7 @@ const CreditBureau = ({ bureauOptions = [], defaultBureau }) => {
         console.log("Credit report data:", response.data.creditReport);
         setRecentReport(response.data.creditReport);
         if (response.data.remainingCredits != null) {
-          setAvailableCredits(response.data.remainingCredits);
+          updateCredits(response.data.remainingCredits);
         }
         // Re-sync the badge from the server so it always matches the database
         await loadDashboardStats();
@@ -468,12 +474,15 @@ const CreditBureau = ({ bureauOptions = [], defaultBureau }) => {
     }
   };
   return (
-    <Box>
-      <Typography variant="h4" gutterBottom>
-        Credit Check
-      </Typography>
+    <Box sx={embedded ? EMBEDDED_FORM_SX : undefined}>
+      {!embedded && (
+        <Typography variant="h4" gutterBottom>
+          Credit Check
+        </Typography>
+      )}
 
-      {/* Credits Display */}
+      {/* Credits Display: hidden when embedded (shown in the page header) */}
+      {!embedded && (
       <Card
         sx={{
           mb: 3,
@@ -508,7 +517,9 @@ const CreditBureau = ({ bureauOptions = [], defaultBureau }) => {
           </Box>
         </CardContent>
       </Card>
+      )}
 
+      {!embedded && (
       <Tabs
         value={activeTab}
         onChange={handleTabChange}
@@ -517,6 +528,7 @@ const CreditBureau = ({ bureauOptions = [], defaultBureau }) => {
         <Tab label="Check Credit" />
         <Tab label="Recent Reports" />
       </Tabs>
+      )}
 
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>

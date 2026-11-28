@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, lazy, Suspense } from "react";
 import {
   Box,
   Typography,
@@ -18,10 +18,19 @@ import {
   Paper,
   Chip,
   Pagination,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  Stack,
 } from "@mui/material";
+import { AddOutlined } from "@mui/icons-material";
 import { franchiseAPI } from "../../services/api";
 
+// The business form opens inside a dialog, so it loads only when first needed
+const BusinessForm = lazy(() => import("./Business"));
+
 const BusinessMIS = () => {
+  const [logOpen, setLogOpen] = useState(false);
   const [businessForms, setBusinessForms] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -164,9 +173,50 @@ const BusinessMIS = () => {
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>
-        Business MIS
-      </Typography>
+      <Stack
+        direction="row"
+        justifyContent="space-between"
+        alignItems="center"
+        spacing={2}
+        sx={{ mb: 2 }}
+      >
+        <Typography variant="h4" fontWeight={600}>
+          Business MIS
+        </Typography>
+        <Button
+          variant="contained"
+          disableElevation
+          startIcon={<AddOutlined />}
+          onClick={() => setLogOpen(true)}
+          sx={{ textTransform: "none", fontWeight: 600, borderRadius: 2, flexShrink: 0 }}
+        >
+          Log Business
+        </Button>
+      </Stack>
+
+      <Dialog
+        open={logOpen}
+        onClose={() => {
+          setLogOpen(false);
+          fetchBusinessForms(); // show the entry that was just saved
+        }}
+        fullWidth
+        maxWidth="lg"
+        scroll="paper"
+      >
+        <DialogTitle sx={{ fontWeight: 700 }}>Log business</DialogTitle>
+        <DialogContent dividers>
+          <Suspense
+            fallback={
+              <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
+                <CircularProgress />
+              </Box>
+            }
+          >
+            {logOpen && <BusinessForm fixedCustomerType="individual" />}
+          </Suspense>
+        </DialogContent>
+      </Dialog>
 
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>

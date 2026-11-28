@@ -1,5 +1,8 @@
 ﻿import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
+import { EMBEDDED_FORM_SX } from "../franchise/creditBureau/embeddedFormSx";
+import { SectionCard, SectionHeader, TableToolbar, SearchField, FilterChips, EmptyRow, LoadingBar } from "../admin/ui/AdminTable";
+import { headRowSx, bodyRowSx } from "../admin/ui/tableStyles";
 import { PDFDocument } from "pdf-lib";
 import {
   Box,
@@ -26,6 +29,12 @@ import {
   TextField,
   InputAdornment,
   Grid,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
 } from "@mui/material";
 import {
   CloudUpload as CloudUploadIcon,
@@ -45,7 +54,14 @@ import {
 
 const API_BASE_URL = import.meta.env.VITE_REACT_APP_API_URL || "http://localhost:5000/api";
 
-const BankStatementAnalyzer = () => {
+const HISTORY_FILTERS = [
+  { value: "", label: "All" },
+  { value: "Success", label: "Successful" },
+  { value: "Processing", label: "Processing" },
+  { value: "Failed", label: "Failed" },
+];
+
+const BankStatementAnalyzer = ({ section = "analyze" } = {}) => {
   const [file, setFile] = useState(null);
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -58,6 +74,17 @@ const BankStatementAnalyzer = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [analyses, setAnalyses] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
+  // Analyses table: search by file, holder or bank, and status filter
+  const [historySearch, setHistorySearch] = useState("");
+  const [historyFilter, setHistoryFilter] = useState("");
+  const visibleAnalyses = analyses.filter((item) => {
+    const query = historySearch.trim().toLowerCase();
+    const matchesSearch = [item.fileName, item.accountHolderName, item.bankName].some((value) =>
+      (value || "").toLowerCase().includes(query),
+    );
+    const matchesStatus = !historyFilter || item.status === historyFilter;
+    return matchesSearch && matchesStatus;
+  });
   const [isDragOver, setIsDragOver] = useState(false);
 
   // Snackbar notifications
@@ -279,18 +306,9 @@ const BankStatementAnalyzer = () => {
   };
 
   return (
-    <Box sx={{ maxWidth: 1200, mx: "auto", p: { xs: 2, md: 3 } }}>
-      {/* Page Title */}
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h4" sx={{ fontWeight: 700, color: "text.primary" }}>
-          Bank Statement Analyzer
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-          Extract, mathematically reconcile, and generate comprehensive Credit Intelligence Reports with automated underwriting KPIs.
-        </Typography>
-      </Box>
-
-      {/* Main Grid: Upload & Live Analysis */}
+    <Box sx={EMBEDDED_FORM_SX}>
+      {/* Analyze statement: upload and live status */}
+      {section === "analyze" && (
       <Grid container spacing={3} sx={{ mb: 4 }}>
         {/* Upload Card */}
         <Grid item xs={12} md={7}>
@@ -623,121 +641,114 @@ const BankStatementAnalyzer = () => {
           </Card>
         </Grid>
       </Grid>
+      )}
 
-      {/* Recent Analyses Documents List */}
-      <Card sx={{ boxShadow: 2, borderRadius: 2, border: "1px solid", borderColor: "divider" }}>
-        <CardContent sx={{ p: 3 }}>
-          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-              <AssessmentIcon color="primary" />
-              <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                Recent Statement Analyses
-              </Typography>
-            </Box>
-            <Button
-              variant="outlined"
-              size="small"
-              startIcon={<RefreshIcon />}
-              onClick={fetchHistory}
-              disabled={loadingHistory}
-              sx={{ textTransform: "none", borderRadius: 1.5 }}
-            >
-              Refresh
-            </Button>
-          </Box>
+      {/* Analyses table */}
+      {section === "analyses" && (
+        <SectionCard>
+          <SectionHeader
+            title="Statement analyses"
+            subtitle={`${analyses.length} ${analyses.length === 1 ? "statement" : "statements"} analysed`}
+            actions={
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<RefreshIcon />}
+                onClick={fetchHistory}
+                disabled={loadingHistory}
+                sx={{ textTransform: "none", fontWeight: 600, borderRadius: 2, borderColor: "divider", color: "text.primary" }}
+              >
+                Refresh
+              </Button>
+            }
+          />
 
-          {loadingHistory ? (
-            <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
-              <CircularProgress size={36} />
-            </Box>
-          ) : analyses.length === 0 ? (
-            <Typography variant="body2" color="text.secondary" align="center" sx={{ py: 4 }}>
-              No bank statement analyses performed yet.
-            </Typography>
-          ) : (
-            <List disablePadding>
-              {analyses.map((item, index) => {
-                const isSuccess = item.status === "Success";
-                const isFailed = item.status === "Failed";
-                const isProcessing = item.status === "Processing" || item.status === "Finalizing";
+          <TableToolbar>
+            <SearchField
+              value={historySearch}
+              onChange={setHistorySearch}
+              placeholder="Search by file, holder or bank"
+            />
+            <FilterChips value={historyFilter} onChange={setHistoryFilter} options={HISTORY_FILTERS} />
+          </TableToolbar>
+          <LoadingBar loading={loadingHistory} />
 
-                return (
-                  <React.Fragment key={item.id || index}>
-                    <ListItem
-                      sx={{
-                        px: 1.5,
-                        py: 2,
-                        display: "flex",
-                        flexDirection: { xs: "column", sm: "row" },
-                        alignItems: { xs: "flex-start", sm: "center" },
-                        gap: 2,
-                        bgcolor: "background.paper",
-                        borderRadius: 1,
-                        "&:hover": { bgcolor: "action.hover" },
-                      }}
-                    >
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, minWidth: 40 }}>
-                        <PdfIcon color={isSuccess ? "primary" : isFailed ? "error" : "action"} />
-                      </Box>
+          <TableContainer>
+            <Table size="small">
+              <TableHead>
+                <TableRow sx={headRowSx}>
+                  <TableCell>Statement</TableCell>
+                  <TableCell>Account holder</TableCell>
+                  <TableCell>Uploaded</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell align="right">Report</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {!loadingHistory && visibleAnalyses.length === 0 && (
+                  <EmptyRow
+                    colSpan={5}
+                    title={analyses.length === 0 ? "No statements analysed yet" : "No statements match your search"}
+                    hint={
+                      analyses.length === 0
+                        ? "Upload a bank statement in Analyze Statement to see it here."
+                        : "Try a different name or filter."
+                    }
+                  />
+                )}
+                {visibleAnalyses.map((item) => {
+                  const isSuccess = item.status === "Success";
+                  const isFailed = item.status === "Failed";
+                  const isProcessing = item.status === "Processing" || item.status === "Finalizing";
 
-                      <ListItemText
-                        primary={
-                          <Box sx={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 1 }}>
-                            <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                              {item.fileName || "Bank_Statement.pdf"}
-                            </Typography>
-                            <Chip
-                              label={item.status}
-                              size="small"
-                              color={isSuccess ? "success" : isFailed ? "error" : "warning"}
-                              sx={{ fontWeight: 600, height: 20, fontSize: "0.7rem" }}
-                            />
-                            {item.bankName && (
-                              <Chip
-                                label={item.bankName}
-                                size="small"
-                                variant="outlined"
-                                sx={{ height: 20, fontSize: "0.7rem" }}
-                              />
-                            )}
-                          </Box>
-                        }
-                        secondary={
-                          <Box sx={{ mt: 0.5, display: "flex", flexWrap: "wrap", gap: 2 }}>
-                            {item.accountHolderName && (
-                              <Typography variant="caption" color="text.secondary">
-                                Holder: <strong>{item.accountHolderName}</strong>
-                              </Typography>
-                            )}
-                            <Typography variant="caption" color="text.secondary">
-                              Date: {new Date(item.createdAt).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}
-                            </Typography>
-                            {isFailed && item.failureReason && (
-                              <Typography variant="caption" color="error" display="block">
-                                Reason: {item.failureReason}
-                              </Typography>
-                            )}
-                          </Box>
-                        }
-                      />
+                  return (
+                    <TableRow key={item.id} hover sx={bodyRowSx}>
+                      <TableCell sx={{ maxWidth: 320 }}>
+                        <Typography variant="body2" fontWeight={600} noWrap title={item.fileName}>
+                          {item.fileName || "Bank_Statement.pdf"}
+                        </Typography>
+                        {item.bankName && (
+                          <Chip label={item.bankName} size="small" variant="outlined" sx={{ mt: 0.5, height: 20, fontSize: 11 }} />
+                        )}
+                      </TableCell>
 
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1, ml: { xs: 0, sm: "auto" } }}>
+                      <TableCell>{item.accountHolderName || "—"}</TableCell>
+
+                      <TableCell sx={{ whiteSpace: "nowrap" }}>
+                        {new Date(item.createdAt).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}
+                      </TableCell>
+
+                      <TableCell>
+                        <Chip
+                          label={item.status}
+                          size="small"
+                          variant="outlined"
+                          color={isSuccess ? "success" : isFailed ? "error" : "warning"}
+                        />
+                        {isFailed && item.failureReason && (
+                          <Typography variant="caption" color="error" display="block" sx={{ mt: 0.5, maxWidth: 260 }}>
+                            {item.failureReason}
+                          </Typography>
+                        )}
+                      </TableCell>
+
+                      <TableCell align="right" sx={{ whiteSpace: "nowrap" }}>
                         {isSuccess && (
                           <>
                             <Tooltip title="View PDF">
                               <IconButton
                                 size="small"
-                                onClick={() => handleDownloadReport(item.id, item.fileName, false)}
                                 color="primary"
+                                onClick={() => handleDownloadReport(item.id, item.fileName, false)}
                               >
                                 <VisibilityIcon fontSize="small" />
                               </IconButton>
                             </Tooltip>
-                            <Tooltip title="Download PDF Report">
+                            <Tooltip title="Download PDF report">
                               <IconButton
                                 size="small"
-                                onClick={() => handleDownloadReport(item.id, item.fileName, true)}
                                 color="success"
+                                onClick={() => handleDownloadReport(item.id, item.fileName, true)}
                               >
                                 <DownloadIcon fontSize="small" />
                               </IconButton>
@@ -745,16 +756,15 @@ const BankStatementAnalyzer = () => {
                           </>
                         )}
                         {isProcessing && <CircularProgress size={20} />}
-                      </Box>
-                    </ListItem>
-                    {index < analyses.length - 1 && <Divider />}
-                  </React.Fragment>
-                );
-              })}
-            </List>
-          )}
-        </CardContent>
-      </Card>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </SectionCard>
+      )}
 
       {/* Snackbar */}
       <Snackbar

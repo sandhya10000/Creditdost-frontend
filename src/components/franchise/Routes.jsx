@@ -1,36 +1,33 @@
-import React from "react";
-import { Routes, Route } from "react-router-dom";
+import React, { Suspense, lazy } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
 import Dashboard from "./Dashboard";
-import DashboardHome from "./DashboardHome";
-import Profile from "./Profile";
-import KycVerification from "./KycVerification";
-import Packages from "./Packages";
-import Payment from "./Payment";
-import CreditCheck from "./CreditCheck";
-import Leads from "./Leads";
-import ViewReports from "./ViewReports";
-import Referrals from "./Referrals";
-import Business from "./Business";
-import BusinessMIS from "./BusinessMIS";
-import AIAnalysis from "./AIAnalysis";
-import Certificate from "./Certificate";
-import DigitalAgreement from "./DigitalAgreement";
-import RelationshipManagerInfo from "./RelationshipManagerInfo";
-import WhatsAppGroups from "./WhatsAppGroups";
-import Support from "./Support";
-import FranchiseMarketing from "./FranchiseMarketing"; // legacy page (all languages)
-import FranchiseMarketingByLanguage from "./FranchiseMarketingByLanguage"; // per-language page
-import FranchiseCaseStudies from "./FranchiseCaseStudies";
-import CRIF from "./creditBureau/CRIF";
-import Experian from "./creditBureau/Experian";
-import Equifax from "./creditBureau/Equifax";
-import UpgradePackage from "./UpgradePackage";
-import WhiteLabelReports from "./WhiteLabelReports";
-import BrandedReportPage from "./brandedReport/BrandedReportPage";
-import BankStatementAnalyzer from "../bsa/BankStatementAnalyzer";
+const DashboardHome = lazy(() => import("./DashboardHome"));
+const Profile = lazy(() => import("./Profile"));
+const KycVerification = lazy(() => import("./KycVerification"));
+const Packages = lazy(() => import("./Packages"));
+const Payment = lazy(() => import("./Payment"));
+const CreditCheckTabs = lazy(() => import("./CreditCheckTabs"));
+const Leads = lazy(() => import("./Leads"));
+const Referrals = lazy(() => import("./Referrals"));
+const Business = lazy(() => import("./Business"));
+const BusinessMIS = lazy(() => import("./BusinessMIS"));
+const AIAnalysisTabs = lazy(() => import("./AIAnalysisTabs"));
+const WhiteLabelReports = lazy(() => import("./WhiteLabelReports"));
+const Certificate = lazy(() => import("./Certificate"));
+const DigitalAgreement = lazy(() => import("./DigitalAgreement"));
+const RelationshipManagerInfo = lazy(() => import("./RelationshipManagerInfo"));
+const WhatsAppGroups = lazy(() => import("./WhatsAppGroups"));
+const Support = lazy(() => import("./Support"));
+const FranchiseMarketing = lazy(() => import("./FranchiseMarketing")); // legacy page (all languages)
+const FranchiseMarketingByLanguage = lazy(() => import("./FranchiseMarketingByLanguage")); // per-language page
+const FranchiseCaseStudies = lazy(() => import("./FranchiseCaseStudies"));
+const UpgradePackage = lazy(() => import("./UpgradePackage"));
+const BrandedReportPage = lazy(() => import("./brandedReport/BrandedReportPage"));
+const BankStatementTabs = lazy(() => import("../bsa/BankStatementTabs"));
 
 const FranchiseRoutes = () => {
   return (
+    <Suspense fallback={<div style={{ padding: 24 }}>Loading...</div>}>
     <Routes>
       <Route path="/" element={<Dashboard />}>
         <Route path="upgrade-package" element={<UpgradePackage />} />
@@ -40,22 +37,22 @@ const FranchiseRoutes = () => {
         <Route path="whatsapp-groups" element={<WhatsAppGroups />} />
         <Route path="packages" element={<Packages />} />
         <Route path="payment" element={<Payment />} />
-        <Route path="credit-check" element={<CreditCheck />} />
+        <Route path="credit-check" element={<CreditCheckTabs />} />
         <Route path="leads" element={<Leads />} />
-        <Route path="reports" element={<ViewReports />} />
+        <Route path="reports" element={<Navigate to="/franchise/credit-check?tab=reports" replace />} />
         <Route path="referrals" element={<Referrals />} />
         <Route path="business" element={<Business fixedCustomerType="individual" />} />
         <Route path="business-mis" element={<BusinessMIS />} />
         <Route path="white-label-reports" element={<WhiteLabelReports />} />
-        <Route path="ai-analysis" element={<AIAnalysis />} />
-        <Route path="bank-statement-analyzer" element={<BankStatementAnalyzer />} />
+        <Route path="ai-analysis" element={<AIAnalysisTabs />} />
+        <Route path="bank-statement-analyzer" element={<BankStatementTabs />} />
         <Route path="ai-custom-branded-report" element={<BrandedReportPage />} />
         <Route path="certificate" element={<Certificate />} />
         <Route path="agreement" element={<DigitalAgreement />} />
         <Route path="/support" element={<Support />} />
-        <Route path="/credit-check/crif" element={<CRIF />} />
-        <Route path="/credit-check/experian" element={<Experian />} />
-        <Route path="/credit-check/equifax" element={<Equifax />} />
+        <Route path="/credit-check/crif" element={<Navigate to="/franchise/credit-check?tab=crif" replace />} />
+        <Route path="/credit-check/experian" element={<Navigate to="/franchise/credit-check?tab=experian" replace />} />
+        <Route path="/credit-check/equifax" element={<Navigate to="/franchise/credit-check?tab=equifax" replace />} />
         <Route path="/case-studies/:category?" element={<FranchiseCaseStudies />} />{" "}
         {/* Per-language marketing material view — driven by sidebar */}
         <Route path="/marketing/:language" element={<FranchiseMarketingByLanguage />} />
@@ -69,6 +66,7 @@ const FranchiseRoutes = () => {
 
       {/* New Marketing Route */}
     </Routes>
+    </Suspense>
   );
 };
 

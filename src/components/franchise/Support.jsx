@@ -16,6 +16,12 @@ import {
   Paper,
   Snackbar,
   Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
   TextField,
   Typography,
 } from "@mui/material";
@@ -24,6 +30,8 @@ import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import SendIcon from "@mui/icons-material/Send";
 import { franchiseAPI, getAttachmentUrl } from "../../services/api";
+import { PageHeader, SectionCard, SectionHeader, TableToolbar, SearchField, FilterChips, EmptyRow, LoadingBar } from "../admin/ui/AdminTable";
+import { headRowSx, bodyRowSx, primaryButtonSx } from "../admin/ui/tableStyles";
 
 const CATEGORY_OPTIONS = [
   { value: "CIBIL Report Issue", label: "Credit Report Issue" },
@@ -38,6 +46,11 @@ const STATUS_COLOR = {
   Resolved: "success",
   Closed: "default",
 };
+
+const STATUS_FILTERS = [
+  { value: "", label: "All" },
+  ...Object.keys(STATUS_COLOR).map((value) => ({ value, label: value })),
+];
 
 const EMPTY_FORM = {
   subject: "",
@@ -68,6 +81,9 @@ export default function Support() {
   const [tickets, setTickets] = useState([]);
   const [listLoading, setListLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
 
   const [selected, setSelected] = useState(null);
   const [replies, setReplies] = useState([]);
@@ -116,6 +132,7 @@ export default function Support() {
       showToast("success", "Ticket submitted successfully");
       setFormData(EMPTY_FORM);
       setFiles([]);
+      setCreateOpen(false);
       getTickets();
     } catch (err) {
       showToast("error", err.response?.data?.message || "Something went wrong");
@@ -179,164 +196,181 @@ export default function Support() {
     </Button>
   );
 
+  const visibleTickets = tickets.filter((ticket) => {
+    const query = search.trim().toLowerCase();
+    const matchesSearch = [ticket.subject, ticket.ticketNumber, ticket.category].some((value) =>
+      (value || "").toLowerCase().includes(query),
+    );
+    const matchesStatus = !statusFilter || ticket.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
   return (
-    <Box sx={{ p: 4, backgroundColor: "#f8f9fb", minHeight: "100vh" }}>
-      <Typography variant="h4" fontWeight="bold" gutterBottom>
-        Support Tickets
-      </Typography>
+    <Box>
+      <PageHeader
+        title="Support tickets"
+        subtitle="Raise requests about CIBIL, credit reports, recharges or technical issues."
+        actions={
+          <Button
+            variant="contained"
+            disableElevation
+            startIcon={<AddCircleOutlineIcon />}
+            onClick={() => setCreateOpen(true)}
+            sx={primaryButtonSx}
+          >
+            Create ticket
+          </Button>
+        }
+      />
 
-      <Typography variant="body1" color="text.secondary" mb={4}>
-        Raise requests about CIBIL, credit reports, recharges or technical
-        issues.
-      </Typography>
+      <SectionCard>
+        <SectionHeader
+          title="Your tickets"
+          subtitle={`${tickets.length} ${tickets.length === 1 ? "ticket" : "tickets"}`}
+        />
 
-      <Grid container spacing={3}>
-        {/* Left Side - Create Ticket */}
-        <Grid item xs={12} md={4}>
-          <Paper elevation={2} sx={{ borderRadius: 3, p: 3 }}>
-            <Box display="flex" alignItems="center" gap={1} mb={3}>
-              <AddCircleOutlineIcon color="error" />
-              <Typography variant="h6" fontWeight="bold">
-                Create New Ticket
-              </Typography>
-            </Box>
+        <TableToolbar>
+          <SearchField
+            value={search}
+            onChange={setSearch}
+            placeholder="Search by subject, ticket number or category"
+          />
+          <FilterChips value={statusFilter} onChange={setStatusFilter} options={STATUS_FILTERS} />
+        </TableToolbar>
+        <LoadingBar loading={listLoading} />
 
-            <Divider sx={{ mb: 3 }} />
-
-            <TextField
-              fullWidth
-              name="subject"
-              label="Subject"
-              placeholder="e.g. CIBIL Report Not Generated"
-              value={formData.subject}
-              onChange={handleChange}
-              margin="normal"
-              inputProps={{ maxLength: 150 }}
-              required
-            />
-
-            <TextField
-              select
-              fullWidth
-              name="category"
-              label="Category"
-              value={formData.category}
-              onChange={handleChange}
-              margin="normal"
-            >
-              {CATEGORY_OPTIONS.map((c) => (
-                <MenuItem key={c.value} value={c.value}>
-                  {c.label}
-                </MenuItem>
-              ))}
-            </TextField>
-
-            <TextField
-              fullWidth
-              multiline
-              rows={5}
-              name="message"
-              label="Message"
-              placeholder="Please describe your issue in detail..."
-              value={formData.message}
-              onChange={handleChange}
-              margin="normal"
-              inputProps={{ maxLength: 5000 }}
-              required
-            />
-
-            <Stack direction="row" spacing={2} alignItems="center" mt={1}>
-              {fileInput(setFiles)}
-              <Typography variant="caption" color="text.secondary">
-                {files.length
-                  ? files.map((f) => f.name).join(", ")
-                  : "JPG, PNG or PDF, up to 3 files"}
-              </Typography>
-            </Stack>
-
-            <Button
-              fullWidth
-              variant="contained"
-              startIcon={submitting ? null : <SendIcon />}
-              disabled={submitting}
-              sx={{
-                mt: 3,
-                py: 1.5,
-                borderRadius: 2,
-                backgroundColor: "#ff3b1f",
-                "&:hover": { backgroundColor: "#e63118" },
-              }}
-              onClick={handleSubmit}
-            >
-              {submitting ? "Submitting..." : "Submit Ticket"}
-            </Button>
-          </Paper>
-        </Grid>
-
-        {/* Right Side - Ticket List */}
-        <Grid item xs={12} md={8}>
-          <Paper elevation={2} sx={{ borderRadius: 3, p: 3, minHeight: 420 }}>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-              <Typography variant="h6" fontWeight="bold">
-                Your Tickets
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                {tickets.length} tickets
-              </Typography>
-            </Box>
-
-            <Divider sx={{ mb: 3 }} />
-
-            {listLoading ? (
-              <Box display="flex" justifyContent="center" mt={6}>
-                <CircularProgress />
-              </Box>
-            ) : tickets.length === 0 ? (
-              <Box display="flex" flexDirection="column" alignItems="center" mt={8}>
-                <ErrorOutlineIcon sx={{ fontSize: 60, color: "#d1d5db", mb: 2 }} />
-                <Typography variant="h6" color="text.secondary">
-                  No support tickets found.
-                </Typography>
-                <Typography variant="body2" color="text.disabled">
-                  Create your first ticket on the left.
-                </Typography>
-              </Box>
-            ) : (
-              tickets.map((ticket) => (
-                <Paper
+        <TableContainer>
+          <Table size="small">
+            <TableHead>
+              <TableRow sx={headRowSx}>
+                <TableCell>Ticket</TableCell>
+                <TableCell>Category</TableCell>
+                <TableCell>Created</TableCell>
+                <TableCell>Status</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {!listLoading && visibleTickets.length === 0 && (
+                <EmptyRow
+                  colSpan={4}
+                  title={tickets.length === 0 ? "No support tickets yet" : "No tickets match your search"}
+                  hint={
+                    tickets.length === 0
+                      ? "Create a ticket to get help from Credit Dost support."
+                      : "Try a different search or filter."
+                  }
+                />
+              )}
+              {visibleTickets.map((ticket) => (
+                <TableRow
                   key={ticket._id}
+                  hover
                   onClick={() => openTicket(ticket)}
-                  sx={{
-                    p: 2,
-                    mb: 2,
-                    borderRadius: 2,
-                    cursor: "pointer",
-                    "&:hover": { boxShadow: 3 },
-                  }}
+                  sx={{ ...bodyRowSx, cursor: "pointer" }}
                 >
-                  <Stack direction="row" justifyContent="space-between" spacing={2}>
-                    <Box>
-                      <Typography variant="caption" color="text.secondary">
-                        {ticket.ticketNumber || "—"} •{" "}
-                        {new Date(ticket.createdAt).toLocaleDateString()}
-                      </Typography>
-                      <Typography fontWeight="bold">{ticket.subject}</Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {ticket.category}
-                      </Typography>
-                    </Box>
+                  <TableCell sx={{ maxWidth: 380 }}>
+                    <Typography variant="caption" color="text.secondary" display="block">
+                      {ticket.ticketNumber || "—"}
+                    </Typography>
+                    <Typography variant="body2" fontWeight={600} noWrap title={ticket.subject}>
+                      {ticket.subject}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>{ticket.category}</TableCell>
+                  <TableCell sx={{ whiteSpace: "nowrap" }}>
+                    {new Date(ticket.createdAt).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell>
                     <Chip
                       size="small"
+                      variant="outlined"
                       label={ticket.status}
                       color={STATUS_COLOR[ticket.status] || "default"}
                     />
-                  </Stack>
-                </Paper>
-              ))
-            )}
-          </Paper>
-        </Grid>
-      </Grid>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </SectionCard>
+
+      {/* Create ticket */}
+      <Dialog
+        open={createOpen}
+        onClose={() => !submitting && setCreateOpen(false)}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle sx={{ fontWeight: 700 }}>Create ticket</DialogTitle>
+        <DialogContent dividers>
+          <TextField
+            fullWidth
+            name="subject"
+            label="Subject"
+            placeholder="e.g. CIBIL report not generated"
+            value={formData.subject}
+            onChange={handleChange}
+            margin="normal"
+            inputProps={{ maxLength: 150 }}
+            required
+          />
+
+          <TextField
+            select
+            fullWidth
+            name="category"
+            label="Category"
+            value={formData.category}
+            onChange={handleChange}
+            margin="normal"
+          >
+            {CATEGORY_OPTIONS.map((c) => (
+              <MenuItem key={c.value} value={c.value}>
+                {c.label}
+              </MenuItem>
+            ))}
+          </TextField>
+
+          <TextField
+            fullWidth
+            multiline
+            rows={5}
+            name="message"
+            label="Message"
+            placeholder="Please describe your issue in detail..."
+            value={formData.message}
+            onChange={handleChange}
+            margin="normal"
+            inputProps={{ maxLength: 5000 }}
+            required
+          />
+
+          <Stack direction="row" spacing={2} alignItems="center" mt={1}>
+            {fileInput(setFiles)}
+            <Typography variant="caption" color="text.secondary">
+              {files.length
+                ? files.map((f) => f.name).join(", ")
+                : "JPG, PNG or PDF, up to 3 files"}
+            </Typography>
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, py: 2 }}>
+          <Button onClick={() => setCreateOpen(false)} disabled={submitting} sx={{ textTransform: "none" }}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            disableElevation
+            startIcon={submitting ? null : <SendIcon />}
+            disabled={submitting}
+            onClick={handleSubmit}
+            sx={primaryButtonSx}
+          >
+            {submitting ? "Submitting..." : "Submit ticket"}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Ticket detail + thread */}
       <Dialog

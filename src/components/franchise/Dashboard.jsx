@@ -8,7 +8,6 @@ import {
   IconButton,
   Drawer,
   List,
-  ListItem,
   ListItemIcon,
   ListItemText,
   Divider,
@@ -29,6 +28,7 @@ import {
   Menu as MenuIcon,
   Dashboard as DashboardIcon,
   Person as PersonIcon,
+  SupportAgent as SupportAgentIcon,
   Business as BusinessIcon,
   Payment as PaymentIcon,
   VerifiedUser as VerifiedUserIcon,
@@ -46,12 +46,11 @@ import {
   WhatsApp as WhatsAppIcon,
   Logout as LogoutIcon,
   LibraryBooks as CaseStudiesIcon,
-  Summarize as SummarizeIcon,
   ArrowUpward as ArrowUpwardIcon,
   AccountBalance as AccountBalanceIcon,
   AutoAwesome as AutoAwesomeIcon,
 } from "@mui/icons-material";
-import { ExpandLess, ExpandMore } from "@mui/icons-material";
+import { ExpandMore as ExpandMoreIcon } from "@mui/icons-material";
 
 import { useAuth } from "../../hooks/useAuth.jsx";
 import { franchiseAPI } from "../../services/api";
@@ -127,43 +126,26 @@ const DrawerStyled = styled(Drawer, {
   }),
 }));
 
-const SidebarLogo = styled(Box)(({ theme }) => ({
-  padding: theme.spacing(2),
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  backgroundColor: alpha(theme.palette.primary.main, 0.1),
-  margin: theme.spacing(1),
-  borderRadius: theme.shape.borderRadius,
-}));
+// Sidebar sections, in display order. Entries not listed here fall under "Resources".
+const SECTION_ORDER = ["Overview", "Business", "Resources"];
+const SECTION_OF = {
+  Dashboard: "Overview",
+  "Important Updates": "Overview",
+  "Upgrade Package": "Overview",
+  "Credit Check": "Business",
+  "Business MIS": "Business",
+  "Bank Statement Analyzer": "Business",
+  "AI Analysis": "Business",
+  "White Label Reports": "Business",
+  Certificate: "Business",
+  "Case Studies": "Resources",
+  "Marketing Materials": "Resources",
+  "Customer Support": "Resources",
+};
 
-const SidebarTitle = styled(Typography)(({ theme }) => ({
-  fontWeight: 700,
-  fontSize: "1.2rem",
-  background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-  WebkitBackgroundClip: "text",
-  WebkitTextFillColor: "transparent",
-  marginLeft: theme.spacing(1),
-}));
-
-const NavItem = styled(ListItem)(({ theme, active }) => ({
-  borderRadius: theme.shape.borderRadius,
-  margin: theme.spacing(0.5, 1),
-  backgroundColor: active
-    ? alpha(theme.palette.primary.main, 0.1)
-    : "transparent",
-  "&:hover": {
-    backgroundColor: alpha(theme.palette.primary.main, 0.05),
-  },
-  "& .MuiListItemIcon-root": {
-    color: active ? theme.palette.primary.main : theme.palette.text.secondary,
-  },
-  "& .MuiListItemText-primary": {
-    fontWeight: active ? 600 : 400,
-    color: active ? theme.palette.primary.main : theme.palette.text.primary,
-  },
-  cursor: "pointer",
-}));
+// Collapsed rail logo (same mark as the admin sidebar)
+const MINI_LOGO =
+  "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiB2aWV3Qm94PSIwIDAgMTAwIDEwMCI+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNDAiIGZpbGw9IiM2MjAwZWEiLz48cGF0aCBkPSJNNjAsMzAgTDQwLDUwIEw2MCw3MCIgZmlsbD0id2hpdGUiLz48L3N2Zz4=";
 
 const FranchiseDashboard = () => {
   const theme = useTheme();
@@ -327,12 +309,6 @@ const FranchiseDashboard = () => {
       icon: <WhatsAppIcon />,
       path: "/franchise/whatsapp-groups",
     },
-    {
-      text: "Relationship Manager",
-      icon: <PersonIcon />,
-      path: "/franchise/relationship-manager",
-    },
-    { text: "My Profile", icon: <PersonIcon />, path: "/franchise/profile" },
     // {
     //   text: "KYC Verification",
     //   icon: <VerifiedUserIcon />,
@@ -347,48 +323,10 @@ const FranchiseDashboard = () => {
     {
       text: "Credit Check",
       icon: <CreditScoreIcon />,
-      // path: "/franchise/credit-check",
-      children: [
-        {
-          text: "CIBIL",
-          path: "/franchise/credit-check",
-          icon: <SummarizeIcon />,
-        },
-        {
-          text: "CRIF",
-          path: "/franchise/credit-check/crif",
-          icon: <SummarizeIcon />,
-        },
-        {
-          text: "Experian",
-          path: "/franchise/credit-check/experian",
-          icon: <SummarizeIcon />,
-        },
-        {
-          text: "Equifax",
-          path: "/franchise/credit-check/equifax",
-          icon: <SummarizeIcon />,
-        },
-      ],
+      path: "/franchise/credit-check",
     },
-    {
-      text: "View Reports",
-      icon: <AssessmentIcon />,
-      path: "/franchise/reports",
-    },
-    { text: "My Leads", icon: <PeopleIcon />, path: "/franchise/leads" },
 
     // { text: "Referrals", icon: <GroupAddIcon />, path: "/franchise/referrals" },
-    {
-      text: "Business Login",
-      icon: <BusinessCenterIcon />,
-      path: "/franchise/business",
-    },
-    {
-      text: "White Label Reports",
-      icon: <DescriptionIcon />,
-      path: "/franchise/white-label-reports",
-    },
     {
       text: "Business MIS",
       icon: <AssessmentIcon />,
@@ -403,6 +341,11 @@ const FranchiseDashboard = () => {
       text: "Certificate",
       icon: <CardMembershipIcon />,
       path: "/franchise/certificate",
+    },
+    {
+      text: "White Label Reports",
+      icon: <DescriptionIcon />,
+      path: "/franchise/white-label-reports",
     },
     {
       text: "AI Analysis",
@@ -522,39 +465,160 @@ const FranchiseDashboard = () => {
   const handleToggle = (menu) => {
     setOpenMenu(openMenu === menu ? null : menu);
   };
-  const drawer = (
-    <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
-      <DrawerHeader>
-        <SidebarLogo>
-          {(open || isMobile) ? (
+  const expanded = open || isMobile; /* MOBILE FIX */
+
+  // Shared look for top-level entries: rounded, tinted when active (matches the admin sidebar)
+  const navItemSx = (active) => (theme) => ({
+    minHeight: 40,
+    mx: 1.5,
+    my: 0.25,
+    px: expanded ? 1.5 : 0,
+    borderRadius: 2,
+    justifyContent: expanded ? "flex-start" : "center",
+    color: active ? theme.palette.primary.main : "#3f4451",
+    bgcolor: active ? alpha(theme.palette.primary.main, 0.08) : "transparent",
+    "& .MuiListItemIcon-root": {
+      color: active ? theme.palette.primary.main : "#8a8f98",
+    },
+    "&:hover": {
+      bgcolor: active ? alpha(theme.palette.primary.main, 0.12) : "rgba(15, 23, 42, 0.04)",
+      "& .MuiListItemIcon-root": {
+        color: active ? theme.palette.primary.main : "#3f4451",
+      },
+    },
+  });
+
+  const isItemActive = (item) =>
+    isActive(item.path) ||
+    Boolean(item.children?.some((child) => location.pathname === child.path));
+
+  const renderNavItem = (item) => {
+    const hasChildren = item.children && item.children.length > 0;
+    const active = isItemActive(item);
+    const groupOpen = hasChildren && openMenu === item.text;
+
+    return (
+      <Box key={item.text}>
+        <ListItemButton
+          onClick={() => {
+            if (hasChildren) {
+              handleToggle(item.text);
+              return;
+            }
+            if (item.path === "/franchise") {
+              navigate("/franchise", { state: { redirect: false } });
+            } else {
+              navigate(item.path);
+            }
+            if (isMobile) handleDrawerClose(); /* MOBILE FIX */
+          }}
+          sx={navItemSx(active)}
+        >
+          <ListItemIcon sx={{ minWidth: 0, mr: expanded ? 1.5 : 0, "& svg": { fontSize: 20 } }}>
+            {item.icon}
+          </ListItemIcon>
+          {expanded && (
             <>
-              <img
-                src="/images/cred.png"
-                alt="Logo"
-                style={{ width: "140px" }}
+              <ListItemText
+                primary={item.text}
+                primaryTypographyProps={{
+                  noWrap: true,
+                  fontSize: 14,
+                  fontWeight: active ? 600 : 500,
+                }}
               />
+              {hasChildren && (
+                <ExpandMoreIcon
+                  sx={{
+                    ml: 0.5,
+                    fontSize: 18,
+                    color: "#9aa0a9",
+                    transition: "transform 0.2s",
+                    transform: groupOpen ? "rotate(180deg)" : "none",
+                  }}
+                />
+              )}
             </>
-          ) : (
-            <Box
-              component="img"
-              src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiB2aWV3Qm94PSIwIDAgMTAwIDEwMCI+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNDAiIGZpbGw9IiM2MjAwZWEiLz48cGF0aCBkPSJNNjAsMzAgTDQwLDUwIEw2MCw3MCIgZmlsbD0id2hpdGUiLz48L3N2Zz4="
-              alt="Logo"
-              sx={{ width: 30, height: 30 }}
-            />
           )}
-        </SidebarLogo>
-        {(open || isMobile) && ( /* MOBILE FIX */
-          <IconButton onClick={handleDrawerClose}>
-            <ChevronLeftIcon />
+        </ListItemButton>
+
+        {hasChildren && expanded && (
+          <Collapse in={groupOpen} timeout="auto" unmountOnExit>
+            <Box sx={{ ml: 4.5, mr: 1.5, mb: 0.5, pl: 1, borderLeft: 1, borderColor: "divider" }}>
+              {item.children.map((child) => {
+                const childActive = location.pathname === child.path;
+                return (
+                  <ListItemButton
+                    key={child.path}
+                    onClick={() => {
+                      navigate(child.path);
+                      if (isMobile) handleDrawerClose(); /* MOBILE FIX */
+                    }}
+                    sx={{
+                      minHeight: 34,
+                      px: 1.25,
+                      borderRadius: 1.5,
+                      color: childActive ? "primary.main" : "#5b6170",
+                      bgcolor: childActive ? alpha("#6200ea", 0.08) : "transparent",
+                      fontWeight: childActive ? 600 : 400,
+                    }}
+                  >
+                    <ListItemText
+                      primary={child.text}
+                      primaryTypographyProps={{ fontSize: 13.5, fontWeight: childActive ? 600 : 400 }}
+                    />
+                  </ListItemButton>
+                );
+              })}
+            </Box>
+          </Collapse>
+        )}
+      </Box>
+    );
+  };
+
+  // Entries grouped under section labels, in menu order
+  const sections = SECTION_ORDER.map((title) => ({
+    title,
+    items: menuItems.filter((item) => (SECTION_OF[item.text] || "Resources") === title),
+  })).filter((section) => section.items.length > 0);
+
+  const drawer = (
+    <Box sx={{ display: "flex", flexDirection: "column", height: "100%", bgcolor: "#fff" }}>
+      {/* Logo row; in the collapsed rail the app bar covers this space */}
+      <Box
+        sx={{
+          height: 64,
+          flexShrink: 0,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: expanded ? "space-between" : "center",
+          px: expanded ? 2.5 : 0,
+          borderBottom: 1,
+          borderColor: "divider",
+        }}
+      >
+        {expanded ? (
+          <Box component="img" src="/images/cred.png" alt="Credit Dost" sx={{ width: 124, display: "block" }} />
+        ) : (
+          <Box component="img" src={MINI_LOGO} alt="Credit Dost" sx={{ width: 28, height: 28 }} />
+        )}
+        {expanded && (
+          <IconButton
+            size="small"
+            aria-label="Collapse sidebar"
+            onClick={handleDrawerClose}
+            sx={{ color: "text.secondary" }}
+          >
+            <ChevronLeftIcon fontSize="small" />
           </IconButton>
         )}
-      </DrawerHeader>
-      <Divider />
+      </Box>
 
       {/* Show rejection reason if KYC is rejected */}
-      {kycStatus === "rejected" && open && (
-        <Box sx={{ p: 2 }}>
-          <Alert severity="error" sx={{ mb: 2 }}>
+      {kycStatus === "rejected" && expanded && (
+        <Box sx={{ p: 2, pb: 0 }}>
+          <Alert severity="error" sx={{ borderRadius: 2 }}>
             <Typography variant="subtitle2">KYC Rejected</Typography>
             <Typography variant="body2">
               {kycRejectedReason ||
@@ -564,98 +628,52 @@ const FranchiseDashboard = () => {
         </Box>
       )}
 
-      <List sx={{ flexGrow: 1, pt: 2 }}>
-        {menuItems.map((item) => {
-          const hasChildren = item.children && item.children.length > 0;
-
-          return (
-            <Box key={item.text}>
-              {/* 🔹 Parent Item */}
-              <NavItem
-                active={
-                  isActive(item.path) ||
-                  item.children?.some(
-                    (child) => location.pathname === child.path,
-                  )
-                    ? "true"
-                    : undefined
-                }
-                onClick={() => {
-                  if (hasChildren) {
-                    handleToggle(item.text); // dropdown toggle
-                  } else {
-                    if (item.path === "/franchise") {
-                      navigate("/franchise", { state: { redirect: false } });
-                    } else {
-                      navigate(item.path);
-                    }
-                    if (isMobile) handleDrawerClose(); /* MOBILE FIX */
-                  }
+      <Box
+        component="nav"
+        sx={{
+          flex: 1,
+          overflowY: "auto",
+          overflowX: "hidden",
+          py: 1,
+          scrollbarWidth: "none",
+          "&::-webkit-scrollbar": { display: "none" },
+        }}
+      >
+        {sections.map((section) => (
+          <Box key={section.title}>
+            {expanded ? (
+              <Typography
+                sx={{
+                  px: 3,
+                  pt: 2,
+                  pb: 0.75,
+                  fontSize: 11,
+                  fontWeight: 600,
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  color: "#9aa0a9",
                 }}
               >
-                <ListItemIcon>{item.icon}</ListItemIcon>
-                <ListItemText
-                  primary={item.text}
-                  sx={{ opacity: (open || isMobile) ? 1 : 0 }}
-                />
+                {section.title}
+              </Typography>
+            ) : (
+              <Divider sx={{ mx: 2, my: 1.25 }} />
+            )}
+            <List disablePadding>{section.items.map(renderNavItem)}</List>
+          </Box>
+        ))}
+      </Box>
 
-                {/* 🔹 Expand Icon */}
-                {hasChildren &&
-                  (openMenu === item.text ? <ExpandLess /> : <ExpandMore />)}
-              </NavItem>
-
-              {/* 🔹 CHILD MENU */}
-              {hasChildren && (
-                <Collapse
-                  in={openMenu === item.text}
-                  timeout="auto"
-                  unmountOnExit
-                >
-                  {item.children.map((child) => (
-                    <ListItemButton
-                      key={child.text}
-                      selected={location.pathname === child.path}
-                      onClick={() => {
-                        navigate(child.path);
-                        if (isMobile) handleDrawerClose(); /* MOBILE FIX */
-                      }}
-                      sx={{
-                        pl: { xs: 2, sm: 5 },
-                        minHeight: 44,
-                      }}
-                    >
-                      {child.icon && <ListItemIcon>{child.icon}</ListItemIcon>}
-                      <ListItemText
-                        primary={child.text}
-                        primaryTypographyProps={{
-                          fontSize: { xs: "0.875rem", sm: "1rem" },
-                        }}
-                      />
-                    </ListItemButton>
-                  ))}
-                  {/* {item.children.map((child) => (
-                    <ListItemButton
-                      key={child.text}
-                      sx={{ pl: 6 }}
-                      selected={location.pathname === child.path}
-                      onClick={() => navigate(child.path)}
-                    >
-                      <ListItemText
-                        primary={child.text}
-                        sx={{ opacity: open ? 1 : 0 }}
-                      />
-                    </ListItemButton>
-                  ))} */}
-                </Collapse>
-              )}
-            </Box>
-          );
-        })}
-      </List>
-      <Divider />
-      <List>{/* Logout is now in the top right dropdown menu */}</List>
+      {/* Account actions (profile, relationship manager, logout) are in the top-right menu */}
     </Box>
   );
+
+  const currentPageTitle =
+    allMenuItems.find((item) => item.path === location.pathname)?.text ||
+    allMenuItems
+      .flatMap((item) => item.children || [])
+      .find((child) => child.path === location.pathname)?.text ||
+    "Partner Dashboard";
 
   return (
     <Box sx={{ display: "flex" }}>
@@ -674,71 +692,107 @@ const FranchiseDashboard = () => {
           >
             <MenuIcon />
           </IconButton>
-          <Box sx={{ flexGrow: 1 }} />
+          <Typography
+            variant="subtitle1"
+            fontWeight={700}
+            noWrap
+            sx={{ flexGrow: 1, ml: open ? 0 : 1, letterSpacing: "-0.01em" }}
+          >
+            {currentPageTitle}
+          </Typography>
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-            <IconButton size="large" color="inherit">
-              <NotificationsIcon />
-            </IconButton>
-
             <Tooltip title="Account settings">
               <IconButton
                 color="inherit"
                 onClick={handleMenuOpen}
-                sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                sx={{ p: 0.5 }}
               >
-                <Avatar sx={{ width: 36, height: 36, bgcolor: "primary.main" }}>
-                  {user?.name?.charAt(0) || "U"}
+                <Avatar sx={{ width: 36, height: 36, bgcolor: "rgba(255, 255, 255, 0.2)", color: "#fff", fontWeight: 700 }}>
+                  {user?.name?.charAt(0)?.toUpperCase() || "U"}
                 </Avatar>
-                <Typography
-                  variant="body2"
-                  sx={{ display: { xs: "none", md: "block" } }}
-                >
-                  {user?.name || "User"}
-                </Typography>
               </IconButton>
             </Tooltip>
             <Menu
               anchorEl={anchorEl}
               open={Boolean(anchorEl)}
               onClose={handleMenuClose}
-              anchorOrigin={{
-                vertical: "bottom",
-                horizontal: "right",
-              }}
-              transformOrigin={{
-                vertical: "top",
-                horizontal: "right",
+              anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+              transformOrigin={{ vertical: "top", horizontal: "right" }}
+              slotProps={{
+                paper: {
+                  elevation: 0,
+                  sx: {
+                    mt: 1,
+                    width: 280,
+                    borderRadius: 3,
+                    border: 1,
+                    borderColor: "divider",
+                    boxShadow: "0 12px 32px -12px rgba(15, 23, 42, 0.18)",
+                    overflow: "hidden",
+                  },
+                },
               }}
             >
-              <MenuItem>
-                <Box sx={{ display: "flex", flexDirection: "column" }}>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+              <Box sx={{ px: 2.5, py: 2, display: "flex", alignItems: "center", gap: 1.5 }}>
+                <Avatar sx={{ width: 40, height: 40, bgcolor: "primary.main", fontWeight: 700 }}>
+                  {(user?.name || "U").charAt(0).toUpperCase()}
+                </Avatar>
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography variant="subtitle2" fontWeight={700} noWrap>
                     {user?.name}
                   </Typography>
-                  <Typography variant="body2" color="textSecondary">
+                  <Typography variant="caption" color="text.secondary" display="block" noWrap>
                     {user?.email}
                   </Typography>
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      mt: 0.5,
-                      bgcolor: "primary.light",
-                      px: 1,
-                      py: 0.5,
-                      borderRadius: 1,
-                      alignSelf: "flex-start",
-                    }}
-                  >
-                    {user?.role}
-                  </Typography>
+                  {user?.role && (
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        mt: 0.5,
+                        display: "inline-block",
+                        px: 1,
+                        py: 0.25,
+                        borderRadius: 1,
+                        bgcolor: "grey.100",
+                        color: "text.secondary",
+                        fontWeight: 600,
+                      }}
+                    >
+                      {user.role.replace(/_/g, " ")}
+                    </Typography>
+                  )}
                 </Box>
-              </MenuItem>
+              </Box>
               <Divider />
-              <MenuItem onClick={handleLogout}>
+              <MenuItem
+                onClick={() => {
+                  handleMenuClose();
+                  navigate("/franchise/profile");
+                }}
+                sx={{ py: 1.25, px: 2.5 }}
+              >
                 <ListItemIcon>
+                  <PersonIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText primaryTypographyProps={{ fontWeight: 600 }}>My profile</ListItemText>
+              </MenuItem>
+              <MenuItem
+                onClick={() => {
+                  handleMenuClose();
+                  navigate("/franchise/relationship-manager");
+                }}
+                sx={{ py: 1.25, px: 2.5 }}
+              >
+                <ListItemIcon>
+                  <SupportAgentIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText primaryTypographyProps={{ fontWeight: 600 }}>Relationship manager</ListItemText>
+              </MenuItem>
+              <MenuItem onClick={handleLogout} sx={{ py: 1.25, px: 2.5, color: "error.main" }}>
+                <ListItemIcon sx={{ color: "inherit" }}>
                   <LogoutIcon fontSize="small" />
                 </ListItemIcon>
-                <ListItemText>Logout</ListItemText>
+                <ListItemText primaryTypographyProps={{ fontWeight: 600 }}>Logout</ListItemText>
               </MenuItem>
             </Menu>
           </Box>

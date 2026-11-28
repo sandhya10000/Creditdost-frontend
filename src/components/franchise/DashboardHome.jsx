@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, lazy, Suspense } from "react";
 import {
   Grid,
   Card,
@@ -16,6 +16,7 @@ import {
   IconButton,
   Tooltip,
   Chip,
+  Stack,
   List,
   ListItem,
   ListItemIcon,
@@ -43,11 +44,20 @@ import {
 } from "@mui/icons-material";
 import { franchiseAPI } from "../../services/api";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../hooks/useAuth";
+import { EMBEDDED_FORM_SX } from "./creditBureau/embeddedFormSx";
+import { headRowSx } from "../admin/ui/tableStyles";
+import { ArrowForward, Storefront } from "@mui/icons-material";
+
+// Charts load on demand so the dashboard does not download Recharts up front
+const ScoreTrend = lazy(() =>
+  import("./PartnerCharts").then((m) => ({ default: m.ScoreTrendChart })),
+);
+const Usage = lazy(() =>
+  import("./PartnerCharts").then((m) => ({ default: m.UsageChart })),
+);
 
 const DashboardHome = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const [stats, setStats] = useState({
     credits: {
       used: 0,
@@ -441,293 +451,155 @@ const DashboardHome = () => {
       </Box>
     );
   }
+  const packageName =
+    purchasedPackage?.name || assignedPackages[0]?.name || "No package assigned";
+
+  // Score trend: latest reports with a score, oldest first
+  const scoreSeries = [...recentReports]
+    .filter((report) => report.score)
+    .reverse()
+    .map((report) => ({
+      date: new Date(report.createdAt).toLocaleDateString("en-IN", {
+        day: "numeric",
+        month: "short",
+      }),
+      score: report.score,
+    }));
+
+  // Usage: used against available for credits and AI reports
+  const usageSeries = [
+    {
+      name: "Credits",
+      used: stats.credits?.used ?? 0,
+      available: stats.credits?.available ?? 0,
+    },
+    {
+      name: "AI reports",
+      used: stats.ai?.used ?? 0,
+      available: stats.ai?.available ?? 0,
+    },
+  ];
+
   return (
-    <Box>
-      <Typography variant="h4" gutterBottom sx={{ mb: 3 }}>
-        Welcome{" "}
-        <span style={{ color: "#6200ea", fontWeight: "bold" }}>
-          {user?.name || "User"}
-        </span>
-      </Typography>
-
-      {/* Purchased Package Section */}
-      {purchasedPackage && (
-        <Card
-          sx={{
-            mb: 3,
-            boxShadow: 3,
-            borderRadius: 2,
-            background: "linear-gradient(135deg, #6200ea 0%, #03dac6 100%)",
-            color: "white",
-          }}
-        >
-          <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
-            {" "}
-            {/* MOBILE FIX */}
-            <Box
-              sx={{
-                display: "flex",
-
-                justifyContent: "space-between",
-
-                alignItems: { xs: "start", md: "center" } /* MOBILE FIX */,
-                flexDirection: { xs: "column", md: "row" } /* MOBILE FIX */,
-                gap: { xs: 2, md: 0 } /* MOBILE FIX */,
-              }}
-            >
-              <Box>
-                <Typography
-                  variant="h5"
-                  component="div"
-                  fontWeight="bold"
-                  gutterBottom
-                >
-                  Your Current Package
-                </Typography>
-                <Typography
-                  variant="h4"
-                  component="div"
-                  fontWeight="bold"
-                  sx={{ mb: 1 }}
-                >
-                  {purchasedPackage.name}
-                </Typography>
-                {franchiseCode && (
-                  <Typography
-                    variant="h5"
-                    sx={{ mb: 1, fontWeight: 500, letterSpacing: 0.5 }}
-                  >
-                    Franchise ID:{" "}
-                    <strong style={{ fontSize: "1.6em", letterSpacing: 1 }}>
-                      {franchiseCode}
-                    </strong>
-                  </Typography>
-                )}
-                <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                  Purchased on{" "}
-                  {new Date(purchasedPackage.purchaseDate).toLocaleDateString()}
-                </Typography>
-              </Box>
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: { xs: "start", md: "flex-end" } /* MOBILE FIX */,
-                  gap: 1,
-                  width: { xs: "100%", md: "auto" } /* MOBILE FIX */,
-                }}
-              >
-                <Chip
-                  icon={<Star />}
-                  label="Active"
-                  color="success"
-                  sx={{
-                    fontWeight: "bold",
-                    height: 32,
-                    "& .MuiChip-icon": {
-                      color: "white !important",
-                    },
-                  }}
-                />
-                {/* <Button
-                  variant="contained"
-                  color="secondary"
-                  startIcon={<ArrowUpward />}
-                  onClick={fetchUpgradePackages}
-                  sx={{
-                    mt: 1,
-                    backgroundColor: "white",
-                    color: "#6200ea",
-                    fontWeight: "bold",
-                    "&:hover": {
-                      backgroundColor: "#f5f5f5",
-                    },
-                  }}
-                >
-                  Upgrade Package
-                </Button> */}
-              </Box>
-            </Box>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Assigned Packages Section */}
-      {assignedPackages.length > 0 && !purchasedPackage && (
-        <Card
-          sx={{
-            mb: 3,
-            boxShadow: 3,
-            borderRadius: 2,
-            background: "linear-gradient(135deg, #03dac6 0%, #6200ea 100%)",
-            color: "white",
-          }}
-        >
-          <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
-            {" "}
-            {/* MOBILE FIX */}
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: { xs: "start", md: "center" },
-                flexDirection: { xs: "column", md: "row" },
-              }}
-            >
-              <Box>
-                <Typography
-                  variant="h5"
-                  component="div"
-                  fontWeight="bold"
-                  gutterBottom
-                >
-                  Your Assigned Package{assignedPackages.length > 1 ? "s" : ""}
-                </Typography>
-                {assignedPackages.map((pkg, index) => (
-                  <Box
-                    key={pkg._id}
-                    sx={{ mb: index < assignedPackages.length - 1 ? 1 : 0 }}
-                  >
-                    <Typography
-                      variant="h4"
-                      component="div"
-                      fontWeight="bold"
-                      sx={{ mb: 1 }}
-                    >
-                      {pkg.name}
-                    </Typography>
-                  </Box>
-                ))}
-                {assignedPackages.some(
-                  (pkg) => pkg.name?.trim().toLowerCase() === "diamond",
-                ) && (
-                  <Typography variant="body1" sx={{ mb: 1 }}>
-                    <strong>Unlimited</strong> reports
-                  </Typography>
-                )}
-                <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                  {/* Assigned by admin */}
-                </Typography>
-              </Box>
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: { xs: "start", md: "flex-end" },
-                  gap: 1,
-                  width: { xs: "100%", md: "auto" } /* MOBILE FIX */,
-                }}
-              >
-                {franchiseCode && (
-                  <Chip
-                    label={`Franchise ID: ${franchiseCode}`}
-                    sx={{
-                      fontWeight: "bold",
-                      fontSize: { xs: "1rem", sm: "1.2rem" },
-                      letterSpacing: 0.5,
-                      px: 1.5,
-                      marginTop: { xs: "0px", md: "0" } /* MOBILE FIX */,
-                      height: 44,
-                      borderRadius: 3,
-                      backgroundColor: "rgba(255, 255, 255, 0.2)",
-                      color: "white",
-                    }}
-                  />
-                )}
-                {/* <Button
-                  variant="contained"
-                  color="secondary"
-                  startIcon={<ArrowUpward />}
-                  onClick={fetchUpgradePackages}
-                  sx={{
-                    mt: 1,
-                    backgroundColor: "white",
-                    color: "#6200ea",
-                    fontWeight: "bold",
-                    "&:hover": {
-                      backgroundColor: "#f5f5f5",
-                    },
-                  }}
-                >
-                  Upgrade Package
-                </Button> */}
-              </Box>
-            </Box>
-          </CardContent>
-        </Card>
-      )}
-
-      <Grid
-        container
+    <Box sx={{ ...EMBEDDED_FORM_SX, "& .MuiCard-root": { borderRadius: 2 } }}>
+      {/* Header: package on the left; Franchise ID and quick actions on the right */}
+      <Stack
+        direction={{ xs: "column", md: "row" }}
+        justifyContent="space-between"
+        alignItems={{ xs: "flex-start", md: "flex-start" }}
         spacing={3}
-        mt={2}
-        sx={{ flexDirection: { xs: "column", md: "row" } }}
+        sx={{ mb: 4 }}
       >
-        {statCards.map((card, index) => (
-          <Grid item xs={12} sm={6} md={3} key={index}>
-            {" "}
-            <Card
+        <Box>
+          <Typography variant="body2" color="text.secondary">
+            Your assigned package
+          </Typography>
+          <Typography variant="h4" fontWeight={700} letterSpacing="-0.02em" sx={{ mt: 0.5 }}>
+            {packageName}
+          </Typography>
+          <Box sx={{ mt: 1.5, width: 48, height: 3, borderRadius: 2, bgcolor: "primary.main" }} />
+        </Box>
+
+        <Stack spacing={1.5} alignItems={{ xs: "flex-start", md: "flex-end" }}>
+          {franchiseCode && (
+            <Chip
+              icon={<Storefront fontSize="small" />}
+              label={`Franchise ID: ${franchiseCode}`}
               sx={{
-                height: "100%",
-                display: "flex",
-                flexDirection: "column",
-                boxShadow: 3,
-                borderRadius: 2,
+                height: 36,
+                px: 0.5,
+                fontWeight: 700,
+                bgcolor: "rgba(98, 0, 234, 0.08)",
+                color: "primary.main",
+                "& .MuiChip-icon": { color: "primary.main" },
               }}
-            >
-              <CardContent
-                sx={{ flexGrow: 1, textAlign: "center", p: { xs: 2, sm: 3 } }}
+            />
+          )}
+          <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+            {quickActions.map((action, index) => (
+              <Button
+                key={action.title}
+                variant={index === 0 ? "contained" : "outlined"}
+                disableElevation
+                onClick={() => navigate(action.path)}
+                sx={{
+                  textTransform: "none",
+                  fontWeight: 600,
+                  borderRadius: 2,
+                  px: 2,
+                  ...(index === 0 ? {} : { borderColor: "divider", color: "text.primary" }),
+                }}
               >
-                {" "}
-                {/* MOBILE FIX */}
-                <Box sx={{ color: card.color, mb: 2 }}>{card.icon}</Box>
-                <Typography variant="h5" component="div" gutterBottom>
-                  {card.value}
-                </Typography>
-                <Typography color="text.secondary">{card.title}</Typography>
+                {action.title}
+              </Button>
+            ))}
+          </Stack>
+        </Stack>
+      </Stack>
+
+      {/* Headline numbers */}
+      <Grid container spacing={2.5} sx={{ mb: 3 }}>
+        {statCards.map((card) => (
+          <Grid item xs={12} sm={6} md={3} key={card.title}>
+            <Card sx={{ height: "100%" }}>
+              <CardContent sx={{ display: "flex", alignItems: "center", gap: 2, p: 2.5 }}>
+                <Box
+                  sx={{
+                    width: 52,
+                    height: 52,
+                    borderRadius: "50%",
+                    flexShrink: 0,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    bgcolor: `${card.color}1A`,
+                    color: card.color,
+                  }}
+                >
+                  {React.cloneElement(card.icon, { sx: { fontSize: 24 } })}
+                </Box>
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography variant="h5" fontWeight={700} lineHeight={1.2}>
+                    {card.value}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {card.title}
+                  </Typography>
+                </Box>
               </CardContent>
             </Card>
           </Grid>
         ))}
       </Grid>
 
-      <Grid
-        container
-        spacing={3}
-        mt={3}
-        sx={{ flexDirection: { xs: "column", md: "row" } }}
-      >
-        <Grid item xs={12} md={8} style={{ flex: "1" }}>
-          <Card sx={{ height: "100%", boxShadow: 3, borderRadius: 2 }}>
-            <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
-              {" "}
-              {/* MOBILE FIX */}
-              <Typography variant="h6" gutterBottom>
-                Recent Credit Reports
-              </Typography>
-              {recentReports.length === 0 ? (
-                <Box sx={{ minHeight: 200 }}>
-                  <Typography
-                    color="text.secondary"
-                    align="center"
-                    sx={{ mt: 8 }}
-                  >
-                    No credit reports generated yet
-                  </Typography>
-                </Box>
-              ) : (
-                <TableContainer
-                  component={Paper}
-                  sx={{ overflowX: "auto", width: "100%" }}
+      {/* Recent reports and score trend */}
+      <Grid container spacing={2.5} sx={{ mb: 3 }}>
+        <Grid item xs={12} md={7}>
+          <Card sx={{ height: "100%" }}>
+            <CardContent sx={{ p: 2.5 }}>
+              <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+                <Typography variant="subtitle1" fontWeight={700}>
+                  Recent credit reports
+                </Typography>
+                <Button
+                  size="small"
+                  endIcon={<ArrowForward fontSize="small" />}
+                  onClick={() => navigate("/franchise/reports")}
+                  sx={{ textTransform: "none", fontWeight: 600 }}
                 >
-                  {" "}
-                  {/* MOBILE FIX */}
-                  <Table
-                    sx={{ minWidth: 400 }}
-                    aria-label="recent reports table"
-                  >
+                  View all
+                </Button>
+              </Stack>
+
+              {recentReports.length === 0 ? (
+                <Typography color="text.secondary" align="center" sx={{ py: 8 }}>
+                  No credit reports generated yet
+                </Typography>
+              ) : (
+                <TableContainer>
+                  <Table size="small">
                     <TableHead>
-                      <TableRow>
+                      <TableRow sx={headRowSx}>
                         <TableCell>Name</TableCell>
                         <TableCell>Bureau</TableCell>
                         <TableCell>Score</TableCell>
@@ -736,37 +608,31 @@ const DashboardHome = () => {
                     </TableHead>
                     <TableBody>
                       {recentReports.map((report) => (
-                        <TableRow
-                          key={report._id}
-                          sx={{
-                            "&:last-child td, &:last-child th": { border: 0 },
-                          }}
-                        >
-                          <TableCell component="th" scope="row">
-                            {report.name}
-                          </TableCell>
+                        <TableRow key={report._id} hover>
                           <TableCell>
-                            {report.bureau
-                              ? report.bureau.toUpperCase()
-                              : "N/A"}
+                            <Typography variant="body2" fontWeight={600}>
+                              {report.name}
+                            </Typography>
                           </TableCell>
+                          <TableCell>{report.bureau ? report.bureau.toUpperCase() : "—"}</TableCell>
                           <TableCell>
                             <Typography
                               variant="body2"
+                              fontWeight={700}
                               sx={{
-                                color:
-                                  report.score >= 700
+                                color: !report.score
+                                  ? "text.disabled"
+                                  : report.score >= 700
                                     ? "success.main"
-                                    : report.score >= 600
+                                    : report.score >= 650
                                       ? "warning.main"
                                       : "error.main",
-                                fontWeight: "bold",
                               }}
                             >
-                              {report.score || "N/A"}
+                              {report.score || "—"}
                             </Typography>
                           </TableCell>
-                          <TableCell>
+                          <TableCell sx={{ whiteSpace: "nowrap" }}>
                             {new Date(report.createdAt).toLocaleDateString()}
                           </TableCell>
                         </TableRow>
@@ -778,88 +644,35 @@ const DashboardHome = () => {
             </CardContent>
           </Card>
         </Grid>
-        {/* Quick Actions Section - Only visible when KYC is approved */}
-        {kycStatus === "approved" && (
-          <Grid item xs={12} md={4} style={{ flex: "1" }}>
-            <Card sx={{ height: "100%", boxShadow: 3, borderRadius: 2 }}>
-              <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
-                {" "}
-                {/* MOBILE FIX */}
-                <Typography variant="h6" gutterBottom>
-                  Quick Actions
-                </Typography>
-                <Box
-                  sx={{
-                    display: "grid",
 
-                    gridTemplateColumns: {
-                      xs: "1fr",
-                      sm: "repeat(2, 1fr)",
-                    } /* MOBILE FIX */,
-                    gap: 2,
-                    mt: 2,
-                  }}
-                >
-                  {quickActions.map((action, index) => (
-                    <Tooltip
-                      key={index}
-                      title={action.description}
-                      placement="top"
-                    >
-                      <Card
-                        sx={{
-                          height: "100%",
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          p: 2,
-                          cursor: "pointer",
-                          transition: "all 0.3s ease",
-                          "&:hover": {
-                            transform: "translateY(-5px)",
-                            boxShadow: 3,
-                            bgcolor: "background.default",
-                          },
-                        }}
-                        onClick={() => navigate(action.path)}
-                      >
-                        <Box
-                          sx={{
-                            color: action.color,
-                            mb: 1,
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            width: 56,
-                            height: 56,
-                            borderRadius: "50%",
-                            bgcolor: `${action.color}15`,
-                          }}
-                        >
-                          {action.icon}
-                        </Box>
-                        <Typography
-                          variant="body2"
-                          align="center"
-                          sx={{
-                            fontWeight: "medium",
-                            fontSize: "0.8rem",
-                          }}
-                        >
-                          {action.title}
-                        </Typography>
-                      </Card>
-                    </Tooltip>
-                  ))}
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-        )}
+        <Grid item xs={12} md={5}>
+          <Card sx={{ height: "100%" }}>
+            <CardContent sx={{ p: 2.5 }}>
+              <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 2 }}>
+                Score trend
+              </Typography>
+              <Suspense fallback={<Box sx={{ height: 260 }} />}>
+                <ScoreTrend data={scoreSeries} />
+              </Suspense>
+            </CardContent>
+          </Card>
+        </Grid>
       </Grid>
+
+      {/* Usage */}
+      <Card>
+        <CardContent sx={{ p: 2.5 }}>
+          <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 2 }}>
+            Credits and AI usage
+          </Typography>
+          <Suspense fallback={<Box sx={{ height: 260 }} />}>
+            <Usage data={usageSeries} />
+          </Suspense>
+        </CardContent>
+      </Card>
     </Box>
   );
+
 };
 
 export default DashboardHome;
