@@ -1,422 +1,150 @@
-import React, { useEffect, useRef, useState } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
-import { ShieldCheck, Handshake, Store, ArrowUpRight } from "lucide-react";
-import { Box, Typography, styled } from "@mui/material";
-
-// BRAND DESIGN TOKENS
-const COLORS = {
-  cyan600: "#0891b2",
-  cyan500: "#06b6d4",
-  cyan300: "#22d3ee",
-  sky500: "#0ea5e9",
-  navy950: "#0a1929",
-  navy900: "#0d2847",
-  navy800: "#1a2744",
-  textLight: "#0f172a",
-  textMuted: "#475569",
-  bgLight: "#f8fafc",
-};
-
-const services = [
-  {
-    title: "Credit Score Repair",
-    description:
-      "Expert credit repair services that fix errors, improve your score, and restore your financial credibility.",
-    image: "/images/IMG 2-01.jpg",
-    link: "/credit-score-repair",
-    icon: ShieldCheck,
-  },
-  {
-    title: "Franchise Opportunity",
-    description:
-      "Partner with Credit Dost and build a rewarding business helping people improve their credit scores and financial confidence.",
-    image: "/images/franchise-new.jpeg",
-    link: "/franchise-opportunity",
-    icon: Handshake,
-  }
-];
-
-const SectionRoot = styled("section")(() => ({
-  position: "relative",
-  zIndex: 0,
-  backgroundColor: COLORS.bgLight,
-  marginTop: "calc(-1 * clamp(28px, 5vw, 64px))",
-  paddingTop: "clamp(56px, 6vw, 88px)",
-  paddingBottom: "clamp(64px, 8vw, 112px)",
-  overflowX: "clip",
-  width: "100%",
-  boxSizing: "border-box",
-
-  // Soft cyan glow behind cards - fades to nothing within 120px of top edge
-  "&::before": {
-    content: '""',
-    position: "absolute",
-    top: "35%",
-    left: "50%",
-    transform: "translate(-50%, -50%)",
-    width: "clamp(350px, 60vw, 850px)",
-    height: "clamp(300px, 45vw, 650px)",
-    background: "radial-gradient(circle, rgba(6, 182, 212, 0.12) 0%, transparent 70%)",
-    filter: "blur(100px)",
-    pointerEvents: "none",
-    zIndex: 0,
-    maskImage: "linear-gradient(to bottom, transparent 0px, transparent 120px, black 180px)",
-    WebkitMaskImage: "linear-gradient(to bottom, transparent 0px, transparent 120px, black 180px)",
-  },
-}));
-
-// Faint dot-grid overlay masked with radial fade and top fade
-const GridOverlay = styled(Box)(() => ({
-  position: "absolute",
-  top: 0,
-  left: 0,
-  right: 0,
-  bottom: 0,
-  backgroundImage:
-    "radial-gradient(rgba(15, 23, 42, 0.08) 1.2px, transparent 1.2px)",
-  backgroundSize: "28px 28px",
-  maskImage:
-    "linear-gradient(to bottom, transparent 0px, transparent 120px, black 180px), radial-gradient(circle at 50% 40%, black 20%, transparent 75%)",
-  WebkitMaskImage:
-    "linear-gradient(to bottom, transparent 0px, transparent 120px, black 180px), radial-gradient(circle at 50% 40%, black 20%, transparent 75%)",
-  maskComposite: "intersect",
-  WebkitMaskComposite: "source-in",
-  pointerEvents: "none",
-  zIndex: 1,
-}));
-
-// Pill chip in the same style as hero eyebrow on light background
-const EyebrowChip = styled(Box)(() => ({
-  display: "inline-flex",
-  alignItems: "center",
-  gap: "8px",
-  padding: "6px 14px",
-  borderRadius: "999px",
-  backgroundColor: "rgba(8, 145, 178, 0.08)",
-  border: "1px solid rgba(8, 145, 178, 0.25)",
-  color: "#0e7490",
-  fontFamily: "'Poppins', sans-serif",
-  fontSize: "12px",
-  fontWeight: 600,
-  letterSpacing: "0.12em",
-  textTransform: "uppercase",
-  marginBottom: "16px",
-}));
-
-const PulsingDot = styled(Box)(() => ({
-  width: "8px",
-  height: "8px",
-  borderRadius: "50%",
-  backgroundColor: COLORS.cyan600,
-  boxShadow: `0 0 8px ${COLORS.cyan500}`,
-  animation: "dotPulse 2s ease-in-out infinite",
-  "@keyframes dotPulse": {
-    "0%, 100%": { opacity: 1, transform: "scale(1)" },
-    "50%": { opacity: 0.35, transform: "scale(0.85)" },
-  },
-}));
-
-const CardsGrid = styled("div")(() => ({
-  display: "grid",
-  gridTemplateColumns: "1fr",
-  gap: "clamp(24px, 3vw, 36px)",
-  alignItems: "stretch",
-  marginTop: "48px",
-  "@media (min-width: 768px)": {
-    gridTemplateColumns: "repeat(2, 1fr)",
-  },
-}));
-
-const ServiceCard = styled("article")(() => ({
-  position: "relative",
-  backgroundColor: "#ffffff",
-  borderRadius: "24px",
-  border: "1px solid rgba(15, 23, 42, 0.06)",
-  boxShadow: "0 10px 30px rgba(10, 25, 41, 0.07)",
-  padding: "12px",
-  display: "flex",
-  flexDirection: "column",
-  boxSizing: "border-box",
-  transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
-
-  "@media (prefers-reduced-motion: no-preference)": {
-    "&:hover": {
-      transform: "translateY(-6px)",
-      boxShadow: "0 22px 50px rgba(8, 145, 178, 0.18)",
-      borderColor: "rgba(8, 145, 178, 0.35)",
-      "& .service-img": {
-        transform: "scale(1.05)",
-      },
-      "& .arrow-btn": {
-        background: `linear-gradient(135deg, ${COLORS.cyan600} 0%, ${COLORS.sky500} 100%)`,
-        color: "#ffffff",
-        transform: "rotate(45deg)",
-      },
-    },
-  },
-
-  "&:focus-within": {
-    outline: `2px solid ${COLORS.cyan600}`,
-    outlineOffset: "3px",
-  },
-}));
-
-const ImageContainer = styled(Box)(() => ({
-  position: "relative",
-  width: "100%",
-  aspectRatio: "16 / 10",
-  borderRadius: "16px",
-  overflow: "hidden",
-  backgroundColor: COLORS.navy900,
-}));
-
-const StyledImage = styled("img")(() => ({
-  width: "100%",
-  height: "100%",
-  objectFit: "cover",
-  display: "block",
-  transition: "transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
-}));
-
-// 52px rounded-14px icon chip overlapping bottom-left edge of the image
-const FloatingIconChip = styled(Box)(() => ({
-  position: "absolute",
-  bottom: "-16px",
-  left: "20px",
-  width: "52px",
-  height: "52px",
-  borderRadius: "14px",
-  background: `linear-gradient(135deg, ${COLORS.cyan600} 0%, ${COLORS.cyan500} 100%)`,
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  color: "#ffffff",
-  border: "3px solid #ffffff",
-  boxShadow: "0 8px 20px rgba(8, 145, 178, 0.3)",
-  zIndex: 3,
-}));
-
-const CardBody = styled(Box)(() => ({
-  padding: "28px 20px 20px",
-  display: "flex",
-  flexDirection: "column",
-  flexGrow: 1,
-}));
-
-const CardFooter = styled(Box)(() => ({
-  marginTop: "auto",
-  display: "flex",
-  justifyContent: "flex-end",
-  paddingTop: "16px",
-}));
-
-const ArrowButton = styled(Box)(() => ({
-  width: "44px",
-  height: "44px",
-  minWidth: "44px",
-  borderRadius: "50%",
-  backgroundColor: "rgba(8, 145, 178, 0.1)",
-  color: COLORS.navy950,
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  transition: "all 0.35s cubic-bezier(0.4, 0, 0.2, 1)",
-}));
-
-const StaggerWrapper = styled(Box, {
-  shouldForwardProp: (prop) => prop !== "isVisible",
-})(({ isVisible }) => ({
-  opacity: isVisible ? 1 : 0,
-  transition: "opacity 0.6s ease",
-  "@media (prefers-reduced-motion: no-preference)": {
-    "& .anim-header": {
-      opacity: isVisible ? 1 : 0,
-      transform: isVisible ? "translateY(0)" : "translateY(24px)",
-      transition: "opacity 0.6s ease, transform 0.6s ease",
-    },
-    "& .anim-card-0": {
-      opacity: isVisible ? 1 : 0,
-      transform: isVisible ? "translateY(0)" : "translateY(24px)",
-      transition: "opacity 0.6s ease 0.08s, transform 0.6s ease 0.08s",
-    },
-    "& .anim-card-1": {
-      opacity: isVisible ? 1 : 0,
-      transform: isVisible ? "translateY(0)" : "translateY(24px)",
-      transition: "opacity 0.6s ease 0.16s, transform 0.6s ease 0.16s",
-    },
-    "& .anim-card-2": {
-      opacity: isVisible ? 1 : 0,
-      transform: isVisible ? "translateY(0)" : "translateY(24px)",
-      transition: "opacity 0.6s ease 0.24s, transform 0.6s ease 0.24s",
-    },
-  },
-}));
 
 const FeaturesSection = () => {
-  const [isVisible, setIsVisible] = useState(false);
-  const sectionRef = useRef(null);
-
-  useEffect(() => {
-    const el = sectionRef.current;
-    if (!el || typeof IntersectionObserver === "undefined") {
-      setIsVisible(true);
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          setIsVisible(true);
-          observer.disconnect();
-        }
-      },
-      { rootMargin: "0px 0px -60px 0px" }
-    );
-
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
-
   return (
-    <SectionRoot ref={sectionRef} aria-labelledby="services-section-heading">
-      <GridOverlay />
+    <>
+      {/* SECTION 3: CORE COMPREHENSIVE SOLUTIONS (3-Column Bento Grid) */}
+      <section className="w-full py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="flex flex-col md:flex-row md:items-end justify-between mb-12">
+            <div>
+              <span className="font-label-code text-xs text-primary-container uppercase tracking-widest block mb-2">
+                Our Comprehensive Solutions
+              </span>
+              <h2 className="font-headline-lg text-3xl sm:text-4xl text-white tracking-tight font-bold">
+                Innovate to Dominate Your Financial Standing
+              </h2>
+            </div>
+            <div className="mt-4 md:mt-0 flex gap-2">
+              <span className="font-label-code text-xs text-on-surface-variant flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-container-high border border-outline-variant/30">
+                <span className="w-2 h-2 rounded-full bg-primary-container animate-pulse"></span>
+                End-to-End Resolution Pipeline
+              </span>
+            </div>
+          </div>
 
-      <Box
-        sx={{
-          position: "relative",
-          zIndex: 2,
-          width: "100%",
-          maxWidth: "1440px",
-          mx: "auto",
-          px: "clamp(16px, 4vw, 48px)",
-          boxSizing: "border-box",
-        }}
-      >
-        <StaggerWrapper isVisible={isVisible}>
-          {/* Header left-aligned like hero */}
-          <Box className="anim-header">
-            <EyebrowChip>
-              <PulsingDot />
-              OUR SERVICES
-            </EyebrowChip>
-
-            <Typography
-              id="services-section-heading"
-              component="h2"
-              sx={{
-                fontFamily: "'Poppins', sans-serif",
-                fontSize: "clamp(1.75rem, 1.1rem + 2.6vw, 3rem)",
-                fontWeight: 700,
-                lineHeight: 1.15,
-                color: COLORS.navy950,
-                margin: 0,
-              }}
-            >
-              Innovate to{" "}
-              <Box
-                component="span"
-                sx={{
-                  background: `linear-gradient(90deg, ${COLORS.cyan600} 0%, ${COLORS.sky500} 100%)`,
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                }}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Solution Card 1 */}
+            <div className="group rounded-3xl glass-panel p-7 border border-outline-variant/30 hover:border-primary-container/50 hover:shadow-[0_0_30px_rgba(0,210,255,0.15)] transition-all flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-6">
+                  <div className="w-14 h-14 rounded-2xl bg-primary-container/10 border border-primary-container/30 text-primary-container flex items-center justify-center group-hover:scale-105 group-hover:bg-primary-container/20 transition-all shadow-[0_0_15px_rgba(0,210,255,0.2)]">
+                    <span className="material-symbols-outlined text-3xl">build_circle</span>
+                  </div>
+                  <span className="font-label-code text-xs px-3 py-1 rounded-full bg-tertiary/15 text-tertiary border border-tertiary/30 font-semibold">
+                    Fast-Track Legal
+                  </span>
+                </div>
+                <h3 className="font-headline-md text-xl text-white font-bold mb-2">
+                  Credit Score Repair &amp; DPD Rectification
+                </h3>
+                <p className="font-body-md text-sm text-on-surface-variant mb-6 leading-relaxed">
+                  Expert credit restoration services that draft institutional notices, purge erroneous late-payment tags, and transform damaging "Settled/Written-Off" accounts into healthy "Closed" portfolios.
+                </p>
+                <div className="w-full h-44 rounded-2xl overflow-hidden mb-6 relative border border-outline-variant/30">
+                  <img
+                    alt="Desktop screen showing bureau dispute platform"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 brightness-90"
+                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuCr7DX7DWjmp81g0h0UFCMfSGanjQcWqTrHsT1_cspbnRxKT9p8Cqvn4qZ66Ylk6r4c_x7pFHaH5jBlyAs8C1SdTMnpEY7Pn9V7zUR-i_fbee0LBnftDiS_ONqu5EcU1_elWTiT4IUWOmkXLTHNHVRN9iGXRHajL_cxdpbyt7euiM8m1rA0POlcKNJNelaJNAdGIiQ2hwtDAOFcMzxbT42Xkt7RmdZ6Hv71mEduLEM"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-surface-container-lowest/40 to-transparent flex items-end p-4">
+                    <span className="text-primary-container font-label-code text-xs font-semibold">
+                      Expunge 90+ DPD Flags Permanently
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <Link
+                to="/credit-score-repair"
+                className="inline-flex items-center gap-2 font-title-md text-sm text-primary-container group-hover:text-white group-hover:translate-x-1 transition-all"
               >
-                dominate
-              </Box>{" "}
-              with us
-            </Typography>
-          </Box>
+                <span>Fix My Credit Now</span>
+                <span className="material-symbols-outlined text-base">arrow_forward</span>
+              </Link>
+            </div>
 
-          {/* Cards Grid: 2 equal columns, responsive for all screens */}
-          <CardsGrid>
-            {services.map((service, index) => {
-              const IconComponent = service.icon;
-              return (
-                <ServiceCard
-                  key={service.title}
-                  className={`anim-card-${index}`}
-                >
-                  {/* Image with overlapping icon chip */}
-                  <ImageContainer>
-                    <StyledImage
-                      className="service-img"
-                      src={service.image}
-                      alt={service.title}
-                      loading="lazy"
-                      decoding="async"
-                      width="600"
-                      height="375"
-                    />
-                    <FloatingIconChip aria-hidden="true">
-                      <IconComponent size={24} />
-                    </FloatingIconChip>
-                  </ImageContainer>
+            {/* Solution Card 2 */}
+            <div className="group rounded-3xl glass-panel p-7 border border-outline-variant/30 hover:border-primary-container/50 hover:shadow-[0_0_30px_rgba(0,210,255,0.15)] transition-all flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-6">
+                  <div className="w-14 h-14 rounded-2xl bg-secondary/15 border border-secondary/30 text-secondary flex items-center justify-center group-hover:scale-105 group-hover:bg-secondary/25 transition-all shadow-[0_0_15px_rgba(180,197,255,0.2)]">
+                    <span className="material-symbols-outlined text-3xl">query_stats</span>
+                  </div>
+                  <span className="font-label-code text-xs px-3 py-1 rounded-full bg-primary-container/15 text-primary-container border border-primary-container/30 font-semibold">
+                    High ROI Model
+                  </span>
+                </div>
+                <h3 className="font-headline-md text-xl text-white font-bold mb-2">
+                  Franchise Partner Program
+                </h3>
+                <p className="font-body-md text-sm text-on-surface-variant mb-6 leading-relaxed">
+                  Partner with India’s leading credit remediation authority. Build a scalable, high-margin fintech consulting practice supported by automated bureau crawlers, comprehensive training, and backend legal support.
+                </p>
+                <div className="w-full h-44 rounded-2xl overflow-hidden mb-6 relative border border-outline-variant/30">
+                  <img
+                    alt="Modern fintech partner workspace"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 brightness-90"
+                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuCK-01lTjGsgBPJJOPb_hoCSct4NfR7nSP9cuCamomai_6P9hNMEfscuhl00EY5K68q2-CbxU0yg2dwdK9LPGIs01wqPKFnhDsJqUrM4l_AuFgoitNwSGTC9UdQ2ae5Scb6Z88RhTZGc0Ppj6IFTwVAU0sM2cJv410pxwryOP2DwE5JEpqVQL2YACdkU6hQlrrJL6sXRa9DQmGtF58b_OMrABPEKInw34y1mBZj8A0"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-surface-container-lowest/40 to-transparent flex items-end p-4">
+                    <span className="text-tertiary font-label-code text-xs font-semibold">
+                      Earn Up To ₹1.5L/Month Net
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <Link
+                to="/franchise-opportunity"
+                className="inline-flex items-center gap-2 font-title-md text-sm text-primary-container group-hover:text-white group-hover:translate-x-1 transition-all"
+              >
+                <span>Apply for Franchise</span>
+                <span className="material-symbols-outlined text-base">arrow_forward</span>
+              </Link>
+            </div>
 
-                  {/* Body Content */}
-                  <CardBody>
-                    <Typography
-                      component="h3"
-                      sx={{
-                        fontFamily: "'Poppins', sans-serif",
-                        fontWeight: 600,
-                        fontSize: "22px",
-                        lineHeight: 1.3,
-                        color: COLORS.navy950,
-                        mb: 1.5,
-                        mt: 1,
-                      }}
-                    >
-                      <Link
-                        to={service.link}
-                        style={{
-                          textDecoration: "none",
-                          color: "inherit",
-                          outline: "none",
-                        }}
-                      >
-                        {/* Stretched link pattern across entire card */}
-                        <Box
-                          component="span"
-                          sx={{
-                            position: "absolute",
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            bottom: 0,
-                            zIndex: 1,
-                          }}
-                          aria-hidden="true"
-                        />
-                        {service.title}
-                      </Link>
-                    </Typography>
-
-                    <Typography
-                      sx={{
-                        fontFamily: "'Inter', sans-serif",
-                        fontWeight: 400,
-                        fontSize: "16px",
-                        lineHeight: 1.65,
-                        color: COLORS.textMuted,
-                      }}
-                    >
-                      {service.description}
-                    </Typography>
-
-                    {/* Footer Arrow Button (Decorative indicator) */}
-                    <CardFooter>
-                      <ArrowButton className="arrow-btn" aria-hidden="true">
-                        <ArrowUpRight size={22} />
-                      </ArrowButton>
-                    </CardFooter>
-                  </CardBody>
-                </ServiceCard>
-              );
-            })}
-          </CardsGrid>
-        </StaggerWrapper>
-      </Box>
-    </SectionRoot>
+            {/* Solution Card 3 */}
+            <div className="group rounded-3xl glass-panel p-7 border border-outline-variant/30 hover:border-primary-container/50 hover:shadow-[0_0_30px_rgba(0,210,255,0.15)] transition-all flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-6">
+                  <div className="w-14 h-14 rounded-2xl bg-tertiary/15 border border-tertiary/30 text-tertiary flex items-center justify-center group-hover:scale-105 group-hover:bg-tertiary/25 transition-all shadow-[0_0_15px_rgba(58,250,172,0.2)]">
+                    <span className="material-symbols-outlined text-3xl">speed</span>
+                  </div>
+                  <span className="font-label-code text-xs px-3 py-1 rounded-full bg-secondary-container/40 text-secondary border border-secondary/30 font-semibold">
+                    Multi-Bureau Check
+                  </span>
+                </div>
+                <h3 className="font-headline-md text-xl text-white font-bold mb-2">
+                  Credit Health Diagnostic &amp; Soft Pull
+                </h3>
+                <p className="font-body-md text-sm text-on-surface-variant mb-6 leading-relaxed">
+                  Generate instant multi-bureau telemetry from CIBIL, Experian, Equifax, and CRIF. Uncover hidden DPD records, clerical misreports, and unauthorized inquiries without hurting your score.
+                </p>
+                <div className="w-full h-44 rounded-2xl overflow-hidden mb-6 relative border border-outline-variant/30">
+                  <img
+                    alt="Credit bureau telemetry diagnostic check"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 brightness-90"
+                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuAEAgN9nmTv_s2NS51huZGI9qhz1k6bFPDsfgcTJEhhg5z6TjM8Z3FXuWj3nk8GDYr1svRNes1kgT8lVRLGpXUAXH4DC7F1Ix1TrETgoUDYe8vc_MTJ7hboBASvYXxfOzgagwhjpaFubx2la5Df37bp5AHhHI6n_G8ApO5fu9Z7p_Qhusvr79yPIFmZS42nfiLkGGonI-OBYrTaaKcTtJ3IXUTYRzV_3Ezgai11_Vo"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-surface-container-lowest/40 to-transparent flex items-end p-4">
+                    <span className="text-secondary font-label-code text-xs font-semibold">
+                      Zero Bureau Negative Impact
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <Link
+                to="/credit-check"
+                className="inline-flex items-center gap-2 font-title-md text-sm text-primary-container group-hover:text-white group-hover:translate-x-1 transition-all"
+              >
+                <span>Check Credit Health</span>
+                <span className="material-symbols-outlined text-base">arrow_forward</span>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+    </>
   );
 };
 

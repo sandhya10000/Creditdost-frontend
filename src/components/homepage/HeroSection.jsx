@@ -1,617 +1,237 @@
 import React from "react";
-import {
-  Typography,
-  Button,
-  Box,
-  styled,
-  Grid,
-} from "@mui/material";
-import { useNavigate } from "react-router-dom";
-import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
-import StarIcon from "@mui/icons-material/Star";
-import VerifiedIcon from "@mui/icons-material/Verified";
-import TrendingUpIcon from "@mui/icons-material/TrendingUp";
-import PhotoCubeCard from "../PhotoCubeCard";
-
-// CUSTOMER PHOTOS ARRAY
-const CUSTOMER_PHOTOS = [
-  {
-    src: "/images/hero-new.png",
-    alt: "Happy Credit Dost customer",
-    name: "Customer name",
-    city: "City",
-  },
-  {
-    src: "/customers/customer-2.jpg",
-    alt: "Happy Credit Dost customer",
-    name: "Customer name",
-    city: "City",
-  },
-  {
-    src: "/customers/customer-3.jpg",
-    alt: "Happy Credit Dost customer",
-    name: "Customer name",
-    city: "City",
-  },
-  {
-    src: "/customers/customer-4.jpg",
-    alt: "Happy Credit Dost customer",
-    name: "Customer name",
-    city: "City",
-  },
-];
-
-// BRAND DESIGN TOKENS
-const COLORS = {
-  cyan600: "#0891b2",
-  cyan500: "#06b6d4",
-  cyan300: "#67e8f9",
-  sky500: "#0ea5e9",
-  navy950: "#0a1929",
-  navy900: "#0d2847",
-  navy800: "#1a2744",
-  textLight: "#0f172a",
-  textMuted: "#475569",
-};
-
-const HeroSectionRoot = styled("section")(({ theme }) => ({
-  position: "relative",
-  zIndex: 1,
-  background: `linear-gradient(160deg, ${COLORS.navy950} 0%, ${COLORS.navy900} 55%, ${COLORS.navy950} 100%)`,
-  borderRadius: "0 0 clamp(28px, 5vw, 64px) clamp(28px, 5vw, 64px)",
-  overflowX: "clip",
-  overflowY: "visible",
-  width: "100%",
-  boxSizing: "border-box",
-
-  // Uses --nav-h variable with safe-area and responsive vertical padding
-  // Never a fixed height; caps gracefully at 820px or 100svh
-  minHeight: "min(100svh, 820px)",
-  display: "flex",
-  flexDirection: "column",
-  justifyContent: "center",
-  paddingTop: "calc(var(--nav-h, 72px) + 16px + clamp(32px, 6vw, 72px))",
-  paddingBottom: "clamp(72px, 9vw, 120px)",
-
-  // Mesh glow 1 (Cyan top right)
-  "&::before": {
-    content: '""',
-    position: "absolute",
-    top: "-10%",
-    right: "-5%",
-    width: "clamp(300px, 45vw, 650px)",
-    height: "clamp(300px, 45vw, 650px)",
-    background: "radial-gradient(circle, rgba(6, 182, 212, 0.35) 0%, transparent 70%)",
-    filter: "blur(120px)",
-    pointerEvents: "none",
-    zIndex: 0,
-  },
-
-  // Mesh glow 2 (Sky bottom left)
-  "&::after": {
-    content: '""',
-    position: "absolute",
-    bottom: "5%",
-    left: "-10%",
-    width: "clamp(250px, 40vw, 600px)",
-    height: "clamp(250px, 40vw, 600px)",
-    background: "radial-gradient(circle, rgba(14, 165, 233, 0.25) 0%, transparent 70%)",
-    filter: "blur(120px)",
-    pointerEvents: "none",
-    zIndex: 0,
-  },
-}));
-
-// Faint background dot/line grid with radial fade
-const GridOverlay = styled(Box)(() => ({
-  position: "absolute",
-  top: 0,
-  left: 0,
-  right: 0,
-  bottom: 0,
-  backgroundImage:
-    "linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px)",
-  backgroundSize: "44px 44px",
-  maskImage: "radial-gradient(circle at 50% 45%, black 25%, transparent 75%)",
-  WebkitMaskImage: "radial-gradient(circle at 50% 45%, black 25%, transparent 75%)",
-  pointerEvents: "none",
-  zIndex: 1,
-}));
-
-// Eyebrow glass chip with small pulsing dot
-const EyebrowChip = styled(Box)(() => ({
-  display: "inline-flex",
-  alignItems: "center",
-  gap: "8px",
-  padding: "6px 14px",
-  borderRadius: "999px",
-  background: "rgba(255, 255, 255, 0.08)",
-  border: "1px solid rgba(255, 255, 255, 0.18)",
-  backdropFilter: "blur(8px)",
-  WebkitBackdropFilter: "blur(8px)",
-  color: COLORS.cyan300,
-  fontFamily: "'Poppins', sans-serif",
-  fontSize: "12px",
-  fontWeight: 600,
-  letterSpacing: "0.12em",
-  textTransform: "uppercase",
-  marginBottom: "clamp(14px, 2vw, 24px)",
-}));
-
-const PulsingDot = styled(Box)(() => ({
-  width: "8px",
-  height: "8px",
-  borderRadius: "50%",
-  backgroundColor: COLORS.cyan300,
-  boxShadow: `0 0 10px ${COLORS.cyan300}`,
-  animation: "dotPulse 2s ease-in-out infinite",
-  "@keyframes dotPulse": {
-    "0%, 100%": { opacity: 1, transform: "scale(1)" },
-    "50%": { opacity: 0.4, transform: "scale(0.85)" },
-  },
-}));
-
-// Primary CTA button with dark navy text on bright cyan and 40px circle arrow
-const HeroCTAButton = styled(Button)(() => ({
-  minHeight: "52px",
-  height: "56px",
-  borderRadius: "14px",
-  padding: "0 8px 0 24px",
-  background: "linear-gradient(135deg, #22d3ee 0%, #06b6d4 100%)",
-  color: COLORS.navy950,
-  fontFamily: "'Poppins', sans-serif",
-  fontWeight: 600,
-  fontSize: "16px",
-  textTransform: "none",
-  whiteSpace: "nowrap",
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  gap: "16px",
-  boxShadow: "0 10px 30px rgba(6, 182, 212, 0.45)",
-  position: "relative",
-  overflow: "hidden",
-  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-  width: "auto",
-  "@media (max-width: 600px)": {
-    width: "100%",
-    maxWidth: "420px",
-  },
-  "&::after": {
-    content: '""',
-    position: "absolute",
-    top: 0,
-    left: "-100%",
-    width: "60%",
-    height: "100%",
-    background: "linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent)",
-    transform: "skewX(-20deg)",
-    transition: "left 0.75s ease",
-  },
-  "&:hover": {
-    transform: "translateY(-2px)",
-    background: "linear-gradient(135deg, #22d3ee 0%, #06b6d4 100%)",
-    boxShadow: "0 14px 38px rgba(6, 182, 212, 0.6)",
-    "&::after": {
-      left: "150%",
-    },
-    "& .cta-arrow-circle": {
-      transform: "translateX(4px)",
-    },
-  },
-  "&:active": {
-    transform: "scale(0.98)",
-  },
-  "&:focus-visible": {
-    outline: `2px solid ${COLORS.cyan300}`,
-    outlineOffset: "3px",
-  },
-}));
-
-const ArrowCircle = styled(Box)(() => ({
-  width: "40px",
-  height: "40px",
-  minWidth: "40px",
-  borderRadius: "50%",
-  backgroundColor: "#ffffff",
-  color: COLORS.navy950,
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  transition: "transform 0.25s ease",
-}));
-
-// Floating Glass Cards - Higher z-index than the cube (zIndex: 20), do not rotate with cube
-const GlassCard = styled(Box, {
-  shouldForwardProp: (prop) => prop !== "positionTop" && prop !== "delay",
-})(({ positionTop, delay }) => ({
-  position: "absolute",
-  pointerEvents: "none",
-  ...(positionTop
-    ? { top: "20px", right: "-12px" }
-    : { bottom: "40px", left: "-12px" }),
-  background: "rgba(255, 255, 255, 0.16)",
-  backdropFilter: "blur(16px)",
-  WebkitBackdropFilter: "blur(16px)",
-  border: "1px solid rgba(255, 255, 255, 0.3)",
-  borderRadius: "16px",
-  padding: "10px 16px",
-  display: "flex",
-  alignItems: "center",
-  gap: "10px",
-  boxShadow: "0 20px 40px rgba(0, 0, 0, 0.35)",
-  zIndex: 20,
-  animation: `floatSlow 6s ease-in-out ${delay || "0s"} infinite`,
-  "@keyframes floatSlow": {
-    "0%, 100%": { transform: "translateY(0)" },
-    "50%": { transform: "translateY(-10px)" },
-  },
-  "@media (min-width: 1024px)": {
-    ...(positionTop
-      ? { top: "24px", right: "-24px" }
-      : { bottom: "52px", left: "-24px" }),
-  },
-  "@media (max-width: 600px)": {
-    display: "none",
-  },
-}));
-
-const IconChip = styled(Box)(() => ({
-  width: "36px",
-  height: "36px",
-  borderRadius: "10px",
-  background: `linear-gradient(135deg, ${COLORS.cyan600}, ${COLORS.cyan500})`,
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  color: "#ffffff",
-  flexShrink: 0,
-}));
-
-const StaggerWrapper = styled(Box)(() => ({
-  "@media (prefers-reduced-motion: no-preference)": {
-    "& .stagger-1": { animation: "fadeUp 0.6s ease forwards 0.08s" },
-    "& .stagger-2": { animation: "fadeUp 0.6s ease forwards 0.16s" },
-    "& .stagger-3": { animation: "fadeUp 0.6s ease forwards 0.24s" },
-    "& .stagger-4": { animation: "fadeUp 0.6s ease forwards 0.32s" },
-    "& .stagger-5": { animation: "fadeUp 0.6s ease forwards 0.40s" },
-    "& .hero-cube-scale": { animation: "scaleIn 0.8s ease forwards 0.15s" },
-  },
-  "@keyframes fadeUp": {
-    from: { opacity: 0, transform: "translateY(24px)" },
-    to: { opacity: 1, transform: "translateY(0)" },
-  },
-  "@keyframes scaleIn": {
-    from: { opacity: 0, transform: "scale(0.96)" },
-    to: { opacity: 1, transform: "scale(1)" },
-  },
-}));
+import { Link } from "react-router-dom";
 
 const HeroSection = () => {
-  const navigate = useNavigate();
 
   return (
-    <HeroSectionRoot>
-      <GridOverlay />
-
-      <Box
-        sx={{
-          position: "relative",
-          zIndex: 3,
-          width: "100%",
-          maxWidth: "1440px",
-          mx: "auto",
-          px: "clamp(16px, 4vw, 48px)",
-          boxSizing: "border-box",
+    <>
+      {/* HERO SECTION */}
+      <section
+        className="relative w-full overflow-hidden flex items-center min-h-[calc(100vh-84px)] pt-[84px] pb-8 lg:pt-[84px] lg:pb-10"
+        style={{
+          backgroundColor: "#040b1c",
+          backgroundImage:
+            "radial-gradient(900px 700px at 82% 50%, rgba(14, 116, 144, 0.28), transparent 60%), radial-gradient(600px 400px at 15% 15%, rgba(14, 116, 144, 0.12), transparent 50%)",
         }}
       >
-        <StaggerWrapper>
-          <Grid
-            container
-            spacing={{ xs: 5, md: 5, lg: 6 }}
-            alignItems="center"
-            sx={{
-              display: "flex",
-              flexDirection: { xs: "column", md: "column", lg: "row" },
-            }}
-          >
-            {/* Left Column (55% desktop, centered on mobile/tablet) */}
-            <Grid
-              item
-              xs={12}
-              lg={6.5}
-              sx={{
-                width: "100%",
-                maxWidth: { xs: "560px", lg: "none" },
-                mx: { xs: "auto", lg: "0" },
-                textAlign: { xs: "center", lg: "left" },
-              }}
-            >
-              {/* Eyebrow */}
-              <Box className="stagger-1">
-                <EyebrowChip>
-                  <PulsingDot />
-                  BE INVEST
-                </EyebrowChip>
-              </Box>
-
-              {/* Headline */}
-              <Typography
-                variant="h1"
-                component="h1"
-                className="stagger-2"
-                sx={{
-                  fontFamily: "'Poppins', sans-serif",
-                  fontSize: "clamp(2rem, 1.2rem + 3.6vw, 4rem)",
-                  fontWeight: 700,
-                  lineHeight: 1.08,
-                  letterSpacing: "-0.02em",
-                  color: "#ffffff",
-                  mb: 3,
-                  maxWidth: "36em",
-                  mx: { xs: "auto", lg: "0" },
+        <div className="w-full max-w-[1440px] mx-auto px-6 sm:px-10 lg:px-12 grid items-center">
+          {/* Custom Desktop & Responsive Grid */}
+          <div className="w-full grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_540px] gap-8 xl:gap-[48px] items-center">
+            {/* Left Hero Column */}
+            <div className="w-full flex flex-col z-10 pt-2 lg:pt-4">
+              <div
+                className="inline-flex items-center gap-2 rounded-full bg-[#081b3a]/80 border border-cyan-500/30 text-cyan-400 font-mono w-fit shadow-[0_0_15px_rgba(0,210,255,0.15)]"
+                style={{
+                  fontSize: "11.5px",
+                  padding: "8px 14px",
+                  marginBottom: "20px",
                 }}
               >
-                Download Your{" "}
-                <Box
-                  component="span"
-                  sx={{
-                    position: "relative",
-                    display: "inline-block",
-                    background: "linear-gradient(90deg, #67e8f9 0%, #38bdf8 50%, #ffffff 100%)",
-                    WebkitBackgroundClip: "text",
-                    WebkitTextFillColor: "transparent",
-                    "&::after": {
-                      content: '""',
-                      position: "absolute",
-                      bottom: "-4px",
-                      left: 0,
-                      width: "100%",
-                      height: "6px",
-                      borderRadius: "6px",
-                      background: `linear-gradient(90deg, ${COLORS.cyan500}, ${COLORS.cyan300})`,
-                    },
+                <span className="inline-block w-2 h-2 rounded-full bg-[#34d399] shadow-[0_0_8px_#34d399] animate-pulse"></span>
+                <span>CICRA 2005 STATUTORY DISPUTE FRAMEWORK</span>
+              </div>
+
+              <h1
+                className="text-white font-['Sora']"
+                style={{
+                  fontSize: "clamp(38px, 3.7vw, 54px)",
+                  fontWeight: 600,
+                  lineHeight: 1.08,
+                  letterSpacing: "-0.025em",
+                  marginBottom: "18px",
+                }}
+              >
+                Reclaim Your Credit Score. <br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-sky-300 to-emerald-400">
+                  Turn Loan Rejections <br className="hidden xl:inline" />
+                  into Easy Approvals.
+                </span>
+              </h1>
+
+              <p
+                className="font-normal"
+                style={{
+                  fontSize: "17px",
+                  lineHeight: 1.65,
+                  maxWidth: "600px",
+                  color: "#a9b8d4",
+                  marginBottom: "26px",
+                }}
+              >
+                Wrong late marks, fake loan inquiries, and old settlement tags quietly hurt your credit score and block loan approvals. Credit Dost works legally with banks and credit bureaus to remove unfair negative entries permanently.
+              </p>
+
+              {/* CTA Action Cluster */}
+              <div className="flex flex-wrap items-center gap-[12px] pb-6">
+                <Link
+                  to="/credit-check"
+                  className="inline-flex items-center gap-2.5 rounded-xl bg-gradient-to-r from-cyan-400 via-[#0084ff] to-[#0052ff] text-slate-950 font-bold shadow-[0_0_25px_rgba(0,210,255,0.45)] hover:scale-[1.02] active:scale-95 transition-all shrink-0"
+                  style={{
+                    padding: "14px 24px",
+                    fontSize: "15px",
                   }}
                 >
-                  Credit Report
-                </Box>
-              </Typography>
-
-              {/* Paragraph */}
-              <Typography
-                className="stagger-3"
-                sx={{
-                  fontFamily: "'Inter', sans-serif",
-                  fontSize: "clamp(1rem, 0.95rem + 0.3vw, 1.125rem)",
-                  lineHeight: 1.7,
-                  color: "rgba(255, 255, 255, 0.78)",
-                  maxWidth: "36em",
-                  mx: { xs: "auto", lg: "0" },
-                  mb: 4,
-                }}
-              >
-                Your credit score shapes your financial opportunities. At Credit
-                Dost, we help you correct errors, remove inaccurate negative
-                entries, and improve your score so you can get loan approvals
-                faster.
-              </Typography>
-
-              {/* Primary CTA */}
-              <Box
-                className="stagger-4"
-                sx={{
-                  mb: 4,
-                  display: "flex",
-                  justifyContent: { xs: "center", lg: "flex-start" },
-                }}
-              >
-                <HeroCTAButton onClick={() => navigate("/credit-check")}>
-                  <span>Download Free Credit Report</span>
-                  <ArrowCircle className="cta-arrow-circle">
-                    <ArrowForwardIcon sx={{ fontSize: "1.2rem" }} />
-                  </ArrowCircle>
-                </HeroCTAButton>
-              </Box>
-
-              {/* Trust Row */}
-              <Box
-                className="stagger-5"
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: { xs: "center", lg: "flex-start" },
-                  flexWrap: "wrap",
-                  gap: { xs: 2, sm: 3 },
-                  pt: 1.5,
-                  borderTop: "1px solid rgba(255, 255, 255, 0.12)",
-                  maxWidth: "36em",
-                  mx: { xs: "auto", lg: "0" },
-                }}
-              >
-                {/* Overlapping Initials Avatars */}
-                <Box sx={{ display: "flex", alignItems: "center" }}>
-                  {["AK", "PS", "RV", "MK"].map((initials, index) => (
-                    <Box
-                      key={initials}
-                      sx={{
-                        width: "34px",
-                        height: "34px",
-                        borderRadius: "50%",
-                        backgroundColor: index % 2 === 0 ? COLORS.navy800 : COLORS.cyan600,
-                        border: "2px solid #ffffff",
-                        color: "#ffffff",
-                        fontSize: "11px",
-                        fontWeight: 700,
-                        fontFamily: "'Poppins', sans-serif",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        marginLeft: index === 0 ? 0 : "-10px",
-                        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.25)",
-                      }}
-                    >
-                      {initials}
-                    </Box>
-                  ))}
-                </Box>
-
-                <Box sx={{ textAlign: "left" }}>
-                  <Typography
-                    sx={{
-                      fontFamily: "'Inter', sans-serif",
-                      fontSize: "14px",
-                      fontWeight: 600,
-                      color: "#ffffff",
-                      lineHeight: 1.2,
-                    }}
-                  >
-                    640+ Happy Customers
-                  </Typography>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mt: 0.3 }}>
-                    {[...Array(5)].map((_, i) => (
-                      <StarIcon key={i} sx={{ color: "#facc15", fontSize: "15px" }} />
-                    ))}
-                    <Typography
-                      sx={{
-                        fontFamily: "'Inter', sans-serif",
-                        fontSize: "12px",
-                        color: "rgba(255, 255, 255, 0.7)",
-                        ml: 0.5,
-                      }}
-                    >
-                      11 Years of experience
-                    </Typography>
-                  </Box>
-                </Box>
-              </Box>
-            </Grid>
-
-            {/* Right Column: 3D Photo Cube (max 440px desktop, min(80vw, 440px) mobile) */}
-            <Grid
-              item
-              xs={12}
-              lg={5.5}
-              sx={{
-                width: "100%",
-                maxWidth: { xs: "min(80vw, 440px)", lg: "440px" },
-                mx: "auto",
-              }}
-            >
-              <Box
-                sx={{
-                  position: "relative",
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  mx: "auto",
-                  width: "100%",
-                }}
-              >
-                {/* Soft cyan blurred ring */}
-                <Box
-                  sx={{
-                    position: "absolute",
-                    top: "50%",
-                    left: "50%",
-                    transform: "translate(-50%, -50%)",
-                    width: "100%",
-                    height: "100%",
-                    background: "radial-gradient(circle, rgba(6, 182, 212, 0.3) 0%, transparent 65%)",
-                    filter: "blur(50px)",
-                    zIndex: 0,
-                    pointerEvents: "none",
+                  <span className="material-symbols-outlined text-xl">download</span>
+                  <span>Download Free Bureau Report</span>
+                </Link>
+                <Link
+                  to="/credit-check"
+                  className="inline-flex items-center gap-2 rounded-xl bg-[#09152e]/90 border border-slate-700 hover:border-cyan-400 text-white font-semibold hover:bg-slate-800 transition-all shrink-0"
+                  style={{
+                    padding: "14px 24px",
+                    fontSize: "15px",
                   }}
-                />
+                >
+                  <span className="material-symbols-outlined text-cyan-400">bolt</span>
+                  <span>Check Free Score in 2 Mins</span>
+                </Link>
+              </div>
 
-                {/* Thin orbit ring outline */}
-                <Box
-                  sx={{
-                    position: "absolute",
-                    top: "-20px",
-                    right: "-20px",
-                    width: "clamp(120px, 20vw, 180px)",
-                    height: "clamp(120px, 20vw, 180px)",
-                    borderRadius: "50%",
-                    border: "1px solid rgba(103, 232, 249, 0.25)",
-                    pointerEvents: "none",
-                    zIndex: 1,
-                  }}
-                />
+              {/* Trust Credentials Strip */}
+              <div className="pt-5 grid grid-cols-3 gap-2 sm:gap-4 border-t border-slate-800/80 max-w-[600px]">
+                <div className="flex items-center gap-2 text-slate-300 text-xs sm:text-sm">
+                  <div className="w-7 h-7 rounded-lg bg-slate-900 flex items-center justify-center text-cyan-400 border border-cyan-500/20 shrink-0">
+                    <span className="material-symbols-outlined text-sm">verified_user</span>
+                  </div>
+                  <span>256-Bit Bank Vault</span>
+                </div>
+                <div className="flex items-center gap-2 text-slate-300 text-xs sm:text-sm">
+                  <div className="w-7 h-7 rounded-lg bg-slate-900 flex items-center justify-center text-emerald-400 border border-emerald-500/20 shrink-0">
+                    <span className="material-symbols-outlined text-sm">shield</span>
+                  </div>
+                  <span>Zero Bureau Impact</span>
+                </div>
+                <div className="flex items-center gap-2 text-slate-300 text-xs sm:text-sm">
+                  <div className="w-7 h-7 rounded-lg bg-slate-900 flex items-center justify-center text-sky-400 border border-sky-500/20 shrink-0">
+                    <span className="material-symbols-outlined text-sm">support_agent</span>
+                  </div>
+                  <span>Pan-India Legal Desk</span>
+                </div>
+              </div>
+            </div>
 
-                {/* 3D Rotating Photo Cube Card */}
-                <Box className="hero-cube-scale" sx={{ width: "100%", zIndex: 2 }}>
-                  <PhotoCubeCard photos={CUSTOMER_PHOTOS} />
-                </Box>
+            {/* Right Hero Column: Reserved blank space for future content */}
+            <div className="w-full min-h-[400px] xl:min-h-[600px] flex justify-center items-center py-0" />
+          </div>
+        </div>
+      </section>
 
-                {/* Floating Glass Card 1 (Top-Right) - Over corners, does not rotate */}
-                <GlassCard positionTop={1} delay="0s">
-                  <IconChip>
-                    <VerifiedIcon sx={{ fontSize: "1.2rem" }} />
-                  </IconChip>
-                  <Box>
-                    <Typography
-                      sx={{
-                        fontFamily: "'Poppins', sans-serif",
-                        fontSize: "14px",
-                        fontWeight: 600,
-                        color: "#ffffff",
-                        lineHeight: 1.2,
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      640+
-                    </Typography>
-                    <Typography
-                      sx={{
-                        fontFamily: "'Inter', sans-serif",
-                        fontSize: "12px",
-                        color: "rgba(255, 255, 255, 0.75)",
-                        lineHeight: 1.2,
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      Happy Customers
-                    </Typography>
-                  </Box>
-                </GlassCard>
+      {/* SECTION 2: ABOUT US INTRODUCTORY SECTION */}
+      <section className="w-full py-12 lg:py-16 relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="glass-panel rounded-3xl p-6 sm:p-10 lg:p-12 border border-outline-variant/40 shadow-2xl relative overflow-hidden">
+            {/* Glow accents */}
+            <div className="absolute -right-24 -top-24 w-96 h-96 bg-primary-container/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div className="absolute -left-24 -bottom-24 w-96 h-96 bg-tertiary/10 rounded-full blur-3xl pointer-events-none"></div>
 
-                {/* Floating Glass Card 2 (Bottom-Left) - Over corners, does not rotate */}
-                <GlassCard positionTop={0} delay="3s">
-                  <IconChip>
-                    <TrendingUpIcon sx={{ fontSize: "1.2rem" }} />
-                  </IconChip>
-                  <Box>
-                    <Typography
-                      sx={{
-                        fontFamily: "'Poppins', sans-serif",
-                        fontSize: "14px",
-                        fontWeight: 600,
-                        color: "#ffffff",
-                        lineHeight: 1.2,
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      11 Years
-                    </Typography>
-                    <Typography
-                      sx={{
-                        fontFamily: "'Inter', sans-serif",
-                        fontSize: "12px",
-                        color: "rgba(255, 255, 255, 0.75)",
-                        lineHeight: 1.2,
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      of Experience
-                    </Typography>
-                  </Box>
-                </GlassCard>
-              </Box>
-            </Grid>
-          </Grid>
-        </StaggerWrapper>
-      </Box>
-    </HeroSectionRoot>
+            {/* Top Header Block */}
+            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 pb-8 border-b border-outline-variant/20 relative z-10">
+              <div className="max-w-3xl">
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 font-mono text-xs mb-3 shadow-[0_0_15px_rgba(0,210,255,0.12)]">
+                  <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                  <span>WHO WE ARE • ABOUT CREDIT DOST</span>
+                </div>
+                <h2 className="text-2xl sm:text-3xl lg:text-4xl text-white font-bold tracking-tight font-['Sora'] leading-tight">
+                  Your Trusted Partner to Repair Credit Scores and Restore Loan Approvals
+                </h2>
+                <p className="text-slate-300 text-sm sm:text-base mt-3 leading-relaxed">
+                  Millions of hardworking people face loan rejections simply because of bank clerical mistakes, wrong late-payment entries, or old settled accounts still showing as overdue. At Credit Dost, we believe everyone deserves a second chance to rebuild their financial health with honesty, simplicity, and dignity.
+                </p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row lg:flex-col gap-3 shrink-0 w-full sm:w-auto">
+                <Link
+                  to="/about"
+                  className="px-6 py-3.5 rounded-xl bg-gradient-to-r from-cyan-400 via-[#0084ff] to-[#0052ff] text-slate-950 font-bold text-sm shadow-[0_0_20px_rgba(0,210,255,0.35)] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
+                >
+                  <span>Know Our Full Story</span>
+                  <span className="material-symbols-outlined text-lg">arrow_forward</span>
+                </Link>
+                <Link
+                  to="/credit-check"
+                  className="px-6 py-3 rounded-xl bg-[#09152e]/90 border border-slate-700 hover:border-cyan-400 text-white font-semibold text-sm hover:bg-slate-800 transition-all flex items-center justify-center gap-2"
+                >
+                  <span className="material-symbols-outlined text-cyan-400 text-lg">verified</span>
+                  <span>Free Credit Check</span>
+                </Link>
+              </div>
+            </div>
+
+            {/* 4 Core Pillars Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 pt-8 relative z-10">
+              {/* Pillar 1 */}
+              <div className="p-5 rounded-2xl bg-[#071328]/70 border border-slate-800/80 hover:border-cyan-500/30 transition-all flex flex-col justify-between">
+                <div>
+                  <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center mb-4">
+                    <span className="material-symbols-outlined text-xl">travel_explore</span>
+                  </div>
+                  <h3 className="text-white font-semibold text-base mb-2 font-['Sora']">
+                    Find Hidden Mistakes
+                  </h3>
+                  <p className="text-slate-400 text-xs sm:text-sm leading-relaxed">
+                    We review all 4 official Indian credit bureaus (CIBIL, Experian, Equifax, CRIF) to uncover inaccurate entries, duplicate accounts, and wrong delayed marks.
+                  </p>
+                </div>
+              </div>
+
+              {/* Pillar 2 */}
+              <div className="p-5 rounded-2xl bg-[#071328]/70 border border-slate-800/80 hover:border-emerald-500/30 transition-all flex flex-col justify-between">
+                <div>
+                  <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mb-4">
+                    <span className="material-symbols-outlined text-xl">gavel</span>
+                  </div>
+                  <h3 className="text-white font-semibold text-base mb-2 font-['Sora']">
+                    100% Legal &amp; Lawful
+                  </h3>
+                  <p className="text-slate-400 text-xs sm:text-sm leading-relaxed">
+                    No false overnight promises or gray shortcuts. Every dispute is officially handled under RBI guidelines and statutory dispute laws directly with lenders.
+                  </p>
+                </div>
+              </div>
+
+              {/* Pillar 3 */}
+              <div className="p-5 rounded-2xl bg-[#071328]/70 border border-slate-800/80 hover:border-sky-500/30 transition-all flex flex-col justify-between">
+                <div>
+                  <div className="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/20 text-sky-400 flex items-center justify-center mb-4">
+                    <span className="material-symbols-outlined text-xl">trending_up</span>
+                  </div>
+                  <h3 className="text-white font-semibold text-base mb-2 font-['Sora']">
+                    Simple Growth Plan
+                  </h3>
+                  <p className="text-slate-400 text-xs sm:text-sm leading-relaxed">
+                    Get a clear, customized action plan written in plain everyday language so you know exactly how and when your credit score will bounce back.
+                  </p>
+                </div>
+              </div>
+
+              {/* Pillar 4 */}
+              <div className="p-5 rounded-2xl bg-[#071328]/70 border border-slate-800/80 hover:border-purple-500/30 transition-all flex flex-col justify-between">
+                <div>
+                  <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center mb-4">
+                    <span className="material-symbols-outlined text-xl">support_agent</span>
+                  </div>
+                  <h3 className="text-white font-semibold text-base mb-2 font-['Sora']">
+                    Dedicated Real Help
+                  </h3>
+                  <p className="text-slate-400 text-xs sm:text-sm leading-relaxed">
+                    Our credit advisors guide you personally through every notice and update, answering all your doubts until you get your loan approval.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom Support Banner */}
+            <div className="mt-8 pt-5 border-t border-slate-800/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-xs text-slate-400 relative z-10">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-cyan-400 text-base">headset_mic</span>
+                <span>Have questions? Talk to our advisory desk: <strong className="text-white">+91 9217469202</strong> (Mon - Sat, 10 AM - 7 PM)</span>
+              </div>
+              <span className="text-slate-500 font-mono text-[11px]">OPTIMYSTIC AUXILIARY SERVICES PVT. LTD.</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </>
   );
 };
 

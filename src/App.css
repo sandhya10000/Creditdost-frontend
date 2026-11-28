@@ -1,28 +1,30 @@
-/* Subtle modern scrollbar */
+/* Subtle modern scrollbar matching dark theme */
 html {
   scrollbar-width: thin;
-  scrollbar-color: rgba(100, 116, 139, 0.45) transparent;
+  scrollbar-color: rgba(0, 210, 255, 0.25) transparent;
+  background-color: #080E1B;
 }
 
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: transparent !important;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(100, 116, 139, 0.45);
-  border-radius: 999px;
-  border: 2px solid transparent;
-  background-clip: content-box;
+  background: rgba(0, 210, 255, 0.2);
+  border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(100, 116, 139, 0.7);
-  background-clip: content-box;
+  background: rgba(0, 210, 255, 0.45);
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
 /* Global styles */

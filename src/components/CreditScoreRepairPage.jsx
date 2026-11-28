@@ -1,490 +1,65 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import {
-  Container,
-  Typography,
   TextField,
-  Button,
-  Box,
-  Card,
-  CardContent,
-  Alert,
-  CircularProgress,
   FormControl,
   InputLabel,
   Select,
   MenuItem,
-  FormControlLabel,
-  Checkbox,
-  Grid,
-  styled,
-  Paper,
-  Divider,
+  CircularProgress,
 } from "@mui/material";
-import {
-  CheckCircle,
-  TrendingUp,
-  Security,
-  Speed,
-  Assessment,
-  Timeline,
-  VerifiedUser,
-  ContactSupport,
-  ArrowForward,
-} from "@mui/icons-material";
 import Header from "./homepage/Header";
-import TestimonialSection from "./homepage/TestimonialsSection";
 import HomePageFooter from "./homepage/HomePageFooter";
 import api from "../services/api";
 
-const PageBackground = styled(Box)(({ theme }) => ({
-  background: "#ffffff",
-  minHeight: "100vh",
-}));
-
-const HeroSection = styled(Box)(({ theme }) => ({
-  background: "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%)",
-  padding: theme.spacing(12, 0, 8),
-  position: "relative",
-  overflow: "hidden",
-  "&::before": {
-    content: '""',
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    background:
-      "radial-gradient(circle at 20% 50%, rgba(14, 165, 233, 0.1) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(6, 182, 212, 0.1) 0%, transparent 50%)",
-    pointerEvents: "none",
-  },
-}));
-
-const SectionBox = styled(Box)(({ theme }) => ({
-  padding: theme.spacing(10, 0),
-  position: "relative",
-}));
-
-const SectionTitle = styled(Typography)(({ theme }) => ({
-  fontWeight: 800,
-  color: "#0f172a",
-  marginBottom: theme.spacing(2),
-  position: "relative",
-  fontSize: "2.5rem",
-  [theme.breakpoints.down("md")]: {
-    fontSize: "2rem",
-  },
-}));
-
-const SectionSubtitle = styled(Typography)(({ theme }) => ({
-  color: "#64748b",
-  fontSize: "1.2rem",
-  marginBottom: theme.spacing(6),
-  maxWidth: "700px",
-  margin: "0 auto",
-  lineHeight: 1.7,
-}));
-
-const StyledCard = styled(Card)(({ theme }) => ({
-  borderRadius: 24,
-  boxShadow: "0 20px 60px rgba(0, 0, 0, 0.08)",
-  border: "1px solid rgba(0, 0, 0, 0.05)",
-  background: "white",
-  transition: "all 0.3s ease",
-  height: "100%",
-}));
-
-const ProcessCard = styled(Paper)(({ theme }) => ({
-  padding: theme.spacing(4),
-  borderRadius: 20,
-  border: "2px solid #f1f5f9",
-  background: "white",
-  transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
-  height: "100%",
-  position: "relative",
-  overflow: "hidden",
-  "&::before": {
-    content: '""',
-    position: "absolute",
-    top: 0,
-    left: 0,
-    width: "100%",
-    height: "4px",
-    background: "linear-gradient(90deg, #0ea5e9, #06b6d4)",
-    transform: "scaleX(0)",
-    transformOrigin: "left",
-    transition: "transform 0.4s ease",
-  },
-  "&:hover": {
-    transform: "translateY(-8px)",
-    boxShadow: "0 20px 40px rgba(14, 165, 233, 0.15)",
-    borderColor: "#0ea5e9",
-    "&::before": {
-      transform: "scaleX(1)",
-    },
-  },
-}));
-
-const StyledButton = styled(Button)(({ theme }) => ({
-  padding: theme.spacing(1.8, 5),
-  borderRadius: 12,
-  fontWeight: 700,
-  fontSize: "1.1rem",
-  textTransform: "none",
-  transition: "all 0.3s ease",
-  background: "linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%)",
-  boxShadow: "0 8px 24px rgba(14, 165, 233, 0.3)",
-  "&:hover": {
-    transform: "translateY(-3px)",
-    boxShadow: "0 12px 32px rgba(14, 165, 233, 0.4)",
-    background: "linear-gradient(135deg, #0284c7 0%, #0891b2 100%)",
-  },
-  "&:disabled": {
-    background: "#cbd5e1",
-  },
-}));
-
-const IconBox = styled(Box)(({ theme }) => ({
-  width: 80,
-  height: 80,
-  borderRadius: 20,
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  background: "linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%)",
-  marginBottom: theme.spacing(3),
-  boxShadow: "0 8px 24px rgba(14, 165, 233, 0.3)",
-  transition: "all 0.3s ease",
-  "& svg": {
-    fontSize: 40,
-    color: "white",
-  },
-}));
-
-const StatsCard = styled(Paper)(({ theme }) => ({
-  padding: theme.spacing(4),
-  borderRadius: 20,
-  background: "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)",
-  border: "2px solid #e2e8f0",
-  textAlign: "center",
-  transition: "all 0.3s ease",
-  "&:hover": {
-    transform: "translateY(-5px)",
-    borderColor: "#0ea5e9",
-    background: "linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)",
-  },
-}));
-
-const PlanCard = styled(Card)(({ theme }) => ({
-  borderRadius: 24,
-  border: "2px solid #e2e8f0",
-  transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
-  height: "100%",
-  position: "relative",
-  overflow: "hidden",
-  "&:hover": {
-    transform: "translateY(-12px) scale(1.02)",
-    boxShadow: "0 24px 48px rgba(14, 165, 233, 0.2)",
-    borderColor: "#0ea5e9",
-  },
-  "&.featured": {
-    border: "3px solid #0ea5e9",
-    background: "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
-  },
-}));
-
-const FeatureBadge = styled(Box)(({ theme }) => ({
-  display: "inline-flex",
-  alignItems: "center",
-  padding: theme.spacing(1, 2),
-  borderRadius: 50,
-  background: "linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)",
-  color: "#166534",
-  fontWeight: 600,
-  fontSize: "0.875rem",
-  marginBottom: theme.spacing(2),
-}));
-
-const TestimonialCard = styled(Paper)(({ theme }) => ({
-  padding: theme.spacing(4),
-  borderRadius: 20,
-  background: "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
-  border: "2px solid #bae6fd",
-  position: "relative",
-  "&::before": {
-    content: '"""',
-    position: "absolute",
-    top: 20,
-    left: 20,
-    fontSize: "4rem",
-    color: "#0ea5e9",
-    opacity: 0.2,
-    fontFamily: "Georgia, serif",
-  },
-}));
-
 const CreditScoreRepairPage = () => {
+  // Mode selection: 'individual' (Personal Credit Score Repair) or 'corporate' (Company CMR for Corporates)
+  const [activeTab, setActiveTab] = useState("individual");
+
+  // Form states
   const [formData, setFormData] = useState({
+    // Shared / Contact
     fullName: "",
     email: "",
     mobileNumber: "",
     city: "",
     state: "",
-    creditScore: "",
-    problemType: "",
     message: "",
-    language: "",
-    occupation: "",
+    authorization: true,
+
+    // Individual specific
+    creditScore: "",
+    problemType: "Loan Rejection",
+    occupation: "Salaried",
     income: "",
-    // authorization: false,
+
+    // Corporate specific
+    companyName: "",
+    entityType: "Private Limited (Pvt Ltd)",
+    designation: "Director",
+    gstNumber: "",
+    turnoverRange: "₹1 Cr - ₹5 Cr",
+    cmrRank: "",
+    corporateProblemType: "CMR Rank Improvement",
   });
 
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
 
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-
-    // For mobile number, only allow digits
-    if (name === "mobileNumber") {
-      const cleanValue = value.replace(/\D/g, "");
-      // Limit to 10 digits
-      if (cleanValue.length <= 10) {
-        setFormData({
-          ...formData,
-          [name]: cleanValue,
-        });
-      }
-      return;
-    }
-
-    // For income field, only allow digits
-    if (name === "income") {
-      const cleanValue = value.replace(/\D/g, "");
-      setFormData({
-        ...formData,
-        [name]: cleanValue,
-      });
-      return;
-    }
-
-    setFormData({
-      ...formData,
-      [name]: type === "checkbox" ? checked : value,
-    });
-  };
-
-  const validateForm = () => {
-    if (!formData.fullName || formData.fullName.length < 2) {
-      setError("Please enter your full name");
-      return false;
-    }
-    if (
-      !formData.mobileNumber ||
-      formData.mobileNumber.length !== 10 ||
-      !/^[0-9]{10}$/.test(formData.mobileNumber)
-    ) {
-      setError("Please enter a valid 10-digit mobile number");
-      return false;
-    }
-    if (!formData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      setError("Please enter a valid email address");
-      return false;
-    }
-    if (!formData.city) {
-      setError("Please enter your city");
-      return false;
-    }
-    if (!formData.state) {
-      setError("Please select your state");
-      return false;
-    }
-    if (!formData.problemType) {
-      setError("Please select a problem type");
-      return false;
-    }
-    if (!formData.authorization) {
-      setError("Please authorize us to contact you");
-      return false;
-    }
-    return true;
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-
-    if (!validateForm()) {
-      return;
-    }
-
-    // Clean the mobile number to ensure it contains only digits
-    const cleanFormData = {
-      fullName: formData.fullName || "",
-      email: formData.email || "",
-      mobileNumber: formData.mobileNumber.replace(/\D/g, ""),
-      city: formData.city || "",
-      state: formData.state || "",
-      problemType: formData.problemType || "",
-      creditScore: formData.creditScore || "",
-      message: formData.message || "",
-      language: formData.language || "",
-      occupation: formData.occupation || "",
-      income: formData.income || "",
-      // Note: authorization field is not sent to backend as it's only for frontend validation
-    };
-
-    // Log the data being sent
-    console.log("Clean form data:", cleanFormData);
-
-    // Additional validation for mobile number
-    if (cleanFormData.mobileNumber.length !== 10) {
-      setError("Please enter a valid 10-digit mobile number");
-      setLoading(false);
-      return;
-    }
-
-    // Ensure all required fields are present
-    if (!cleanFormData.problemType) {
-      setError("Please select a problem type");
-      setLoading(false);
-      return;
-    }
-
-    if (!cleanFormData.state) {
-      setError("Please select your state");
-      setLoading(false);
-      return;
-    }
-
-    if (!formData.authorization) {
-      setError("Please authorize us to contact you");
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      // Submit to backend API
-      console.log("Submitting credit repair form with data:", cleanFormData);
-      await api.post("/forms/credit-repair", cleanFormData);
-      setSuccess(true);
-      // Reset form
-      setFormData({
-        fullName: "",
-        email: "",
-        mobileNumber: "",
-        city: "",
-        state: "",
-        creditScore: "",
-        problemType: "",
-        message: "",
-        language: "",
-        occupation: "",
-        income: "",
-        authorization: false,
-      });
-    } catch (err) {
-      console.error("Form submission error:", err);
-      let errorMessage = "Failed to submit your request. Please try again.";
-
-      if (err.response?.data?.message) {
-        errorMessage = err.response.data.message;
-        if (err.response.data.details) {
-          errorMessage += ": " + err.response.data.details.join(", ");
-        }
-      }
-
-      setError(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const problemTypes = [
-    "Loan Rejection",
-    "Report Error",
-    "Low Score",
-    "Settlement Update",
-    "DPD",
-    "Suit File",
-    "Other",
-  ];
-
-  const processSteps = [
-    {
-      icon: <Assessment />,
-      title: "Credit Report Analysis",
-      description:
-        "Comprehensive evaluation of your credit report from all major bureaus to identify errors and negative items.",
-    },
-    {
-      icon: <Timeline />,
-      title: "Dispute Strategy",
-      description:
-        "Strategic identification of inaccuracies and development of a customized correction plan.",
-    },
-    {
-      icon: <ContactSupport />,
-      title: "Bank Coordination",
-      description:
-        "Direct communication with banks and credit bureaus to rectify false or outdated information.",
-    },
-    {
-      icon: <TrendingUp />,
-      title: "Score Improvement",
-      description:
-        "Ongoing guidance on credit utilization, payment habits, and score optimization strategies.",
-    },
-  ];
-
-  const whyChooseUs = [
-    {
-      icon: <VerifiedUser />,
-      title: "Trusted Experts",
-      description:
-        "India's leading credit repair specialists with proven track record",
-    },
-    {
-      icon: <Security />,
-      title: "100% Compliant",
-      description: "Ethical processes following all regulatory guidelines",
-    },
-    {
-      icon: <Speed />,
-      title: "Fast Results",
-      description: "Average score improvement visible within 60-90 days",
-    },
-    {
-      icon: <Timeline />,
-      title: "Transparent Updates",
-      description: "Regular progress reports and complete visibility",
-    },
-  ];
-
-  // Add Indian states array
   const indianStates = [
-    "Andaman and Nicobar Islands",
     "Andhra Pradesh",
     "Arunachal Pradesh",
     "Assam",
     "Bihar",
-    "Chandigarh",
     "Chhattisgarh",
-    "Dadra and Nagar Haveli",
-    "Daman and Diu",
-    "Delhi",
     "Goa",
     "Gujarat",
     "Haryana",
     "Himachal Pradesh",
-    "Jammu and Kashmir",
     "Jharkhand",
     "Karnataka",
     "Kerala",
-    "Ladakh",
-    "Lakshadweep",
     "Madhya Pradesh",
     "Maharashtra",
     "Manipur",
@@ -492,7 +67,6 @@ const CreditScoreRepairPage = () => {
     "Mizoram",
     "Nagaland",
     "Odisha",
-    "Puducherry",
     "Punjab",
     "Rajasthan",
     "Sikkim",
@@ -502,959 +76,760 @@ const CreditScoreRepairPage = () => {
     "Uttar Pradesh",
     "Uttarakhand",
     "West Bengal",
+    "Andaman and Nicobar Islands",
+    "Chandigarh",
+    "Dadra and Nagar Haveli and Daman and Diu",
+    "Delhi",
+    "Jammu and Kashmir",
+    "Ladakh",
+    "Lakshadweep",
+    "Puducherry",
   ];
 
+  const individualProblemTypes = [
+    "Loan Rejection",
+    "Late DPD Marks Dispute",
+    "Settlement Tag Removal",
+    "Wrong Account / Identity Theft",
+    "Low CIBIL Score (Below 700)",
+    "Suit Filed / Wilful Defaulter Error",
+    "Other Personal Credit Issue",
+  ];
+
+  const corporateProblemTypes = [
+    "High Risk CMR Rank (CMR 7-10)",
+    "Working Capital / CC Limit Rejection",
+    "Commercial NPA Tag Removal",
+    "Bank Charge Satisfaction & NOC Update",
+    "Corporate Loan Rejection",
+    "Wrong Credit Bureau / Commercial Entry",
+    "Other Corporate Credit Challenge",
+  ];
+
+  const entityTypes = [
+    "Private Limited (Pvt Ltd)",
+    "Public Limited (Ltd)",
+    "Limited Liability Partnership (LLP)",
+    "Partnership Firm",
+    "MSME / Sole Proprietorship",
+  ];
+
+  const turnoverOptions = [
+    "Below ₹1 Crore",
+    "₹1 Crore - ₹5 Crores",
+    "₹5 Crores - ₹25 Crores",
+    "₹25 Crores - ₹100 Crores",
+    "₹100 Crores+",
+  ];
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    if (name === "mobileNumber") {
+      const clean = value.replace(/\D/g, "").slice(0, 10);
+      setFormData((prev) => ({ ...prev, [name]: clean }));
+      return;
+    }
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+  };
+
+  const validateForm = () => {
+    if (!formData.fullName.trim()) {
+      setError("Please enter the contact person's name");
+      return false;
+    }
+    if (!formData.mobileNumber || formData.mobileNumber.length !== 10) {
+      setError("Please enter a valid 10-digit mobile number");
+      return false;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setError("Please enter a valid email address");
+      return false;
+    }
+    if (!formData.state) {
+      setError("Please select your state");
+      return false;
+    }
+
+    if (activeTab === "corporate") {
+      if (!formData.companyName.trim()) {
+        setError("Please enter your Company / Business legal name");
+        return false;
+      }
+    }
+
+    return true;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+
+    if (!validateForm()) return;
+
+    setLoading(true);
+
+    try {
+      const payload = {
+        enquiryType: activeTab,
+        fullName: formData.fullName.trim(),
+        email: formData.email.trim(),
+        mobileNumber: formData.mobileNumber,
+        city: formData.city.trim(),
+        state: formData.state,
+        problemType: activeTab === "individual" ? formData.problemType : formData.corporateProblemType,
+        creditScore: activeTab === "individual" ? formData.creditScore : "",
+        message: formData.message.trim(),
+        occupation: activeTab === "individual" ? formData.occupation : "",
+        income: activeTab === "individual" ? formData.income : "",
+
+        // Corporate payload
+        companyName: activeTab === "corporate" ? formData.companyName.trim() : "",
+        entityType: activeTab === "corporate" ? formData.entityType : "",
+        designation: activeTab === "corporate" ? formData.designation : "",
+        gstNumber: activeTab === "corporate" ? formData.gstNumber.trim().toUpperCase() : "",
+        turnoverRange: activeTab === "corporate" ? formData.turnoverRange : "",
+        cmrRank: activeTab === "corporate" ? formData.cmrRank : "",
+      };
+
+      await api.post("/forms/credit-repair", payload);
+      setSuccess(true);
+    } catch (err) {
+      console.error("Submission error:", err);
+      setError(
+        err.response?.data?.message || "Failed to submit request. Please try again."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const inputStyle = {
+    "& .MuiOutlinedInput-root": {
+      color: "#ffffff",
+      backgroundColor: "#071120",
+      borderRadius: "12px",
+      fontFamily: "'Inter', sans-serif",
+      "& fieldset": {
+        borderColor: "rgba(0, 210, 255, 0.25)",
+        borderWidth: "1.5px",
+      },
+      "&:hover fieldset": {
+        borderColor: "rgba(0, 210, 255, 0.6)",
+      },
+      "&.Mui-focused fieldset": {
+        borderColor: "#00d2ff !important",
+        boxShadow: "0 0 16px rgba(0, 210, 255, 0.3)",
+        borderWidth: "2px",
+      },
+      "& input": {
+        color: "#ffffff !important",
+        backgroundColor: "transparent !important",
+        WebkitTextFillColor: "#ffffff !important",
+        fontSize: "0.95rem",
+        "&:-webkit-autofill": {
+          WebkitBoxShadow: "0 0 0 1000px #071120 inset !important",
+          WebkitTextFillColor: "#ffffff !important",
+        },
+      },
+    },
+    "& .MuiInputLabel-root": {
+      color: "rgba(203, 213, 225, 0.8)",
+      "&.Mui-focused": { color: "#00d2ff !important" },
+    },
+  };
+
   return (
-    <>
+    <div className="bg-[#080E1B] font-body-md text-slate-100 antialiased min-h-screen flex flex-col justify-between selection:bg-cyan-500 selection:text-slate-950">
       <Header />
-      <PageBackground>
-        {/* Hero Section */}
-        <HeroSection>
-          <Container maxWidth="lg">
-            <Box sx={{ textAlign: "center", position: "relative", zIndex: 1 }}>
-              <FeatureBadge sx={{ mb: 3 }}>
-                <CheckCircle sx={{ fontSize: 20, mr: 1 }} />
-                Trusted by clients across India
-              </FeatureBadge>
 
-              <Typography
-                variant="h1"
-                sx={{
-                  color: "white",
-                  fontWeight: 900,
-                  mb: 3,
-                  fontSize: { xs: "2.5rem", md: "3.5rem" },
-                  lineHeight: 1.2,
-                  textShadow: "0 4px 12px rgba(0,0,0,0.2)",
+      <main className="relative flex-grow pt-20 overflow-hidden">
+        {/* Volumetric Backlights */}
+        <div className="absolute top-1/4 left-1/4 w-[600px] h-[360px] bg-cyan-500/15 rounded-full blur-[140px] pointer-events-none" />
+        <div className="absolute bottom-1/3 right-1/4 w-[500px] h-[340px] bg-blue-600/15 rounded-full blur-[140px] pointer-events-none" />
+
+        {/* HERO SECTION */}
+        <section className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-16 z-10">
+          
+          {/* Breadcrumb Navigation */}
+          <div className="flex items-center gap-2 text-xs font-mono text-slate-400 mb-6">
+            <Link to="/" className="hover:text-cyan-400 transition-colors">
+              Home
+            </Link>
+            <span className="text-slate-600">/</span>
+            <span className="text-cyan-400 font-semibold">
+              {activeTab === "individual" ? "Personal Credit Repair" : "Corporate CMR & Commercial"}
+            </span>
+          </div>
+
+          {/* TWO-OPTION SEGMENTED CONTROLLER (SENIOR'S REQUIREMENT) */}
+          <div className="flex justify-center mb-10">
+            <div className="p-1.5 rounded-2xl bg-slate-900/90 border border-cyan-500/30 backdrop-blur-xl flex flex-col sm:flex-row gap-2 max-w-xl w-full shadow-[0_0_30px_rgba(0,210,255,0.15)]">
+              
+              {/* Option 1: Individual Customers */}
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab("individual");
+                  setSuccess(false);
+                  setError("");
                 }}
+                className={`flex-1 py-3 px-5 rounded-xl font-['Sora'] font-bold text-xs sm:text-sm transition-all duration-300 flex items-center justify-center gap-2.5 ${
+                  activeTab === "individual"
+                    ? "bg-gradient-to-r from-cyan-400 to-sky-500 text-slate-950 shadow-[0_0_20px_rgba(0,210,255,0.4)] scale-[1.02]"
+                    : "text-slate-400 hover:text-white hover:bg-slate-800/50"
+                }`}
               >
-                Transform Your Credit Score.
-                <br />
-                <Box
-                  component="span"
-                  sx={{
-                    background:
-                      "linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%)",
-                    WebkitBackgroundClip: "text",
-                    WebkitTextFillColor: "transparent",
-                    backgroundClip: "text",
-                  }}
-                >
-                  Unlock Financial Freedom.
-                </Box>
-              </Typography>
+                <span className="material-symbols-outlined text-lg">person</span>
+                <span>Individual Credit Score Repair</span>
+              </button>
 
-              <Typography
-                variant="h5"
-                sx={{
-                  color: "#cbd5e1",
-                  maxWidth: "800px",
-                  mx: "auto",
-                  mb: 5,
-                  lineHeight: 1.7,
-                  fontSize: { xs: "1.1rem", md: "1.3rem" },
+              {/* Option 2: Corporate CMR for Companies */}
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab("corporate");
+                  setSuccess(false);
+                  setError("");
                 }}
+                className={`flex-1 py-3 px-5 rounded-xl font-['Sora'] font-bold text-xs sm:text-sm transition-all duration-300 flex items-center justify-center gap-2.5 ${
+                  activeTab === "corporate"
+                    ? "bg-gradient-to-r from-emerald-400 to-cyan-400 text-slate-950 shadow-[0_0_20px_rgba(58,250,172,0.4)] scale-[1.02]"
+                    : "text-slate-400 hover:text-white hover:bg-slate-800/50"
+                }`}
               >
-                Expert credit repair services that fix errors, improve your
-                score, and restore your financial credibility
-              </Typography>
+                <span className="material-symbols-outlined text-lg">corporate_fare</span>
+                <span>CMR for Corporate & MSME</span>
+              </button>
 
-              <Box
-                sx={{
-                  display: "flex",
-                  gap: 2,
-                  justifyContent: "center",
-                  flexWrap: "wrap",
-                }}
-              >
-                <StyledButton
-                  variant="contained"
-                  size="large"
-                  endIcon={<ArrowForward />}
-                  href="#enquiry-form"
-                >
-                  Get Free Consultation
-                </StyledButton>
-              </Box>
+            </div>
+          </div>
 
-              {/* Stats Row */}
-              <Grid
-                container
-                spacing={3}
-                sx={{ mt: 8, flexDirection: { xs: "column", sm: "row" } }}
-                style={{ justifyContent: "center" }}
-              >
-                <Grid item xs={12} sm={6} md={4} style={{ flex: "1" }}>
-                  <StatsCard elevation={0}>
-                    <Typography
-                      variant="h3"
-                      sx={{ fontWeight: 800, color: "#0ea5e9", mb: 1 }}
-                    >
-                      95%
-                    </Typography>
-                    <Typography
-                      variant="body1"
-                      sx={{ color: "#64748b", fontWeight: 600 }}
-                    >
-                      Success Rate
-                    </Typography>
-                  </StatsCard>
-                </Grid>
-                <Grid item xs={12} sm={6} md={4} style={{ flex: "1" }}>
-                  <StatsCard elevation={0}>
-                    <Typography
-                      variant="h3"
-                      sx={{ fontWeight: 800, color: "#0ea5e9", mb: 1 }}
-                    >
-                      120+
-                    </Typography>
-                    <Typography
-                      variant="body1"
-                      sx={{ color: "#64748b", fontWeight: 600 }}
-                    >
-                      Points Average Increase
-                    </Typography>
-                  </StatsCard>
-                </Grid>
-                <Grid item xs={12} sm={6} md={4} style={{ flex: "1" }}>
-                  <StatsCard elevation={0}>
-                    <Typography
-                      variant="h3"
-                      sx={{ fontWeight: 800, color: "#0ea5e9", mb: 1 }}
-                    >
-                      60-90
-                    </Typography>
-                    <Typography
-                      variant="body1"
-                      sx={{ color: "#64748b", fontWeight: 600 }}
-                    >
-                      Days to See Results
-                    </Typography>
-                  </StatsCard>
-                </Grid>
-              </Grid>
-            </Box>
-          </Container>
-        </HeroSection>
+          {/* DYNAMIC HERO HEADLINE & VALUE PROP */}
+          <div className="text-center max-w-4xl mx-auto mb-14">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-950/70 border border-cyan-500/30 text-cyan-400 font-mono text-xs mb-4 shadow-[0_0_20px_rgba(0,210,255,0.2)]">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_#3afaac]" />
+              <span>
+                {activeTab === "individual"
+                  ? "CICRA 2005 STATUTORY DISPUTE FRAMEWORK • RETAIL"
+                  : "COMMERCIAL CREDIT RESTORATION • CIBIL CMR-1 TARGET"}
+              </span>
+            </div>
 
-        {/* Why It Matters Section */}
-        <SectionBox sx={{ background: "#f8fafc" }}>
-          <Container maxWidth="lg">
-            <Box sx={{ textAlign: "center", mb: 8 }}>
-              <SectionTitle>Why Your Credit Score Matters</SectionTitle>
-              <SectionSubtitle>
-                Your credit score is the key to unlocking better financial
-                opportunities
-              </SectionSubtitle>
-            </Box>
+            {activeTab === "individual" ? (
+              <>
+                <h1 className="text-3xl sm:text-5xl lg:text-[56px] font-extrabold text-white font-['Sora'] tracking-tight leading-[1.12] mb-4">
+                  Reclaim Your Credit Score. <br />
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-sky-300 to-emerald-400">
+                    Turn Loan Rejections into Approvals.
+                  </span>
+                </h1>
+                <p className="text-slate-300 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
+                  Wrong late marks (DPD), fake loan inquiries, and settlement tags quietly damage your personal CIBIL score. We dispute and resolve unfair negative entries legally with banks.
+                </p>
+              </>
+            ) : (
+              <>
+                <h1 className="text-3xl sm:text-5xl lg:text-[56px] font-extrabold text-white font-['Sora'] tracking-tight leading-[1.12] mb-4">
+                  Boost Your Company CMR Rank. <br />
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400">
+                    Unlock Corporate CC Limits & Loans.
+                  </span>
+                </h1>
+                <p className="text-slate-300 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
+                  High-risk CMR ranks (CMR-7 to CMR-10) and unresolved bank charges stall bank working capital, credit lines, and tender bids. Credit Dost works with commercial bureaus to restore clean corporate financial health.
+                </p>
+              </>
+            )}
 
-            <Grid
-              container
-              spacing={4}
-              sx={{ flexWrap: { xs: "wrap", sm: "nowrap" } }}
-            >
-              {[
-                {
-                  title: "Loan Approvals",
-                  desc: "Get personal, home, and business loans approved faster",
-                  color: "#0ea5e9",
-                },
-                {
-                  title: "Lower Interest Rates",
-                  desc: "Save thousands with better rates on credit products",
-                  color: "#06b6d4",
-                },
-                {
-                  title: "Credit Card Access",
-                  desc: "Qualify for premium cards with higher limits",
-                  color: "#8b5cf6",
-                },
-                {
-                  title: "Financial Trust",
-                  desc: "Build credibility with lenders and financial institutions",
-                  color: "#10b981",
-                },
-              ].map((item, index) => (
-                <Grid item xs={12} sm={6} md={3} key={index}>
-                  <ProcessCard elevation={0}>
-                    <Box
-                      sx={{
-                        width: 60,
-                        height: 60,
-                        borderRadius: 3,
-                        background: `${item.color}15`,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        mb: 2,
-                      }}
-                    >
-                      <CheckCircle sx={{ fontSize: 32, color: item.color }} />
-                    </Box>
-                    <Typography
-                      variant="h6"
-                      sx={{ fontWeight: 700, mb: 1, color: "#0f172a" }}
-                    >
-                      {item.title}
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      sx={{ color: "#64748b", lineHeight: 1.7 }}
-                    >
-                      {item.desc}
-                    </Typography>
-                  </ProcessCard>
-                </Grid>
-              ))}
-            </Grid>
-          </Container>
-        </SectionBox>
+            {/* Quick Impact Metric Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-3xl mx-auto mt-8 font-mono text-xs">
+              <div className="p-3.5 rounded-xl bg-slate-900/60 border border-cyan-500/20 backdrop-blur-md">
+                <div className="text-slate-400">Success Rate</div>
+                <div className="text-white font-bold text-base mt-0.5">98% Verified</div>
+              </div>
+              <div className="p-3.5 rounded-xl bg-slate-900/60 border border-emerald-500/20 backdrop-blur-md">
+                <div className="text-slate-400">Average Turnaround</div>
+                <div className="text-emerald-400 font-bold text-base mt-0.5">30 - 60 Days</div>
+              </div>
+              <div className="p-3.5 rounded-xl bg-slate-900/60 border border-sky-500/20 backdrop-blur-md">
+                <div className="text-slate-400">Bureau Coverage</div>
+                <div className="text-cyan-300 font-bold text-base mt-0.5">All 4 Bureaus</div>
+              </div>
+              <div className="p-3.5 rounded-xl bg-slate-900/60 border border-slate-700/60 backdrop-blur-md">
+                <div className="text-slate-400">Legal Alignment</div>
+                <div className="text-white font-bold text-base mt-0.5">CICRA 2005 Compliant</div>
+              </div>
+            </div>
+          </div>
 
-        {/* Process Section */}
-        <SectionBox>
-          <Container style={{ maxWidth: "1300px" }}>
-            <Box sx={{ textAlign: "center", mb: 8 }}>
-              <SectionTitle>
-                Our Step-by-Step Credit Improvement Process
-              </SectionTitle>
-              <SectionSubtitle>
-                A systematic approach to repairing and improving your credit
-                score
-              </SectionSubtitle>
-            </Box>
+          {/* DYNAMIC CONSULTATION FORM CARD */}
+          <div id="enquiry-form" className="max-w-4xl mx-auto">
+            <div className="p-6 sm:p-10 rounded-[28px] bg-gradient-to-b from-[#111f38]/95 via-[#0a1426]/98 to-[#060c18] border border-cyan-500/35 shadow-[0_0_50px_rgba(0,210,255,0.15),0_30px_70px_rgba(0,0,0,0.85)] backdrop-blur-2xl">
+              
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 mb-8 border-b border-cyan-500/20 gap-3">
+                <div className="flex items-center gap-3">
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                    activeTab === "individual"
+                      ? "bg-cyan-500/15 text-cyan-400 border border-cyan-500/30"
+                      : "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
+                  }`}>
+                    <span className="material-symbols-outlined text-2xl">
+                      {activeTab === "individual" ? "psychology" : "business_center"}
+                    </span>
+                  </div>
+                  <div>
+                    <h2 className="text-xl sm:text-2xl font-bold font-['Sora'] text-white">
+                      {activeTab === "individual"
+                        ? "Personal Credit Score Review Application"
+                        : "Corporate CMR & Commercial Dispute Application"}
+                    </h2>
+                    <p className="text-xs font-mono text-slate-400 mt-0.5">
+                      {activeTab === "individual"
+                        ? "Confidential one-on-one consultation with senior credit case officers"
+                        : "B2B desk for Company Directors, Partners, and CFOs"}
+                    </p>
+                  </div>
+                </div>
 
-            <Grid
-              container
-              spacing={4}
-              sx={{ flexWrap: { xs: "wrap", sm: "nowrap" } }}
-            >
-              {processSteps.map((step, index) => (
-                <Grid item xs={12} md={6} key={index}>
-                  <ProcessCard elevation={0}>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        alignItems: "flex-start",
-                        gap: 3,
-                        flexDirection: "column",
-                      }}
-                    >
-                      <IconBox>{step.icon}</IconBox>
-                      <Box sx={{ flex: 1 }}>
-                        <Typography
-                          variant="h6"
-                          sx={{ fontWeight: 700, mb: 1, color: "#0f172a" }}
-                        >
-                          {step.title}
-                        </Typography>
-                        <Typography
-                          variant="body1"
-                          sx={{ color: "#64748b", lineHeight: 1.7 }}
-                        >
-                          {step.description}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </ProcessCard>
-                </Grid>
-              ))}
-            </Grid>
-          </Container>
-        </SectionBox>
+                <span className={`text-xs font-mono px-3 py-1 rounded-full border self-start sm:self-auto ${
+                  activeTab === "individual"
+                    ? "text-cyan-300 bg-cyan-950/60 border-cyan-500/30"
+                    : "text-emerald-300 bg-emerald-950/60 border-emerald-500/30"
+                }`}>
+                  {activeTab === "individual" ? "Individual Form" : "Corporate CMR"}
+                </span>
+              </div>
 
-        {/* Our Approach */}
-        <SectionBox sx={{ background: "#f8fafc" }}>
-          {/* Animated Background Elements */}
-          <Box
-            sx={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              width: "44%",
-              height: "100%",
-              background:
-                "linear-gradient(135deg, #1796b43b 0%, #0e7490e3 100%)",
-              clipPath: "polygon(0% 0, 60% 0, 100% 100%, 0% 100%)",
-              zIndex: 0,
-              "&::before": {
-                content: '""',
-                position: "absolute",
-                top: "20%",
-                left: "10%",
-                width: "300px",
-                height: "300px",
-                background: "rgba(255, 255, 255, 0.05)",
-                borderRadius: "50%",
-                animation: "float 6s ease-in-out infinite",
-              },
-              "&::after": {
-                content: '""',
-                position: "absolute",
-                bottom: "15%",
-                right: "61%",
-                width: "200px",
-                height: "200px",
-                background: "rgba(255, 255, 255, 0.05)",
-                borderRadius: "50%",
-                animation: "float 8s ease-in-out infinite reverse",
-              },
-              "@keyframes float": {
-                "0%, 100%": { transform: "translateY(0px)" },
-                "50%": { transform: "translateY(-30px)" },
-              },
-            }}
-          />
-          <Container maxWidth="lg">
-            <Box sx={{ textAlign: "center", mb: 8 }}>
-              <SectionTitle>Our Credit Repair Approach</SectionTitle>
-              <SectionSubtitle>
-                Personalized solutions for your unique credit challenges
-              </SectionSubtitle>
-            </Box>
-
-            <Grid
-              container
-              spacing={4}
-              sx={{ flexWrap: { xs: "wrap", sm: "nowrap" } }}
-            >
-              {[
-                {
-                  title: "One-to-one expert guidance",
-                  icon: <ContactSupport />,
-                  color: "#0ea5e9",
-                },
-                {
-                  title: "Ethical and compliant dispute support",
-                  icon: <Security />,
-                  color: "#06b6d4",
-                },
-                {
-                  title: "Regular progress updates",
-                  icon: <Timeline />,
-                  color: "#8b5cf6",
-                },
-                {
-                  title: "Focus on long-term credit health",
-                  icon: <TrendingUp />,
-                  color: "#10b981",
-                },
-              ].map((feature, index) => (
-                <Grid
-                  item
-                  xs={12}
-                  sm={6}
-                  md={6}
-                  key={index}
-                  sx={{ flex: { xs: "auto", sm: "1" } }}
-                >
-                  <PlanCard>
-                    <CardContent sx={{ p: 4, textAlign: "center" }}>
-                      <Box
-                        sx={{
-                          width: 80,
-                          height: 80,
-                          borderRadius: "50%",
-                          background: `${feature.color}20`,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          mx: "auto",
-                          mb: 3,
-                        }}
-                      >
-                        {React.cloneElement(feature.icon, {
-                          sx: { fontSize: 40, color: feature.color },
-                        })}
-                      </Box>
-                      <Typography
-                        variant="h6"
-                        sx={{ fontWeight: 600, mb: 1, color: "#0f172a" }}
-                      >
-                        {feature.title}
-                      </Typography>
-                      <Typography
-                        variant="body1"
-                        sx={{ color: "#64748b", mb: 2 }}
-                      ></Typography>
-                    </CardContent>
-                  </PlanCard>
-                </Grid>
-              ))}
-            </Grid>
-          </Container>
-        </SectionBox>
-
-        {/* Why Choose Us */}
-        <SectionBox>
-          <Container maxWidth="lg">
-            <Box sx={{ textAlign: "center", mb: 8 }}>
-              <SectionTitle>Why Choose Credit Dost</SectionTitle>
-              <SectionSubtitle>
-                India’s leading credit repair specialists
-              </SectionSubtitle>
-            </Box>
-
-            <Grid
-              container
-              spacing={4}
-              sx={{ flexWrap: { xs: "wrap", sm: "nowrap" } }}
-            >
-              {whyChooseUs.map((item, index) => (
-                <Grid item xs={12} sm={6} md={3} key={index}>
-                  <Box sx={{ textAlign: "center" }}>
-                    <IconBox sx={{ mx: "auto" }}>{item.icon}</IconBox>
-                    <Typography
-                      variant="h6"
-                      sx={{ fontWeight: 700, mb: 1, color: "#0f172a" }}
-                    >
-                      {item.title}
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      sx={{ color: "#64748b", lineHeight: 1.7 }}
-                    >
-                      {item.description}
-                    </Typography>
-                  </Box>
-                </Grid>
-              ))}
-            </Grid>
-          </Container>
-        </SectionBox>
-
-        <TestimonialSection />
-
-        {/* Contact Form */}
-        <SectionBox id="enquiry-form">
-          <Container maxWidth="md">
-            <StyledCard>
-              <CardContent sx={{ p: { xs: 3, md: 5 } }}>
-                <Box sx={{ textAlign: "center", mb: 4 }}>
-                  <Typography
-                    variant="h4"
-                    sx={{
-                      fontWeight: 800,
-                      color: "#0f172a",
-                      mb: 1,
+              {success ? (
+                <div className="py-12 text-center">
+                  <div className="w-16 h-16 rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-400/40 flex items-center justify-center mx-auto mb-4 animate-bounce shadow-[0_0_30px_rgba(58,250,172,0.35)]">
+                    <span className="material-symbols-outlined text-3xl">check_circle</span>
+                  </div>
+                  <h3 className="text-2xl font-bold font-['Sora'] text-white mb-2">
+                    Application Successfully Submitted!
+                  </h3>
+                  <p className="text-slate-300 text-sm max-w-md mx-auto mb-6">
+                    {activeTab === "individual"
+                      ? "Thank you! Our personal credit dispute team will review your bureau profile and contact you within 24 business hours."
+                      : "Thank you! Our Corporate Credit & CMR Desk has logged your company details. A senior commercial dispute consultant will reach out shortly."}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSuccess(false);
+                      setFormData((prev) => ({
+                        ...prev,
+                        fullName: "",
+                        email: "",
+                        mobileNumber: "",
+                        city: "",
+                        message: "",
+                        companyName: "",
+                        gstNumber: "",
+                      }));
                     }}
+                    className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 text-slate-950 font-bold text-sm shadow-lg hover:scale-105 transition-all"
                   >
-                    Get Your Free Credit Report Review
-                  </Typography>
-                  <Typography sx={{ color: "#64748b", fontSize: "1.1rem" }}>
-                    Start your journey to a better credit score today
-                  </Typography>
-                </Box>
+                    Submit Another Request
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} noValidate className="space-y-6">
+                  {error && (
+                    <div className="p-3.5 rounded-xl bg-red-950/50 border border-red-500/40 text-red-200 text-xs sm:text-sm flex items-center gap-2">
+                      <span className="material-symbols-outlined text-red-400 text-lg shrink-0">error</span>
+                      <span>{error}</span>
+                    </div>
+                  )}
 
-                {success ? (
-                  <Box sx={{ textAlign: "center", py: 4 }}>
-                    <Box sx={{ mb: 3 }}>
-                      <CheckCircle sx={{ fontSize: 80, color: "#10b981" }} />
-                    </Box>
-                    <Typography
-                      variant="h4"
-                      sx={{ mb: 2, fontWeight: 700, color: "#0f172a" }}
-                    >
-                      Thank You!
-                    </Typography>
-                    <Typography
-                      sx={{ mb: 2, color: "#64748b", fontSize: "1.1rem" }}
-                    >
-                      Our credit repair experts will contact you within 24 hours
-                    </Typography>
-                    <Typography sx={{ color: "#64748b" }}>
-                      Check your email for confirmation details
-                    </Typography>
-                  </Box>
-                ) : (
-                  <>
-                    {error && (
-                      <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
-                        {error}
-                      </Alert>
-                    )}
+                  {/* ========================================================= */}
+                  {/* CORPORATE SPECIFIC ROW (ONLY VISIBLE ON CORPORATE TAB) */}
+                  {/* ========================================================= */}
+                  {activeTab === "corporate" && (
+                    <div className="p-4 sm:p-5 rounded-2xl bg-slate-900/60 border border-emerald-500/30 space-y-4">
+                      <div className="text-xs font-mono uppercase tracking-wider text-emerald-300 font-bold flex items-center gap-2">
+                        <span className="material-symbols-outlined text-base">domain</span>
+                        <span>Company & Commercial Details</span>
+                      </div>
 
-                    <Box component="form" onSubmit={handleSubmit}>
-                      <Grid container spacing={3}>
-                        {/* Full Name and Mobile Number - Stacked on mobile, side-by-side on desktop */}
-                        <Grid item xs={12} md={6}>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {/* Company Name */}
+                        <div>
+                          <label className="block text-xs font-mono uppercase text-slate-300 tracking-wider mb-1 font-semibold">
+                            Company / Entity Legal Name *
+                          </label>
                           <TextField
                             fullWidth
-                            label="Full Name"
-                            name="fullName"
-                            value={formData.fullName}
-                            onChange={handleChange}
                             required
-                            variant="outlined"
-                            sx={{
-                              "& .MuiOutlinedInput-root": {
-                                borderRadius: 2,
-                                "&:hover fieldset": {
-                                  borderColor: "#0ea5e9",
-                                },
-                              },
-                            }}
-                          />
-                        </Grid>
-
-                        <Grid item xs={12} md={6}>
-                          <TextField
-                            fullWidth
-                            label="Mobile Number"
-                            name="mobileNumber"
-                            value={formData.mobileNumber}
+                            name="companyName"
+                            placeholder="e.g. Apex LogiTech Solutions Pvt Ltd"
+                            value={formData.companyName}
                             onChange={handleChange}
-                            required
-                            variant="outlined"
-                            type="tel"
-                            inputProps={{ maxLength: 10 }}
-                            sx={{
-                              "& .MuiOutlinedInput-root": {
-                                borderRadius: 2,
-                                "&:hover fieldset": {
-                                  borderColor: "#0ea5e9",
-                                },
-                              },
-                            }}
+                            sx={inputStyle}
                           />
-                        </Grid>
+                        </div>
 
-                        {/* Email ID and Current Credit Score - Stacked on mobile, side-by-side on desktop */}
-                        <Grid item xs={12} md={6}>
-                          <TextField
-                            fullWidth
-                            label="Email ID"
-                            name="email"
-                            value={formData.email}
-                            onChange={handleChange}
-                            required
-                            variant="outlined"
-                            type="email"
-                            sx={{
-                              "& .MuiOutlinedInput-root": {
-                                borderRadius: 2,
-                                "&:hover fieldset": {
-                                  borderColor: "#0ea5e9",
-                                },
-                              },
-                            }}
-                          />
-                        </Grid>
-
-                        <Grid item xs={12} md={6}>
-                          <TextField
-                            fullWidth
-                            label="Current Credit Score (Optional)"
-                            name="creditScore"
-                            value={formData.creditScore}
-                            onChange={handleChange}
-                            variant="outlined"
-                            type="number"
-                            sx={{
-                              "& .MuiOutlinedInput-root": {
-                                borderRadius: 2,
-                                "&:hover fieldset": {
-                                  borderColor: "#0ea5e9",
-                                },
-                              },
-                            }}
-                          />
-                        </Grid>
-
-                        {/* City and State - Stacked on mobile, side-by-side on desktop */}
-                        <Grid item xs={12} md={6}>
-                          <TextField
-                            fullWidth
-                            label="City"
-                            name="city"
-                            value={formData.city}
-                            onChange={handleChange}
-                            required
-                            variant="outlined"
-                            sx={{
-                              "& .MuiOutlinedInput-root": {
-                                borderRadius: 2,
-                                "&:hover fieldset": {
-                                  borderColor: "#0ea5e9",
-                                },
-                              },
-                            }}
-                          />
-                        </Grid>
-
-                        <Grid item xs={12} md={6} style={{ minWidth: "200px" }}>
-                          <FormControl fullWidth>
-                            <InputLabel>State</InputLabel>
+                        {/* Entity Constitution */}
+                        <div>
+                          <label className="block text-xs font-mono uppercase text-slate-300 tracking-wider mb-1 font-semibold">
+                            Constitution / Entity Type *
+                          </label>
+                          <FormControl fullWidth sx={inputStyle}>
                             <Select
-                              name="state"
-                              value={formData.state}
+                              name="entityType"
+                              value={formData.entityType}
                               onChange={handleChange}
-                              required
-                              sx={{
-                                borderRadius: 2,
-                                "&:hover .MuiOutlinedInput-notchedOutline": {
-                                  borderColor: "#0ea5e9",
-                                },
-                              }}
+                              MenuProps={{ PaperProps: { sx: { bgcolor: "#0a1426", color: "#fff" } } }}
                             >
-                              <MenuItem value="">Select State</MenuItem>
-                              {indianStates.map((state) => (
-                                <MenuItem key={state} value={state}>
-                                  {state}
-                                </MenuItem>
-                              ))}
-                            </Select>
-                          </FormControl>
-                        </Grid>
-
-                        {/* Problem Type (full width) */}
-                        <Grid item xs={12} style={{ width: "100%" }}>
-                          <FormControl fullWidth>
-                            <InputLabel>Problem Type</InputLabel>
-                            <Select
-                              name="problemType"
-                              value={formData.problemType}
-                              onChange={handleChange}
-                              required
-                              sx={{
-                                borderRadius: 2,
-                                "&:hover .MuiOutlinedInput-notchedOutline": {
-                                  borderColor: "#0ea5e9",
-                                },
-                              }}
-                            >
-                              <MenuItem value="">Select Problem</MenuItem>
-                              {problemTypes.map((type) => (
+                              {entityTypes.map((type) => (
                                 <MenuItem key={type} value={type}>
                                   {type}
                                 </MenuItem>
                               ))}
                             </Select>
                           </FormControl>
-                        </Grid>
+                        </div>
 
-                        {/* Additional Information (full width text area) */}
-                        <Grid item xs={12} style={{ width: "100%" }}>
+                        {/* GSTIN or Company PAN */}
+                        <div>
+                          <label className="block text-xs font-mono uppercase text-slate-300 tracking-wider mb-1 font-semibold">
+                            Company GSTIN / PAN (Optional)
+                          </label>
                           <TextField
                             fullWidth
-                            label="Additional Information (Optional)"
-                            name="message"
-                            value={formData.message}
+                            name="gstNumber"
+                            placeholder="e.g. 07AAAAA0000A1Z5"
+                            value={formData.gstNumber}
                             onChange={handleChange}
-                            variant="outlined"
-                            multiline
-                            rows={4}
-                            sx={{
-                              "& .MuiOutlinedInput-root": {
-                                borderRadius: 2,
-                                "&:hover fieldset": {
-                                  borderColor: "#0ea5e9",
-                                },
-                              },
-                            }}
+                            sx={inputStyle}
                           />
-                        </Grid>
+                        </div>
 
-                        {/* Language, Occupation, and Income - Stacked on mobile, side-by-side on desktop */}
-                        <Grid item xs={12} sm={6} md={4}>
-                          <FormControl fullWidth style={{ minWidth: "200px" }}>
-                            <InputLabel>Language</InputLabel>
+                        {/* Annual Turnover Range */}
+                        <div>
+                          <label className="block text-xs font-mono uppercase text-slate-300 tracking-wider mb-1 font-semibold">
+                            Annual Turnover Range
+                          </label>
+                          <FormControl fullWidth sx={inputStyle}>
                             <Select
-                              name="language"
-                              value={formData.language}
+                              name="turnoverRange"
+                              value={formData.turnoverRange}
                               onChange={handleChange}
-                              sx={{
-                                borderRadius: 2,
-                                "&:hover .MuiOutlinedInput-notchedOutline": {
-                                  borderColor: "#0ea5e9",
-                                },
-                              }}
+                              MenuProps={{ PaperProps: { sx: { bgcolor: "#0a1426", color: "#fff" } } }}
                             >
-                              <MenuItem value="">Select Language</MenuItem>
-                              <MenuItem value="english">English</MenuItem>
-                              <MenuItem value="hindi">Hindi</MenuItem>
-                              <MenuItem value="telugu">Telugu</MenuItem>
-                              <MenuItem value="tamil">Tamil</MenuItem>
-                              <MenuItem value="punjabi">Punjabi</MenuItem>
-                              <MenuItem value="marathi">Marathi</MenuItem>
-                              <MenuItem value="gujarati">Gujarati</MenuItem>
-                              <MenuItem value="bengali">Bengali</MenuItem>
-                              <MenuItem value="kannada">Kannada</MenuItem>
-                              <MenuItem value="malayalam">Malayalam</MenuItem>
-                              <MenuItem value="other">Other</MenuItem>
+                              {turnoverOptions.map((opt) => (
+                                <MenuItem key={opt} value={opt}>
+                                  {opt}
+                                </MenuItem>
+                              ))}
                             </Select>
                           </FormControl>
-                        </Grid>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
-                        <Grid item xs={12} sm={6} md={4}>
-                          <FormControl fullWidth style={{ minWidth: "200px" }}>
-                            <InputLabel>Occupation</InputLabel>
-                            <Select
-                              name="occupation"
-                              value={formData.occupation}
-                              onChange={handleChange}
-                              sx={{
-                                borderRadius: 2,
-                                "&:hover .MuiOutlinedInput-notchedOutline": {
-                                  borderColor: "#0ea5e9",
-                                },
-                              }}
-                            >
-                              <MenuItem value="">Select Occupation</MenuItem>
-                              <MenuItem value="salaried">Salaried</MenuItem>
-                              <MenuItem value="self_employed">Self Employed</MenuItem>
-                            </Select>
-                          </FormControl>
-                        </Grid>
-
-                        <Grid item xs={12} sm={6} md={4}>
-                          <TextField
-                            fullWidth
-                            label="Monthly Income"
-                            name="income"
-                            value={formData.income}
-                            onChange={handleChange}
-                            variant="outlined"
-                            placeholder="Enter amount"
-                            sx={{
-                              "& .MuiOutlinedInput-root": {
-                                borderRadius: 2,
-                                "&:hover fieldset": {
-                                  borderColor: "#0ea5e9",
-                                },
-                              },
-                            }}
-                          />
-                        </Grid>
-
-                        {/* Authorization checkbox */}
-                        <Grid item xs={12}>
-                          <FormControlLabel
-                            control={
-                              <Checkbox
-                                name="authorization"
-                                checked={formData.authorization}
-                                onChange={handleChange}
-                                required
-                                sx={{
-                                  color: "#0ea5e9",
-                                  "&.Mui-checked": {
-                                    color: "#0ea5e9",
-                                  },
-                                }}
-                              />
-                            }
-                            label={
-                              <Typography
-                                variant="body2"
-                                sx={{ color: "#64748b" }}
-                              >
-                                I authorize Credit Dost to contact me regarding
-                                credit score repair assistance
-                              </Typography>
-                            }
-                          />
-                        </Grid>
-                      </Grid>
-
-                      <StyledButton
-                        type="submit"
-                        variant="contained"
-                        disabled={loading}
+                  {/* ========================================================= */}
+                  {/* CONTACT PERSON & SHARED FIELDS */}
+                  {/* ========================================================= */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* Contact Full Name */}
+                    <div>
+                      <label className="block text-xs font-mono uppercase text-slate-300 tracking-wider mb-1 font-semibold">
+                        {activeTab === "corporate" ? "Authorized Person Name *" : "Full Name *"}
+                      </label>
+                      <TextField
                         fullWidth
-                        sx={{ mt: 3 }}
-                      >
-                        {loading ? (
-                          <CircularProgress size={24} sx={{ color: "white" }} />
-                        ) : (
-                          "Submit Enquiry"
-                        )}
-                      </StyledButton>
+                        required
+                        name="fullName"
+                        placeholder="e.g. Ramesh Kumar"
+                        value={formData.fullName}
+                        onChange={handleChange}
+                        sx={inputStyle}
+                      />
+                    </div>
 
-                      <Typography
-                        variant="caption"
-                        sx={{
-                          display: "block",
-                          textAlign: "center",
-                          mt: 2,
-                          color: "#94a3b8",
-                        }}
-                      >
-                        Your information is secure and will never be shared
-                      </Typography>
-                    </Box>
-                  </>
-                )}
-              </CardContent>
-            </StyledCard>
-          </Container>
-        </SectionBox>
+                    {/* Designation (Corporate) or Occupation (Individual) */}
+                    <div>
+                      <label className="block text-xs font-mono uppercase text-slate-300 tracking-wider mb-1 font-semibold">
+                        {activeTab === "corporate" ? "Designation / Role *" : "Employment Type"}
+                      </label>
+                      {activeTab === "corporate" ? (
+                        <TextField
+                          fullWidth
+                          name="designation"
+                          placeholder="e.g. Managing Director / Partner / CFO"
+                          value={formData.designation}
+                          onChange={handleChange}
+                          sx={inputStyle}
+                        />
+                      ) : (
+                        <FormControl fullWidth sx={inputStyle}>
+                          <Select
+                            name="occupation"
+                            value={formData.occupation}
+                            onChange={handleChange}
+                            MenuProps={{ PaperProps: { sx: { bgcolor: "#0a1426", color: "#fff" } } }}
+                          >
+                            <MenuItem value="Salaried">Salaried (Private / Govt)</MenuItem>
+                            <MenuItem value="Self Employed Professional">Self Employed Professional</MenuItem>
+                            <MenuItem value="Business Owner">Business Owner</MenuItem>
+                            <MenuItem value="Other">Other</MenuItem>
+                          </Select>
+                        </FormControl>
+                      )}
+                    </div>
 
-        {/* FAQ Section */}
-        <SectionBox sx={{ background: "#f8fafc" }}>
-          <Container maxWidth="lg">
-            <Box sx={{ textAlign: "center", mb: 8 }}>
-              <SectionTitle>Common Problems We Solve</SectionTitle>
-              <SectionSubtitle>
-                Expert solutions for every credit challenge
-              </SectionSubtitle>
-            </Box>
+                    {/* Official Mobile Number */}
+                    <div>
+                      <label className="block text-xs font-mono uppercase text-slate-300 tracking-wider mb-1 font-semibold">
+                        Mobile Number * (10 Digits)
+                      </label>
+                      <TextField
+                        fullWidth
+                        required
+                        type="tel"
+                        name="mobileNumber"
+                        placeholder="9876543210"
+                        value={formData.mobileNumber}
+                        onChange={handleChange}
+                        sx={inputStyle}
+                      />
+                    </div>
 
-            <Grid container spacing={3} style={{ justifyContent: "center" }}>
+                    {/* Email Address */}
+                    <div>
+                      <label className="block text-xs font-mono uppercase text-slate-300 tracking-wider mb-1 font-semibold">
+                        {activeTab === "corporate" ? "Official Corporate Email *" : "Email Address *"}
+                      </label>
+                      <TextField
+                        fullWidth
+                        required
+                        type="email"
+                        name="email"
+                        placeholder="name@company.com"
+                        value={formData.email}
+                        onChange={handleChange}
+                        sx={inputStyle}
+                      />
+                    </div>
+
+                    {/* State */}
+                    <div>
+                      <label className="block text-xs font-mono uppercase text-slate-300 tracking-wider mb-1 font-semibold">
+                        State / Union Territory *
+                      </label>
+                      <FormControl fullWidth required sx={inputStyle}>
+                        <InputLabel sx={{ color: "rgba(203, 213, 225, 0.8)" }}>Select State</InputLabel>
+                        <Select
+                          name="state"
+                          value={formData.state}
+                          label="Select State"
+                          onChange={handleChange}
+                          MenuProps={{ PaperProps: { sx: { bgcolor: "#0a1426", color: "#fff", maxHeight: 300 } } }}
+                        >
+                          {indianStates.map((st) => (
+                            <MenuItem key={st} value={st}>
+                              {st}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </div>
+
+                    {/* City */}
+                    <div>
+                      <label className="block text-xs font-mono uppercase text-slate-300 tracking-wider mb-1 font-semibold">
+                        City
+                      </label>
+                      <TextField
+                        fullWidth
+                        name="city"
+                        placeholder="e.g. Mumbai, Delhi, Bengaluru"
+                        value={formData.city}
+                        onChange={handleChange}
+                        sx={inputStyle}
+                      />
+                    </div>
+
+                    {/* Score (Individual: CIBIL 300-900 / Corporate: CMR Rank 1-10) */}
+                    <div>
+                      <label className="block text-xs font-mono uppercase text-slate-300 tracking-wider mb-1 font-semibold">
+                        {activeTab === "corporate"
+                          ? "Current CMR Rank (Optional)"
+                          : "Estimated Credit Score (Optional)"}
+                      </label>
+                      {activeTab === "corporate" ? (
+                        <FormControl fullWidth sx={inputStyle}>
+                          <Select
+                            name="cmrRank"
+                            value={formData.cmrRank}
+                            onChange={handleChange}
+                            displayEmpty
+                            MenuProps={{ PaperProps: { sx: { bgcolor: "#0a1426", color: "#fff" } } }}
+                          >
+                            <MenuItem value="">Not Sure / Need Assessment</MenuItem>
+                            <MenuItem value="CMR-1 to 3">CMR-1 to CMR-3 (Low Risk)</MenuItem>
+                            <MenuItem value="CMR-4 to 6">CMR-4 to CMR-6 (Moderate Risk)</MenuItem>
+                            <MenuItem value="CMR-7 to 10">CMR-7 to CMR-10 (High Risk / Reject)</MenuItem>
+                          </Select>
+                        </FormControl>
+                      ) : (
+                        <TextField
+                          fullWidth
+                          type="number"
+                          name="creditScore"
+                          placeholder="e.g. 620"
+                          value={formData.creditScore}
+                          onChange={handleChange}
+                          sx={inputStyle}
+                        />
+                      )}
+                    </div>
+
+                    {/* Problem / Dispute Category */}
+                    <div>
+                      <label className="block text-xs font-mono uppercase text-slate-300 tracking-wider mb-1 font-semibold">
+                        Primary Dispute Challenge *
+                      </label>
+                      <FormControl fullWidth required sx={inputStyle}>
+                        <Select
+                          name={activeTab === "individual" ? "problemType" : "corporateProblemType"}
+                          value={activeTab === "individual" ? formData.problemType : formData.corporateProblemType}
+                          onChange={handleChange}
+                          MenuProps={{ PaperProps: { sx: { bgcolor: "#0a1426", color: "#fff" } } }}
+                        >
+                          {activeTab === "individual"
+                            ? individualProblemTypes.map((t) => (
+                                <MenuItem key={t} value={t}>
+                                  {t}
+                                </MenuItem>
+                              ))
+                            : corporateProblemTypes.map((t) => (
+                                <MenuItem key={t} value={t}>
+                                  {t}
+                                </MenuItem>
+                              ))}
+                        </Select>
+                      </FormControl>
+                    </div>
+                  </div>
+
+                  {/* Case Details Message */}
+                  <div>
+                    <label className="block text-xs font-mono uppercase text-slate-300 tracking-wider mb-1 font-semibold">
+                      Brief Case Notes / Rejection History (Optional)
+                    </label>
+                    <TextField
+                      fullWidth
+                      multiline
+                      rows={3}
+                      name="message"
+                      placeholder={
+                        activeTab === "individual"
+                          ? "Mention details of any loan rejected, lender name, or incorrect late payments..."
+                          : "Mention bank name, working capital sanction issues, or details of incorrect charge flags..."
+                      }
+                      value={formData.message}
+                      onChange={handleChange}
+                      sx={inputStyle}
+                    />
+                  </div>
+
+                  {/* Submit CTA */}
+                  <div className="pt-2">
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className={`w-full py-4 px-6 rounded-xl font-bold text-base text-slate-950 shadow-lg hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50 flex items-center justify-center gap-2 ${
+                        activeTab === "individual"
+                          ? "bg-gradient-to-r from-cyan-400 via-sky-500 to-blue-600 shadow-[0_0_30px_rgba(0,210,255,0.4)]"
+                          : "bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 shadow-[0_0_30px_rgba(58,250,172,0.4)]"
+                      }`}
+                    >
+                      {loading ? (
+                        <>
+                          <CircularProgress size={20} sx={{ color: "#080E1B" }} />
+                          <span>Submitting Case Application...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>
+                            {activeTab === "individual"
+                              ? "Get Free Personal Credit Review"
+                              : "Submit Corporate CMR Case for Evaluation"}
+                          </span>
+                          <span className="material-symbols-outlined text-xl">arrow_forward</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+          </div>
+
+          {/* PROCESS & HOW IT WORKS SECTION */}
+          <div className="mt-20 pt-12 border-t border-slate-800/80">
+            <div className="text-center mb-12">
+              <h3 className="text-2xl sm:text-3xl font-bold font-['Sora'] text-white">
+                How Our Resolution Desk Resolves Credit Inaccuracies
+              </h3>
+              <p className="text-slate-400 text-sm max-w-xl mx-auto mt-2">
+                A legally compliant dispute protocol governed by the Credit Information Companies (Regulation) Act, 2005.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               {[
-                "Incorrect loan or credit card entries",
-                'Settled accounts showing as "Written Off"',
-                "Overdue or duplicate EMI records",
-                "Incorrect personal information (PAN, DOB, Address)",
-                "Old closed accounts not updated",
-                "Wrong loan amounts or balances",
-                "Hard inquiries from rejected applications",
-                "Identity theft or fraud reporting",
-              ].map((problem, index) => (
-                <Grid item xs={12} sm={6} key={index}>
-                  <Paper
-                    sx={{
-                      p: 2.5,
-                      borderRadius: 3,
-                      border: "2px solid #e2e8f0",
-                      transition: "all 0.3s ease",
-                      height: "100%",
-                      "&:hover": {
-                        borderColor: "#0ea5e9",
-                        transform: "translateX(8px)",
-                      },
-                    }}
-                  >
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                      <Box
-                        sx={{
-                          width: 40,
-                          height: 40,
-                          borderRadius: 2,
-                          background:
-                            "linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%)",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          flexShrink: 0,
-                        }}
-                      >
-                        <CheckCircle sx={{ color: "white", fontSize: 24 }} />
-                      </Box>
-                      <Typography
-                        variant="body1"
-                        sx={{ fontWeight: 600, color: "#0f172a" }}
-                      >
-                        {problem}
-                      </Typography>
-                    </Box>
-                  </Paper>
-                </Grid>
-              ))}
-            </Grid>
-          </Container>
-        </SectionBox>
-
-        {/* Contact Section */}
-        <SectionBox>
-          <Container style={{ maxWidth: "1200px" }}>
-            <Box
-              sx={{
-                textAlign: "center",
-                background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
-                borderRadius: 4,
-                p: 6,
-                position: "relative",
-                overflow: "hidden",
-              }}
-            >
-              <Box sx={{ position: "relative", zIndex: 1 }}>
-                <Typography
-                  variant="h4"
-                  sx={{ color: "white", fontWeight: 800, mb: 3 }}
+                {
+                  step: "01",
+                  title: "Bureau Data Audit",
+                  desc: "Soft evaluation across CIBIL, Experian, Equifax & CRIF to pinpoint errors, DPD tags & wrong liabilities.",
+                  icon: "find_in_page",
+                },
+                {
+                  step: "02",
+                  title: "Statutory Dispute Draft",
+                  desc: "Drafting formal dispute applications under Section 21 of CICRA 2005 for institutional submission.",
+                  icon: "gavel",
+                },
+                {
+                  step: "03",
+                  title: "Lender & Bank Liaison",
+                  desc: "Direct communication with bank nodal officers and bureau dispute desks for record rectification.",
+                  icon: "handshake",
+                },
+                {
+                  step: "04",
+                  title: "Score & CMR Re-Index",
+                  desc: "Final verification of updated bureau records, clean NOC updates, and restored creditworthiness.",
+                  icon: "trending_up",
+                },
+              ].map((item) => (
+                <div
+                  key={item.step}
+                  className="p-6 rounded-2xl bg-[#0a1426]/70 border border-slate-800 hover:border-cyan-500/30 transition-all backdrop-blur-md"
                 >
-                  Need Help? We're Here For You
-                </Typography>
-
-                <Grid container spacing={3} sx={{ mb: 4 }}>
-                  <Grid item xs={12} sm={6} md={4} style={{ flex: "1" }}>
-                    <Box>
-                      <Typography
-                        variant="h6"
-                        sx={{ color: "#0ea5e9", fontWeight: 700, mb: 1 }}
-                      >
-                        📞 Call Us
-                      </Typography>
-                      <Typography sx={{ color: "#cbd5e1" }}>
-                        +91 92174-69202
-                      </Typography>
-                    </Box>
-                  </Grid>
-                  <Grid item xs={12} sm={6} md={4} style={{ flex: "1" }}>
-                    <Box>
-                      <Typography
-                        variant="h6"
-                        sx={{ color: "#0ea5e9", fontWeight: 700, mb: 1 }}
-                      >
-                        📧 Email Us
-                      </Typography>
-                      <Typography sx={{ color: "#cbd5e1" }}>
-                        info@creditdost.co.in
-                      </Typography>
-                    </Box>
-                  </Grid>
-                  <Grid item xs={12} sm={6} md={4} style={{ flex: "1" }}>
-                    <Box>
-                      <Typography
-                        variant="h6"
-                        sx={{ color: "#0ea5e9", fontWeight: 700, mb: 1 }}
-                      >
-                        🕒 Working Hours
-                      </Typography>
-                      <Typography sx={{ color: "#cbd5e1" }}>
-                        Mon-Sat: 10 AM - 6 PM
-                      </Typography>
-                    </Box>
-                  </Grid>
-                </Grid>
-
-                <Typography variant="body1" sx={{ color: "#94a3b8", mb: 3 }}>
-                  Expert consultation available • Quick response guaranteed
-                </Typography>
-              </Box>
-
-              <Box
-                sx={{
-                  position: "absolute",
-                  top: -50,
-                  right: -50,
-                  width: 200,
-                  height: 200,
-                  borderRadius: "50%",
-                  background:
-                    "radial-gradient(circle, rgba(14, 165, 233, 0.15) 0%, transparent 70%)",
-                }}
-              />
-              <Box
-                sx={{
-                  position: "absolute",
-                  bottom: -50,
-                  left: -50,
-                  width: 200,
-                  height: 200,
-                  borderRadius: "50%",
-                  background:
-                    "radial-gradient(circle, rgba(6, 182, 212, 0.15) 0%, transparent 70%)",
-                }}
-              />
-            </Box>
-          </Container>
-        </SectionBox>
-
-        {/* Footer */}
-      </PageBackground>
+                  <div className="text-xs font-mono text-cyan-400 font-bold mb-3">{item.step} // STAGE</div>
+                  <div className="w-10 h-10 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center mb-4 border border-cyan-500/20">
+                    <span className="material-symbols-outlined text-xl">{item.icon}</span>
+                  </div>
+                  <h4 className="text-white font-bold font-['Sora'] text-base mb-2">{item.title}</h4>
+                  <p className="text-slate-400 text-xs leading-relaxed">{item.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      </main>
 
       <HomePageFooter />
-    </>
+    </div>
   );
 };
 

@@ -62,6 +62,7 @@ const CreditScoreRepair = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [problemTypeFilter, setProblemTypeFilter] = useState("all");
+  const [enquiryTypeFilter, setEnquiryTypeFilter] = useState("all");
 
   // Modals
   const [viewModalOpen, setViewModalOpen] = useState(false);
@@ -80,6 +81,7 @@ const CreditScoreRepair = () => {
         ...(searchTerm.trim() && { search: searchTerm.trim() }),
         ...(statusFilter !== "all" && { status: statusFilter }),
         ...(problemTypeFilter !== "all" && { problemType: problemTypeFilter }),
+        ...(enquiryTypeFilter !== "all" && { enquiryType: enquiryTypeFilter }),
       };
       const response = await adminAPI.getCreditRepairEnquiries(params);
       setEnquiries(response.data.enquiries || []);
@@ -95,7 +97,7 @@ const CreditScoreRepair = () => {
   useEffect(() => {
     fetchEnquiries();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, statusFilter, problemTypeFilter]);
+  }, [page, statusFilter, problemTypeFilter, enquiryTypeFilter]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -211,12 +213,12 @@ const CreditScoreRepair = () => {
       {/* Filters */}
       <Paper sx={{ p: 2, mb: 3, borderRadius: 2 }}>
         <Grid container spacing={2} alignItems="center">
-          <Grid item xs={12} md={5}>
+          <Grid item xs={12} md={4}>
             <form onSubmit={handleSearch} style={{ display: "flex", gap: "8px" }}>
               <TextField
                 fullWidth
                 size="small"
-                label="Search by name, mobile, or email"
+                label="Search by name, mobile, email, or company"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -224,6 +226,23 @@ const CreditScoreRepair = () => {
                 <SearchIcon />
               </Button>
             </form>
+          </Grid>
+          <Grid item xs={12} sm={4} md={2.5}>
+            <FormControl fullWidth size="small">
+              <InputLabel>Type</InputLabel>
+              <Select
+                value={enquiryTypeFilter}
+                label="Type"
+                onChange={(e) => {
+                  setEnquiryTypeFilter(e.target.value);
+                  setPage(1);
+                }}
+              >
+                <MenuItem value="all">All Types</MenuItem>
+                <MenuItem value="individual">Individual Customer</MenuItem>
+                <MenuItem value="corporate">Corporate CMR</MenuItem>
+              </Select>
+            </FormControl>
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
             <FormControl fullWidth size="small">
@@ -271,14 +290,14 @@ const CreditScoreRepair = () => {
           <TableHead sx={{ backgroundColor: "#f5f5f5" }}>
             <TableRow>
               <TableCell sx={{ fontWeight: 700 }}>Date</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>Full Name</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>Type</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>Client / Company</TableCell>
               <TableCell sx={{ fontWeight: 700 }}>Contact</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>Credit Score</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>Score / CMR</TableCell>
               <TableCell sx={{ fontWeight: 700 }}>Problem Type</TableCell>
               <TableCell sx={{ fontWeight: 700 }}>Location</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>Occupation</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>Income</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>Language</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>Occupation / Entity</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>Income / Turnover</TableCell>
               <TableCell sx={{ fontWeight: 700 }}>Status</TableCell>
               <TableCell sx={{ fontWeight: 700, textAlign: "center" }}>Actions</TableCell>
             </TableRow>
@@ -310,22 +329,67 @@ const CreditScoreRepair = () => {
                   <TableCell sx={{ whiteSpace: "nowrap" }}>
                     {new Date(enq.createdAt).toLocaleDateString()}
                   </TableCell>
-                  <TableCell sx={{ fontWeight: 500 }}>{enq.fullName}</TableCell>
+                  <TableCell>
+                    {enq.enquiryType === "corporate" ? (
+                      <Chip
+                        label="Corporate CMR"
+                        size="small"
+                        sx={{
+                          bgcolor: "rgba(16, 185, 129, 0.15)",
+                          color: "#10b981",
+                          fontWeight: 700,
+                          fontSize: "0.72rem",
+                          border: "1px solid rgba(16, 185, 129, 0.4)",
+                        }}
+                      />
+                    ) : (
+                      <Chip
+                        label="Individual"
+                        size="small"
+                        sx={{
+                          bgcolor: "rgba(14, 165, 233, 0.15)",
+                          color: "#0ea5e9",
+                          fontWeight: 700,
+                          fontSize: "0.72rem",
+                          border: "1px solid rgba(14, 165, 233, 0.4)",
+                        }}
+                      />
+                    )}
+                  </TableCell>
+                  <TableCell sx={{ fontWeight: 500 }}>
+                    <div>{enq.fullName}</div>
+                    {enq.companyName && (
+                      <Typography variant="caption" sx={{ color: "primary.main", fontWeight: 600, display: "block" }}>
+                        {enq.companyName} {enq.designation ? `(${enq.designation})` : ""}
+                      </Typography>
+                    )}
+                  </TableCell>
                   <TableCell>
                     <Typography variant="body2">{enq.mobileNumber}</Typography>
                     <Typography variant="caption" color="textSecondary">
                       {enq.email}
                     </Typography>
                   </TableCell>
-                  <TableCell>{enq.creditScore || "—"}</TableCell>
+                  <TableCell>
+                    {enq.enquiryType === "corporate"
+                      ? (enq.cmrRank ? `Rank ${enq.cmrRank}` : "—")
+                      : (enq.creditScore || "—")}
+                  </TableCell>
                   <TableCell>{enq.problemType}</TableCell>
                   <TableCell>
                     {enq.city ? `${enq.city}, ` : ""}
                     {enq.state}
                   </TableCell>
-                  <TableCell>{enq.occupation || "—"}</TableCell>
-                  <TableCell>{enq.income ? `₹${enq.income}` : "—"}</TableCell>
-                  <TableCell>{enq.language || "—"}</TableCell>
+                  <TableCell>
+                    {enq.enquiryType === "corporate"
+                      ? (enq.entityType || "—")
+                      : (enq.occupation || "—")}
+                  </TableCell>
+                  <TableCell>
+                    {enq.enquiryType === "corporate"
+                      ? (enq.turnoverRange || "—")
+                      : (enq.income ? `₹${enq.income}` : "—")}
+                  </TableCell>
                   <TableCell>
                     <FormControl size="small" variant="outlined" sx={{ minWidth: 120 }}>
                       <Select
@@ -399,18 +463,66 @@ const CreditScoreRepair = () => {
         <DialogTitle sx={{ fontWeight: 700 }}>
           Inquiry Details — {selectedEnquiry?.fullName}
           <Chip
+            label={selectedEnquiry?.enquiryType === "corporate" ? "Corporate CMR" : "Individual"}
+            color={selectedEnquiry?.enquiryType === "corporate" ? "success" : "info"}
+            size="small"
+            sx={{ ml: 1.5, verticalAlign: "middle" }}
+          />
+          <Chip
             label={selectedEnquiry?.status || "New"}
             color={STATUS_COLORS[selectedEnquiry?.status] || "default"}
             size="small"
-            sx={{ ml: 2, verticalAlign: "middle" }}
+            sx={{ ml: 1, verticalAlign: "middle" }}
           />
         </DialogTitle>
         <Divider />
         <DialogContent>
           {selectedEnquiry && (
             <Grid container spacing={2} sx={{ pt: 1 }}>
+              {selectedEnquiry.enquiryType === "corporate" && (
+                <>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="caption" color="textSecondary">Company / Business Name</Typography>
+                    <Typography variant="body1" gutterBottom sx={{ fontWeight: 700, color: "primary.main" }}>
+                      {selectedEnquiry.companyName || "—"}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="caption" color="textSecondary">Entity Constitution</Typography>
+                    <Typography variant="body1" gutterBottom sx={{ fontWeight: 500 }}>
+                      {selectedEnquiry.entityType || "—"}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="caption" color="textSecondary">Authorized Person & Role</Typography>
+                    <Typography variant="body1" gutterBottom>
+                      {selectedEnquiry.fullName} {selectedEnquiry.designation ? `(${selectedEnquiry.designation})` : ""}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="caption" color="textSecondary">Annual Turnover Range</Typography>
+                    <Typography variant="body1" gutterBottom sx={{ fontWeight: 600 }}>
+                      {selectedEnquiry.turnoverRange || "—"}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="caption" color="textSecondary">Reported CMR Rank</Typography>
+                    <Typography variant="body1" gutterBottom sx={{ fontWeight: 700, color: "warning.main" }}>
+                      {selectedEnquiry.cmrRank ? `Rank ${selectedEnquiry.cmrRank}` : "Not provided"}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="caption" color="textSecondary">GSTIN / Company PAN</Typography>
+                    <Typography variant="body1" gutterBottom sx={{ fontFamily: "monospace" }}>
+                      {selectedEnquiry.gstNumber || "—"}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12}><Divider /></Grid>
+                </>
+              )}
+
               <Grid item xs={12} sm={6}>
-                <Typography variant="caption" color="textSecondary">Full Name</Typography>
+                <Typography variant="caption" color="textSecondary">Contact Person</Typography>
                 <Typography variant="body1" gutterBottom sx={{ fontWeight: 500 }}>
                   {selectedEnquiry.fullName}
                 </Typography>

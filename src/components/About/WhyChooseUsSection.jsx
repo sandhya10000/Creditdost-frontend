@@ -1,236 +1,98 @@
-import React, { useState, useEffect } from 'react';
+import React from "react";
+import { Link } from "react-router-dom";
+
+const reasons = [
+  {
+    icon: "badge",
+    title: "Experienced Bureau Specialists",
+    description: "Deep credit-bureau dispute expertise with a proven track record in resolving complex CIBIL issues.",
+  },
+  {
+    icon: "gavel",
+    title: "100% Legally Compliant",
+    description: "Every dispute adheres strictly to statutory rights under Section 21 of CICRA 2005 and RBI regulations.",
+  },
+  {
+    icon: "tune",
+    title: "Tailored Case Roadmaps",
+    description: "Customized strategies built around your exact loan settlement, DPD status, or bureau inaccuracies.",
+  },
+  {
+    icon: "trending_up",
+    title: "High Resolution Rate",
+    description: "Demonstrated success in expunging false late marks, wrongful written-offs, and unauthorized inquiries.",
+  },
+  {
+    icon: "schedule",
+    title: "Continuous Progress Tracking",
+    description: "Clear milestone updates throughout every phase of bank nodal and bureau correspondence.",
+  },
+  {
+    icon: "public",
+    title: "Pan-India Dedicated Support",
+    description: "Direct representation across 200+ partner banks, NBFCs, and financial institutions nationwide.",
+  },
+];
 
 const WhyChooseUsSection = () => {
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-  const reasons = [
-    {
-      icon: '👥',
-      title: 'Experienced Team',
-      description: 'Deep credit-bureau expertise with proven track record in credit correction.'
-    },
-    {
-      icon: '⚖️',
-      title: 'Legally Compliant',
-      description: '100% legally compliant dispute process following all regulatory guidelines.'
-    },
-    {
-      icon: '🎯',
-      title: 'Personalized Solutions',
-      description: 'Customized approaches for each client based on their unique credit situation.'
-    },
-    {
-      icon: '📊',
-      title: 'High Success Rate',
-      description: 'Proven success in error correction and significant score improvement.'
-    },
-    {
-      icon: '🏆',
-      title: 'Trusted Training',
-      description: 'Trusted by professionals trained under Credit Dost Learning programs.'
-    },
-    {
-      icon: '🤝',
-      title: 'Continuous Support',
-      description: 'End-to-end guidance and support throughout your credit improvement journey.'
-    }
-  ];
-
   return (
-    <div style={{
-      padding: isMobile ? '40px 16px' : '80px 20px',
-      backgroundColor: '#ffffff',
-      position: 'relative',
-      overflow: 'hidden',
-    }}>
-      
-      {/* Background Elements - Hide on mobile */}
-      {!isMobile && (
-        <>
-          <div style={{
-            position: 'absolute',
-            top: '10%',
-            left: '5%',
-            width: '200px',
-            height: '200px',
-            background: 'radial-gradient(circle, rgba(8, 145, 178, 0.05) 0%, transparent 70%)',
-            borderRadius: '50%',
-            animation: 'float 6s ease-in-out infinite',
-          }} />
-          
-          <div style={{
-            position: 'absolute',
-            bottom: '15%',
-            right: '8%',
-            width: '250px',
-            height: '250px',
-            background: 'radial-gradient(circle, rgba(6, 182, 212, 0.04) 0%, transparent 70%)',
-            borderRadius: '50%',
-            animation: 'float 8s ease-in-out infinite reverse',
-          }} />
-        </>
-      )}
-
-      <div style={{
-        maxWidth: '1200px',
-        margin: '0 auto',
-        position: 'relative',
-        zIndex: 1,
-      }}>
-        
+    <section className="w-full py-16 lg:py-20 relative">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
         {/* Header */}
-        <div style={{
-          textAlign: 'center',
-          marginBottom: isMobile ? '40px' : '60px',
-        }}>
-          <div style={{
-            color: '#0891b2',
-            fontSize: isMobile ? '0.8rem' : '0.9rem',
-            fontWeight: '600',
-            letterSpacing: isMobile ? '1.5px' : '2px',
-            marginBottom: isMobile ? '8px' : '12px',
-          }}>
-            WHY CHOOSE US
+        <div className="text-center max-w-3xl mx-auto mb-14">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 font-label-code text-xs text-cyan-400 mb-3">
+            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+            <span>WHY CHOOSE US</span>
           </div>
-          
-          <h2 style={{
-            fontSize: isMobile ? '1.75rem' : 'clamp(2rem, 4vw, 2.75rem)',
-            fontWeight: '700',
-            color: '#0f172a',
-            marginBottom: isMobile ? '12px' : '16px',
-            lineHeight: 1.2,
-            padding: isMobile ? '0 10px' : '0',
-          }}>
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white font-['Sora'] tracking-tight">
             The Credit Dost Advantage
           </h2>
-          
-          <p style={{
-            color: '#64748b',
-            fontSize: isMobile ? '1rem' : '1.1rem',
-            maxWidth: '600px',
-            margin: '0 auto',
-            lineHeight: 1.6,
-            padding: isMobile ? '0 16px' : '0',
-          }}>
-            Experience the difference with our proven approach to credit score improvement
+          <p className="text-slate-300 text-sm sm:text-base mt-3 leading-relaxed">
+            Why thousands of borrowers across India trust Credit Dost to restore their credit reputation and unlock prime loan approvals.
           </p>
         </div>
 
-        {/* Reasons Grid */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(350px, 1fr))',
-          gap: isMobile ? '20px' : '30px',
-          marginBottom: isMobile ? '40px' : '60px',
-          padding: isMobile ? '0 8px' : '0',
-        }}>
-          {reasons.map((reason, index) => (
+        {/* 6 Advantage Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {reasons.map((item, idx) => (
             <div
-              key={index}
-              style={{
-                display: 'flex',
-                alignItems: isMobile ? 'flex-start' : 'flex-start',
-                gap: isMobile ? '16px' : '20px',
-                padding: isMobile ? '24px' : '30px',
-                backgroundColor: '#f8f9fa',
-                borderRadius: '16px',
-                transition: isMobile ? 'all 0.2s ease' : 'all 0.3s ease',
-                ...(isMobile && {
-                  minHeight: '120px',
-                }),
-              }}
-              onMouseOver={(e) => {
-                if (!isMobile) {
-                  e.currentTarget.style.transform = 'translateY(-5px)';
-                  e.currentTarget.style.backgroundColor = '#e0f2fe';
-                  e.currentTarget.style.boxShadow = '0 10px 30px rgba(8, 145, 178, 0.1)';
-                }
-              }}
-              onMouseOut={(e) => {
-                if (!isMobile) {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.backgroundColor = '#f8f9fa';
-                  e.currentTarget.style.boxShadow = 'none';
-                }
-              }}
-              onClick={(e) => {
-                if (isMobile) {
-                  // Toggle mobile active state
-                  const isActive = e.currentTarget.style.backgroundColor === 'rgb(224, 242, 254)';
-                  e.currentTarget.style.backgroundColor = isActive ? '#f8f9fa' : '#e0f2fe';
-                  e.currentTarget.style.boxShadow = isActive 
-                    ? 'none' 
-                    : '0 5px 20px rgba(8, 145, 178, 0.15)';
-                  e.currentTarget.style.transform = isActive 
-                    ? 'translateY(0)' 
-                    : 'translateY(-3px)';
-                }
-              }}
+              key={idx}
+              className="p-6 sm:p-7 rounded-2xl glass-panel border border-slate-800/80 hover:border-cyan-500/40 hover:shadow-[0_0_25px_rgba(0,210,255,0.12)] transition-all flex flex-col justify-between group"
             >
-              {/* Icon */}
-              <div style={{
-                fontSize: isMobile ? '2rem' : '2.5rem',
-                flexShrink: 0,
-                ...(isMobile && {
-                  marginTop: '2px',
-                }),
-              }}>
-                {reason.icon}
-              </div>
-              
-              {/* Content */}
-              <div style={{
-                flex: 1,
-                minWidth: 0, // Prevent text overflow
-              }}>
-                <h3 style={{
-                  fontSize: isMobile ? '1.125rem' : '1.25rem',
-                  fontWeight: '600',
-                  color: '#0f172a',
-                  marginBottom: isMobile ? '8px' : '12px',
-                  lineHeight: 1.3,
-                }}>
-                  {reason.title}
+              <div>
+                <div className="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+                  <span className="material-symbols-outlined text-2xl">{item.icon}</span>
+                </div>
+                <h3 className="text-lg font-bold text-white font-['Sora'] mb-2.5 group-hover:text-cyan-400 transition-colors">
+                  {item.title}
                 </h3>
-                <p style={{
-                  color: '#64748b',
-                  fontSize: isMobile ? '0.9rem' : '0.95rem',
-                  lineHeight: 1.6,
-                  margin: 0,
-                }}>
-                  {reason.description}
+                <p className="text-slate-400 text-xs sm:text-sm leading-relaxed">
+                  {item.description}
                 </p>
               </div>
             </div>
           ))}
         </div>
 
-        {/* Bottom CTA */}
-        {/* Add CTA if needed */}
+        {/* Action Callout Banner */}
+        <div className="mt-14 p-8 sm:p-10 rounded-3xl bg-gradient-to-r from-[#09152e] via-[#0b1c3c] to-[#09152e] border border-cyan-500/30 shadow-[0_0_35px_rgba(0,210,255,0.15)] flex flex-col sm:flex-row items-center justify-between gap-6">
+          <div>
+            <h3 className="text-xl sm:text-2xl font-bold text-white font-['Sora']">
+              Ready to Restore Your Credit Health?
+            </h3>
+            <p className="text-slate-300 text-xs sm:text-sm mt-1 max-w-xl">
+              Get an instant assessment of your credit score across all four Indian bureaus with zero negative impact.
+            </p>
+          </div>
+          <Link
+            to="/credit-check"
+            className="px-6 py-3.5 rounded-xl bg-gradient-to-r from-cyan-400 via-[#0084ff] to-[#0052ff] text-slate-950 font-bold text-sm shadow-[0_0_20px_rgba(0,210,255,0.35)] hover:scale-105 active:scale-95 transition-all shrink-0 text-center"
+          >
+            Check Free Bureau Score
+          </Link>
+        </div>
       </div>
-
-      <style>{`
-        @keyframes float {
-          0%, 100% {
-            transform: translateY(0px);
-          }
-          50% {
-            transform: translateY(-15px);
-          }
-        }
-      `}</style>
-    </div>
+    </section>
   );
 };
 
