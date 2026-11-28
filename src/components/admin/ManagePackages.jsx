@@ -332,7 +332,7 @@ const ManagePackages = () => {
                 </Stack>
               </FormSection>
 
-              <FormSection title="Pricing" hint="Partners pay the total. GST is added on top of the base price.">
+              <FormSection title="Pricing" hint="The price includes GST.">
                 <Grid container spacing={2}>
                   <Grid item xs={12} sm={6}>
                     <TextField
@@ -359,7 +359,7 @@ const ManagePackages = () => {
                     />
                   </Grid>
                   <Grid item xs={12}>
-                    <PricePreview price={formData.price} gstPercentage={formData.gstPercentage} accent={ACCENT} />
+                    <PricePreview price={formData.price} accent={ACCENT} />
                   </Grid>
                 </Grid>
               </FormSection>

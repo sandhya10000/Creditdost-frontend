@@ -471,10 +471,6 @@ const CreditCheck = () => {
     setFormData((prev) => ({ ...prev, mobile: value }));
   };
 
-  const lockedUntilText = prefillLock
-    ? new Date(prefillLock.until).toLocaleString("en-IN")
-    : "";
-
   return (
     <Box>
       <Typography variant="h4" gutterBottom>
@@ -574,9 +570,10 @@ const CreditCheck = () => {
               >
                 <CircularProgress color="primary" />
               </Backdrop>
-              {prefillLock && (
+              {/* Hidden once a check reports an error, so only the top alert shows */}
+              {prefillLock && !error && (
                 <Alert severity="warning" sx={{ mb: 3 }}>
-                  The details did not match our records. Mobile number and PAN are locked until {lockedUntilText}.
+                  No Data Found
                 </Alert>
               )}
               <Grid container spacing={3}>
@@ -619,9 +616,7 @@ const CreditCheck = () => {
                       pattern: "[0-9]{10}",
                     }}
                     helperText={
-                      prefillLock
-                        ? "Locked until " + lockedUntilText
-                        : "Enter exactly 10 digits without spaces or dashes"
+                      prefillLock ? "" : "Enter exactly 10 digits without spaces or dashes"
                     }
                   />
                 </Grid>
@@ -654,11 +649,7 @@ const CreditCheck = () => {
                         WebkitTextFillColor: "#999", //  text grey
                       },
                     }}
-                    helperText={
-                      prefillLock
-                        ? "Locked until " + lockedUntilText
-                        : "PAN number (e.g., ABCDE1234F)"
-                    }
+                    helperText={prefillLock ? "" : "PAN number (e.g., ABCDE1234F)"}
                   />
                 </Grid>
 

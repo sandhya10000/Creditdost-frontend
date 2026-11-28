@@ -41,16 +41,6 @@ const formatINR = (value) => {
   return `₹${number.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
 };
 
-// Base price, GST amount and total for a package
-const priceBreakdown = (price, gstPercentage) => {
-  if (price === '' || price === null || price === undefined) return null;
-  const base = Number(price);
-  if (!Number.isFinite(base)) return null;
-  const rate = Number(gstPercentage) || 0;
-  const gst = (base * rate) / 100;
-  return { base, rate, gst, total: base + gst };
-};
-
 export const PackageHeader = ({ title, subtitle, actionLabel, onAction, accent }) => (
   <Stack
     direction={{ xs: 'column', sm: 'row' }}
@@ -138,7 +128,6 @@ export const PackageStats = ({ total, active, inactive, accent }) => (
 // One package card: name and status with edit/delete at the top, description, price with
 // GST and credits chips, check-mark features, an optional tag and a visibility footer.
 export const PackageCard = ({ pkg, accent, onEdit, onDelete, onToggle, busy, footer }) => {
-  const price = priceBreakdown(pkg.price, pkg.gstPercentage);
   const features = pkg.features || [];
   const visibleFeatures = features.slice(0, MAX_VISIBLE_FEATURES);
   const hiddenCount = features.length - visibleFeatures.length;
@@ -208,15 +197,8 @@ export const PackageCard = ({ pkg, accent, onEdit, onDelete, onToggle, busy, foo
         <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
           <Stack direction="row" alignItems="center" spacing={1} sx={{ minWidth: 0 }}>
             <Typography variant="h6" fontWeight={700} lineHeight={1.2}>
-              {price ? formatINR(price.total) : '—'}
+              {pkg.price !== '' && pkg.price != null ? formatINR(pkg.price) : '—'}
             </Typography>
-            {price && (
-              <Chip
-                size="small"
-                label={`+${price.rate}% GST`}
-                sx={{ height: 20, fontSize: 11, fontWeight: 600, bgcolor: tint(accent, 0.1), color: accent }}
-              />
-            )}
           </Stack>
           <Chip
             size="small"
@@ -352,44 +334,17 @@ export const FormSection = ({ title, hint, children }) => (
   </Box>
 );
 
-// Live price preview inside the form
-export const PricePreview = ({ price, gstPercentage, accent }) => {
-  const breakdown = priceBreakdown(price, gstPercentage);
-  const cells = breakdown
-    ? [
-        { label: 'Base', value: formatINR(breakdown.base) },
-        { label: `GST ${breakdown.rate}%`, value: formatINR(breakdown.gst) },
-        { label: 'Customer pays', value: formatINR(breakdown.total), strong: true },
-      ]
-    : null;
-
+// Price preview inside the form. The price already includes GST.
+export const PricePreview = ({ price, accent }) => {
+  const hasPrice = price !== '' && price != null && Number.isFinite(Number(price));
   return (
-    <Box
-      sx={{
-        p: 2,
-        borderRadius: 3,
-        bgcolor: tint(accent, 0.06),
-        display: 'grid',
-        gridTemplateColumns: 'repeat(3, 1fr)',
-        gap: 1,
-      }}
-    >
-      {cells ? (
-        cells.map((cell) => (
-          <Box key={cell.label}>
-            <Typography variant="caption" color="text.secondary" display="block">
-              {cell.label}
-            </Typography>
-            <Typography fontWeight={cell.strong ? 700 : 600} sx={{ color: cell.strong ? accent : 'text.primary' }}>
-              {cell.value}
-            </Typography>
-          </Box>
-        ))
-      ) : (
-        <Typography variant="body2" color="text.secondary" sx={{ gridColumn: '1 / -1' }}>
-          Enter a base price to see the total.
-        </Typography>
-      )}
+    <Box sx={{ p: 2, borderRadius: 3, bgcolor: tint(accent, 0.06) }}>
+      <Typography variant="caption" color="text.secondary" display="block">
+        Price (includes GST)
+      </Typography>
+      <Typography fontWeight={700} sx={{ color: accent }}>
+        {hasPrice ? formatINR(price) : 'Enter a price'}
+      </Typography>
     </Box>
   );
 };

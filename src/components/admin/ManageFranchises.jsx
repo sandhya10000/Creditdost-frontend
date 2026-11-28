@@ -168,6 +168,7 @@ const COLUMNS = [
   { key: "partner", label: "Partner", width: 230 },
   { key: "owner", label: "Owner", width: 170 },
   { key: "email", label: "Email & Login", width: 240 },
+  { key: "plan", label: "Active Plan", width: 200 },
   { key: "kyc", label: "KYC", width: 125 },
   { key: "status", label: "Status", width: 120 },
   { key: "credits", label: "Credits", width: 90 },
@@ -221,6 +222,8 @@ const CellText = ({ children, ...props }) => (
 
 const ManageFranchises = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  // Plan filter: a package id, "none" for partners without a plan, or "" for all
+  const [planFilter, setPlanFilter] = useState("");
   // The term the list is actually filtered by (typed text is applied after a short pause or on submit)
   const [appliedSearch, setAppliedSearch] = useState("");
   const [loading, setLoading] = useState(false);
@@ -262,6 +265,11 @@ const ManageFranchises = () => {
     ? requestedStatus
     : DEFAULT_STATUS[view];
   const isDeletedView = view === "deleted";
+  // Active tab: no KYC column and no status toggle (partners here are already approved)
+  const isActiveView = view === "active";
+  const visibleColumns = isActiveView
+    ? COLUMNS.filter((col) => col.key !== "kyc" && col.key !== "status")
+    : COLUMNS;
 
   // Certificate name update state
   const [certificateDialogOpen, setCertificateDialogOpen] = useState(false);
@@ -309,7 +317,7 @@ const ManageFranchises = () => {
   // Reload data when page, search, tab or KYC filter changes
   useEffect(() => {
     fetchFranchises();
-  }, [page, view, status, appliedSearch]);
+  }, [page, view, status, appliedSearch, planFilter]);
 
   // Fetch all franchises and packages on component mount
   useEffect(() => {
@@ -365,6 +373,7 @@ const ManageFranchises = () => {
         limit: rowsPerPage,
         search: appliedSearch,
         ...queryFor(view, status),
+        ...(planFilter ? { packageId: planFilter } : {}),
       });
       if (requestId !== requestRef.current) return;
 
@@ -1164,7 +1173,11 @@ const ManageFranchises = () => {
       setCsvExporting(true);
 
       // Same tab, KYC filter and search as the list view
-      const params = { search: appliedSearch, ...queryFor(view, status) };
+      const params = {
+        search: appliedSearch,
+        ...queryFor(view, status),
+        ...(planFilter ? { packageId: planFilter } : {}),
+      };
 
       const response = await adminAPI.exportFranchisesCSV(params);
 
@@ -1498,6 +1511,26 @@ const ManageFranchises = () => {
             />
           </Box>
 
+          <TextField
+            select
+            size="small"
+            label="Plan"
+            value={planFilter}
+            onChange={(e) => {
+              setPlanFilter(e.target.value);
+              setPage(1);
+            }}
+            sx={{ minWidth: 200 }}
+          >
+            <MenuItem value="">All plans</MenuItem>
+            <MenuItem value="none">No plan</MenuItem>
+            {packages.map((pkg) => (
+              <MenuItem key={pkg._id} value={pkg._id}>
+                {pkg.name}
+              </MenuItem>
+            ))}
+          </TextField>
+
           {statusOptions && (
             <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap alignItems="center">
               <Typography variant="body2" color="text.secondary">
@@ -1559,7 +1592,7 @@ const ManageFranchises = () => {
                   },
                 }}
               >
-                {COLUMNS.map((col) => (
+                {visibleColumns.map((col) => (
                   <TableCell key={col.key} align={col.align} sx={{ width: col.width }}>
                     {col.label}
                   </TableCell>
@@ -1570,7 +1603,7 @@ const ManageFranchises = () => {
               {filteredFranchises.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={COLUMNS.length}
+                    colSpan={visibleColumns.length}
                     sx={{ py: 8, textAlign: "center", borderBottom: 0 }}
                   >
                     {loading ? (
@@ -1692,14 +1725,34 @@ const ManageFranchises = () => {
                         )}
                       </TableCell>
 
-                      {/* KYC */}
-                      <TableCell>{getStatusChip(franchise.kycStatus || "pending")}</TableCell>
+                      {/* Active plan */}
+                      <TableCell>
+                        {(franchise.assignedPackages || []).filter((pkg) => pkg?.name).length === 0 ? (
+                          <Typography variant="body2" color="text.secondary">
+                            No plan
+                          </Typography>
+                        ) : (
+                          <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
+                            {franchise.assignedPackages
+                              .filter((pkg) => pkg?.name)
+                              .map((pkg) => (
+                                <Chip key={pkg._id} size="small" label={pkg.name} variant="outlined" />
+                              ))}
+                          </Stack>
+                        )}
+                      </TableCell>
 
-                      {/* Status */}
+                      {/* KYC (not on the Active tab) */}
+                      {!isActiveView && (
+                        <TableCell>{getStatusChip(franchise.kycStatus || "pending")}</TableCell>
+                      )}
+
+                      {/* Status (not on the Active tab) */}
+                      {!isActiveView && (
                       <TableCell>
                         {isDeletedView ? (
                           <Chip size="small" label="Deleted" variant="outlined" />
-                        ) : (
+                        ) : isActiveView ? null : (
                           <Stack direction="row" alignItems="center" spacing={0.5}>
                             <Switch
                               size="small"
@@ -1729,6 +1782,7 @@ const ManageFranchises = () => {
                           </Tooltip>
                         )}
                       </TableCell>
+                      )}
 
                       {/* Credits */}
                       <TableCell>

@@ -795,22 +795,117 @@ const Business = ({
                 <StepContent>
                   {index === 0 && (
                     <Box>
-                      <Typography
-                        variant="h6"
-                        gutterBottom
-                        sx={{
-                          fontSize: {
-                            xs: "1rem",
-                            sm: "1.25rem",
-                            md: "1.5rem",
-                          },
-                          fontWeight: 600,
-                        }}
-                      >
-                        Customer Information
-                      </Typography>
 
                       <Grid container spacing={2}>
+                        {/* Business customer details */}
+                        {formData.customerType === "business" && (
+                          <>
+                            <Grid item xs={12}>
+                              <Typography
+                                variant="subtitle1"
+                                sx={{ fontWeight: 600, mt: 1 }}
+                              >
+                                Business Details
+                              </Typography>
+                            </Grid>
+                            <Grid
+                              item
+                              xs={12}
+                              sm={6}
+                              sx={{ minWidth: { xs: "0px", md: "350px" } }}
+                            >
+                              <TextField
+                                required
+                                fullWidth
+                                label="Director Name"
+                                name="directorName"
+                                value={businessDetails.directorName}
+                                onChange={handleBusinessDetailChange}
+                              />
+                            </Grid>
+                            <Grid
+                              item
+                              xs={12}
+                              sm={6}
+                              sx={{ minWidth: { xs: "0px", md: "350px" } }}
+                            >
+                              <TextField
+                                required
+                                fullWidth
+                                label="GST Username"
+                                name="gstUsername"
+                                value={businessDetails.gstUsername}
+                                onChange={handleBusinessDetailChange}
+                              />
+                            </Grid>
+                            <Grid
+                              item
+                              xs={12}
+                              sm={6}
+                              sx={{ minWidth: { xs: "0px", md: "350px" } }}
+                            >
+                              <TextField
+                                required
+                                fullWidth
+                                label="GST Number"
+                                name="gstNumber"
+                                value={businessDetails.gstNumber}
+                                onChange={handleBusinessDetailChange}
+                                inputProps={{ maxLength: 15 }}
+                              />
+                            </Grid>
+                            <Grid
+                              item
+                              xs={12}
+                              sm={6}
+                              sx={{ minWidth: { xs: "0px", md: "350px" } }}
+                            >
+                              <FormControl
+                                fullWidth
+                                required
+                                style={{ minWidth: "200px" }}
+                              >
+                                <InputLabel>Company Type</InputLabel>
+                                <Select
+                                  name="companyType"
+                                  value={businessDetails.companyType}
+                                  onChange={handleBusinessDetailChange}
+                                  label="Company Type"
+                                >
+                                  {COMPANY_TYPES.map((type) => (
+                                    <MenuItem key={type} value={type}>
+                                      {type}
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+                              </FormControl>
+                            </Grid>
+                            <Grid
+                              item
+                              xs={12}
+                              sm={6}
+                              sx={{ minWidth: { xs: "0px", md: "350px" } }}
+                            >
+                              <TextField
+                                required
+                                fullWidth
+                                label="Company PAN Number"
+                                name="companyPanNumber"
+                                value={businessDetails.companyPanNumber}
+                                onChange={handleBusinessDetailChange}
+                                inputProps={{ maxLength: 10 }}
+                              />
+                            </Grid>
+                          </>
+                        )}
+
+                        {formData.customerType === "business" && (
+                          <Grid item xs={12}>
+                            <Typography variant="subtitle1" sx={{ fontWeight: 600, mt: 1 }}>
+                              Customer Details
+                            </Typography>
+                          </Grid>
+                        )}
                         {userType === "admin" && (
                           <Grid
                             item
@@ -1314,108 +1409,6 @@ const Business = ({
                             }}
                           />
                         </Grid>
-
-                        {/* Business customer details */}
-                        {formData.customerType === "business" && (
-                          <>
-                            <Grid item xs={12}>
-                              <Typography
-                                variant="subtitle1"
-                                sx={{ fontWeight: 600, mt: 1 }}
-                              >
-                                Business Details
-                              </Typography>
-                            </Grid>
-                            <Grid
-                              item
-                              xs={12}
-                              sm={6}
-                              sx={{ minWidth: { xs: "0px", md: "350px" } }}
-                            >
-                              <TextField
-                                required
-                                fullWidth
-                                label="Director Name"
-                                name="directorName"
-                                value={businessDetails.directorName}
-                                onChange={handleBusinessDetailChange}
-                              />
-                            </Grid>
-                            <Grid
-                              item
-                              xs={12}
-                              sm={6}
-                              sx={{ minWidth: { xs: "0px", md: "350px" } }}
-                            >
-                              <TextField
-                                required
-                                fullWidth
-                                label="GST Username"
-                                name="gstUsername"
-                                value={businessDetails.gstUsername}
-                                onChange={handleBusinessDetailChange}
-                              />
-                            </Grid>
-                            <Grid
-                              item
-                              xs={12}
-                              sm={6}
-                              sx={{ minWidth: { xs: "0px", md: "350px" } }}
-                            >
-                              <TextField
-                                required
-                                fullWidth
-                                label="GST Number"
-                                name="gstNumber"
-                                value={businessDetails.gstNumber}
-                                onChange={handleBusinessDetailChange}
-                                inputProps={{ maxLength: 15 }}
-                              />
-                            </Grid>
-                            <Grid
-                              item
-                              xs={12}
-                              sm={6}
-                              sx={{ minWidth: { xs: "0px", md: "350px" } }}
-                            >
-                              <FormControl
-                                fullWidth
-                                required
-                                style={{ minWidth: "200px" }}
-                              >
-                                <InputLabel>Company Type</InputLabel>
-                                <Select
-                                  name="companyType"
-                                  value={businessDetails.companyType}
-                                  onChange={handleBusinessDetailChange}
-                                  label="Company Type"
-                                >
-                                  {COMPANY_TYPES.map((type) => (
-                                    <MenuItem key={type} value={type}>
-                                      {type}
-                                    </MenuItem>
-                                  ))}
-                                </Select>
-                              </FormControl>
-                            </Grid>
-                            <Grid
-                              item
-                              xs={12}
-                              sm={6}
-                              sx={{ minWidth: { xs: "0px", md: "350px" } }}
-                            >
-                              <TextField
-                                required
-                                fullWidth
-                                label="Company PAN Number"
-                                name="companyPanNumber"
-                                value={businessDetails.companyPanNumber}
-                                onChange={handleBusinessDetailChange}
-                                inputProps={{ maxLength: 10 }}
-                              />
-                            </Grid>
-                          </>
-                        )}
 
                         {amcEnabled && (
                           <>

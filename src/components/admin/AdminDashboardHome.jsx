@@ -20,6 +20,7 @@ import {
   InputLabel,
   MenuItem,
   Select,
+  Stack,
 } from "@mui/material";
 import PeopleIcon from "@mui/icons-material/People";
 import BusinessIcon from "@mui/icons-material/Business";
@@ -620,8 +621,15 @@ const AdminDashboardHome = () => {
     );
   }
 
-  // Credit analysts: only the Business MIS widgets
+  // Credit analysts: the four Business MIS numbers they work from
   if (isCreditAnalyst) {
+    const count = (value) => (misCounts ? value : "--");
+    const tiles = [
+      { label: "New businesses logged today", value: count(misCounts?.loggedToday), color: "#ef6c00" },
+      { label: "Follow-ups today", value: count(misCounts?.followUpToday), color: "#0288d1" },
+      { label: "Follow-ups this week", value: count(misCounts?.followUpThisWeek), color: "#5e35b1" },
+      { label: "Businesses closed", value: count(misCounts?.closed), color: "#2e7d32" },
+    ];
     return (
       <Box sx={{ flexGrow: 1, py: 3 }}>
         <Box sx={{ mb: 4 }}>
@@ -632,116 +640,31 @@ const AdminDashboardHome = () => {
             Welcome back, {user?.name}. Here's your Business MIS summary.
           </Typography>
         </Box>
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={6}>
-            <Card
-              sx={{
-                height: "100%",
-                borderRadius: 3,
-                border: "1px solid",
-                borderColor: "divider",
-                boxShadow: "none",
-              }}
-            >
-              <CardContent sx={{ p: 3 }}>
-                <MisWidgetHeader
-                  icon={<AssessmentIcon />}
-                  color="#ef6c00"
-                  title="Business MIS Logged"
-                  subtitle="New entries by day and month"
-                />
-                <Grid container spacing={2}>
-                  <Grid item xs={6}>
-                    <MisCountItem
-                      label="Logged today"
-                      value={misCounts ? misCounts.loggedToday : "--"}
-                      color="#ef6c00"
-                    />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <MisCountItem
-                      label="Logged this month"
-                      value={misCounts ? misCounts.loggedThisMonth : "--"}
-                      color="#1976d2"
-                    />
-                  </Grid>
-                </Grid>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          <Grid item xs={12} md={6}>
-            <Card
-              sx={{
-                height: "100%",
-                borderRadius: 3,
-                border: "1px solid",
-                borderColor: "divider",
-                boxShadow: "none",
-              }}
-            >
-              <CardContent sx={{ p: 3 }}>
-                <MisWidgetHeader
-                  icon={<CheckCircleIcon />}
-                  color="#2e7d32"
-                  title="Business MIS Status"
-                  subtitle="Work status of all entries"
-                />
-                <Grid container spacing={2}>
-                  <Grid item xs={6}>
-                    <MisCountItem
-                      label="Pending"
-                      value={misCounts ? misCounts.pending : "--"}
-                      color="#7b1fa2"
-                    />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <MisCountItem
-                      label="Closed"
-                      value={misCounts ? misCounts.closed : "--"}
-                      color="#2e7d32"
-                    />
-                  </Grid>
-                </Grid>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          <Grid item xs={12}>
-            <Card
-              sx={{
-                borderRadius: 3,
-                border: "1px solid",
-                borderColor: "divider",
-                boxShadow: "none",
-              }}
-            >
-              <CardContent sx={{ p: 3 }}>
-                <MisWidgetHeader
-                  icon={<EventAvailableIcon />}
-                  color="#0288d1"
-                  title="Follow-ups"
-                  subtitle="Customers scheduled to be contacted"
-                />
-                <Grid container spacing={2}>
-                  <Grid item xs={6}>
-                    <MisCountItem
-                      label="Follow-up today"
-                      value={misCounts ? misCounts.followUpToday : "--"}
-                      color="#0288d1"
-                    />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <MisCountItem
-                      label="Follow-ups this week"
-                      value={misCounts ? misCounts.followUpThisWeek : "--"}
-                      color="#5e35b1"
-                    />
-                  </Grid>
-                </Grid>
-              </CardContent>
-            </Card>
-          </Grid>
+        <Grid container spacing={2}>
+          {tiles.map((tile) => (
+            <Grid item xs={12} sm={6} md={3} key={tile.label}>
+              <Box
+                sx={{
+                  height: "100%",
+                  p: 2.5,
+                  borderRadius: 3,
+                  border: 1,
+                  borderColor: "divider",
+                  bgcolor: "background.paper",
+                }}
+              >
+                <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2.5 }}>
+                  <Box sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: tile.color }} />
+                  <Typography variant="body2" color="text.secondary" fontWeight={500}>
+                    {tile.label}
+                  </Typography>
+                </Stack>
+                <Typography variant="h4" fontWeight={600} letterSpacing="-0.02em" lineHeight={1}>
+                  {tile.value}
+                </Typography>
+              </Box>
+            </Grid>
+          ))}
         </Grid>
       </Box>
     );
